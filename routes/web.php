@@ -159,11 +159,6 @@ Route::get('/buy/product/{productSlug}/{quantity?}', [
     'addToCart',
 ])->name('buy.product');
 
-Route::get('/cart/clear', [
-    App\Http\Controllers\ProductCheckoutController::class,
-    'clearCart',
-])->name('cart.clear');
-
 Route::get('/checkout/product', [
     App\Http\Controllers\ProductCheckoutController::class,
     'productCheckout',
