@@ -398,22 +398,25 @@ class SubscriptionServiceTest extends FeatureTest
 
     public function test_is_user_subscribed_returns_false_for_null_user()
     {
+        $tenant = $this->createTenant();
         $service = app()->make(SubscriptionService::class);
 
-        $this->assertFalse($service->isUserSubscribed(null));
+        $this->assertFalse($service->isUserSubscribed(null, null, $tenant));
     }
 
     public function test_is_user_subscribed_returns_false_when_user_has_no_subscriptions()
     {
-        $user = $this->createUser();
+        $tenant = $this->createTenant();
+        $user = $this->createUser($tenant);
         $service = app()->make(SubscriptionService::class);
 
-        $this->assertFalse($service->isUserSubscribed($user));
+        $this->assertFalse($service->isUserSubscribed($user, null, $tenant));
     }
 
     public function test_is_user_subscribed_returns_true_when_user_has_active_subscription()
     {
-        $user = $this->createUser();
+        $tenant = $this->createTenant();
+        $user = $this->createUser($tenant);
         $plan = Plan::factory()->create(['is_active' => true]);
 
         Subscription::factory()->create([
@@ -421,16 +424,18 @@ class SubscriptionServiceTest extends FeatureTest
             'plan_id' => $plan->id,
             'status' => SubscriptionStatus::ACTIVE->value,
             'ends_at' => now()->addDays(30),
+            'tenant_id' => $tenant->id,
         ]);
 
         $service = app()->make(SubscriptionService::class);
 
-        $this->assertTrue($service->isUserSubscribed($user));
+        $this->assertTrue($service->isUserSubscribed($user, null, $tenant));
     }
 
     public function test_is_user_subscribed_returns_false_when_subscription_has_expired()
     {
-        $user = $this->createUser();
+        $tenant = $this->createTenant();
+        $user = $this->createUser($tenant);
         $plan = Plan::factory()->create(['is_active' => true]);
 
         Subscription::factory()->create([
@@ -438,16 +443,18 @@ class SubscriptionServiceTest extends FeatureTest
             'plan_id' => $plan->id,
             'status' => SubscriptionStatus::ACTIVE->value,
             'ends_at' => now()->subDays(1),
+            'tenant_id' => $tenant->id,
         ]);
 
         $service = app()->make(SubscriptionService::class);
 
-        $this->assertFalse($service->isUserSubscribed($user));
+        $this->assertFalse($service->isUserSubscribed($user, null, $tenant));
     }
 
     public function test_is_user_subscribed_returns_false_when_subscription_is_not_active()
     {
-        $user = $this->createUser();
+        $tenant = $this->createTenant();
+        $user = $this->createUser($tenant);
         $plan = Plan::factory()->create(['is_active' => true]);
 
         Subscription::factory()->create([
@@ -455,16 +462,18 @@ class SubscriptionServiceTest extends FeatureTest
             'plan_id' => $plan->id,
             'status' => SubscriptionStatus::CANCELED->value,
             'ends_at' => now()->addDays(30),
+            'tenant_id' => $tenant->id,
         ]);
 
         $service = app()->make(SubscriptionService::class);
 
-        $this->assertFalse($service->isUserSubscribed($user));
+        $this->assertFalse($service->isUserSubscribed($user, null, $tenant));
     }
 
     public function test_is_user_subscribed_returns_true_when_product_slug_matches()
     {
-        $user = $this->createUser();
+        $tenant = $this->createTenant();
+        $user = $this->createUser($tenant);
         $productSlug = Str::random();
         $product = Product::factory()->create(['slug' => $productSlug]);
         $plan = Plan::factory()->create([
@@ -477,16 +486,18 @@ class SubscriptionServiceTest extends FeatureTest
             'plan_id' => $plan->id,
             'status' => SubscriptionStatus::ACTIVE->value,
             'ends_at' => now()->addDays(30),
+            'tenant_id' => $tenant->id,
         ]);
 
         $service = app()->make(SubscriptionService::class);
 
-        $this->assertTrue($service->isUserSubscribed($user, $productSlug));
+        $this->assertTrue($service->isUserSubscribed($user, $productSlug, $tenant));
     }
 
     public function test_is_user_subscribed_returns_false_when_product_slug_does_not_match()
     {
-        $user = $this->createUser();
+        $tenant = $this->createTenant();
+        $user = $this->createUser($tenant);
         $productSlug = Str::random();
         $product = Product::factory()->create(['slug' => $productSlug]);
         $plan = Plan::factory()->create([
@@ -499,16 +510,18 @@ class SubscriptionServiceTest extends FeatureTest
             'plan_id' => $plan->id,
             'status' => SubscriptionStatus::ACTIVE->value,
             'ends_at' => now()->addDays(30),
+            'tenant_id' => $tenant->id,
         ]);
 
         $service = app()->make(SubscriptionService::class);
 
-        $this->assertFalse($service->isUserSubscribed($user, Str::random()));
+        $this->assertFalse($service->isUserSubscribed($user, Str::random(), $tenant));
     }
 
     public function test_is_user_subscribed_returns_true_when_product_slug_in_array()
     {
-        $user = $this->createUser();
+        $tenant = $this->createTenant();
+        $user = $this->createUser($tenant);
         $productSlug = Str::random();
         $product = Product::factory()->create(['slug' => $productSlug]);
         $plan = Plan::factory()->create([
@@ -521,16 +534,18 @@ class SubscriptionServiceTest extends FeatureTest
             'plan_id' => $plan->id,
             'status' => SubscriptionStatus::ACTIVE->value,
             'ends_at' => now()->addDays(30),
+            'tenant_id' => $tenant->id,
         ]);
 
         $service = app()->make(SubscriptionService::class);
 
-        $this->assertTrue($service->isUserSubscribed($user, [$productSlug, Str::random()]));
+        $this->assertTrue($service->isUserSubscribed($user, [$productSlug, Str::random()], $tenant));
     }
 
     public function test_is_user_subscribed_returns_false_when_product_slug_not_in_array()
     {
-        $user = $this->createUser();
+        $tenant = $this->createTenant();
+        $user = $this->createUser($tenant);
         $productSlug = Str::random();
         $product = Product::factory()->create(['slug' => $productSlug]);
         $plan = Plan::factory()->create([
@@ -543,18 +558,20 @@ class SubscriptionServiceTest extends FeatureTest
             'plan_id' => $plan->id,
             'status' => SubscriptionStatus::ACTIVE->value,
             'ends_at' => now()->addDays(30),
+            'tenant_id' => $tenant->id,
         ]);
 
         $service = app()->make(SubscriptionService::class);
 
-        $this->assertFalse($service->isUserSubscribed($user, [Str::random(), Str::random()]));
+        $this->assertFalse($service->isUserSubscribed($user, [Str::random(), Str::random()], $tenant));
     }
 
     public function test_is_user_subscribed_returns_true_with_multiple_active_subscriptions()
     {
         config()->set('app.multiple_subscriptions_enabled', true);
 
-        $user = $this->createUser();
+        $tenant = $this->createTenant();
+        $user = $this->createUser($tenant);
         $product1Slug = Str::random();
         $product2Slug = Str::random();
         $product3Slug = Str::random();
@@ -577,6 +594,7 @@ class SubscriptionServiceTest extends FeatureTest
             'plan_id' => $plan1->id,
             'status' => SubscriptionStatus::ACTIVE->value,
             'ends_at' => now()->addDays(30),
+            'tenant_id' => $tenant->id,
         ]);
 
         Subscription::factory()->create([
@@ -584,19 +602,21 @@ class SubscriptionServiceTest extends FeatureTest
             'plan_id' => $plan2->id,
             'status' => SubscriptionStatus::ACTIVE->value,
             'ends_at' => now()->addDays(30),
+            'tenant_id' => $tenant->id,
         ]);
 
         $service = app()->make(SubscriptionService::class);
 
-        $this->assertTrue($service->isUserSubscribed($user));
-        $this->assertTrue($service->isUserSubscribed($user, $product1Slug));
-        $this->assertTrue($service->isUserSubscribed($user, $product2Slug));
-        $this->assertFalse($service->isUserSubscribed($user, $product3Slug));
+        $this->assertTrue($service->isUserSubscribed($user, null, $tenant));
+        $this->assertTrue($service->isUserSubscribed($user, $product1Slug, $tenant));
+        $this->assertTrue($service->isUserSubscribed($user, $product2Slug, $tenant));
+        $this->assertFalse($service->isUserSubscribed($user, $product3Slug, $tenant));
     }
 
     public function test_is_user_subscribed_with_mixed_subscription_statuses()
     {
-        $user = $this->createUser();
+        $tenant = $this->createTenant();
+        $user = $this->createUser($tenant);
         $product1Slug = Str::random();
         $product2Slug = Str::random();
         $product3Slug = Str::random();
@@ -615,6 +635,7 @@ class SubscriptionServiceTest extends FeatureTest
             'plan_id' => $plan1->id,
             'status' => SubscriptionStatus::ACTIVE->value,
             'ends_at' => now()->addDays(30),
+            'tenant_id' => $tenant->id,
         ]);
 
         // Expired subscription
@@ -623,6 +644,7 @@ class SubscriptionServiceTest extends FeatureTest
             'plan_id' => $plan2->id,
             'status' => SubscriptionStatus::ACTIVE->value,
             'ends_at' => now()->subDays(1),
+            'tenant_id' => $tenant->id,
         ]);
 
         // Canceled subscription
@@ -631,14 +653,51 @@ class SubscriptionServiceTest extends FeatureTest
             'plan_id' => $plan3->id,
             'status' => SubscriptionStatus::CANCELED->value,
             'ends_at' => now()->addDays(30),
+            'tenant_id' => $tenant->id,
         ]);
 
         $service = app()->make(SubscriptionService::class);
 
-        $this->assertTrue($service->isUserSubscribed($user));
-        $this->assertTrue($service->isUserSubscribed($user, $product1Slug));
-        $this->assertFalse($service->isUserSubscribed($user, $product2Slug));
-        $this->assertFalse($service->isUserSubscribed($user, $product3Slug));
+        $this->assertTrue($service->isUserSubscribed($user, null, $tenant));
+        $this->assertTrue($service->isUserSubscribed($user, $product1Slug, $tenant));
+        $this->assertFalse($service->isUserSubscribed($user, $product2Slug, $tenant));
+        $this->assertFalse($service->isUserSubscribed($user, $product3Slug, $tenant));
+    }
+
+    public function test_is_user_subscribed_returns_false_when_checking_different_tenant()
+    {
+        $tenant1 = $this->createTenant();
+        $tenant2 = $this->createTenant();
+        $user = $this->createUser($tenant1);
+
+        // Also add user to second tenant
+        $user->tenants()->attach($tenant2->id);
+
+        $productSlug = Str::random();
+        $product = Product::factory()->create(['slug' => $productSlug]);
+        $plan = Plan::factory()->create([
+            'is_active' => true,
+            'product_id' => $product->id,
+        ]);
+
+        // Create subscription for tenant1
+        Subscription::factory()->create([
+            'user_id' => $user->id,
+            'plan_id' => $plan->id,
+            'status' => SubscriptionStatus::ACTIVE->value,
+            'ends_at' => now()->addDays(30),
+            'tenant_id' => $tenant1->id,
+        ]);
+
+        $service = app()->make(SubscriptionService::class);
+
+        // Should return true when checking with tenant1
+        $this->assertTrue($service->isUserSubscribed($user, null, $tenant1));
+        $this->assertTrue($service->isUserSubscribed($user, $productSlug, $tenant1));
+
+        // Should return false when checking with tenant2 (different tenant)
+        $this->assertFalse($service->isUserSubscribed($user, null, $tenant2));
+        $this->assertFalse($service->isUserSubscribed($user, $productSlug, $tenant2));
     }
 
     public static function nonDeadSubscriptionProvider()
