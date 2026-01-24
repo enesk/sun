@@ -98,8 +98,8 @@ class ReferralSettings extends Component implements HasForms
         $data = $this->form->getState();
 
         $this->configService->set('app.referral.enabled', $data['referral_enabled']);
-        $this->configService->set('app.referral.trigger', $data['referral_trigger']);
-        $this->configService->set('app.referral.reward_type', $data['referral_reward_type']);
+        $this->configService->set('app.referral.trigger', $data['referral_trigger'] ?? null);
+        $this->configService->set('app.referral.reward_type', $data['referral_reward_type'] ?? null);
         $this->configService->set('app.referral.discount_id', $data['referral_discount_id'] ?? null);
 
         Notification::make()

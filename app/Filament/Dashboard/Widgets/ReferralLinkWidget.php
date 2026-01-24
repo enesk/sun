@@ -19,4 +19,11 @@ class ReferralLinkWidget extends Widget
 
         return $referralService->getReferralLink(auth()->user());
     }
+
+    public static function isDiscovered(): bool
+    {
+        $referralService = app(ReferralService::class);
+
+        return $referralService->isEnabled();
+    }
 }

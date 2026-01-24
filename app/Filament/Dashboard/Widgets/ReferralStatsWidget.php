@@ -27,4 +27,11 @@ class ReferralStatsWidget extends BaseWidget
                 ->color('success'),
         ];
     }
+
+    public static function isDiscovered(): bool
+    {
+        $referralService = app(ReferralService::class);
+
+        return $referralService->isEnabled();
+    }
 }
