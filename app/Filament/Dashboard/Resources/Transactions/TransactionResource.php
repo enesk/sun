@@ -2,6 +2,7 @@
 
 namespace App\Filament\Dashboard\Resources\Transactions;
 
+use App\Constants\TenancyPermissionConstants;
 use App\Constants\TransactionStatus;
 use App\Filament\Dashboard\Resources\Orders\Pages\ViewOrder;
 use App\Filament\Dashboard\Resources\Subscriptions\Pages\ViewSubscription;
@@ -10,6 +11,7 @@ use App\Mapper\TransactionStatusMapper;
 use App\Models\Transaction;
 use App\Services\AddressService;
 use App\Services\InvoiceService;
+use App\Services\TenantPermissionService;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Facades\Filament;
@@ -157,6 +159,13 @@ class TransactionResource extends Resource
 
     public static function canAccess(): bool
     {
-        return config('app.customer_dashboard.show_transactions', false);
+        /** @var TenantPermissionService $tenantPermissionService */
+        $tenantPermissionService = app(TenantPermissionService::class);
+
+        return config('app.customer_dashboard.show_transactions', false) && $tenantPermissionService->tenantUserHasPermissionTo(
+            Filament::getTenant(),
+            auth()->user(),
+            TenancyPermissionConstants::PERMISSION_VIEW_TRANSACTIONS,
+        );
     }
 }

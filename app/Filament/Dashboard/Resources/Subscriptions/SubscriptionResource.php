@@ -7,6 +7,7 @@ use App\Constants\PlanPriceTierConstants;
 use App\Constants\PlanPriceType;
 use App\Constants\PlanType;
 use App\Constants\SubscriptionStatus;
+use App\Constants\TenancyPermissionConstants;
 use App\Filament\Dashboard\Resources\Subscriptions\ActionHandlers\DiscardSubscriptionCancellationActionHandler;
 use App\Filament\Dashboard\Resources\Subscriptions\Pages\AddDiscount;
 use App\Filament\Dashboard\Resources\Subscriptions\Pages\CancelSubscription;
@@ -19,6 +20,7 @@ use App\Filament\Dashboard\Resources\Subscriptions\RelationManagers\UsagesRelati
 use App\Mapper\SubscriptionStatusMapper;
 use App\Models\Subscription;
 use App\Services\SubscriptionService;
+use App\Services\TenantPermissionService;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\ViewAction;
@@ -278,7 +280,14 @@ class SubscriptionResource extends Resource
 
     public static function canAccess(): bool
     {
-        return config('app.customer_dashboard.show_subscriptions', false);
+        /** @var TenantPermissionService $tenantPermissionService */
+        $tenantPermissionService = app(TenantPermissionService::class);
+
+        return config('app.customer_dashboard.show_subscriptions', false) && $tenantPermissionService->tenantUserHasPermissionTo(
+            Filament::getTenant(),
+            auth()->user(),
+            TenancyPermissionConstants::PERMISSION_VIEW_SUBSCRIPTIONS,
+        );
     }
 
     public static function getNavigationLabel(): string
