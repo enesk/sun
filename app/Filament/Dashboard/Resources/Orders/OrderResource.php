@@ -3,10 +3,12 @@
 namespace App\Filament\Dashboard\Resources\Orders;
 
 use App\Constants\DiscountConstants;
+use App\Constants\TenancyPermissionConstants;
 use App\Filament\Dashboard\Resources\Orders\Pages\ListOrders;
 use App\Filament\Dashboard\Resources\Orders\Pages\ViewOrder;
 use App\Mapper\OrderStatusMapper;
 use App\Models\Order;
+use App\Services\TenantPermissionService;
 use Filament\Actions\ViewAction;
 use Filament\Facades\Filament;
 use Filament\Infolists\Components\TextEntry;
@@ -204,9 +206,16 @@ class OrderResource extends Resource
         return false;
     }
 
-    public static function isDiscovered(): bool
+    public static function canAccess(): bool
     {
-        return config('app.customer_dashboard.show_orders', true);
+        /** @var TenantPermissionService $tenantPermissionService */
+        $tenantPermissionService = app(TenantPermissionService::class);
+
+        return config('app.customer_dashboard.show_orders', false) && $tenantPermissionService->tenantUserHasPermissionTo(
+            Filament::getTenant(),
+            auth()->user(),
+            TenancyPermissionConstants::PERMISSION_VIEW_ORDERS,
+        );
     }
 
     public static function getNavigationLabel(): string
