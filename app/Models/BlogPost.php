@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Stancl\Tenancy\Database\Concerns\CentralConnection;
+
 use App\Events\SitemapChanged;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +13,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class BlogPost extends Model implements HasMedia
 {
+    use CentralConnection;
     use HasFactory, InteractsWithMedia;
 
     protected $fillable = [

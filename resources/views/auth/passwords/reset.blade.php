@@ -1,58 +1,72 @@
 <x-layouts.focus>
     <x-slot name="left">
-        <div class="flex flex-col py-2 md:p-10 gap-4 justify-center h-full items-center">
-            <div class="card w-full md:max-w-xl bg-base-100 shadow-xl p-4 md:p-8">
+        <div class="flex-1 flex flex-col justify-center items-center px-4 py-8 md:px-10">
+            <div class="w-full max-w-md">
 
-                <form method="POST" action="{{ route('password.update') }}">
-                    @csrf
+                <div class="md:hidden text-center mb-8">
+                    <h1 class="text-2xl font-bold text-portal-primary-dark">Neues Passwort festlegen</h1>
+                </div>
 
-                    <input type="hidden" name="token" value="{{ $token }}">
+                <div class="glass p-6 md:p-8" style="border-radius: var(--portal-radius-lg, 0.75rem);">
 
-                    <x-input.field label="{{ __('Email Address') }}" type="email" name="email"
-                                   value="{{ $email ?? old('email') }}" required autofocus="true" class="my-2"
-                                   autocomplete="email" max-width="w-full"/>
+                    <h2 class="text-xl font-semibold text-base-content mb-1 hidden md:block">Neues Passwort</h2>
+                    <p class="text-sm text-base-content/60 mb-6 hidden md:block">Wählen Sie ein sicheres Passwort für Ihr Konto.</p>
 
-                    @error('email')
-                        <span class="text-xs text-red-500" role="alert">
-                            {{ $message }}
-                        </span>
-                    @enderror
+                    <form method="POST" action="{{ route('password.update') }}" class="space-y-4">
+                        @csrf
+                        <input type="hidden" name="token" value="{{ $token }}">
 
-                    <x-input.field label="{{ __('Password') }}" type="password" name="password" required class="my-2"  max-width="w-full"/>
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-base-content mb-1.5">E-Mail-Adresse</label>
+                            <input id="email" type="email" name="email" value="{{ $email ?? old('email') }}"
+                                   required autofocus autocomplete="email"
+                                   class="w-full px-4 py-3 rounded-lg border border-base-300 bg-white text-base-content text-sm
+                                          focus:outline-none focus:ring-2 focus:border-transparent transition-shadow duration-200"
+                                   style="--tw-ring-color: rgba(var(--portal-primary-rgb, 59, 130, 246), 0.3);">
+                            @error('email')
+                                <p class="mt-1 text-xs text-red-600" role="alert">{{ $message }}</p>
+                            @enderror
+                        </div>
 
-                    @error('password')
-                        <span class="text-xs text-red-500" role="alert">
-                            {{ $message }}
-                        </span>
-                    @enderror
+                        <div>
+                            <label for="password" class="block text-sm font-medium text-base-content mb-1.5">Neues Passwort</label>
+                            <input id="password" type="password" name="password" required autocomplete="new-password"
+                                   placeholder="Mindestens 8 Zeichen"
+                                   class="w-full px-4 py-3 rounded-lg border border-base-300 bg-white text-base-content placeholder-base-content/40 text-sm
+                                          focus:outline-none focus:ring-2 focus:border-transparent transition-shadow duration-200"
+                                   style="--tw-ring-color: rgba(var(--portal-primary-rgb, 59, 130, 246), 0.3);">
+                            @error('password')
+                                <p class="mt-1 text-xs text-red-600" role="alert">{{ $message }}</p>
+                            @enderror
+                        </div>
 
-                    <x-input.field label="{{ __('Confirm Password') }}" type="password" name="password_confirmation" required class="my-2"  max-width="w-full"/>
+                        <div>
+                            <label for="password_confirmation" class="block text-sm font-medium text-base-content mb-1.5">Passwort bestätigen</label>
+                            <input id="password_confirmation" type="password" name="password_confirmation" required
+                                   autocomplete="new-password" placeholder="Passwort wiederholen"
+                                   class="w-full px-4 py-3 rounded-lg border border-base-300 bg-white text-base-content placeholder-base-content/40 text-sm
+                                          focus:outline-none focus:ring-2 focus:border-transparent transition-shadow duration-200"
+                                   style="--tw-ring-color: rgba(var(--portal-primary-rgb, 59, 130, 246), 0.3);">
+                        </div>
 
-                    @error('password')
-                    <span class="text-xs text-red-500" role="alert">
-                            {{ $message }}
-                        </span>
-                    @enderror
-
-                    <x-button-link.primary class="inline-block w-full! my-2" elementType="button" type="submit">
-                        {{ __('Reset Password') }}
-                    </x-button-link.primary>
-
-                </form>
+                        <button type="submit"
+                                class="w-full btn-portal py-3 text-sm font-semibold rounded-lg transition-all duration-200 hover:shadow-lg touch-target">
+                            Passwort zurücksetzen
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </x-slot>
 
-
     <x-slot name="right">
-        <div class="py-4 md:px-12 md:pt-36 h-full">
-            <x-heading.h1 class="text-3xl! md:text-4xl! font-semibold!">
-                {{ __('Reset Your Password.') }}
-            </x-heading.h1>
-            <p class="mt-4">
-                {{ __('You are 1 step away from resetting your password.') }}
+        <div class="px-10 lg:px-14">
+            <h1 class="text-3xl lg:text-4xl font-bold text-white leading-tight">
+                Fast geschafft!
+            </h1>
+            <p class="mt-4 text-white/80 text-lg leading-relaxed">
+                Wählen Sie ein neues Passwort und Sie sind sofort wieder drin.
             </p>
         </div>
     </x-slot>
-
 </x-layouts.focus>

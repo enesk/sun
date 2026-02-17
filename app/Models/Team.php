@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Stancl\Tenancy\Database\Concerns\CentralConnection;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -9,6 +11,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 class Team extends Model
 {
+    use CentralConnection;
     use HasFactory, HasRoles;
 
     protected $fillable = [

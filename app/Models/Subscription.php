@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Stancl\Tenancy\Database\Concerns\CentralConnection;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +12,7 @@ use Mpociot\Versionable\VersionableTrait;
 
 class Subscription extends Model
 {
+    use CentralConnection;
     use HasFactory, VersionableTrait;
 
     protected string $versionClass = SubscriptionVersion::class;

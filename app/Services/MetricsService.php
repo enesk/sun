@@ -336,7 +336,7 @@ class MetricsService
             $cases[] = "WHEN interval_id = $interval->id THEN 1.0 * subscriptions.price * subscriptions.interval_count / ".$calculationDays.' * 30';
         }
 
-        $results = DB::table('subscriptions')
+        $results = DB::connection(config('tenancy.database.central_connection'))->table('subscriptions')
             ->select([
                 DB::raw('
                 SUM(CASE

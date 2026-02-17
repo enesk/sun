@@ -9,14 +9,17 @@ trait RedirectAwareTrait
 {
     protected function getRedirectUrl(?User $user): string
     {
-        // Change this if you want to redirect to a different page after login
-
         if (! $user) {
             return route('home');
         }
 
         if (Redirect::getIntendedUrl() !== null && rtrim(Redirect::getIntendedUrl(), '/') !== rtrim((route('home')), '/')) {
             return Redirect::getIntendedUrl();
+        }
+
+        // Im Tenant-Kontext: Firmeninhaber ins Tenant-Dashboard leiten
+        if (tenant()) {
+            return '/dashboard';
         }
 
         if ($user->is_admin) {

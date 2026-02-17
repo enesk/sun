@@ -145,5 +145,28 @@ class RolesAndPermissionsSeeder extends Seeder
         ]);
 
         // assign any permissions that the user role should have here
+
+        // Company Owner role and permissions
+        $companyOwnerPermissions = [
+            TenancyPermissionConstants::PERMISSION_CREATE_COMPANY,
+            TenancyPermissionConstants::PERMISSION_VIEW_OWN_COMPANY,
+            TenancyPermissionConstants::PERMISSION_UPDATE_OWN_COMPANY,
+            TenancyPermissionConstants::PERMISSION_DELETE_OWN_COMPANY,
+            TenancyPermissionConstants::PERMISSION_MANAGE_OWN_REVIEWS,
+            TenancyPermissionConstants::PERMISSION_UPLOAD_COMPANY_IMAGES,
+        ];
+
+        $companyOwnerPermissionObjects = [];
+        foreach ($companyOwnerPermissions as $permission) {
+            $companyOwnerPermissionObjects[] = Permission::findOrCreate($permission);
+        }
+
+        $companyOwnerRole = Role::query()->firstOrCreate([
+            'name' => TenancyPermissionConstants::ROLE_COMPANY_OWNER,
+            'is_tenant_role' => true,
+        ], [
+            'guard_name' => 'web',
+        ]);
+        $companyOwnerRole->givePermissionTo($companyOwnerPermissionObjects);
     }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Stancl\Tenancy\Database\Concerns\CentralConnection;
+
 use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class OneTimeProduct extends Model
 {
+    use CentralConnection;
     use HasFactory;
 
     protected $fillable = [

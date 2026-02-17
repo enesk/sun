@@ -1,0 +1,103 @@
+<?php
+
+namespace App\Http\Controllers\Portal;
+
+use App\Http\Controllers\Controller;
+use App\Models\Portal\Company;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class OwnerDashboardController extends Controller
+{
+    private function getCompany(): Company
+    {
+        return Company::ownedBy(Auth::id())
+            ->with(['categories', 'city', 'reviews', 'media'])
+            ->firstOrFail();
+    }
+
+    public function index()
+    {
+        $company = $this->getCompany();
+
+        $stats = [
+            'reviews_total' => $company->reviews()->count(),
+            'reviews_pending' => $company->reviews()->pending()->count(),
+            'reviews_approved' => $company->reviews()->approved()->count(),
+            'rating' => $company->rating,
+            'rating_count' => $company->rating_count,
+        ];
+
+        $recentReviews = $company->reviews()
+            ->approved()
+            ->latest()
+            ->take(3)
+            ->get();
+
+        $profileCompletion = $this->calculateProfileCompletion($company);
+
+        return view('pages.dashboard.index', compact(
+            'company', 'stats', 'recentReviews', 'profileCompletion'
+        ));
+    }
+
+    public function edit()
+    {
+        $company = $this->getCompany();
+        return view('pages.dashboard.edit', compact('company'));
+    }
+
+    public function reviews()
+    {
+        $company = $this->getCompany();
+
+        $reviews = $company->reviews()
+            ->latest()
+            ->paginate(10);
+
+        return view('pages.dashboard.reviews', compact('company', 'reviews'));
+    }
+
+    public function stats()
+    {
+        $company = $this->getCompany();
+        return view('pages.dashboard.stats', compact('company'));
+    }
+
+    public function settings()
+    {
+        $company = $this->getCompany();
+        return view('pages.dashboard.settings', compact('company'));
+    }
+
+    public function premium()
+    {
+        $company = $this->getCompany();
+        return view('pages.dashboard.premium', compact('company'));
+    }
+
+    private function calculateProfileCompletion(Company $company): array
+    {
+        $fields = [
+            'name' => ['label' => 'Firmenname', 'filled' => ! empty($company->name)],
+            'description' => ['label' => 'Beschreibung', 'filled' => ! empty($company->description)],
+            'street' => ['label' => 'Adresse', 'filled' => ! empty($company->street)],
+            'tel' => ['label' => 'Telefonnummer', 'filled' => ! empty($company->tel)],
+            'email' => ['label' => 'E-Mail', 'filled' => ! empty($company->email)],
+            'website' => ['label' => 'Website', 'filled' => ! empty($company->website)],
+            'logo' => ['label' => 'Logo', 'filled' => $company->getFirstMedia('logo') !== null],
+            'categories' => ['label' => 'Kategorien', 'filled' => $company->categories->count() > 0],
+        ];
+
+        $filled = collect($fields)->where('filled', true)->count();
+        $total = count($fields);
+        $percentage = $total > 0 ? round(($filled / $total) * 100) : 0;
+
+        return [
+            'fields' => $fields,
+            'filled' => $filled,
+            'total' => $total,
+            'percentage' => $percentage,
+        ];
+    }
+}

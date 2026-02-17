@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Stancl\Tenancy\Database\Concerns\CentralConnection;
+
 use App\Notifications\Auth\QueuedVerifyEmail;
 use App\Services\OrderService;
 use App\Services\SubscriptionService;
@@ -25,6 +27,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements FilamentUser, HasTenants, MustVerifyEmail, TwoFactorAuthenticatable
 {
+    use CentralConnection;
     use HasApiTokens, HasFactory, HasOneTimePasswords, HasRoles, Notifiable, TwoFactorAuthentication;
 
     /**

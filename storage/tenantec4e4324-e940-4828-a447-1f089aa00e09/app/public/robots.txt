@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /firmenprofil/
+Disallow: /eintragen
+
+Sitemap: http://handwerker.test/sitemap.xml

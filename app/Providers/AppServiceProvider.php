@@ -62,5 +62,17 @@ class AppServiceProvider extends ServiceProvider
         // temporarily fix until this is fixed in filament breezy: https://github.com/Jacobtims/filament-breezy/issues/496
         Livewire::component('personal_info', PersonalInfo::class);
         Livewire::component('update_password', UpdatePassword::class);
+
+        // Register Livewire update endpoint with tenancy + theme middleware
+        // so that Livewire AJAX requests resolve the correct tenant DB and theme views
+        Livewire::setUpdateRoute(function ($handle) {
+            return \Illuminate\Support\Facades\Route::post('/livewire/update', $handle)
+                ->middleware([
+                    'web',
+                    'universal',
+                    TenancyServiceProvider::TENANCY_INITIALIZER,
+                    \App\Http\Middleware\ResolveTheme::class,
+                ]);
+        });
     }
 }

@@ -43,4 +43,19 @@ class TenancyPermissionConstants
     public const PERMISSION_UPDATE_ROLES = 'tenancy: update roles';
 
     public const PERMISSION_DELETE_ROLES = 'tenancy: delete roles';
+
+    // Firmeninhaber (Company Owner) Role & Permissions
+    public const ROLE_COMPANY_OWNER = 'company_owner';
+
+    public const PERMISSION_CREATE_COMPANY = 'tenancy: create company';
+
+    public const PERMISSION_VIEW_OWN_COMPANY = 'tenancy: view own company';
+
+    public const PERMISSION_UPDATE_OWN_COMPANY = 'tenancy: update own company';
+
+    public const PERMISSION_DELETE_OWN_COMPANY = 'tenancy: delete own company';
+
+    public const PERMISSION_MANAGE_OWN_REVIEWS = 'tenancy: manage own reviews';
+
+    public const PERMISSION_UPLOAD_COMPANY_IMAGES = 'tenancy: upload company images';
 }

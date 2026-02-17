@@ -10,4 +10,6 @@ return [
     App\Providers\HorizonServiceProvider::class,
     App\Providers\RouteServiceProvider::class,
     Spatie\Permission\PermissionServiceProvider::class,
+    App\Providers\TenancyServiceProvider::class,
+    App\Providers\ThemeServiceProvider::class,
 ];

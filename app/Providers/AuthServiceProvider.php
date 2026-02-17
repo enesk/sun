@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 // use Illuminate\Support\Facades\Gate;
+use App\Models\Portal\Company;
 use App\Models\Role;
+use App\Policies\CompanyPolicy;
 use App\Policies\RolePolicy;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Auth\Notifications\VerifyEmail;
@@ -18,6 +20,7 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
         Role::class => RolePolicy::class,
+        Company::class => CompanyPolicy::class,
     ];
 
     /**

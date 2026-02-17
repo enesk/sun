@@ -41,7 +41,16 @@ class RegisterController extends Controller
 
     public function redirectPath()
     {
-        return Redirect::getIntendedUrl() ?? route('home');
+        if ($intended = Redirect::getIntendedUrl()) {
+            return $intended;
+        }
+
+        // Im Tenant-Kontext: nach Registration ins Dashboard leiten
+        if (tenant()) {
+            return '/dashboard';
+        }
+
+        return route('home');
     }
 
     /**

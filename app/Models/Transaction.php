@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Stancl\Tenancy\Database\Concerns\CentralConnection;
+
 use App\Constants\TransactionStatus;
 use App\Services\InvoiceService;
 use Exception;
@@ -13,6 +15,7 @@ use Mpociot\Versionable\VersionableTrait;
 
 class Transaction extends Model
 {
+    use CentralConnection;
     use HasFactory, VersionableTrait;
 
     protected string $versionClass = TransactionVersion::class;

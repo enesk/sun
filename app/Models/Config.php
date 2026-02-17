@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Stancl\Tenancy\Database\Concerns\CentralConnection;
+
 use App\Constants\ConfigConstants;
 use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Config extends Model
 {
+    use CentralConnection;
     use HasFactory;
 
     protected $fillable = [

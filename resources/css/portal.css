@@ -1,0 +1,1638 @@
+/*
+ * Portal Tenant Branding Utilities
+ *
+ * These classes use the --portal-* CSS variables injected by TenantStyleInjector.
+ * Use these instead of inline styles for tenant-specific colors.
+ *
+ * Available variables:
+ *   --portal-primary, --portal-secondary, --portal-accent (hex)
+ *   --portal-primary-rgb, --portal-secondary-rgb, --portal-accent-rgb (r, g, b)
+ *   --portal-primary-light/dark/hover, --portal-secondary-light/dark, --portal-accent-light/dark
+ *   --portal-font-family, --portal-radius, --portal-radius-sm, --portal-radius-lg
+ */
+
+/* ============================================================
+   Tailwind v4 Theme Integration (inline = supports var() references)
+   Register portal variables as Tailwind utility colors so that
+   classes like bg-portal-primary, text-portal-accent etc. work.
+   ============================================================ */
+@theme inline {
+    /* --- Colors --- */
+    --color-portal-primary: var(--portal-primary, #3B82F6);
+    --color-portal-primary-light: var(--portal-primary-light, #EFF6FF);
+    --color-portal-primary-dark: var(--portal-primary-dark, #1E3A5F);
+    --color-portal-primary-hover: var(--portal-primary-hover, #2563EB);
+
+    --color-portal-secondary: var(--portal-secondary, #1E40AF);
+    --color-portal-secondary-light: var(--portal-secondary-light, #DBEAFE);
+    --color-portal-secondary-dark: var(--portal-secondary-dark, #1E3A8A);
+
+    --color-portal-accent: var(--portal-accent, #F59E0B);
+    --color-portal-accent-light: var(--portal-accent-light, #FEF3C7);
+    --color-portal-accent-dark: var(--portal-accent-dark, #B45309);
+
+    /* --- Spacing (8px Grid System) --- */
+    --spacing-portal-1: var(--portal-space-1, 0.25rem);   /*  4px */
+    --spacing-portal-2: var(--portal-space-2, 0.5rem);    /*  8px */
+    --spacing-portal-3: var(--portal-space-3, 0.75rem);   /* 12px */
+    --spacing-portal-4: var(--portal-space-4, 1rem);      /* 16px */
+    --spacing-portal-5: var(--portal-space-5, 1.25rem);   /* 20px */
+    --spacing-portal-6: var(--portal-space-6, 1.5rem);    /* 24px */
+    --spacing-portal-8: var(--portal-space-8, 2rem);      /* 32px */
+    --spacing-portal-10: var(--portal-space-10, 2.5rem);  /* 40px */
+    --spacing-portal-12: var(--portal-space-12, 3rem);    /* 48px */
+    --spacing-portal-16: var(--portal-space-16, 4rem);    /* 64px */
+
+    /* --- Shadows (Elevation System) --- */
+    --shadow-portal-sm: var(--portal-shadow-sm, 0 1px 2px 0 rgb(0 0 0 / 0.05));
+    --shadow-portal-md: var(--portal-shadow-md, 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1));
+    --shadow-portal-lg: var(--portal-shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1));
+    --shadow-portal-xl: var(--portal-shadow-xl, 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1));
+
+    /* --- Visual Redesign Shadows (VR-1) --- */
+    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.08);
+    --shadow-card-rest: 0 1px 3px rgba(0, 0, 0, 0.06);
+    --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* ============================================================
+   Base: Font, Border-Radius & Design Tokens as Custom Properties
+   ============================================================ */
+@layer base {
+    body {
+        font-family: var(--portal-font-family, Inter, ui-sans-serif, system-ui, sans-serif);
+    }
+
+    :root {
+        /* --- Typography Scale --- */
+        --portal-text-xs: 0.75rem;     /* 12px */
+        --portal-text-sm: 0.875rem;    /* 14px */
+        --portal-text-base: 1rem;      /* 16px */
+        --portal-text-lg: 1.125rem;    /* 18px */
+        --portal-text-xl: 1.25rem;     /* 20px */
+
+        --portal-heading-sm: 1.25rem;  /* 20px — h5/h6 */
+        --portal-heading-md: 1.5rem;   /* 24px — h4 */
+        --portal-heading-lg: 1.875rem; /* 30px — h3 */
+        --portal-heading-xl: 2.25rem;  /* 36px — h2 */
+        --portal-heading-2xl: 3rem;    /* 48px — h1 */
+
+        /* --- Line Heights --- */
+        --portal-leading-tight: 1.25;
+        --portal-leading-normal: 1.5;
+        --portal-leading-relaxed: 1.75;
+
+        /* --- Font Weights --- */
+        --portal-font-normal: 400;
+        --portal-font-medium: 500;
+        --portal-font-semibold: 600;
+        --portal-font-bold: 700;
+
+        /* --- Transitions --- */
+        --portal-transition-fast: 150ms ease;
+        --portal-transition-normal: 250ms ease;
+        --portal-transition-slow: 350ms ease;
+
+        /* --- Touch Target (WCAG 2.5.8) --- */
+        --portal-touch-min: 44px;
+
+        /* --- Visual Redesign Tokens (VR-1) --- */
+
+        /* Glasmorphism */
+        --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.08);
+        --radius-glass: 16px;
+        --backdrop-blur-glass: blur(20px);
+
+        /* Card Elevation */
+        --shadow-card-rest: 0 1px 3px rgba(0, 0, 0, 0.06);
+        --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+        /* Spring Easing */
+        --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+        --duration-normal: 300ms;
+        --duration-slow: 500ms;
+        --duration-reveal: 600ms;
+    }
+}
+
+/* ============================================================
+   Component Utilities (in @layer so Tailwind always includes them)
+   ============================================================ */
+@layer components {
+
+    /* --- Buttons --- */
+    .btn-portal {
+        background-color: var(--portal-primary);
+        color: white;
+        border-radius: var(--portal-radius, 0.5rem);
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        transition: background-color 150ms ease;
+    }
+
+    .btn-portal:hover {
+        background-color: var(--portal-primary-hover);
+    }
+
+    .btn-portal:focus-visible {
+        outline: 2px solid var(--portal-primary);
+        outline-offset: 2px;
+    }
+
+    .btn-portal-accent {
+        background-color: var(--portal-accent);
+        color: white;
+        border-radius: var(--portal-radius, 0.5rem);
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        transition: background-color 150ms ease;
+    }
+
+    .btn-portal-accent:hover {
+        background-color: var(--portal-accent-dark);
+    }
+
+    .btn-portal-outline {
+        background-color: transparent;
+        color: var(--portal-primary-dark);
+        border: 2px solid var(--portal-primary);
+        border-radius: var(--portal-radius, 0.5rem);
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        transition: all 150ms ease;
+    }
+
+    .btn-portal-outline:hover {
+        background-color: var(--portal-primary);
+        color: white;
+    }
+
+    /* --- Links --- */
+    .link-portal {
+        color: var(--portal-primary-dark);
+        text-decoration-color: transparent;
+        transition: text-decoration-color 150ms ease;
+    }
+
+    .link-portal:hover {
+        text-decoration: underline;
+        text-decoration-color: var(--portal-primary-dark);
+    }
+
+    /* --- Badges --- */
+    .badge-portal {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.125rem;
+        padding: 0.125rem 0.375rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        background-color: var(--portal-primary);
+        color: white;
+    }
+
+    .badge-portal-accent {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.125rem;
+        padding: 0.125rem 0.375rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        background-color: var(--portal-accent);
+        color: white;
+    }
+
+    .badge-portal-outline {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.125rem;
+        padding: 0.125rem 0.375rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        background-color: transparent;
+        border: 1px solid var(--portal-primary);
+        color: var(--portal-primary-dark);
+    }
+
+    /* --- Ring / Focus --- */
+    .ring-portal {
+        --tw-ring-color: var(--portal-primary);
+    }
+
+    .ring-portal-accent {
+        --tw-ring-color: var(--portal-accent);
+    }
+
+    /* --- Gradient (hero sections) --- */
+    .bg-portal-gradient {
+        background: linear-gradient(135deg, var(--portal-primary, #3B82F6), var(--portal-secondary, #1E40AF));
+    }
+
+    /* ============================================================
+       Visual Redesign (VR-3) — Hero Mesh Gradient
+       ============================================================ */
+    .hero-mesh {
+        background: linear-gradient(
+            135deg,
+            var(--portal-primary, #3B82F6),
+            var(--portal-secondary, #1E40AF) 50%,
+            var(--portal-primary-dark, #1E3A5F)
+        );
+        padding-bottom: 48px; /* space for wave divider */
+    }
+
+    .hero-blob {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.5;
+        will-change: transform;
+    }
+
+    .hero-blob-1 {
+        width: 500px;
+        height: 500px;
+        top: -20%;
+        left: -10%;
+        background: radial-gradient(circle, var(--portal-primary, #3B82F6), transparent 70%);
+        animation: hero-float-1 12s ease-in-out infinite;
+    }
+
+    .hero-blob-2 {
+        width: 400px;
+        height: 400px;
+        top: 10%;
+        right: -5%;
+        background: radial-gradient(circle, var(--portal-accent, #F59E0B), transparent 70%);
+        opacity: 0.25;
+        animation: hero-float-2 15s ease-in-out infinite;
+    }
+
+    .hero-blob-3 {
+        width: 350px;
+        height: 350px;
+        bottom: -10%;
+        left: 30%;
+        background: radial-gradient(circle, var(--portal-secondary, #1E40AF), transparent 70%);
+        opacity: 0.4;
+        animation: hero-float-3 18s ease-in-out infinite;
+    }
+
+    /* Keyword slide animation */
+    .hero-keyword-wrapper {
+        min-width: 3ch;
+    }
+
+    .hero-keyword {
+        display: inline-block;
+    }
+
+    .hero-keyword-exit {
+        opacity: 0;
+        transform: translateY(-100%);
+    }
+
+    .hero-keyword-enter {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Textmarker highlight behind keyword */
+    .hero-keyword-highlight {
+        position: absolute;
+        bottom: 2px;
+        left: -4px;
+        right: -4px;
+        height: 35%;
+        background: var(--portal-accent, #F59E0B);
+        opacity: 0.25;
+        border-radius: 2px;
+        z-index: -1;
+    }
+
+    /* Search bar glass effect */
+    .hero-search-bar {
+        box-shadow:
+            0 8px 32px rgba(0, 0, 0, 0.15),
+            0 2px 8px rgba(0, 0, 0, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    /* Search tags with glass hover */
+    .hero-tag {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .hero-tag:hover {
+        background: rgba(255, 255, 255, 0.22);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Wave divider positioning */
+    .hero-wave {
+        z-index: 5;
+    }
+
+    /* Reduced motion: disable blob animations */
+    @media (prefers-reduced-motion: reduce) {
+        .hero-blob {
+            animation: none !important;
+        }
+
+        .hero-keyword {
+            transition: opacity 200ms ease !important;
+            transform: none !important;
+        }
+
+        .hero-keyword-exit {
+            opacity: 0;
+            transform: none;
+        }
+    }
+
+    /* Mobile: smaller blobs */
+    @media (max-width: 767px) {
+        .hero-blob-1 {
+            width: 250px;
+            height: 250px;
+        }
+
+        .hero-blob-2 {
+            width: 200px;
+            height: 200px;
+        }
+
+        .hero-blob-3 {
+            width: 180px;
+            height: 180px;
+        }
+
+        .hero-mesh {
+            padding-bottom: 36px;
+        }
+
+        .hero-wave svg {
+            height: 36px;
+        }
+    }
+
+    /* ============================================================
+       Visual Redesign (VR-4) — Trust Bar Cards
+       ============================================================ */
+    .trust-card {
+        background: white;
+        border: 1px solid #F1F5F9;
+        border-radius: 16px;
+        padding: 20px 24px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s var(--ease-spring, cubic-bezier(0.22, 1, 0.36, 1));
+    }
+
+    .trust-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Accent line on hover */
+    .trust-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 20%;
+        right: 20%;
+        height: 3px;
+        background: var(--portal-primary, #3B82F6);
+        border-radius: 0 0 3px 3px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .trust-card:hover::before {
+        opacity: 1;
+    }
+
+    .trust-card__icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--portal-primary, #3B82F6) 10%, white);
+        color: var(--portal-primary, #3B82F6);
+        margin: 0 auto 12px;
+    }
+
+    .trust-card__value {
+        font-size: 28px;
+        font-weight: 800;
+        color: #0F172A;
+        line-height: 1.2;
+        margin-bottom: 4px;
+    }
+
+    .trust-card__label {
+        font-size: 13px;
+        color: #94A3B8;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+    }
+
+    /* Mobile: smaller padding */
+    @media (max-width: 767px) {
+        .trust-card {
+            padding: 16px 12px;
+        }
+
+        .trust-card__icon {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 8px;
+        }
+
+        .trust-card__icon svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .trust-card__value {
+            font-size: 22px;
+        }
+
+        .trust-card__label {
+            font-size: 11px;
+        }
+    }
+
+    /* ============================================================
+       Portal Form Inputs — Soft, approachable styling
+       ============================================================ */
+    .input-portal {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        font-size: 0.9375rem;
+        line-height: 1.5;
+        color: #1E293B;
+        background-color: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        border-radius: 0.75rem;
+        transition: all 200ms ease;
+    }
+
+    .input-portal::placeholder {
+        color: #94A3B8;
+    }
+
+    .input-portal:hover {
+        border-color: rgba(var(--portal-primary-rgb, 59, 130, 246), 0.35);
+    }
+
+    .input-portal:focus {
+        outline: none;
+        border-color: var(--portal-primary, #3B82F6);
+        box-shadow: 0 0 0 3px rgba(var(--portal-primary-rgb, 59, 130, 246), 0.1);
+        background-color: white;
+    }
+
+    .input-portal.input-error,
+    .input-portal.is-error {
+        border-color: #EF4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
+    }
+
+    .input-portal.has-icon {
+        padding-left: 2.75rem;
+    }
+
+    /* Textarea variant */
+    .textarea-portal {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        font-size: 0.9375rem;
+        line-height: 1.6;
+        color: #1E293B;
+        background-color: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        border-radius: 0.75rem;
+        transition: all 200ms ease;
+        resize: vertical;
+    }
+
+    .textarea-portal::placeholder {
+        color: #94A3B8;
+    }
+
+    .textarea-portal:hover {
+        border-color: rgba(var(--portal-primary-rgb, 59, 130, 246), 0.35);
+    }
+
+    .textarea-portal:focus {
+        outline: none;
+        border-color: var(--portal-primary, #3B82F6);
+        box-shadow: 0 0 0 3px rgba(var(--portal-primary-rgb, 59, 130, 246), 0.1);
+        background-color: white;
+    }
+
+    .textarea-portal.input-error,
+    .textarea-portal.is-error {
+        border-color: #EF4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
+    }
+
+    /* Form label */
+    .label-portal {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #334155;
+        margin-bottom: 0.375rem;
+    }
+
+    .label-portal .required {
+        color: var(--portal-primary, #3B82F6);
+        margin-left: 2px;
+    }
+
+    /* Help text */
+    .help-portal {
+        font-size: 0.8125rem;
+        color: #64748B;
+        margin-top: 0.375rem;
+        line-height: 1.4;
+    }
+
+    /* Section header in form */
+    .form-section-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-section-header h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #0F172A;
+    }
+
+    .form-section-header p {
+        font-size: 0.875rem;
+        color: #64748B;
+        margin-top: 0.25rem;
+    }
+
+    /* Field group wrapper */
+    .field-group {
+        background: rgba(255, 255, 255, 0.4);
+        border-radius: 0.75rem;
+        padding: 1.25rem;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    /* ============================================================
+       Eintragen-Seite (SD-12) — Fullwidth Layout
+       ============================================================ */
+
+    /* Page background: subtle gradient */
+    .eintragen-page {
+        min-height: 100vh;
+        background: linear-gradient(180deg,
+            rgba(var(--portal-primary-rgb, 59, 130, 246), 0.03) 0%,
+            white 40%);
+    }
+
+    /* Mini-Hero-Banner: Mesh-Gradient, kompakt */
+    .eintragen-hero {
+        background: linear-gradient(
+            135deg,
+            var(--portal-primary, #3B82F6),
+            var(--portal-secondary, #1E40AF) 50%,
+            var(--portal-primary-dark, #1E3A5F)
+        );
+        padding: 2.5rem 0 3.5rem;
+    }
+
+    @media (max-width: 767px) {
+        .eintragen-hero {
+            padding: 1.5rem 0 2.5rem;
+        }
+    }
+
+    /* Wizard Glass-Card: overlaps hero */
+    .wizard-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(var(--portal-primary-rgb, 59, 130, 246), 0.06);
+        border-radius: 1.25rem;
+        box-shadow:
+            0 4px 24px rgba(0, 0, 0, 0.06),
+            0 1px 2px rgba(0, 0, 0, 0.04),
+            inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+
+    /* --- Star Rating --- */
+    .text-portal-star {
+        color: var(--portal-accent);
+    }
+
+    /* --- Card Border Accent --- */
+    .border-portal-accent {
+        border-color: var(--portal-accent);
+    }
+
+    /* --- Sidebar Active Item --- */
+    .sidebar-active {
+        background-color: var(--portal-primary);
+        color: white;
+        font-weight: 500;
+    }
+
+    /* --- Text Decoration Color --- */
+    .decoration-portal {
+        text-decoration-color: var(--portal-primary);
+    }
+
+    /* --- SVG stop-color (half-star gradients) --- */
+    .stop-portal-accent {
+        stop-color: var(--portal-accent, #F59E0B);
+    }
+
+    /* --- Shadow Utilities --- */
+    .shadow-portal-sm {
+        box-shadow: var(--shadow-portal-sm);
+    }
+
+    .shadow-portal-md {
+        box-shadow: var(--shadow-portal-md);
+    }
+
+    .shadow-portal-lg {
+        box-shadow: var(--shadow-portal-lg);
+    }
+
+    .shadow-portal-xl {
+        box-shadow: var(--shadow-portal-xl);
+    }
+
+    /* --- Card Component (uses spacing + shadow tokens) --- */
+    .card-portal {
+        background-color: white;
+        border-radius: var(--portal-radius, 0.5rem);
+        box-shadow: var(--shadow-portal-md);
+        padding: var(--spacing-portal-6, 1.5rem);
+        transition: box-shadow var(--portal-transition-normal, 250ms ease);
+    }
+
+    .card-portal:hover {
+        box-shadow: var(--shadow-portal-lg);
+    }
+
+    /* --- Touch Target (min 44x44px clickable area) --- */
+    .touch-target {
+        min-height: var(--portal-touch-min, 44px);
+        min-width: var(--portal-touch-min, 44px);
+    }
+
+    /* ============================================================
+       Visual Redesign (VR-1) — Section Rhythm
+       ============================================================ */
+    .section-light {
+        background-color: white;
+    }
+
+    .section-muted {
+        background-color: #f8fafc; /* slate-50 */
+    }
+
+    .section-accent {
+        background: linear-gradient(135deg, var(--portal-primary, #3B82F6), var(--portal-secondary, #1E40AF));
+        color: white;
+    }
+
+    /* --- Wave Divider --- */
+    .wave-divider {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .wave-divider-top::before,
+    .wave-divider-bottom::after {
+        content: '';
+        display: block;
+        width: 100%;
+        height: 48px;
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+    }
+
+    .wave-divider-top::before {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 48' preserveAspectRatio='none'%3E%3Cpath d='M0,48 C360,0 720,32 1440,0 L1440,48 Z' fill='%23ffffff'/%3E%3C/svg%3E");
+    }
+
+    .wave-divider-bottom::after {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 48' preserveAspectRatio='none'%3E%3Cpath d='M0,0 C360,48 720,16 1440,48 L1440,0 Z' fill='%23ffffff'/%3E%3C/svg%3E");
+    }
+
+    /* Muted wave variants */
+    .wave-divider-top-muted::before {
+        content: '';
+        display: block;
+        width: 100%;
+        height: 48px;
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 48' preserveAspectRatio='none'%3E%3Cpath d='M0,48 C360,0 720,32 1440,0 L1440,48 Z' fill='%23f8fafc'/%3E%3C/svg%3E");
+    }
+
+    .wave-divider-bottom-muted::after {
+        content: '';
+        display: block;
+        width: 100%;
+        height: 48px;
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 48' preserveAspectRatio='none'%3E%3Cpath d='M0,0 C360,48 720,16 1440,48 L1440,0 Z' fill='%23f8fafc'/%3E%3C/svg%3E");
+    }
+
+    /* ============================================================
+       Visual Redesign (VR-1) — Glasmorphism Utility
+       ============================================================ */
+    .glass {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: var(--backdrop-blur-glass, blur(20px));
+        -webkit-backdrop-filter: var(--backdrop-blur-glass, blur(20px));
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: var(--shadow-glass);
+        border-radius: var(--radius-glass, 16px);
+    }
+
+    /* ============================================================
+       Visual Redesign (VR-1) — Ripple Effect
+       ============================================================ */
+    .ripple {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ripple .ripple-circle {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.35);
+        transform: scale(0);
+        animation: ripple-expand 500ms var(--ease-spring, cubic-bezier(0.22, 1, 0.36, 1)) forwards;
+        pointer-events: none;
+    }
+
+    /* ============================================================
+       Visual Redesign (VR-1) — Scroll Reveal
+       ============================================================ */
+    .reveal {
+        opacity: 0;
+        transform: translateY(20px);
+        transition:
+            opacity var(--duration-reveal, 600ms) var(--ease-spring, cubic-bezier(0.22, 1, 0.36, 1)),
+            transform var(--duration-reveal, 600ms) var(--ease-spring, cubic-bezier(0.22, 1, 0.36, 1));
+    }
+
+    .reveal.revealed {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Reduced motion: skip animation, show immediately */
+    @media (prefers-reduced-motion: reduce) {
+        .reveal {
+            opacity: 1;
+            transform: none;
+            transition: none;
+        }
+    }
+
+    /* ============================================================
+       Visual Redesign (VR-4) — Category Cards (Featured Top-3)
+       ============================================================ */
+    .cat-card-featured {
+        display: flex;
+        flex-direction: column;
+        padding: 28px;
+        border-radius: 20px;
+        border: 1px solid transparent;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.35s var(--ease-spring, cubic-bezier(0.22, 1, 0.36, 1));
+        text-decoration: none;
+    }
+
+    .cat-card-featured:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.12);
+    }
+
+    /* Decorative circle */
+    .cat-card-featured__circle {
+        position: absolute;
+        top: -30%;
+        right: -20%;
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: 0.05;
+        transition: all 0.35s ease;
+        pointer-events: none;
+    }
+
+    .cat-card-featured:hover .cat-card-featured__circle {
+        transform: scale(1.2);
+        opacity: 0.08;
+    }
+
+    /* Icon container */
+    .cat-card-featured__icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        background: white;
+        box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+    }
+
+    .cat-card-featured:hover .cat-card-featured__icon {
+        box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.12);
+        transform: rotate(3deg);
+    }
+
+    /* ============================================================
+       Visual Redesign (VR-4) — Category Cards (Compact / Rest)
+       ============================================================ */
+    .cat-card-compact {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        background: white;
+        border: 1px solid #F1F5F9;
+        border-radius: 12px;
+        transition: all 0.25s ease;
+        text-decoration: none;
+    }
+
+    .cat-card-compact:hover {
+        background: #F8FAFC;
+        border-color: color-mix(in srgb, var(--portal-primary, #3B82F6) 25%, transparent);
+        transform: translateX(4px);
+    }
+
+    .cat-card-compact__icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--portal-primary-light, #EFF6FF);
+        color: var(--portal-primary, #3B82F6);
+        shrink: 0;
+        flex-shrink: 0;
+    }
+
+    /* ============================================================
+       Visual Redesign (VR-2) — Floating Glasmorphism Header
+       ============================================================ */
+
+    /* Header floating container — enhances the .glass base */
+    .header-floating {
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow:
+            0 8px 32px rgba(0, 0, 0, 0.08),
+            0 2px 8px rgba(0, 0, 0, 0.04),
+            inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+
+    /* Scrolled state: tighter, more opaque, subtler shadow */
+    .header-scrolled {
+        background: rgba(255, 255, 255, 0.92) !important;
+        box-shadow:
+            0 4px 16px rgba(0, 0, 0, 0.1),
+            0 1px 4px rgba(0, 0, 0, 0.06);
+        top: 8px !important;
+    }
+
+    /* Nav link styles */
+    .header-nav-link {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--portal-primary-dark, #1E3A5F);
+        transition: all 200ms ease;
+        text-decoration: none;
+    }
+
+    .header-nav-link:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+        color: var(--portal-primary, #3B82F6);
+    }
+
+    /* Active nav link with bottom indicator */
+    .header-nav-active {
+        color: var(--portal-primary, #3B82F6);
+    }
+
+    .header-nav-active::after {
+        content: '';
+        position: absolute;
+        bottom: 4px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 20px;
+        height: 2px;
+        background-color: var(--portal-primary, #3B82F6);
+        border-radius: 1px;
+    }
+
+    /* CTA Button — Gradient with arrow */
+    .header-cta-btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1.25rem;
+        border-radius: 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: white;
+        background: linear-gradient(135deg, var(--portal-primary, #3B82F6), var(--portal-primary-hover, #2563EB));
+        box-shadow: 0 2px 8px rgba(var(--portal-primary-rgb, 59, 130, 246), 0.3);
+        transition: all 250ms var(--ease-spring, cubic-bezier(0.22, 1, 0.36, 1));
+        text-decoration: none;
+    }
+
+    .header-cta-btn:hover {
+        box-shadow: 0 4px 16px rgba(var(--portal-primary-rgb, 59, 130, 246), 0.4);
+        transform: translateY(-1px);
+    }
+
+    .header-cta-btn:active {
+        transform: translateY(0);
+    }
+
+    /* Mobile: Full width on small screens */
+    @media (max-width: 767px) {
+        .header-floating {
+            width: calc(100% - 24px) !important;
+            top: 8px !important;
+            border-radius: 12px !important;
+        }
+
+        .header-spacer {
+            height: 4.5rem !important;
+        }
+    }
+
+    /* ============================================================
+       Visual Redesign (VR-5) — Rich Company Cards
+       ============================================================ */
+
+    /* Base Card */
+    .company-card {
+        background: white;
+        border-radius: 16px;
+        border: 1px solid #F1F5F9;
+        overflow: hidden;
+        box-shadow: var(--shadow-card-rest, 0 1px 3px rgba(0, 0, 0, 0.06));
+        transition: all 0.4s var(--ease-spring, cubic-bezier(0.22, 1, 0.36, 1));
+    }
+
+    .company-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+        border-color: transparent;
+    }
+
+    .company-card:focus-within {
+        outline: 2px solid var(--portal-primary, #3B82F6);
+        outline-offset: 2px;
+    }
+
+    /* Badge Overlays (on image) */
+    .company-card__badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .company-card__badge--premium {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.95));
+        color: white;
+    }
+
+    .company-card__badge--verified {
+        background: rgba(255, 255, 255, 0.9);
+        color: #059669;
+        border: 1px solid rgba(5, 150, 105, 0.2);
+    }
+
+    /* Rating Badge (on image bottom-right) */
+    .company-card__rating-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    }
+
+    /* Category Tags */
+    .company-card__tag {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        background: #F1F5F9;
+        color: #475569;
+        transition: all 200ms ease;
+        text-decoration: none;
+    }
+
+    .company-card__tag:hover {
+        background: color-mix(in srgb, var(--portal-primary, #3B82F6) 12%, white);
+        color: var(--portal-primary-dark, #1E3A5F);
+    }
+
+    /* Action Buttons Row (Grid Layout) */
+    .company-card__actions {
+        display: flex;
+        gap: 8px;
+        padding-top: 12px;
+        border-top: 1px solid #F1F5F9;
+    }
+
+    .company-card__action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        flex: 1;
+        padding: 8px 12px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 250ms var(--ease-spring, cubic-bezier(0.22, 1, 0.36, 1));
+        min-height: 40px;
+        border: 1px solid #E2E8F0;
+        background: white;
+        color: #475569;
+    }
+
+    .company-card__action-btn:hover {
+        border-color: color-mix(in srgb, var(--portal-primary, #3B82F6) 40%, transparent);
+        color: var(--portal-primary, #3B82F6);
+        background: color-mix(in srgb, var(--portal-primary, #3B82F6) 5%, white);
+        transform: translateY(-1px);
+    }
+
+    /* Primary Action Button (Details) */
+    .company-card__action-btn--primary {
+        background: linear-gradient(135deg, var(--portal-primary, #3B82F6), var(--portal-primary-hover, #2563EB));
+        color: white;
+        border: none;
+        box-shadow: 0 2px 8px rgba(var(--portal-primary-rgb, 59, 130, 246), 0.25);
+    }
+
+    .company-card__action-btn--primary:hover {
+        background: linear-gradient(135deg, var(--portal-primary-hover, #2563EB), var(--portal-primary, #3B82F6));
+        color: white;
+        box-shadow: 0 4px 16px rgba(var(--portal-primary-rgb, 59, 130, 246), 0.35);
+        transform: translateY(-1px);
+    }
+
+    /* Icon-only Action Buttons (List Layout) */
+    .company-card__action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: 1px solid #E2E8F0;
+        background: white;
+        color: #64748B;
+        text-decoration: none;
+        transition: all 200ms ease;
+    }
+
+    .company-card__action:hover {
+        border-color: color-mix(in srgb, var(--portal-primary, #3B82F6) 40%, transparent);
+        color: var(--portal-primary, #3B82F6);
+        background: color-mix(in srgb, var(--portal-primary, #3B82F6) 5%, white);
+    }
+
+    .company-card__action--primary {
+        background: var(--portal-primary, #3B82F6);
+        color: white;
+        border-color: transparent;
+    }
+
+    .company-card__action--primary:hover {
+        background: var(--portal-primary-hover, #2563EB);
+        color: white;
+    }
+
+    /* Responsive: Mobile cards — tighter spacing */
+    @media (max-width: 639px) {
+        .company-card__actions {
+            padding-top: 10px;
+        }
+
+        .company-card__action-btn {
+            padding: 7px 10px;
+            font-size: 12px;
+            min-height: 36px;
+        }
+    }
+
+    /* ============================================================
+       Visual Redesign (VR-6) — Company Detail Hero Header
+       ============================================================ */
+    .company-hero {
+        background: linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--portal-primary, #3B82F6) 5%, white) 0%,
+            white 100%
+        );
+        padding: 16px 0 32px;
+        border-bottom: 1px solid #F1F5F9;
+    }
+
+    .company-hero__inner {
+        display: flex;
+        align-items: flex-start;
+        gap: 24px;
+        margin-top: 16px;
+    }
+
+    /* Logo */
+    .company-hero__logo-wrapper {
+        flex-shrink: 0;
+    }
+
+    .company-hero__logo {
+        width: 80px;
+        height: 80px;
+        border-radius: 16px;
+        border: 3px solid white;
+        box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.1);
+        object-fit: cover;
+        background: white;
+    }
+
+    .company-hero__logo-placeholder {
+        width: 80px;
+        height: 80px;
+        border-radius: 16px;
+        border: 3px solid white;
+        box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.1);
+        background: linear-gradient(135deg, var(--portal-primary, #3B82F6), var(--portal-primary-hover, #2563EB));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 32px;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    /* Info Block */
+    .company-hero__info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .company-hero__name {
+        font-size: 28px;
+        font-weight: 800;
+        color: #0F172A;
+        line-height: 1.2;
+        margin: 0;
+    }
+
+    .company-hero__rating {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+    }
+
+    .company-hero__rating-count {
+        font-size: 13px;
+        color: #94A3B8;
+        font-weight: 500;
+    }
+
+    .company-hero__meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-top: 8px;
+    }
+
+    .company-hero__meta-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 14px;
+        color: #64748B;
+    }
+
+    .company-hero__meta-item svg {
+        color: #94A3B8;
+    }
+
+    /* Badges */
+    .company-hero__badges {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .company-hero__badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .company-hero__badge--premium {
+        background: linear-gradient(135deg, #FFFBEB, #FEF3C7);
+        color: #B45309;
+    }
+
+    .company-hero__badge--verified {
+        background: #ECFDF5;
+        color: #059669;
+    }
+
+    /* Desktop CTA (right side of hero) */
+    .company-hero__cta {
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-self: center;
+    }
+
+    .company-hero__cta-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: all 250ms var(--ease-spring, cubic-bezier(0.22, 1, 0.36, 1));
+    }
+
+    .company-hero__cta-btn--primary {
+        background: linear-gradient(135deg, var(--portal-primary, #3B82F6), var(--portal-primary-hover, #2563EB));
+        color: white;
+        box-shadow: 0 2px 8px rgba(var(--portal-primary-rgb, 59, 130, 246), 0.3);
+    }
+
+    .company-hero__cta-btn--primary:hover {
+        box-shadow: 0 4px 16px rgba(var(--portal-primary-rgb, 59, 130, 246), 0.4);
+        transform: translateY(-2px);
+    }
+
+    .company-hero__cta-btn--secondary {
+        background: white;
+        color: #475569;
+        border: 1px solid #E2E8F0;
+    }
+
+    .company-hero__cta-btn--secondary:hover {
+        border-color: color-mix(in srgb, var(--portal-primary, #3B82F6) 40%, transparent);
+        color: var(--portal-primary, #3B82F6);
+        transform: translateY(-1px);
+    }
+
+    /* Sidebar Card Enhancement */
+    .company-sidebar {
+        background: white;
+        border-radius: 16px;
+        border: 1px solid #F1F5F9;
+        padding: 24px;
+        box-shadow: var(--shadow-card-rest, 0 1px 3px rgba(0, 0, 0, 0.06));
+        transition: box-shadow 0.3s ease;
+    }
+
+    .company-sidebar:hover {
+        box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.1);
+    }
+
+    .company-sidebar > * + * {
+        margin-top: 16px;
+    }
+
+    /* Review Cards */
+    .company-review-card {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #F1F5F9;
+        padding: 20px;
+        transition: all 0.3s ease;
+    }
+
+    .company-review-card:hover {
+        border-color: color-mix(in srgb, var(--portal-primary, #3B82F6) 15%, transparent);
+        box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.06);
+    }
+
+    /* ============================================================
+       Visual Redesign (VR-6) — Sticky Contact Bar (Mobile)
+       ============================================================ */
+    .sticky-contact {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 40;
+        background: white;
+        border-top: 1px solid #E2E8F0;
+        padding: 12px 16px;
+        display: flex;
+        gap: 10px;
+        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Hide on desktop — sidebar handles contact there */
+    @media (min-width: 1024px) {
+        .sticky-contact {
+            display: none;
+        }
+    }
+
+    .sticky-contact__call {
+        flex: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: var(--portal-primary, #3B82F6);
+        color: white;
+        padding: 14px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 15px;
+        text-align: center;
+        text-decoration: none;
+        transition: background 200ms ease;
+    }
+
+    .sticky-contact__call:hover {
+        background: var(--portal-primary-hover, #2563EB);
+    }
+
+    .sticky-contact__website {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 14px 20px;
+        background: #F1F5F9;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 15px;
+        color: #334155;
+        text-decoration: none;
+        transition: background 200ms ease;
+    }
+
+    .sticky-contact__website:hover {
+        background: #E2E8F0;
+    }
+
+    /* Mobile Hero adjustments */
+    @media (max-width: 767px) {
+        .company-hero__inner {
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .company-hero__logo {
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+        }
+
+        .company-hero__logo-placeholder {
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            font-size: 24px;
+        }
+
+        .company-hero__name {
+            font-size: 22px;
+        }
+
+        .company-hero__cta {
+            display: none; /* Hidden on mobile — sticky bar handles it */
+        }
+
+        .company-hero {
+            padding: 12px 0 24px;
+        }
+
+        /* Add bottom padding so sticky bar doesn't overlap content */
+        body:has(.sticky-contact) {
+            padding-bottom: 72px;
+        }
+    }
+
+    /* Tablet: hero inline but smaller */
+    @media (min-width: 768px) and (max-width: 1023px) {
+        .company-hero__logo {
+            width: 72px;
+            height: 72px;
+        }
+
+        .company-hero__logo-placeholder {
+            width: 72px;
+            height: 72px;
+            font-size: 28px;
+        }
+
+        .company-hero__name {
+            font-size: 24px;
+        }
+    }
+
+    /* ============================================================
+       Visual Redesign (VR-7) — Dreistufiger Footer
+       ============================================================ */
+
+    /* --- Stufe 1: Newsletter-Bar --- */
+    .footer-newsletter {
+        background: var(--portal-primary, #3B82F6);
+        padding: 40px 0;
+        color: white;
+    }
+
+    .footer-newsletter__input {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 12px;
+        padding: 14px 20px;
+        color: white;
+        font-size: 15px;
+        transition: all 200ms ease;
+    }
+
+    .footer-newsletter__input::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .footer-newsletter__input:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.22);
+        border-color: rgba(255, 255, 255, 0.5);
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
+    }
+
+    .footer-newsletter__submit {
+        background: white;
+        color: var(--portal-primary-dark, #1E3A5F);
+        padding: 14px 24px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 15px;
+        border: none;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 250ms var(--ease-spring, cubic-bezier(0.22, 1, 0.36, 1));
+    }
+
+    .footer-newsletter__submit:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .footer-newsletter__submit:active {
+        transform: translateY(0);
+    }
+
+    .footer-newsletter__submit:focus-visible {
+        outline: 2px solid white;
+        outline-offset: 2px;
+    }
+
+    /* --- Stufe 2: Haupt-Footer (Dark) --- */
+    .footer-main {
+        background: #0F172A; /* Slate-900 */
+        color: #CBD5E1;      /* Slate-300 */
+        padding: 60px 0 40px;
+    }
+
+    .footer-main__heading {
+        color: white;
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 16px;
+    }
+
+    .footer-main__link {
+        color: #94A3B8; /* Slate-400 */
+        font-size: 14px;
+        text-decoration: none;
+        transition: color 200ms ease;
+    }
+
+    .footer-main__link:hover {
+        color: white;
+    }
+
+    .footer-main__link:focus-visible {
+        outline: 2px solid var(--portal-primary, #3B82F6);
+        outline-offset: 2px;
+        border-radius: 2px;
+    }
+
+    .footer-main__social {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.08);
+        color: #94A3B8;
+        transition: all 200ms ease;
+    }
+
+    .footer-main__social:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .footer-main__social:focus-visible {
+        outline: 2px solid var(--portal-primary, #3B82F6);
+        outline-offset: 2px;
+    }
+
+    /* --- Stufe 3: Copyright-Bar --- */
+    .footer-bottom {
+        background: #020617; /* Slate-950 */
+        padding: 16px 0;
+        font-size: 13px;
+        color: #64748B; /* Slate-500 */
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Mobile: Newsletter stacked */
+    @media (max-width: 639px) {
+        .footer-newsletter {
+            padding: 32px 0;
+        }
+
+        .footer-newsletter__input {
+            font-size: 16px; /* Prevent iOS zoom */
+        }
+
+        .footer-main {
+            padding: 40px 0 32px;
+        }
+    }
+}

@@ -32,6 +32,8 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Jeffgreco13\FilamentBreezy\BreezyCore;
+use App\Providers\TenancyServiceProvider;
+use Saasykit\FilamentTenancyForLaravel\FilamentTenancyForLaravelPlugin;
 
 class DashboardPanelProvider extends PanelProvider
 {
@@ -114,17 +116,19 @@ class DashboardPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])->plugins([
+                FilamentTenancyForLaravelPlugin::make()->identificationMiddleware(TenancyServiceProvider::TENANCY_INITIALIZER),
                 BreezyCore::make()
                     ->myProfile(
-                        shouldRegisterUserMenu: true, // Sets the 'account' link in the panel User Menu (default = true)
-                        shouldRegisterNavigation: false, // Adds a main navigation item for the My Profile page (default = false)
-                        hasAvatars: false, // Enables the avatar upload form component (default = false)
-                        slug: 'my-profile' // Sets the slug for the profile page (default = 'my-profile')
+                        shouldRegisterUserMenu: true,
+                        shouldRegisterNavigation: false,
+                        hasAvatars: false,
+                        slug: 'my-profile'
                     )
                     ->myProfileComponents([
                         AddressForm::class,
                     ]),
             ])
+            ->tenant(Tenant::class, 'domain')
             ->tenantMenuItems([
                 Action::make('create')
                     ->label(__('New Workspace'))
@@ -132,7 +136,6 @@ class DashboardPanelProvider extends PanelProvider
                     ->icon('heroicon-o-plus-circle')
                     ->visible(fn () => config('app.allow_user_to_create_tenants_from_dashboard', false)),
             ])
-            ->tenantMenu()
-            ->tenant(Tenant::class, 'uuid');
+            ->tenantMenu();
     }
 }

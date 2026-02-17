@@ -1,0 +1,27 @@
+{
+    "name": "Default Portal",
+    "slug": "default",
+    "version": "1.0.0",
+    "author": "Team",
+    "description": "Standard-Theme für das Branchenportal. Kompaktes Listen-Layout mit Suchleiste und Kategorienavigation.",
+    "screenshot": "screenshot.png",
+    "supports": ["companies", "categories", "reviews", "search"],
+    "options": {
+        "listing_layout": {
+            "type": "select",
+            "label": "Firmen-Ansicht",
+            "choices": ["list", "grid-2", "grid-3"],
+            "default": "list"
+        },
+        "show_sidebar": {
+            "type": "boolean",
+            "label": "Sidebar anzeigen",
+            "default": true
+        },
+        "show_hero": {
+            "type": "boolean",
+            "label": "Hero-Bereich anzeigen",
+            "default": true
+        }
+    }
+}
