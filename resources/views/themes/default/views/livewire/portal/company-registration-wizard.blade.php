@@ -197,17 +197,17 @@
                     </div>
 
                     {{-- Beschreibung --}}
-                    <div>
+                    <div x-data="{ charCount: 0 }" x-init="charCount = $refs.desc.value.length">
                         <label for="description" class="label-portal">Beschreibung</label>
                         <textarea id="description" wire:model.blur="description" rows="4" maxlength="5000"
                                   class="textarea-portal"
                                   placeholder="Beschreiben Sie Ihr Unternehmen, Ihre Dienstleistungen und was Sie besonders macht..."
                                   aria-describedby="description-help"
-                                  x-data="{ count: $el.value.length }"
-                                  x-on:input="count = $el.value.length"></textarea>
+                                  x-ref="desc"
+                                  x-on:input="charCount = $refs.desc.value.length"></textarea>
                         <div class="flex items-center justify-between mt-1.5">
                             <p id="description-help" class="help-portal">Eine gute Beschreibung hilft bei der Auffindbarkeit.</p>
-                            <span class="text-xs text-base-content/40" x-data="{ count: 0 }" x-init="count = $refs.desc ? $refs.desc.value.length : 0">0 / 5.000</span>
+                            <span class="text-xs text-base-content/40" x-text="charCount.toLocaleString('de-DE') + ' / 5.000'"></span>
                         </div>
                         @error('description') <p class="text-error text-sm mt-1" role="alert">{{ $message }}</p> @enderror
                     </div>
@@ -240,7 +240,7 @@
                                         @if(!$isSelected && count($selectedCategories) >= 5) disabled @endif
                                         aria-pressed="{{ $isSelected ? 'true' : 'false' }}"
                                         aria-label="{{ $category->name }} {{ $isSelected ? '(ausgewählt)' : '' }}">
-                                    @if($category->icon) <span aria-hidden="true">{{ $category->icon }}</span> @endif
+                                    @if($category->icon) <i data-lucide="{{ $category->icon }}" class="w-4 h-4 inline-block" aria-hidden="true"></i> @endif
                                     {{ $category->name }}
                                     @if($isSelected)
                                         <svg class="w-4 h-4 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
@@ -518,7 +518,7 @@
                                     <dt class="text-base-content/40 sm:w-24 shrink-0 text-xs">Kategorien</dt>
                                     <dd class="flex flex-wrap gap-1">
                                         @foreach(\App\Models\Portal\Category::whereIn('id', $selectedCategories)->get() as $cat)
-                                            <span class="badge-portal text-xs">{{ $cat->icon ?? '' }} {{ $cat->name }}</span>
+                                            <span class="badge-portal text-xs inline-flex items-center gap-1">@if($cat->icon)<i data-lucide="{{ $cat->icon }}" class="w-3 h-3 inline-block" aria-hidden="true"></i>@endif{{ $cat->name }}</span>
                                         @endforeach
                                     </dd>
                                 </div>

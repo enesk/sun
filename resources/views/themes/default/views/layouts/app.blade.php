@@ -52,6 +52,9 @@
     @livewireStyles
     @stack('styles')
 
+    {{-- Lucide Icons (Category icons etc.) --}}
+    <script src="https://unpkg.com/lucide@0.574.0/dist/umd/lucide.min.js" defer></script>
+
     @include('partials.analytics')
 </head>
 <body class="min-h-screen flex flex-col bg-base-100 text-base-content antialiased">
@@ -90,5 +93,13 @@
     @vite(['resources/js/app.js'])
     @livewireScripts
     @stack('scripts')
+
+    {{-- Initialize Lucide icons + re-init on Livewire/Alpine updates --}}
+    <script>
+        function initLucide() { if (window.lucide) lucide.createIcons(); }
+        document.addEventListener('DOMContentLoaded', initLucide);
+        document.addEventListener('livewire:navigated', initLucide);
+        document.addEventListener('livewire:morph.updated', initLucide);
+    </script>
 </body>
 </html>

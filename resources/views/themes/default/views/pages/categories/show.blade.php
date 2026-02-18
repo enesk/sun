@@ -38,7 +38,7 @@
         <div class="mb-8">
             <div class="flex items-center gap-3 mb-2">
                 @if($category->icon)
-                    <span class="text-3xl">{{ $category->icon }}</span>
+                    <i data-lucide="{{ $category->icon }}" class="w-8 h-8 text-portal-primary-dark" aria-hidden="true"></i>
                 @endif
                 <h1 class="text-2xl font-bold text-base-content">{{ $category->name }}</h1>
             </div>

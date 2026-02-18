@@ -103,7 +103,7 @@
                         <a href="{{ route('portal.categories.show', $cat->slug) }}"
                            class="hero-tag inline-flex items-center shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium text-white border border-white/20 transition-all backdrop-blur-sm">
                             @if($cat->icon)
-                                <span class="mr-1.5">{{ $cat->icon }}</span>
+                                <i data-lucide="{{ $cat->icon }}" class="w-4 h-4 mr-1 inline-block" aria-hidden="true"></i>
                             @endif
                             {{ $cat->name }}
                         </a>

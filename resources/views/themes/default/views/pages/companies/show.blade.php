@@ -307,7 +307,7 @@
                                 <a href="{{ route('portal.categories.show', $cat->slug) }}"
                                    class="company-card__tag inline-flex items-center gap-1.5 px-3 py-1.5">
                                     @if($cat->icon)
-                                        <span>{{ $cat->icon }}</span>
+                                        <i data-lucide="{{ $cat->icon }}" class="w-4 h-4" aria-hidden="true"></i>
                                     @endif
                                     {{ $cat->name }}
                                 </a>

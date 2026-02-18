@@ -49,7 +49,7 @@
                             {{-- Icon --}}
                             <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-portal-primary/10">
                                 @if($category->icon)
-                                    <span class="text-2xl">{{ $category->icon }}</span>
+                                    <i data-lucide="{{ $category->icon }}" class="w-6 h-6 text-portal-primary-dark" aria-hidden="true"></i>
                                 @else
                                     <span class="text-lg font-bold text-portal-primary-dark">{{ mb_substr($category->name, 0, 1) }}</span>
                                 @endif
