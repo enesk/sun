@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Portal\CategoryController;
 use App\Http\Controllers\Portal\CompanyController;
+use App\Http\Controllers\Portal\CompanyProcessingController;
 use App\Http\Controllers\Portal\CompanyRegistrationController;
 use App\Http\Controllers\Portal\OwnerDashboardController;
 use App\Http\Controllers\Portal\PortalHomeController;
@@ -21,6 +22,20 @@ use Illuminate\Support\Facades\Route;
 | Feel free to customize them however you want. Good luck!
 |
 */
+
+// Bot API: Lightweight, no session/theme, mit Rate Limiting
+Route::middleware([
+    'universal',
+    App\Providers\TenancyServiceProvider::TENANCY_INITIALIZER,
+    'throttle:60,1', // 60 Requests pro Minute
+])->prefix('/bot')->group(function () {
+    Route::get('/next', [CompanyProcessingController::class, 'getNext']);
+    Route::get('/batch', [CompanyProcessingController::class, 'getBatch']);
+    Route::post('/{id}/complete', [CompanyProcessingController::class, 'markComplete'])->whereNumber('id');
+    Route::post('/{id}/failed', [CompanyProcessingController::class, 'markFailed'])->whereNumber('id');
+    Route::post('/batch-complete', [CompanyProcessingController::class, 'markBatchComplete']);
+    Route::get('/stats', [CompanyProcessingController::class, 'getStats']);
+});
 
 // SEO: Sitemap & Robots (no session/theme needed, lightweight)
 Route::middleware([
