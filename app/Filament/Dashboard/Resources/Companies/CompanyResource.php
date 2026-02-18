@@ -141,6 +141,16 @@ class CompanyResource extends Resource
                             ->imageResizeTargetHeight('300')
                             ->maxSize(2048)
                             ->helperText(__('Max. 2 MB — PNG, JPEG oder WebP. Wird auf 300x300px zugeschnitten.')),
+                        SpatieMediaLibraryFileUpload::make('cover')
+                            ->collection('cover')
+                            ->label(__('Titelbild / Banner'))
+                            ->image()
+                            ->imageResizeMode('cover')
+                            ->imageCropAspectRatio('3:1')
+                            ->imageResizeTargetWidth('1200')
+                            ->imageResizeTargetHeight('400')
+                            ->maxSize(5120)
+                            ->helperText(__('Max. 5 MB — Empfohlen: 1200×400px (3:1). Wird als Banner auf der Firmenseite angezeigt.')),
                         SpatieMediaLibraryFileUpload::make('gallery')
                             ->collection('gallery')
                             ->label(__('Galerie'))

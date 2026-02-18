@@ -30,6 +30,7 @@ class ProfileEditForm extends Component
 
     // File uploads
     public $logo;
+    public $cover;
 
     // UI State
     public array $citySuggestions = [];
@@ -38,6 +39,7 @@ class ProfileEditForm extends Component
 
     // Cached data (avoid re-querying on every render)
     public ?string $currentLogoUrl = null;
+    public ?string $currentCoverUrl = null;
     public int $companyId = 0;
 
     public function mount(): void
@@ -56,6 +58,7 @@ class ProfileEditForm extends Component
         $this->website = $company->website ?? '';
         $this->selectedCategories = $company->categories->pluck('id')->toArray();
         $this->currentLogoUrl = $company->getFirstMediaUrl('logo', 'medium') ?: null;
+        $this->currentCoverUrl = $company->getFirstMediaUrl('cover', 'banner') ?: null;
 
         if ($company->city) {
             $this->citySearch = "{$company->city->zipcode} {$company->city->name}";
@@ -77,6 +80,7 @@ class ProfileEditForm extends Component
             'selectedCategories' => ['required', 'array', 'min:1', 'max:5'],
             'selectedCategories.*' => ['integer', 'exists:categories,id'],
             'logo' => ['nullable', 'image', 'max:2048'],
+            'cover' => ['nullable', 'image', 'max:5120'],
         ];
     }
 
@@ -96,6 +100,8 @@ class ProfileEditForm extends Component
             'website.url' => 'Bitte geben Sie eine gültige URL ein (z.B. https://example.com).',
             'logo.image' => 'Das Logo muss ein Bild sein (JPEG, PNG, WebP).',
             'logo.max' => 'Das Logo darf maximal 2 MB groß sein.',
+            'cover.image' => 'Das Titelbild muss ein Bild sein (JPEG, PNG, WebP).',
+            'cover.max' => 'Das Titelbild darf maximal 5 MB groß sein.',
         ];
     }
 
@@ -160,8 +166,16 @@ class ProfileEditForm extends Component
                 ->usingFileName('logo.' . $this->logo->getClientOriginalExtension())
                 ->toMediaCollection('logo');
             $this->logo = null;
-            // Refresh cached logo URL
             $this->currentLogoUrl = $company->fresh()->getFirstMediaUrl('logo', 'medium') ?: null;
+        }
+
+        // Cover/Banner upload
+        if ($this->cover) {
+            $company->addMedia($this->cover->getRealPath())
+                ->usingFileName('cover.' . $this->cover->getClientOriginalExtension())
+                ->toMediaCollection('cover');
+            $this->cover = null;
+            $this->currentCoverUrl = $company->fresh()->getFirstMediaUrl('cover', 'banner') ?: null;
         }
 
         $this->saved = true;
@@ -188,6 +202,26 @@ class ProfileEditForm extends Component
         $this->currentLogoUrl = null;
     }
 
+    public function getCoverPreviewUrlProperty(): ?string
+    {
+        if (! $this->cover instanceof TemporaryUploadedFile) {
+            return null;
+        }
+
+        try {
+            return $this->cover->temporaryUrl();
+        } catch (\RuntimeException $e) {
+            return null;
+        }
+    }
+
+    public function removeCover(): void
+    {
+        $company = $this->getCompany();
+        $company->clearMediaCollection('cover');
+        $this->currentCoverUrl = null;
+    }
+
     private function getCompany(): Company
     {
         return Company::ownedBy(Auth::id())
@@ -206,6 +240,7 @@ class ProfileEditForm extends Component
         return view('livewire.portal.dashboard.profile-edit-form', [
             'categories' => $this->categories(),
             'currentLogo' => $this->currentLogoUrl,
+            'currentCover' => $this->currentCoverUrl,
         ]);
     }
 }

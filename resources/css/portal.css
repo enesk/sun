@@ -1345,6 +1345,175 @@
         transform: translateY(-1px);
     }
 
+    /* ============================================================
+       IMG-4 — Cover/Banner Image Hero Variant
+       ============================================================ */
+
+    .company-hero--cover {
+        position: relative;
+        padding: 0;
+        background: none;
+        border-bottom: none;
+        overflow: hidden;
+    }
+
+    .company-hero__banner {
+        position: relative;
+        width: 100%;
+        height: 300px;
+    }
+
+    .company-hero__banner-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .company-hero__banner-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            to top,
+            rgba(0, 0, 0, 0.65) 0%,
+            rgba(0, 0, 0, 0.25) 40%,
+            transparent 100%
+        );
+    }
+
+    .company-hero--cover .container {
+        position: relative;
+        margin-top: -100px;
+        padding-bottom: 24px;
+        z-index: 1;
+    }
+
+    .company-hero--cover .breadcrumb,
+    .company-hero--cover nav[aria-label] {
+        color: rgba(255, 255, 255, 0.8);
+    }
+    .company-hero--cover .breadcrumb a,
+    .company-hero--cover nav[aria-label] a {
+        color: rgba(255, 255, 255, 0.8);
+    }
+    .company-hero--cover .breadcrumb a:hover,
+    .company-hero--cover nav[aria-label] a:hover {
+        color: white;
+    }
+
+    .company-hero__inner--cover {
+        display: flex;
+        align-items: flex-end;
+        gap: 20px;
+        margin-top: 12px;
+    }
+
+    .company-hero__logo-wrapper--cover {
+        flex-shrink: 0;
+    }
+
+    .company-hero__logo-wrapper--cover .company-hero__logo {
+        width: 96px;
+        height: 96px;
+        border: 4px solid white;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .company-hero__logo-wrapper--cover.company-hero__logo-placeholder {
+        width: 96px;
+        height: 96px;
+        border: 4px solid white;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .company-hero__name--cover {
+        color: white;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .company-hero__rating-count--cover {
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .company-hero__meta-item--cover {
+        color: rgba(255, 255, 255, 0.85);
+    }
+
+    .company-hero__meta-item--cover svg {
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* Cover Hero — Desktop CTA stays white for contrast */
+    .company-hero--cover .company-hero__cta-btn--secondary {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(8px);
+        border-color: rgba(255, 255, 255, 0.3);
+        color: white;
+    }
+    .company-hero--cover .company-hero__cta-btn--secondary:hover {
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.5);
+        color: white;
+    }
+
+    /* Cover Hero — Mobile */
+    @media (max-width: 767px) {
+        .company-hero__banner {
+            height: 180px;
+        }
+
+        .company-hero--cover .container {
+            margin-top: -60px;
+        }
+
+        .company-hero__inner--cover {
+            flex-direction: row;
+            align-items: flex-end;
+            gap: 12px;
+        }
+
+        .company-hero__logo-wrapper--cover .company-hero__logo,
+        .company-hero__logo-wrapper--cover.company-hero__logo-placeholder {
+            width: 72px;
+            height: 72px;
+            border-width: 3px;
+        }
+
+        .company-hero__name--cover {
+            font-size: 20px;
+        }
+    }
+
+    /* Cover Hero — Tablet */
+    @media (min-width: 768px) and (max-width: 1023px) {
+        .company-hero__banner {
+            height: 240px;
+        }
+
+        .company-hero--cover .container {
+            margin-top: -80px;
+        }
+
+        .company-hero__logo-wrapper--cover .company-hero__logo,
+        .company-hero__logo-wrapper--cover.company-hero__logo-placeholder {
+            width: 84px;
+            height: 84px;
+        }
+    }
+
+    /* Cover Hero — Large Desktop */
+    @media (min-width: 1280px) {
+        .company-hero__banner {
+            height: 360px;
+        }
+
+        .company-hero__logo-wrapper--cover .company-hero__logo,
+        .company-hero__logo-wrapper--cover.company-hero__logo-placeholder {
+            width: 112px;
+            height: 112px;
+        }
+    }
+
     /* Sidebar Card Enhancement */
     .company-sidebar {
         background: white;

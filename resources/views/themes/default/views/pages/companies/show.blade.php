@@ -3,96 +3,185 @@
 @section('title', $company->name . ' — ' . ($currentTenant->name ?? config('app.name')))
 @section('meta_description', Str::limit($company->description, 160))
 @section('og_type', 'business.business')
-@if($company->logo_url)
+@if($company->cover_url)
+@section('og_image', $company->cover_url)
+@elseif($company->logo_url)
 @section('og_image', $company->logo_url)
 @endif
 
 @section('content')
 
-    {{-- VR-6: Company Hero Header --}}
-    <section class="company-hero reveal">
-        <div class="container mx-auto px-4">
-            {{-- Breadcrumb --}}
-            @include('components.breadcrumb', ['items' => $breadcrumb])
+    {{-- VR-6 + IMG-4: Company Hero Header with optional Cover Image --}}
+    @if($company->cover_url)
+        {{-- Hero WITH Cover Image --}}
+        <section class="company-hero company-hero--cover reveal">
+            <div class="company-hero__banner">
+                <img src="{{ $company->cover_url }}"
+                     alt="{{ $company->name }} — Titelbild"
+                     class="company-hero__banner-img"
+                     loading="eager"
+                     width="1200"
+                     height="400">
+                <div class="company-hero__banner-overlay" aria-hidden="true"></div>
+            </div>
+            <div class="container mx-auto px-4">
+                {{-- Breadcrumb --}}
+                @include('components.breadcrumb', ['items' => $breadcrumb])
 
-            <div class="company-hero__inner">
-                {{-- Logo --}}
-                @if($company->logo_url)
-                    <div class="company-hero__logo-wrapper">
-                        <img src="{{ $company->logo_url }}"
-                             alt="{{ $company->name }}"
-                             class="company-hero__logo"
-                             loading="eager">
-                    </div>
-                @else
-                    <div class="company-hero__logo-wrapper company-hero__logo-placeholder">
-                        <span>{{ mb_substr($company->name, 0, 1) }}</span>
-                    </div>
-                @endif
-
-                {{-- Info --}}
-                <div class="company-hero__info">
-                    <h1 class="company-hero__name">{{ $company->name }}</h1>
-
-                    {{-- Rating --}}
-                    @if($company->rating_count > 0)
-                        <div class="company-hero__rating">
-                            @include('components.star-rating', ['rating' => $company->rating, 'size' => 'md', 'showNumeric' => true])
-                            <span class="company-hero__rating-count">({{ $company->rating_count }} {{ $company->rating_count === 1 ? 'Bewertung' : 'Bewertungen' }})</span>
+                <div class="company-hero__inner company-hero__inner--cover">
+                    {{-- Logo --}}
+                    @if($company->logo_url)
+                        <div class="company-hero__logo-wrapper company-hero__logo-wrapper--cover">
+                            <img src="{{ $company->logo_url }}"
+                                 alt="{{ $company->name }}"
+                                 class="company-hero__logo"
+                                 loading="eager">
+                        </div>
+                    @else
+                        <div class="company-hero__logo-wrapper company-hero__logo-wrapper--cover company-hero__logo-placeholder">
+                            <span>{{ mb_substr($company->name, 0, 1) }}</span>
                         </div>
                     @endif
 
-                    {{-- Meta: Stadt, Kategorie, Gründung --}}
-                    <div class="company-hero__meta">
-                        @if($company->city)
-                            <span class="company-hero__meta-item">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                {{ $company->city->name }}
-                            </span>
+                    {{-- Info --}}
+                    <div class="company-hero__info">
+                        <h1 class="company-hero__name company-hero__name--cover">{{ $company->name }}</h1>
+
+                        @if($company->rating_count > 0)
+                            <div class="company-hero__rating">
+                                @include('components.star-rating', ['rating' => $company->rating, 'size' => 'md', 'showNumeric' => true])
+                                <span class="company-hero__rating-count company-hero__rating-count--cover">({{ $company->rating_count }} {{ $company->rating_count === 1 ? 'Bewertung' : 'Bewertungen' }})</span>
+                            </div>
                         @endif
-                        @if($company->categories->isNotEmpty())
-                            <span class="company-hero__meta-item">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
-                                {{ $company->categories->first()->name }}
-                            </span>
-                        @endif
+
+                        <div class="company-hero__meta">
+                            @if($company->city)
+                                <span class="company-hero__meta-item company-hero__meta-item--cover">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    {{ $company->city->name }}
+                                </span>
+                            @endif
+                            @if($company->categories->isNotEmpty())
+                                <span class="company-hero__meta-item company-hero__meta-item--cover">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                                    {{ $company->categories->first()->name }}
+                                </span>
+                            @endif
+                        </div>
+
+                        <div class="company-hero__badges">
+                            @if($company->is_premium)
+                                <span class="company-hero__badge company-hero__badge--premium">
+                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                    Premium
+                                </span>
+                            @endif
+                            @if($company->is_verified)
+                                <span class="company-hero__badge company-hero__badge--verified">
+                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                    Verifiziert
+                                </span>
+                            @endif
+                        </div>
                     </div>
 
-                    {{-- Badges --}}
-                    <div class="company-hero__badges">
-                        @if($company->is_premium)
-                            <span class="company-hero__badge company-hero__badge--premium">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                                Premium
-                            </span>
+                    {{-- Desktop CTA --}}
+                    <div class="company-hero__cta">
+                        @if($company->tel)
+                            <a href="tel:{{ $company->tel }}" class="company-hero__cta-btn company-hero__cta-btn--primary ripple">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                Jetzt anrufen
+                            </a>
                         @endif
-                        @if($company->is_verified)
-                            <span class="company-hero__badge company-hero__badge--verified">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                                Verifiziert
-                            </span>
+                        @if($company->email)
+                            <a href="mailto:{{ $company->email }}" class="company-hero__cta-btn company-hero__cta-btn--secondary ripple">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                E-Mail
+                            </a>
                         @endif
                     </div>
-                </div>
-
-                {{-- Desktop CTA --}}
-                <div class="company-hero__cta">
-                    @if($company->tel)
-                        <a href="tel:{{ $company->tel }}" class="company-hero__cta-btn company-hero__cta-btn--primary ripple">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                            Jetzt anrufen
-                        </a>
-                    @endif
-                    @if($company->email)
-                        <a href="mailto:{{ $company->email }}" class="company-hero__cta-btn company-hero__cta-btn--secondary ripple">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                            E-Mail
-                        </a>
-                    @endif
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    @else
+        {{-- Hero WITHOUT Cover Image (Original Gradient) --}}
+        <section class="company-hero reveal">
+            <div class="container mx-auto px-4">
+                @include('components.breadcrumb', ['items' => $breadcrumb])
+
+                <div class="company-hero__inner">
+                    @if($company->logo_url)
+                        <div class="company-hero__logo-wrapper">
+                            <img src="{{ $company->logo_url }}"
+                                 alt="{{ $company->name }}"
+                                 class="company-hero__logo"
+                                 loading="eager">
+                        </div>
+                    @else
+                        <div class="company-hero__logo-wrapper company-hero__logo-placeholder">
+                            <span>{{ mb_substr($company->name, 0, 1) }}</span>
+                        </div>
+                    @endif
+
+                    <div class="company-hero__info">
+                        <h1 class="company-hero__name">{{ $company->name }}</h1>
+
+                        @if($company->rating_count > 0)
+                            <div class="company-hero__rating">
+                                @include('components.star-rating', ['rating' => $company->rating, 'size' => 'md', 'showNumeric' => true])
+                                <span class="company-hero__rating-count">({{ $company->rating_count }} {{ $company->rating_count === 1 ? 'Bewertung' : 'Bewertungen' }})</span>
+                            </div>
+                        @endif
+
+                        <div class="company-hero__meta">
+                            @if($company->city)
+                                <span class="company-hero__meta-item">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    {{ $company->city->name }}
+                                </span>
+                            @endif
+                            @if($company->categories->isNotEmpty())
+                                <span class="company-hero__meta-item">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                                    {{ $company->categories->first()->name }}
+                                </span>
+                            @endif
+                        </div>
+
+                        <div class="company-hero__badges">
+                            @if($company->is_premium)
+                                <span class="company-hero__badge company-hero__badge--premium">
+                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                    Premium
+                                </span>
+                            @endif
+                            @if($company->is_verified)
+                                <span class="company-hero__badge company-hero__badge--verified">
+                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                    Verifiziert
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="company-hero__cta">
+                        @if($company->tel)
+                            <a href="tel:{{ $company->tel }}" class="company-hero__cta-btn company-hero__cta-btn--primary ripple">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                Jetzt anrufen
+                            </a>
+                        @endif
+                        @if($company->email)
+                            <a href="mailto:{{ $company->email }}" class="company-hero__cta-btn company-hero__cta-btn--secondary ripple">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                E-Mail
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </section>
+    @endif
 
     <div class="container mx-auto px-4 pb-12">
 
@@ -528,6 +617,9 @@
         ] : null,
         'image' => (function() use ($company) {
             $images = [];
+            if ($company->cover_url) {
+                $images[] = $company->cover_url;
+            }
             if ($company->logo_url) {
                 $images[] = $company->logo_url;
             }

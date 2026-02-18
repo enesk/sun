@@ -182,6 +182,23 @@ class Company extends Model implements HasMedia
     }
 
     /**
+     * Cover/Banner-URL: Media Library → null
+     */
+    public function getCoverUrlAttribute(): ?string
+    {
+        if ($this->relationLoaded('media')) {
+            $cover = $this->media->where('collection_name', 'cover')->first();
+            if ($cover) {
+                return $cover->getUrl('banner');
+            }
+            return null;
+        }
+
+        $mediaUrl = $this->getFirstMediaUrl('cover', 'banner');
+        return $mediaUrl ?: null;
+    }
+
+    /**
      * Erstes Galerie-Bild für Card-Darstellung: Galerie → Logo → null.
      * Nutzt die eager-geladene media-Relation statt getMedia() (vermeidet N+1).
      */
@@ -210,6 +227,10 @@ class Company extends Model implements HasMedia
             ->singleFile()
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
 
+        $this->addMediaCollection('cover')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+
         $this->addMediaCollection('gallery')
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
     }
@@ -227,6 +248,13 @@ class Company extends Model implements HasMedia
             ->height(400)
             ->sharpen(5)
             ->nonQueued();
+
+        $this->addMediaConversion('banner')
+            ->width(1200)
+            ->height(400)
+            ->sharpen(5)
+            ->nonQueued()
+            ->performOnCollections('cover');
     }
 
     public function recalculateRating(): void
