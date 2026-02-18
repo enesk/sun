@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Portal\CompanyProcessingController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -12,6 +13,20 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+// Bot API: Tenant-Kontext via Domain, kein Session/Theme Overhead
+Route::middleware([
+    'universal',
+    App\Providers\TenancyServiceProvider::TENANCY_INITIALIZER,
+    'throttle:60,1',
+])->prefix('bot')->group(function () {
+    Route::get('/next', [CompanyProcessingController::class, 'getNext']);
+    Route::get('/batch', [CompanyProcessingController::class, 'getBatch']);
+    Route::post('/{id}/complete', [CompanyProcessingController::class, 'markComplete'])->whereNumber('id');
+    Route::post('/{id}/failed', [CompanyProcessingController::class, 'markFailed'])->whereNumber('id');
+    Route::post('/batch-complete', [CompanyProcessingController::class, 'markBatchComplete']);
+    Route::get('/stats', [CompanyProcessingController::class, 'getStats']);
+});
 
 Route::post('/payments-providers/stripe/webhook', [
     App\Http\Controllers\PaymentProviders\StripeController::class,
