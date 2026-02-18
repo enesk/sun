@@ -7,6 +7,7 @@ use App\Models\Portal\Category;
 use App\Models\Portal\City;
 use App\Models\Portal\Company;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class CompanyController extends Controller
@@ -21,7 +22,7 @@ class CompanyController extends Controller
             $query->search($request->q);
         }
 
-        // Kategorie-Filter
+        // Kategorie-Filter: JOIN statt whereHas für Performance
         if ($request->filled('category')) {
             $category = Category::where('slug', $request->category)->first();
             if ($category) {
@@ -55,18 +56,26 @@ class CompanyController extends Controller
 
         $companies = $query->paginate(18)->withQueryString();
 
-        // Sidebar-Daten
-        $categories = Category::roots()
-            ->ordered()
-            ->withCount(['companies' => fn ($q) => $q->where('is_active', true)])
-            ->get();
+        // Sidebar: gecacht (1h), ändert sich selten
+        $categories = Cache::remember('portal.categories.sidebar', 3600, fn () =>
+            Category::roots()
+                ->ordered()
+                ->withCount(['companies' => fn ($q) => $q->where('is_active', true)])
+                ->get()
+        );
 
-        $cities = City::withCount(['companies' => fn ($q) => $q->where('is_active', true)])
-            ->having('companies_count', '>', 0)
-            ->orderByDesc('companies_count')
-            ->get();
+        // Cities Sidebar: TOP 50 statt unbounded, gecacht
+        $cities = Cache::remember('portal.cities.sidebar', 3600, fn () =>
+            City::withCount(['companies' => fn ($q) => $q->where('is_active', true)])
+                ->having('companies_count', '>', 0)
+                ->orderByDesc('companies_count')
+                ->limit(50)
+                ->get()
+        );
 
-        $totalCompanies = Company::active()->count();
+        $totalCompanies = Cache::remember('portal.stats.total', 900, fn () =>
+            Company::active()->count()
+        );
 
         return view('pages.companies.index', compact(
             'companies',
@@ -90,16 +99,21 @@ class CompanyController extends Controller
             ])
             ->firstOrFail();
 
-        // Ähnliche Firmen (gleiche Kategorie)
-        $relatedCompanies = Company::active()
-            ->where('id', '!=', $company->id)
-            ->whereHas('categories', function ($q) use ($company) {
-                $q->whereIn('categories.id', $company->categories->pluck('id'));
-            })
-            ->with(['categories', 'city', 'media'])
-            ->inRandomOrder()
-            ->take(3)
-            ->get();
+        // Ähnliche Firmen: JOIN + LIMIT statt whereHas + ORDER BY RAND()
+        $categoryIds = $company->categories->pluck('id')->all();
+        $relatedCompanies = collect();
+
+        if (!empty($categoryIds)) {
+            $relatedCompanies = Company::active()
+                ->where('companies.id', '!=', $company->id)
+                ->join('category_company', 'companies.id', '=', 'category_company.company_id')
+                ->whereIn('category_company.category_id', $categoryIds)
+                ->select('companies.*')
+                ->distinct()
+                ->with(['categories', 'city', 'media'])
+                ->limit(3)
+                ->get();
+        }
 
         // Breadcrumb
         $breadcrumb = [

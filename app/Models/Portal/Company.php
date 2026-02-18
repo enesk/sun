@@ -126,7 +126,11 @@ class Company extends Model implements HasMedia
 
     public function scopeInCategory($query, int $categoryId)
     {
-        return $query->whereHas('categories', fn ($q) => $q->where('categories.id', $categoryId));
+        return $query->whereIn('companies.id', function ($sub) use ($categoryId) {
+            $sub->select('company_id')
+                ->from('category_company')
+                ->where('category_id', $categoryId);
+        });
     }
 
     // ── Accessors ──
@@ -178,14 +182,21 @@ class Company extends Model implements HasMedia
     }
 
     /**
-     * Zufälliges Bild für Card-Darstellung: Galerie → Logo → null
+     * Erstes Galerie-Bild für Card-Darstellung: Galerie → Logo → null.
+     * Nutzt die eager-geladene media-Relation statt getMedia() (vermeidet N+1).
      */
     public function getCardImageUrlAttribute(): ?string
     {
-        $galleryMedia = $this->getMedia('gallery');
-
-        if ($galleryMedia->isNotEmpty()) {
-            return $galleryMedia->random()->getUrl('medium');
+        if ($this->relationLoaded('media')) {
+            $gallery = $this->media->where('collection_name', 'gallery');
+            if ($gallery->isNotEmpty()) {
+                return $gallery->first()->getUrl('medium');
+            }
+        } else {
+            $firstGallery = $this->getFirstMediaUrl('gallery', 'medium');
+            if ($firstGallery) {
+                return $firstGallery;
+            }
         }
 
         return $this->logo_url;

@@ -6,6 +6,7 @@ use App\Models\Portal\Category;
 use App\Models\Portal\City;
 use App\Models\Portal\Company;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
@@ -35,9 +36,14 @@ class ProfileEditForm extends Component
     public bool $saved = false;
     public string $activeSection = 'stammdaten';
 
+    // Cached data (avoid re-querying on every render)
+    public ?string $currentLogoUrl = null;
+    public int $companyId = 0;
+
     public function mount(): void
     {
         $company = $this->getCompany();
+        $this->companyId = $company->id;
 
         $this->name = $company->name ?? '';
         $this->description = $company->description ?? '';
@@ -49,6 +55,7 @@ class ProfileEditForm extends Component
         $this->email = $company->email ?? '';
         $this->website = $company->website ?? '';
         $this->selectedCategories = $company->categories->pluck('id')->toArray();
+        $this->currentLogoUrl = $company->getFirstMediaUrl('logo', 'medium') ?: null;
 
         if ($company->city) {
             $this->citySearch = "{$company->city->zipcode} {$company->city->name}";
@@ -153,6 +160,8 @@ class ProfileEditForm extends Component
                 ->usingFileName('logo.' . $this->logo->getClientOriginalExtension())
                 ->toMediaCollection('logo');
             $this->logo = null;
+            // Refresh cached logo URL
+            $this->currentLogoUrl = $company->fresh()->getFirstMediaUrl('logo', 'medium') ?: null;
         }
 
         $this->saved = true;
@@ -176,6 +185,7 @@ class ProfileEditForm extends Component
     {
         $company = $this->getCompany();
         $company->clearMediaCollection('logo');
+        $this->currentLogoUrl = null;
     }
 
     private function getCompany(): Company
@@ -185,16 +195,17 @@ class ProfileEditForm extends Component
             ->firstOrFail();
     }
 
+    #[Computed(cache: true)]
+    public function categories(): \Illuminate\Database\Eloquent\Collection
+    {
+        return Category::roots()->ordered()->get();
+    }
+
     public function render()
     {
-        $company = $this->getCompany();
-        $categories = Category::roots()->ordered()->get();
-        $currentLogo = $company->getFirstMediaUrl('logo', 'medium');
-
         return view('livewire.portal.dashboard.profile-edit-form', [
-            'company' => $company,
-            'categories' => $categories,
-            'currentLogo' => $currentLogo,
+            'categories' => $this->categories(),
+            'currentLogo' => $this->currentLogoUrl,
         ]);
     }
 }

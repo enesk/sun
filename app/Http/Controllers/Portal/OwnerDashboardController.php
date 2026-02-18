@@ -20,10 +20,12 @@ class OwnerDashboardController extends Controller
     {
         $company = $this->getCompany();
 
+        // In-Memory Collection nutzen statt 3 extra COUNT-Queries
+        $reviews = $company->reviews;
         $stats = [
-            'reviews_total' => $company->reviews()->count(),
-            'reviews_pending' => $company->reviews()->pending()->count(),
-            'reviews_approved' => $company->reviews()->approved()->count(),
+            'reviews_total' => $reviews->count(),
+            'reviews_pending' => $reviews->where('moderation_status', 'pending')->count(),
+            'reviews_approved' => $reviews->where('moderation_status', 'approved')->count(),
             'rating' => $company->rating,
             'rating_count' => $company->rating_count,
         ];
@@ -85,7 +87,7 @@ class OwnerDashboardController extends Controller
             'tel' => ['label' => 'Telefonnummer', 'filled' => ! empty($company->tel)],
             'email' => ['label' => 'E-Mail', 'filled' => ! empty($company->email)],
             'website' => ['label' => 'Website', 'filled' => ! empty($company->website)],
-            'logo' => ['label' => 'Logo', 'filled' => $company->getFirstMedia('logo') !== null],
+            'logo' => ['label' => 'Logo', 'filled' => $company->relationLoaded('media') ? $company->media->where('collection_name', 'logo')->isNotEmpty() : $company->getFirstMedia('logo') !== null],
             'categories' => ['label' => 'Kategorien', 'filled' => $company->categories->count() > 0],
         ];
 

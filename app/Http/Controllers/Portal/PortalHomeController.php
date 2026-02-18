@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Portal\Category;
 use App\Models\Portal\Company;
 use App\Models\Portal\Review;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -20,54 +21,84 @@ class PortalHomeController extends Controller
             ->take(6)
             ->get();
 
-        $latestCompanies = Company::active()
-            ->with(['categories', 'city', 'media'])
-            ->inRandomOrder()
-            ->take(6)
-            ->get();
+        // Random-Offset statt ORDER BY RAND() — O(1) statt O(n)
+        $latestCompanies = $this->getRandomCompanies(6);
 
-        $categories = Category::roots()
-            ->ordered()
-            ->with(['children' => fn ($q) => $q->ordered()->withCount(['companies' => fn ($q2) => $q2->where('is_active', true)])])
-            ->withCount(['companies' => fn ($q) => $q->where('is_active', true)])
-            ->get();
-
-        $popularCategories = $categories->sortByDesc('companies_count')->take(5)->values();
-
-        // Top-3 Kategorien für visuelle Hierarchie (HP-3)
-        $topCategories = $categories->sortByDesc('companies_count')->take(3)->values();
-        $restCategories = $categories->sortByDesc('companies_count')->skip(3)->values();
-
-        $totalCompanies = Company::active()->count();
-
-        // Trust Bar: Anzahl Städte mit aktiven Firmen (ein einziger COUNT DISTINCT Query)
-        $totalCities = Company::active()
-            ->whereNotNull('city_id')
-            ->distinct('city_id')
-            ->count('city_id');
-
-        // Trust Bar: Durchschnittsbewertung aller aktiven Firmen mit Bewertungen
-        $avgRating = round(
-            (float) Company::active()
-                ->where('rating_count', '>', 0)
-                ->avg('rating'),
-            1
+        $categories = Cache::remember('portal.categories.home', 3600, fn () =>
+            Category::roots()
+                ->ordered()
+                ->with(['children' => fn ($q) => $q->ordered()->withCount(['companies' => fn ($q2) => $q2->where('is_active', true)])])
+                ->withCount(['companies' => fn ($q) => $q->where('is_active', true)])
+                ->get()
         );
 
-        // Trust Bar: Gesamtzahl Bewertungen
-        $totalReviews = Review::approved()->count();
+        $sortedCategories = $categories->sortByDesc('companies_count');
+        $popularCategories = $sortedCategories->take(5)->values();
+        $topCategories = $sortedCategories->take(3)->values();
+        $restCategories = $sortedCategories->skip(3)->values();
 
-        return view('pages.home', compact(
-            'featuredCompanies',
-            'latestCompanies',
-            'categories',
-            'popularCategories',
-            'topCategories',
-            'restCategories',
-            'totalCompanies',
-            'totalCities',
-            'avgRating',
-            'totalReviews',
-        ));
+        // Trust Bar Stats: 4 Queries → 1 gecachter Block (15 Min)
+        $stats = Cache::remember('portal.stats', 900, fn () => [
+            'totalCompanies' => Company::active()->count(),
+            'totalCities' => Company::active()
+                ->whereNotNull('city_id')
+                ->distinct('city_id')
+                ->count('city_id'),
+            'avgRating' => round(
+                (float) Company::active()
+                    ->where('rating_count', '>', 0)
+                    ->avg('rating'),
+                1
+            ),
+            'totalReviews' => Review::approved()->count(),
+        ]);
+
+        return view('pages.home', [
+            'featuredCompanies' => $featuredCompanies,
+            'latestCompanies' => $latestCompanies,
+            'categories' => $categories,
+            'popularCategories' => $popularCategories,
+            'topCategories' => $topCategories,
+            'restCategories' => $restCategories,
+            'totalCompanies' => $stats['totalCompanies'],
+            'totalCities' => $stats['totalCities'],
+            'avgRating' => $stats['avgRating'],
+            'totalReviews' => $stats['totalReviews'],
+        ]);
+    }
+
+    /**
+     * Random Companies per Offset statt ORDER BY RAND().
+     * ORDER BY RAND() sortiert ALLE Zeilen (O(n log n)) — bei 12k+ Rows ~50ms+.
+     * Offset-Methode: 1x COUNT + 6x SELECT mit OFFSET = O(6).
+     */
+    private function getRandomCompanies(int $count): \Illuminate\Database\Eloquent\Collection
+    {
+        $total = Company::active()->count();
+
+        if ($total === 0) {
+            return new \Illuminate\Database\Eloquent\Collection();
+        }
+
+        $ids = collect();
+        $maxAttempts = $count * 3;
+        $attempts = 0;
+
+        while ($ids->count() < $count && $attempts < $maxAttempts) {
+            $offset = random_int(0, max(0, $total - 1));
+            $id = Company::active()->select('id')->skip($offset)->first()?->id;
+            if ($id && !$ids->contains($id)) {
+                $ids->push($id);
+            }
+            $attempts++;
+        }
+
+        if ($ids->isEmpty()) {
+            return new \Illuminate\Database\Eloquent\Collection();
+        }
+
+        return Company::whereIn('id', $ids->all())
+            ->with(['categories', 'city', 'media'])
+            ->get();
     }
 }

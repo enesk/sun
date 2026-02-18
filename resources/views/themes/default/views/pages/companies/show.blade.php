@@ -113,7 +113,9 @@
 
                 {{-- Bildergalerie --}}
                 @php
-                    $galleryMedia = $company->getMedia('gallery');
+                    $galleryMedia = $company->relationLoaded('media')
+                        ? $company->media->where('collection_name', 'gallery')->values()
+                        : $company->getMedia('gallery');
                     $galleryLimit = 10;
                     $galleryVisible = $galleryMedia->take($galleryLimit);
                     $galleryRemaining = $galleryMedia->count() - $galleryLimit;
@@ -529,7 +531,10 @@
             if ($company->logo_url) {
                 $images[] = $company->logo_url;
             }
-            foreach ($company->getMedia('gallery') as $media) {
+            $schemaGallery = $company->relationLoaded('media')
+                ? $company->media->where('collection_name', 'gallery')
+                : $company->getMedia('gallery');
+            foreach ($schemaGallery as $media) {
                 $images[] = $media->getUrl();
             }
             return count($images) === 1 ? $images[0] : ($images ?: null);

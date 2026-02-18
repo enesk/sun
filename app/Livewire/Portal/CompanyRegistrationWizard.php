@@ -45,6 +45,7 @@ class CompanyRegistrationWizard extends Component
     public string $categoryFilter = '';
     public bool $submitted = false;
     public ?Company $createdCompany = null;
+    public ?string $selectedCityName = null;
 
     protected function rules(): array
     {
@@ -132,6 +133,7 @@ class CompanyRegistrationWizard extends Component
         if ($city) {
             $this->city_id = $city->id;
             $this->citySearch = "{$city->zipcode} {$city->name}";
+            $this->selectedCityName = $city->name;
             $this->citySuggestions = [];
         }
     }
@@ -238,14 +240,9 @@ class CompanyRegistrationWizard extends Component
             $categories = $query->get();
         }
 
-        $selectedCityName = null;
-        if ($this->city_id) {
-            $selectedCityName = City::find($this->city_id)?->name;
-        }
-
         return view('livewire.portal.company-registration-wizard', [
             'categories' => $categories,
-            'selectedCityName' => $selectedCityName,
+            'selectedCityName' => $this->selectedCityName,
         ]);
     }
 }

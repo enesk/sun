@@ -53,7 +53,10 @@ class City extends Model
 
     public function scopeSearch($query, string $term)
     {
-        return $query->where('name', 'like', "%{$term}%");
+        return $query->where(function ($q) use ($term) {
+            $q->where('name', 'like', "{$term}%")
+              ->orWhere('zipcode', 'like', "{$term}%");
+        });
     }
 
     public function scopeNearby($query, float $lat, float $lng, float $radiusKm = 25)
