@@ -143,7 +143,7 @@
                         </div>
                     </a>
 
-                    <a href="{{ route('portal.companies.show', $company->slug) }}" target="_blank"
+                    <a href="{{ route('portal.companies.show', $company->url_slug) }}" target="_blank"
                        class="flex items-center gap-3 p-3 rounded-lg border border-base-200 hover:border-portal-primary/30 hover:bg-portal-primary-light/50 transition-all group">
                         <div class="w-10 h-10 rounded-lg bg-portal-primary-light flex items-center justify-center shrink-0">
                             <svg class="w-5 h-5 text-portal-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

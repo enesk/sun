@@ -14,7 +14,7 @@
         <div class="flex flex-col sm:flex-row">
             {{-- Image mit Badge-Overlays --}}
             <div class="sm:w-44 md:w-52 shrink-0 relative overflow-hidden">
-                <a href="{{ route('portal.companies.show', $company->slug) }}" class="block aspect-[4/3] sm:aspect-square bg-base-200 overflow-hidden" tabindex="-1" aria-hidden="true">
+                <a href="{{ route('portal.companies.show', $company->url_slug) }}" class="block aspect-[4/3] sm:aspect-square bg-base-200 overflow-hidden" tabindex="-1" aria-hidden="true">
                     @if($company->card_image_url)
                         <img src="{{ $company->card_image_url }}"
                              alt=""
@@ -62,7 +62,7 @@
                 <div>
                     {{-- Name --}}
                     <h3 class="text-base font-bold text-[#0F172A] mb-1 truncate">
-                        <a href="{{ route('portal.companies.show', $company->slug) }}"
+                        <a href="{{ route('portal.companies.show', $company->url_slug) }}"
                            class="hover:text-portal-primary transition-colors focus:outline-none focus:underline decoration-portal">
                             {{ $company->name }}
                         </a>
@@ -116,7 +116,7 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                             </a>
                         @endif
-                        <a href="{{ route('portal.companies.show', $company->slug) }}" class="company-card__action company-card__action--primary" title="Details ansehen" aria-label="Details zu {{ $company->name }} ansehen">
+                        <a href="{{ route('portal.companies.show', $company->url_slug) }}" class="company-card__action company-card__action--primary" title="Details ansehen" aria-label="Details zu {{ $company->name }} ansehen">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                         </a>
                     </div>
@@ -129,7 +129,7 @@
 
         {{-- Image mit Badge-Overlays --}}
         <div class="relative overflow-hidden">
-            <a href="{{ route('portal.companies.show', $company->slug) }}" class="block aspect-[16/10] bg-base-200 overflow-hidden" tabindex="-1" aria-hidden="true">
+            <a href="{{ route('portal.companies.show', $company->url_slug) }}" class="block aspect-[16/10] bg-base-200 overflow-hidden" tabindex="-1" aria-hidden="true">
                 @if($company->card_image_url)
                     <img src="{{ $company->card_image_url }}"
                          alt=""
@@ -176,7 +176,7 @@
         <div class="p-5">
             {{-- Name --}}
             <h3 class="text-base font-bold text-[#0F172A] mb-1 truncate">
-                <a href="{{ route('portal.companies.show', $company->slug) }}"
+                <a href="{{ route('portal.companies.show', $company->url_slug) }}"
                    class="hover:text-portal-primary transition-colors focus:outline-none focus:underline decoration-portal">
                     {{ $company->name }}
                 </a>
@@ -226,7 +226,7 @@
                         Anrufen
                     </a>
                 @endif
-                <a href="{{ route('portal.companies.show', $company->slug) }}" class="company-card__action-btn company-card__action-btn--primary ripple">
+                <a href="{{ route('portal.companies.show', $company->url_slug) }}" class="company-card__action-btn company-card__action-btn--primary ripple">
                     Details
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>

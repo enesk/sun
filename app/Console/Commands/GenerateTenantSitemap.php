@@ -88,12 +88,12 @@ class GenerateTenantSitemap extends Command
 
             // Company pages (chunked for memory efficiency with 12.000+ entries)
             Company::active()
-                ->select(['slug', 'updated_at', 'is_premium'])
+                ->select(['id', 'slug', 'updated_at', 'is_premium'])
                 ->orderBy('id')
                 ->chunk(500, function ($companies) use ($sitemap, $baseUrl) {
                     foreach ($companies as $company) {
                         $sitemap->add(
-                            Url::create("{$baseUrl}/firmen/{$company->slug}")
+                            Url::create("{$baseUrl}/{$company->url_slug}")
                                 ->setPriority($company->is_premium ? 0.8 : 0.7)
                                 ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
                                 ->setLastModificationDate($company->updated_at)

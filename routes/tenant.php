@@ -59,7 +59,6 @@ Route::middleware([
 
     // Firmenverzeichnis
     Route::get('/firmen', [CompanyController::class, 'index'])->name('portal.companies.index');
-    Route::get('/firmen/{slug}', [CompanyController::class, 'show'])->name('portal.companies.show');
 
     // Kategorien
     Route::get('/kategorien', [CategoryController::class, 'index'])->name('portal.categories.index');
@@ -87,4 +86,9 @@ Route::middleware([
             Route::get('/einstellungen', [OwnerDashboardController::class, 'settings'])->name('settings');
             Route::get('/premium', [OwnerDashboardController::class, 'premium'])->name('premium');
         });
+
+    // Firmen-Detailseite (Catch-All mit ID-Prefix, muss LETZTE Route sein)
+    Route::get('/{companySlug}', [CompanyController::class, 'show'])
+        ->where('companySlug', '\d+-.+')
+        ->name('portal.companies.show');
 });

@@ -86,18 +86,26 @@ class CompanyController extends Controller
         ));
     }
 
-    public function show(string $slug): View
+    public function show(string $companySlug): View|\Illuminate\Http\RedirectResponse
     {
-        $company = Company::active()
-            ->where('slug', $slug)
-            ->with([
-                'categories',
-                'city',
-                'media',
-                'openingHours',
-                'approvedReviews' => fn ($q) => $q->latest()->take(10),
-            ])
-            ->firstOrFail();
+        $company = Company::findByUrlSlug($companySlug);
+
+        if (! $company || ! $company->is_active) {
+            abort(404);
+        }
+
+        // 301 Redirect bei falschem Slug (SEO: kanonische URL)
+        if ($company->url_slug !== $companySlug) {
+            return redirect()->route('portal.companies.show', $company->url_slug, 301);
+        }
+
+        $company->load([
+            'categories',
+            'city',
+            'media',
+            'openingHours',
+            'approvedReviews' => fn ($q) => $q->latest()->take(10),
+        ]);
 
         // Ähnliche Firmen: JOIN + LIMIT statt whereHas + ORDER BY RAND()
         $categoryIds = $company->categories->pluck('id')->all();

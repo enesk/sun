@@ -133,6 +133,32 @@ class Company extends Model implements HasMedia
         });
     }
 
+    // ── URL ──
+
+    /**
+     * URL-Slug im Format: {id}-{name-slug}
+     * z.B. "1234-rudiger-kurtz-heizungs-u-sanitartechnik"
+     */
+    public function getUrlSlugAttribute(): string
+    {
+        return $this->id . '-' . $this->slug;
+    }
+
+    /**
+     * Parse die Company-ID aus einem URL-Slug wie "1234-firmen-name".
+     */
+    public static function findByUrlSlug(string $urlSlug): ?self
+    {
+        // Extrahiere die ID vor dem ersten Bindestrich
+        $id = (int) Str::before($urlSlug, '-');
+
+        if ($id <= 0) {
+            return null;
+        }
+
+        return static::find($id);
+    }
+
     // ── Accessors ──
 
     public function getFullAddressAttribute(): string
