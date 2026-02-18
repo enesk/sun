@@ -51,7 +51,9 @@ return [
          */
         'managers' => [
             'sqlite' => Stancl\Tenancy\TenantDatabaseManagers\SQLiteDatabaseManager::class,
-            'mysql' => App\TenantDatabaseManagers\PermissionControlledMySQLDatabaseManager::class,
+            'mysql' => env('TENANCY_DB_ISOLATION', true)
+                ? App\TenantDatabaseManagers\PermissionControlledMySQLDatabaseManager::class
+                : Stancl\Tenancy\TenantDatabaseManagers\MySQLDatabaseManager::class,
             'pgsql' => Stancl\Tenancy\TenantDatabaseManagers\PostgreSQLDatabaseManager::class,
 
         /**
