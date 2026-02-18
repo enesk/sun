@@ -79,13 +79,13 @@ class CategoryController extends Controller
 
         // Cities per Kategorie: JOIN statt doppelt-verschachtelter whereHas, gecacht + limitiert
         $cities = Cache::remember("portal.cities.category.{$category->id}", 3600, fn () =>
-            City::select('cities.*')
+            City::select('cities.id', 'cities.name', 'cities.slug')
                 ->join('companies', 'cities.id', '=', 'companies.city_id')
                 ->join('category_company', 'companies.id', '=', 'category_company.company_id')
                 ->where('companies.is_active', true)
                 ->where('category_company.category_id', $category->id)
                 ->selectRaw('COUNT(DISTINCT companies.id) as companies_count')
-                ->groupBy('cities.id')
+                ->groupBy('cities.id', 'cities.name', 'cities.slug')
                 ->orderByDesc('companies_count')
                 ->limit(50)
                 ->get()
