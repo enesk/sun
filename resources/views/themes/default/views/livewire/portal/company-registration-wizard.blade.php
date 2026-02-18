@@ -34,10 +34,16 @@
                 <div class="h-2" style="background: linear-gradient(90deg, var(--portal-primary, #3B82F6), var(--portal-accent, #F59E0B));"></div>
                 <div class="p-4">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg font-bold"
-                             style="background: linear-gradient(135deg, var(--portal-primary, #3B82F6), var(--portal-primary-hover, #2563EB));">
-                            {{ strtoupper(substr($createdCompany->name, 0, 1)) }}
-                        </div>
+                        @if($createdCompany->getFirstMediaUrl('logo', 'medium'))
+                            <img src="{{ $createdCompany->getFirstMediaUrl('logo', 'medium') }}"
+                                 alt="{{ $createdCompany->name }}"
+                                 class="w-10 h-10 rounded-lg object-cover">
+                        @else
+                            <div class="w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg font-bold"
+                                 style="background: linear-gradient(135deg, var(--portal-primary, #3B82F6), var(--portal-primary-hover, #2563EB));">
+                                {{ strtoupper(substr($createdCompany->name, 0, 1)) }}
+                            </div>
+                        @endif
                         <div>
                             <p class="font-semibold text-sm text-base-content">{{ $createdCompany->name }}</p>
                             <p class="text-xs text-base-content/50">{{ $createdCompany->street }} {{ $createdCompany->house_no }}, {{ $createdCompany->zipcode }}</p>
@@ -50,17 +56,26 @@
             <div class="grid grid-cols-3 gap-3 mb-8 text-center"
                  x-show="show" x-transition:enter="transition ease-out duration-500 delay-1000"
                  x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
-                <div class="p-3">
-                    <div class="w-8 h-8 mx-auto rounded-lg flex items-center justify-center mb-2"
-                         style="background: rgba(var(--portal-primary-rgb, 59, 130, 246), 0.1);">
-                        <span class="text-portal-primary font-bold text-xs">1</span>
+                @if($createdCompany->getFirstMediaUrl('logo'))
+                    <div class="p-3">
+                        <div class="w-8 h-8 mx-auto rounded-lg flex items-center justify-center mb-2 bg-green-100">
+                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        </div>
+                        <p class="text-xs font-medium text-green-600">Logo hochgeladen</p>
                     </div>
-                    <p class="text-xs font-medium text-base-content">Logo hochladen</p>
-                </div>
+                @else
+                    <div class="p-3">
+                        <div class="w-8 h-8 mx-auto rounded-lg flex items-center justify-center mb-2"
+                             style="background: rgba(var(--portal-primary-rgb, 59, 130, 246), 0.1);">
+                            <span class="text-portal-primary font-bold text-xs">1</span>
+                        </div>
+                        <p class="text-xs font-medium text-base-content">Logo hochladen</p>
+                    </div>
+                @endif
                 <div class="p-3">
                     <div class="w-8 h-8 mx-auto rounded-lg flex items-center justify-center mb-2"
                          style="background: rgba(var(--portal-primary-rgb, 59, 130, 246), 0.1);">
-                        <span class="text-portal-primary font-bold text-xs">2</span>
+                        <span class="text-portal-primary font-bold text-xs">{{ $createdCompany->getFirstMediaUrl('logo') ? '1' : '2' }}</span>
                     </div>
                     <p class="text-xs font-medium text-base-content">Profil ergänzen</p>
                 </div>
@@ -96,12 +111,13 @@
                     1 => ['icon' => 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4', 'label' => 'Firmendaten'],
                     2 => ['icon' => 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z', 'label' => 'Adresse'],
                     3 => ['icon' => 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', 'label' => 'Kontakt'],
-                    4 => ['icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'label' => 'Fertig'],
+                    4 => ['icon' => 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z', 'label' => 'Logo'],
+                    5 => ['icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', 'label' => 'Fertig'],
                 ];
             @endphp
             <div class="flex items-center justify-between" role="navigation" aria-label="Fortschritt">
                 @foreach($steps as $stepNum => $stepInfo)
-                    <div class="flex items-center {{ $stepNum < 4 ? 'flex-1' : '' }}">
+                    <div class="flex items-center {{ $stepNum < 5 ? 'flex-1' : '' }}">
                         <div class="flex items-center gap-2">
                             {{-- Step Circle --}}
                             <div @class([
@@ -124,7 +140,7 @@
                                 'text-base-content/30' => $currentStep < $stepNum,
                             ])>{{ $stepInfo['label'] }}</span>
                         </div>
-                        @if($stepNum < 4)
+                        @if($stepNum < 5)
                             {{-- Progress Line --}}
                             <div class="flex-1 mx-3">
                                 <div class="h-[2px] bg-base-200 relative overflow-hidden rounded-full">
@@ -153,7 +169,7 @@
                      style="width: {{ ($currentStep / $totalSteps) * 100 }}%; background: var(--portal-primary, #3B82F6);"></div>
             </div>
             <p class="text-xs text-base-content/50 mt-1 text-center">
-                @php $stepNames = [1 => 'Firmendaten', 2 => 'Adresse', 3 => 'Kontakt', 4 => 'Zusammenfassung']; @endphp
+                @php $stepNames = [1 => 'Firmendaten', 2 => 'Adresse', 3 => 'Kontakt', 4 => 'Logo', 5 => 'Zusammenfassung']; @endphp
                 {{ $stepNames[$currentStep] ?? '' }}
             </p>
         </div>
@@ -384,8 +400,92 @@
             </div>
         @endif
 
-        {{-- Step 4: Zusammenfassung --}}
+        {{-- Step 4: Logo --}}
         @if($currentStep === 4)
+            <div class="p-5 sm:p-7" role="group" aria-label="Logo hochladen">
+                <div class="form-section-header">
+                    <h2>Logo hochladen</h2>
+                    <p>Ein Logo macht Ihren Eintrag professioneller und wiedererkennbar. <span class="text-base-content/40">(optional)</span></p>
+                </div>
+
+                <div class="space-y-5">
+                    @if($logo)
+                        {{-- Logo-Vorschau --}}
+                        <div class="flex flex-col items-center gap-4">
+                            <div class="relative group">
+                                <div class="w-40 h-40 rounded-2xl overflow-hidden border-2 border-portal-primary/20 shadow-lg">
+                                    @if($this->logoPreviewUrl)
+                                        <img src="{{ $this->logoPreviewUrl }}"
+                                             alt="Logo-Vorschau"
+                                             class="w-full h-full object-cover">
+                                    @else
+                                        {{-- Fallback wenn keine Preview möglich (z.B. HEIC) --}}
+                                        <div class="w-full h-full flex flex-col items-center justify-center bg-portal-primary/5">
+                                            <svg class="w-10 h-10 text-portal-primary/40 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                            <span class="text-xs text-base-content/40">Vorschau nicht verfügbar</span>
+                                        </div>
+                                    @endif
+                                </div>
+                                <button type="button" wire:click="removeLogo"
+                                        class="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-red-500 text-white flex items-center justify-center shadow-md hover:bg-red-600 transition-colors"
+                                        aria-label="Logo entfernen">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </div>
+                            <p class="text-sm text-green-600 font-medium flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                Logo ausgewählt
+                            </p>
+                        </div>
+                    @else
+                        {{-- Upload-Bereich --}}
+                        <div class="relative">
+                            <label for="logo-upload"
+                                   class="flex flex-col items-center justify-center w-full py-10 px-6 border-2 border-dashed border-base-300/60 rounded-2xl cursor-pointer
+                                          hover:border-portal-primary/40 hover:bg-portal-primary/[0.02] transition-all duration-200"
+                                   x-data="{ dragging: false }"
+                                   x-on:dragover.prevent="dragging = true"
+                                   x-on:dragleave="dragging = false"
+                                   x-on:drop.prevent="dragging = false"
+                                   :class="{ 'border-portal-primary bg-portal-primary/5': dragging }">
+                                <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+                                     style="background: rgba(var(--portal-primary-rgb, 59, 130, 246), 0.08);">
+                                    <svg class="w-7 h-7 text-portal-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                <p class="text-sm font-medium text-base-content mb-1">
+                                    Logo auswählen oder hierher ziehen
+                                </p>
+                                <p class="text-xs text-base-content/40">JPEG, PNG oder WebP · Max. 2 MB · Wird auf 300×300px zugeschnitten</p>
+                                <input id="logo-upload" type="file" wire:model="logo" accept="image/jpeg,image/png,image/webp" class="sr-only">
+                            </label>
+
+                            {{-- Loading-State --}}
+                            <div wire:loading wire:target="logo" class="absolute inset-0 bg-white/80 rounded-2xl flex items-center justify-center">
+                                <div class="flex items-center gap-2 text-sm text-portal-primary font-medium">
+                                    <span class="loading loading-spinner loading-sm"></span>
+                                    Wird hochgeladen...
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    @error('logo')
+                        <p class="text-error text-sm" role="alert">{{ $message }}</p>
+                    @enderror
+
+                    {{-- Hinweis --}}
+                    <div class="rounded-xl p-3.5 flex gap-3" style="background: rgba(var(--portal-primary-rgb, 59, 130, 246), 0.05);">
+                        <svg class="w-4 h-4 text-portal-primary shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <p class="text-xs text-base-content/60">Das Logo können Sie auch später im Dashboard hochladen oder ändern.</p>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        {{-- Step 5: Zusammenfassung --}}
+        @if($currentStep === 5)
             <div class="p-5 sm:p-7" role="group" aria-label="Zusammenfassung">
                 <div class="form-section-header">
                     <h2>Zusammenfassung</h2>
@@ -471,6 +571,38 @@
                                     </div>
                                 @endif
                             </dl>
+                        </div>
+                    </div>
+
+                    {{-- Logo --}}
+                    <div class="rounded-xl overflow-hidden border border-base-200/60">
+                        <div class="flex items-center justify-between px-4 py-2.5" style="background: rgba(var(--portal-primary-rgb, 59, 130, 246), 0.03);">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                <span class="text-xs font-semibold text-base-content/60 uppercase tracking-wide">Logo</span>
+                            </div>
+                            <button type="button" wire:click="goToStep(4)" class="text-xs text-portal-primary-dark hover:underline font-medium">Ändern</button>
+                        </div>
+                        <div class="px-4 py-3">
+                            @if($logo)
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 rounded-lg overflow-hidden border border-base-200">
+                                        @if($this->logoPreviewUrl)
+                                            <img src="{{ $this->logoPreviewUrl }}" alt="Logo" class="w-full h-full object-cover">
+                                        @else
+                                            <div class="w-full h-full flex items-center justify-center bg-portal-primary/5">
+                                                <svg class="w-6 h-6 text-portal-primary/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <span class="text-sm text-green-600 font-medium flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                        Logo hochgeladen
+                                    </span>
+                                </div>
+                            @else
+                                <p class="text-sm text-base-content/40 italic">Kein Logo ausgewählt — kann später im Dashboard ergänzt werden.</p>
+                            @endif
                         </div>
                     </div>
                 </div>

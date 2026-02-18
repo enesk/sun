@@ -14,7 +14,7 @@ class CompanyController extends Controller
     public function index(Request $request): View
     {
         $query = Company::active()
-            ->with(['categories', 'city']);
+            ->with(['categories', 'city', 'media']);
 
         // Freitext-Suche
         if ($request->filled('q')) {
@@ -84,6 +84,7 @@ class CompanyController extends Controller
             ->with([
                 'categories',
                 'city',
+                'media',
                 'openingHours',
                 'approvedReviews' => fn ($q) => $q->latest()->take(10),
             ])
@@ -95,7 +96,7 @@ class CompanyController extends Controller
             ->whereHas('categories', function ($q) use ($company) {
                 $q->whereIn('categories.id', $company->categories->pluck('id'));
             })
-            ->with(['categories', 'city'])
+            ->with(['categories', 'city', 'media'])
             ->inRandomOrder()
             ->take(3)
             ->get();

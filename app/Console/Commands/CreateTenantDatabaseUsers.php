@@ -10,24 +10,35 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
- * Erstellt MySQL-User für bestehende Tenants, die noch mit der
- * zentralen root-Connection arbeiten.
+ * Erstellt MySQL-User für bestehende Tenants.
  *
- * Nutzung: php artisan tenants:create-db-users
- * Dry-Run:  php artisan tenants:create-db-users --dry-run
+ * Zwei Modi:
+ *   1. Standard: Erstellt neue Credentials für Tenants ohne DB-User
+ *   2. --sync:   Legt MySQL-User mit den BESTEHENDEN gespeicherten
+ *                Credentials an (z.B. nach Deployment auf neuem Server)
+ *
+ * Nutzung:
+ *   php artisan tenants:create-db-users              # Neue Credentials
+ *   php artisan tenants:create-db-users --sync        # Bestehende Credentials auf DB anlegen
+ *   php artisan tenants:create-db-users --dry-run     # Nur anzeigen
+ *   php artisan tenants:create-db-users --force       # Bestehende User droppen + neu anlegen
  */
 class CreateTenantDatabaseUsers extends Command
 {
     protected $signature = 'tenants:create-db-users
         {--dry-run : Zeigt was passieren würde, ohne Änderungen}
-        {--tenant= : Nur einen bestimmten Tenant migrieren (UUID)}';
+        {--tenant= : Nur einen bestimmten Tenant (UUID)}
+        {--sync : MySQL-User mit bestehenden gespeicherten Credentials anlegen (Deploy-Modus)}
+        {--force : Bestehende MySQL-User droppen und neu anlegen}';
 
-    protected $description = 'Erstellt dedizierte MySQL-User für bestehende Tenants (DB-User-Isolation)';
+    protected $description = 'Erstellt dedizierte MySQL-User für Tenants (DB-User-Isolation)';
 
     public function handle(): int
     {
         $dryRun = $this->option('dry-run');
         $tenantUuid = $this->option('tenant');
+        $sync = $this->option('sync');
+        $force = $this->option('force');
 
         $query = Tenant::query();
         if ($tenantUuid) {
@@ -41,11 +52,17 @@ class CreateTenantDatabaseUsers extends Command
             return self::SUCCESS;
         }
 
+        $mode = $sync ? 'SYNC' : 'CREATE';
         $this->info(sprintf(
-            '%s %d Tenant(s)...',
-            $dryRun ? '[DRY-RUN] Prüfe' : 'Verarbeite',
+            '%s[%s] %d Tenant(s)...',
+            $dryRun ? '[DRY-RUN] ' : '',
+            $mode,
             $tenants->count()
         ));
+
+        if ($sync) {
+            $this->comment('  Sync-Modus: Nutze bestehende gespeicherte Credentials.');
+        }
 
         $centralConnection = config('tenancy.database.central_connection');
         $grants = implode(', ', \App\TenantDatabaseManagers\PermissionControlledMySQLDatabaseManager::$grants);
@@ -57,6 +74,7 @@ class CreateTenantDatabaseUsers extends Command
         foreach ($tenants as $tenant) {
             $dbName = $tenant->database()->getName();
             $existingUsername = $tenant->getInternal('db_username');
+            $existingPassword = $tenant->getInternal('db_password');
 
             // Prüfen ob DB existiert
             $dbExists = DB::connection($centralConnection)
@@ -68,21 +86,77 @@ class CreateTenantDatabaseUsers extends Command
                 continue;
             }
 
+            // Prüfen ob MySQL-User bereits existiert
+            $mysqlUserExists = false;
             if ($existingUsername) {
-                // Prüfen ob der User auch tatsächlich in MySQL existiert
-                $userExists = DB::connection($centralConnection)
+                $userCheck = DB::connection($centralConnection)
                     ->select("SELECT 1 FROM mysql.user WHERE user = ? AND host = 'localhost'", [$existingUsername]);
+                $mysqlUserExists = ! empty($userCheck);
+            }
 
-                if (! empty($userExists)) {
-                    $this->line("  [{$tenant->name}] User '{$existingUsername}' existiert bereits — überspringe.");
+            // ─── SYNC-Modus: Bestehende Credentials verwenden ───
+            if ($sync) {
+                if (! $existingUsername || ! $existingPassword) {
+                    $this->warn("  [{$tenant->name}] Keine gespeicherten Credentials — überspringe. Nutze den Modus ohne --sync.");
                     $skipped++;
                     continue;
                 }
 
+                if ($mysqlUserExists && ! $force) {
+                    $this->line("  [{$tenant->name}] User '{$existingUsername}' existiert bereits in MySQL — überspringe.");
+                    $skipped++;
+                    continue;
+                }
+
+                $username = $existingUsername;
+                $password = $existingPassword;
+
+                $this->line(sprintf(
+                    '  [%s] DB: %s | User: %s@localhost (sync)',
+                    $tenant->name,
+                    $dbName,
+                    $username
+                ));
+
+                if ($dryRun) {
+                    $this->info("    → [DRY-RUN] Würde MySQL-User mit gespeicherten Credentials anlegen.");
+                    $created++;
+                    continue;
+                }
+
+                try {
+                    $db = DB::connection($centralConnection);
+
+                    if ($force && $mysqlUserExists) {
+                        $db->statement("DROP USER IF EXISTS `{$username}`@`localhost`");
+                        $this->comment("    → Bestehender User gedroppt.");
+                    }
+
+                    $db->statement("CREATE USER IF NOT EXISTS `{$username}`@`localhost` IDENTIFIED BY " . $db->getPdo()->quote($password));
+                    $db->statement("GRANT {$grants} ON `{$dbName}`.* TO `{$username}`@`localhost`");
+                    $db->statement('FLUSH PRIVILEGES');
+
+                    $this->info("    → MySQL-User angelegt mit gespeicherten Credentials.");
+                    $created++;
+                } catch (\Exception $e) {
+                    $this->error("    → Fehler: {$e->getMessage()}");
+                    $errors++;
+                }
+
+                continue;
+            }
+
+            // ─── Standard-Modus: Neue Credentials generieren ───
+            if ($mysqlUserExists && ! $force) {
+                $this->line("  [{$tenant->name}] User '{$existingUsername}' existiert bereits — überspringe.");
+                $skipped++;
+                continue;
+            }
+
+            if ($existingUsername && ! $mysqlUserExists) {
                 $this->warn("  [{$tenant->name}] Credentials gespeichert aber MySQL-User fehlt — erstelle neu.");
             }
 
-            // Username: tenant_ + erste 8 Zeichen der UUID (eindeutig, lesbar)
             $username = 'tn_' . str_replace('-', '', substr($tenant->uuid, 0, 8));
             $password = Str::random(32);
 
@@ -102,15 +176,15 @@ class CreateTenantDatabaseUsers extends Command
             try {
                 $db = DB::connection($centralConnection);
 
-                // User erstellen
-                $db->statement("CREATE USER IF NOT EXISTS `{$username}`@`localhost` IDENTIFIED BY '{$password}'");
+                if ($force && $mysqlUserExists) {
+                    $db->statement("DROP USER IF EXISTS `{$existingUsername}`@`localhost`");
+                    $this->comment("    → Bestehender User gedroppt.");
+                }
 
-                // Grants vergeben — NUR auf die Tenant-DB
+                $db->statement("CREATE USER IF NOT EXISTS `{$username}`@`localhost` IDENTIFIED BY " . $db->getPdo()->quote($password));
                 $db->statement("GRANT {$grants} ON `{$dbName}`.* TO `{$username}`@`localhost`");
-
                 $db->statement('FLUSH PRIVILEGES');
 
-                // Credentials im Tenant speichern
                 $tenant->setInternal('db_username', $username);
                 $tenant->setInternal('db_password', $password);
                 $tenant->save();

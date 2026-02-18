@@ -7,6 +7,7 @@ use App\Models\Portal\City;
 use App\Models\Portal\Company;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 
 class ProfileEditForm extends Component
@@ -156,6 +157,19 @@ class ProfileEditForm extends Component
 
         $this->saved = true;
         $this->dispatch('profile-saved');
+    }
+
+    public function getLogoPreviewUrlProperty(): ?string
+    {
+        if (! $this->logo instanceof TemporaryUploadedFile) {
+            return null;
+        }
+
+        try {
+            return $this->logo->temporaryUrl();
+        } catch (\RuntimeException $e) {
+            return null;
+        }
     }
 
     public function removeLogo(): void

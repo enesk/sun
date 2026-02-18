@@ -31,40 +31,44 @@
             {{-- Sterne-Rating (interaktiv) --}}
             <div class="mb-5">
                 <label class="label-portal mb-2">Wie bewerten Sie dieses Unternehmen? *</label>
-                <div class="flex items-center gap-1" role="radiogroup" aria-label="Bewertung in Sternen">
+                <div class="flex items-center gap-2" role="radiogroup" aria-label="Bewertung in Sternen">
                     @for($i = 1; $i <= 5; $i++)
-                        {{-- Halber Stern (linke Hälfte) --}}
-                        <button type="button"
-                                wire:click="setRating({{ $i - 0.5 }})"
-                                @mouseenter="hoverRating = {{ $i - 0.5 }}"
-                                @mouseleave="hoverRating = 0"
-                                class="relative w-6 h-12 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-portal-primary rounded-l overflow-hidden"
-                                role="radio"
-                                :aria-checked="selectedRating === {{ $i - 0.5 }}"
-                                aria-label="{{ $i - 0.5 }} {{ $i - 0.5 === 1.0 ? 'Stern' : 'Sterne' }}"
-                                title="{{ $i - 0.5 }} {{ $i - 0.5 === 1.0 ? 'Stern' : 'Sterne' }}">
-                            <svg class="w-12 h-12 absolute right-0 top-0 transition-colors duration-150"
+                        {{-- Ein Stern = ein Container mit zwei unsichtbaren Klick-Zonen --}}
+                        <div class="relative w-10 h-10 cursor-pointer" @mouseleave="hoverRating = 0">
+                            {{-- Voller Stern SVG (Hintergrund) --}}
+                            <svg class="w-10 h-10 transition-colors duration-150 pointer-events-none"
+                                 :class="(hoverRating || selectedRating) >= {{ $i }} ? 'text-portal-accent' : ((hoverRating || selectedRating) >= {{ $i - 0.5 }} ? 'text-gray-300' : 'text-gray-300')"
+                                 fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                            {{-- Halber Stern Overlay (linke Hälfte, clippt den vollen Stern) --}}
+                            <svg class="w-10 h-10 absolute inset-0 transition-colors duration-150 pointer-events-none"
                                  :class="(hoverRating || selectedRating) >= {{ $i - 0.5 }} ? 'text-portal-accent' : 'text-gray-300'"
-                                 fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                                 fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"
+                                 style="clip-path: inset(0 50% 0 0);">
                                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                             </svg>
-                        </button>
-                        {{-- Ganzer Stern (rechte Hälfte) --}}
-                        <button type="button"
-                                wire:click="setRating({{ $i }})"
-                                @mouseenter="hoverRating = {{ $i }}"
-                                @mouseleave="hoverRating = 0"
-                                class="relative w-6 h-12 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-portal-primary rounded-r overflow-hidden"
-                                role="radio"
-                                :aria-checked="selectedRating === {{ $i }}"
-                                aria-label="{{ $i }} {{ $i === 1 ? 'Stern' : 'Sterne' }}"
-                                title="{{ $i }} {{ $i === 1 ? 'Stern' : 'Sterne' }}">
-                            <svg class="w-12 h-12 absolute left-[-24px] top-0 transition-colors duration-150"
-                                 :class="(hoverRating || selectedRating) >= {{ $i }} ? 'text-portal-accent' : 'text-gray-300'"
-                                 fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                            </svg>
-                        </button>
+                            {{-- Linke Klick-Zone (halber Stern) --}}
+                            <button type="button"
+                                    wire:click="setRating({{ $i - 0.5 }})"
+                                    @mouseenter="hoverRating = {{ $i - 0.5 }}"
+                                    class="absolute inset-y-0 left-0 w-1/2 focus:outline-none focus-visible:ring-2 focus-visible:ring-portal-primary rounded-l"
+                                    role="radio"
+                                    :aria-checked="selectedRating === {{ $i - 0.5 }}"
+                                    aria-label="{{ $i - 0.5 }} {{ $i - 0.5 == 1.0 ? 'Stern' : 'Sterne' }}"
+                                    title="{{ $i - 0.5 }} {{ $i - 0.5 == 1.0 ? 'Stern' : 'Sterne' }}">
+                            </button>
+                            {{-- Rechte Klick-Zone (ganzer Stern) --}}
+                            <button type="button"
+                                    wire:click="setRating({{ $i }})"
+                                    @mouseenter="hoverRating = {{ $i }}"
+                                    class="absolute inset-y-0 right-0 w-1/2 focus:outline-none focus-visible:ring-2 focus-visible:ring-portal-primary rounded-r"
+                                    role="radio"
+                                    :aria-checked="selectedRating === {{ $i }}"
+                                    aria-label="{{ $i }} {{ $i === 1 ? 'Stern' : 'Sterne' }}"
+                                    title="{{ $i }} {{ $i === 1 ? 'Stern' : 'Sterne' }}">
+                            </button>
+                        </div>
                     @endfor
 
                     {{-- Ausgewählte Bewertung als Text --}}

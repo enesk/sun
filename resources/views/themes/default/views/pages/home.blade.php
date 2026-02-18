@@ -87,14 +87,14 @@
         </section>
     @endif
 
-    {{-- Neueste Einträge --}}
+    {{-- Zufällige Einträge --}}
     <section class="section-light py-16" aria-labelledby="latest-heading">
         <div class="container mx-auto px-4">
             <div class="flex items-end justify-between mb-10 reveal">
                 <div>
-                    <h2 id="latest-heading" class="text-[28px] font-extrabold text-[#0F172A]">Neue Einträge</h2>
+                    <h2 id="latest-heading" class="text-[28px] font-extrabold text-[#0F172A]">Firmen entdecken</h2>
                     <div class="w-10 h-[3px] rounded-sm mt-3" style="background: var(--portal-primary, #3B82F6);"></div>
-                    <p class="text-base text-[#64748B] mt-2 max-w-[500px]">Die neuesten Unternehmen in unserem Verzeichnis</p>
+                    <p class="text-base text-[#64748B] mt-2 max-w-[500px]">Entdecken Sie Unternehmen in unserem Verzeichnis</p>
                 </div>
                 @if($latestCompanies->isNotEmpty())
                     <a href="{{ route('portal.companies.index') }}" class="group hidden md:inline-flex items-center gap-1 text-sm font-semibold text-portal-primary-dark hover:text-portal-primary transition-colors">

@@ -110,7 +110,7 @@ class ImportSanitaerDataCommand extends Command
 
         $this->warn('Lösche bestehende Daten...');
 
-        // FK-Checks temporär deaktivieren für TRUNCATE
+        // FK-Checks temporär deaktivieren für DELETE-Reihenfolge
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
 
         // Spatie Media löschen (Fotos)
@@ -121,9 +121,10 @@ class ImportSanitaerDataCommand extends Command
         }
 
         // Reviews, Opening Hours, Pivot, Companies, Cities
+        // DELETE statt TRUNCATE — Tenant-User hat kein DROP-Privilege (SEC-3)
         Review::query()->delete();
         CompanyOpeningHour::query()->delete();
-        DB::table('category_company')->truncate();
+        DB::table('category_company')->delete();
         Company::query()->delete();
         City::query()->delete();
 

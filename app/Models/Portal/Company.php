@@ -141,6 +141,56 @@ class Company extends Model implements HasMedia
         return implode(', ', $parts);
     }
 
+    /**
+     * Logo-URL mit Fallback-Kette: Media Library → logo_path → null
+     */
+    public function getLogoUrlAttribute(): ?string
+    {
+        // 1. Spatie Media Library (preferred)
+        $mediaUrl = $this->getFirstMediaUrl('logo', 'medium');
+        if ($mediaUrl) {
+            return $mediaUrl;
+        }
+
+        // 2. Legacy logo_path column
+        if ($this->logo_path) {
+            return asset($this->logo_path);
+        }
+
+        return null;
+    }
+
+    /**
+     * Thumbnail-URL für kleine Darstellungen (Cards, Listen)
+     */
+    public function getLogoThumbUrlAttribute(): ?string
+    {
+        $mediaUrl = $this->getFirstMediaUrl('logo', 'thumb');
+        if ($mediaUrl) {
+            return $mediaUrl;
+        }
+
+        if ($this->logo_path) {
+            return asset($this->logo_path);
+        }
+
+        return null;
+    }
+
+    /**
+     * Zufälliges Bild für Card-Darstellung: Galerie → Logo → null
+     */
+    public function getCardImageUrlAttribute(): ?string
+    {
+        $galleryMedia = $this->getMedia('gallery');
+
+        if ($galleryMedia->isNotEmpty()) {
+            return $galleryMedia->random()->getUrl('medium');
+        }
+
+        return $this->logo_url;
+    }
+
     // ── Methods ──
 
     public function registerMediaCollections(): void

@@ -37,7 +37,7 @@ class CategoryController extends Controller
 
         $query = Company::active()
             ->inCategory($category->id)
-            ->with(['categories', 'city']);
+            ->with(['categories', 'city', 'media']);
 
         // Freitext-Suche innerhalb der Kategorie
         if ($request->filled('q')) {

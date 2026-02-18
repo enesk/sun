@@ -9,12 +9,16 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\WithFileUploads;
 
 class CompanyRegistrationWizard extends Component
 {
+    use WithFileUploads;
+
     // Step-Management
     public int $currentStep = 1;
-    public int $totalSteps = 4;
+    public int $totalSteps = 5;
 
     // Step 1: Firmendaten
     public string $name = '';
@@ -33,6 +37,9 @@ class CompanyRegistrationWizard extends Component
     public string $tel = '';
     public string $email = '';
     public string $website = '';
+
+    // Step 4: Logo
+    public $logo;
 
     // UI State
     public string $categoryFilter = '';
@@ -59,6 +66,9 @@ class CompanyRegistrationWizard extends Component
                 'email' => ['required', 'email', 'max:255'],
                 'website' => ['nullable', 'url', 'max:255'],
             ],
+            4 => [
+                'logo' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
+            ],
             default => [],
         };
     }
@@ -77,6 +87,9 @@ class CompanyRegistrationWizard extends Component
             'email.required' => 'Bitte geben Sie eine E-Mail-Adresse ein.',
             'email.email' => 'Bitte geben Sie eine gültige E-Mail-Adresse ein.',
             'website.url' => 'Bitte geben Sie eine gültige URL ein (z.B. https://example.com).',
+            'logo.image' => 'Das Logo muss ein Bild sein (JPEG, PNG, WebP).',
+            'logo.mimes' => 'Erlaubte Formate: JPEG, PNG oder WebP.',
+            'logo.max' => 'Das Logo darf maximal 2 MB groß sein.',
         ];
     }
 
@@ -134,6 +147,25 @@ class CompanyRegistrationWizard extends Component
         }
     }
 
+    public function removeLogo(): void
+    {
+        $this->logo = null;
+    }
+
+    public function getLogoPreviewUrlProperty(): ?string
+    {
+        if (! $this->logo instanceof TemporaryUploadedFile) {
+            return null;
+        }
+
+        try {
+            return $this->logo->temporaryUrl();
+        } catch (\RuntimeException $e) {
+            // Extension nicht in preview_mimes (z.B. HEIC von iPhones)
+            return null;
+        }
+    }
+
     public function submit(): void
     {
         if (! Auth::check()) {
@@ -149,6 +181,8 @@ class CompanyRegistrationWizard extends Component
         $this->currentStep = 3;
         $this->validate();
         $this->currentStep = 4;
+        $this->validate();
+        $this->currentStep = 5;
 
         // Slug generieren mit Uniqueness-Check
         $baseSlug = Str::slug($this->name);
@@ -179,6 +213,14 @@ class CompanyRegistrationWizard extends Component
 
             $this->createdCompany->categories()->sync($this->selectedCategories);
         });
+
+        // Logo-Upload nach Company-Erstellung (außerhalb Transaction — Media Library hat eigene DB-Operationen)
+        if ($this->logo) {
+            $this->createdCompany
+                ->addMedia($this->logo->getRealPath())
+                ->usingFileName('logo.' . $this->logo->getClientOriginalExtension())
+                ->toMediaCollection('logo');
+        }
 
         $this->submitted = true;
 

@@ -56,11 +56,6 @@ class SubmitReviewForm extends Component
 
         // Rate-Limiting: Max 1 Bewertung pro Company pro IP pro Tag
         $ip = request()->ip();
-        $existingToday = Review::where('company_id', $this->company->id)
-            ->whereDate('created_at', today())
-            ->whereRaw("JSON_EXTRACT(created_at, '$') IS NOT NULL") // Ensure valid date
-            ->count();
-
         // Simple IP-based check via session
         $sessionKey = 'review_submitted_' . $this->company->id;
         if (session()->has($sessionKey)) {

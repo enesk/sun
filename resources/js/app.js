@@ -8,6 +8,31 @@ document.addEventListener('alpine:init', () => {
     window.Alpine.plugin(intersect)
 
     // Visual Redesign (VR-2) — Floating Header with Scroll-Shrink
+    // IMG-3: Company Gallery Lightbox
+    window.Alpine.data('companyGallery', (totalImages) => ({
+        isOpen: false,
+        current: 0,
+        total: totalImages,
+        open(index) {
+            this.current = index;
+            this.isOpen = true;
+            document.body.style.overflow = 'hidden';
+        },
+        close() {
+            this.isOpen = false;
+            document.body.style.overflow = '';
+        },
+        next() {
+            if (!this.isOpen) return;
+            this.current = (this.current + 1) % this.total;
+        },
+        prev() {
+            if (!this.isOpen) return;
+            this.current = (this.current - 1 + this.total) % this.total;
+        }
+    }))
+
+    // Visual Redesign (VR-2) — Floating Header with Scroll-Shrink
     window.Alpine.data('floatingHeader', () => ({
         scrolled: false,
         mobileOpen: false,

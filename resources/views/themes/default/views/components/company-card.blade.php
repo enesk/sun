@@ -15,8 +15,8 @@
             {{-- Image mit Badge-Overlays --}}
             <div class="sm:w-44 md:w-52 shrink-0 relative overflow-hidden">
                 <a href="{{ route('portal.companies.show', $company->slug) }}" class="block aspect-[4/3] sm:aspect-square bg-base-200 overflow-hidden" tabindex="-1" aria-hidden="true">
-                    @if($company->logo_path)
-                        <img src="{{ asset($company->logo_path) }}"
+                    @if($company->card_image_url)
+                        <img src="{{ $company->card_image_url }}"
                              alt=""
                              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                              loading="lazy">
@@ -130,8 +130,8 @@
         {{-- Image mit Badge-Overlays --}}
         <div class="relative overflow-hidden">
             <a href="{{ route('portal.companies.show', $company->slug) }}" class="block aspect-[16/10] bg-base-200 overflow-hidden" tabindex="-1" aria-hidden="true">
-                @if($company->logo_path)
-                    <img src="{{ asset($company->logo_path) }}"
+                @if($company->card_image_url)
+                    <img src="{{ $company->card_image_url }}"
                          alt=""
                          class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                          loading="lazy">

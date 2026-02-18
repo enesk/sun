@@ -1378,6 +1378,216 @@
     }
 
     /* ============================================================
+       IMG-3 — Company Gallery
+       ============================================================ */
+    .company-gallery__grid {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+        border-radius: 12px;
+        padding-bottom: 4px; /* room for focus outline */
+    }
+
+    .company-gallery__grid::-webkit-scrollbar {
+        display: none;
+    }
+
+    .company-gallery__item {
+        position: relative;
+        flex: 0 0 auto;
+        width: 180px;
+        height: 130px;
+        overflow: hidden;
+        border-radius: 8px;
+        cursor: pointer;
+        border: none;
+        padding: 0;
+        background: #F1F5F9;
+        scroll-snap-align: start;
+    }
+
+    @media (min-width: 640px) {
+        .company-gallery__item {
+            width: 200px;
+            height: 140px;
+        }
+    }
+
+    .company-gallery__item:focus-visible {
+        outline: 2px solid var(--portal-primary, #3B82F6);
+        outline-offset: 2px;
+    }
+
+    .company-gallery__img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .company-gallery__item:hover .company-gallery__img {
+        transform: scale(1.05);
+    }
+
+    .company-gallery__overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.3s ease;
+    }
+
+    .company-gallery__overlay svg {
+        opacity: 0;
+        transform: scale(0.8);
+        transition: all 0.3s ease;
+    }
+
+    .company-gallery__item:hover .company-gallery__overlay {
+        background: rgba(0, 0, 0, 0.3);
+    }
+
+    .company-gallery__item:hover .company-gallery__overlay svg {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    /* "+X more" button */
+    .company-gallery__more {
+        background: #E2E8F0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .company-gallery__more:hover {
+        background: #CBD5E1;
+    }
+
+    .company-gallery__more-text {
+        font-size: 18px;
+        font-weight: 700;
+        color: #475569;
+    }
+
+    /* Lightbox */
+    .company-gallery__lightbox {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .company-gallery__lightbox-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.9);
+    }
+
+    .company-gallery__lightbox-close {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        z-index: 10;
+        color: white;
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        border-radius: 50%;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+    .company-gallery__lightbox-close:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .company-gallery__lightbox-counter {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 14px;
+        font-weight: 500;
+        z-index: 10;
+    }
+
+    .company-gallery__lightbox-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10;
+        color: white;
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        border-radius: 50%;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+    .company-gallery__lightbox-nav:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .company-gallery__lightbox-nav--prev {
+        left: 16px;
+    }
+
+    .company-gallery__lightbox-nav--next {
+        right: 16px;
+    }
+
+    .company-gallery__lightbox-content {
+        position: relative;
+        z-index: 5;
+        max-width: 90vw;
+        max-height: 85vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .company-gallery__lightbox-img {
+        max-width: 90vw;
+        max-height: 85vh;
+        object-fit: contain;
+        border-radius: 4px;
+    }
+
+    @media (max-width: 639px) {
+        .company-gallery__lightbox-nav {
+            width: 40px;
+            height: 40px;
+        }
+
+        .company-gallery__lightbox-nav--prev {
+            left: 8px;
+        }
+
+        .company-gallery__lightbox-nav--next {
+            right: 8px;
+        }
+    }
+
+    /* ============================================================
        Visual Redesign (VR-6) — Sticky Contact Bar (Mobile)
        ============================================================ */
     .sticky-contact {

@@ -14,15 +14,15 @@ class PortalHomeController extends Controller
     public function index(): View
     {
         $featuredCompanies = Company::active()
-            ->with(['categories', 'city'])
+            ->with(['categories', 'city', 'media'])
             ->premium()
             ->latest()
             ->take(6)
             ->get();
 
         $latestCompanies = Company::active()
-            ->with(['categories', 'city'])
-            ->latest()
+            ->with(['categories', 'city', 'media'])
+            ->inRandomOrder()
             ->take(6)
             ->get();
 

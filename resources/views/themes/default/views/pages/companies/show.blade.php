@@ -3,8 +3,8 @@
 @section('title', $company->name . ' — ' . ($currentTenant->name ?? config('app.name')))
 @section('meta_description', Str::limit($company->description, 160))
 @section('og_type', 'business.business')
-@if($company->logo_path)
-@section('og_image', asset($company->logo_path))
+@if($company->logo_url)
+@section('og_image', $company->logo_url)
 @endif
 
 @section('content')
@@ -17,9 +17,9 @@
 
             <div class="company-hero__inner">
                 {{-- Logo --}}
-                @if($company->logo_path)
+                @if($company->logo_url)
                     <div class="company-hero__logo-wrapper">
-                        <img src="{{ asset($company->logo_path) }}"
+                        <img src="{{ $company->logo_url }}"
                              alt="{{ $company->name }}"
                              class="company-hero__logo"
                              loading="eager">
@@ -107,6 +107,102 @@
                         <h2 class="text-[18px] font-bold text-[#0F172A] mb-3">Über {{ $company->name }}</h2>
                         <div class="prose prose-sm max-w-none text-base-content/80">
                             {!! nl2br(e($company->description)) !!}
+                        </div>
+                    </section>
+                @endif
+
+                {{-- Bildergalerie --}}
+                @php
+                    $galleryMedia = $company->getMedia('gallery');
+                    $galleryLimit = 10;
+                    $galleryVisible = $galleryMedia->take($galleryLimit);
+                    $galleryRemaining = $galleryMedia->count() - $galleryLimit;
+                @endphp
+                @if($galleryMedia->isNotEmpty())
+                    <section class="reveal" x-data="companyGallery({{ $galleryMedia->count() }})" x-cloak>
+                        <div class="flex items-center gap-3 mb-4">
+                            <h2 class="text-[18px] font-bold text-[#0F172A]">Bilder</h2>
+                            <span class="text-sm text-[#94A3B8]">({{ $galleryMedia->count() }})</span>
+                        </div>
+
+                        {{-- Galerie: Einzeiliger Horizontal-Scroll --}}
+                        <div class="company-gallery__grid">
+                            @foreach($galleryVisible as $index => $media)
+                                <button class="company-gallery__item"
+                                        @click="open({{ $index }})"
+                                        type="button"
+                                        aria-label="Bild {{ $index + 1 }} von {{ $galleryMedia->count() }} vergrößern">
+                                    <img src="{{ $media->getUrl('medium') }}"
+                                         alt="{{ $media->name ?: $company->name . ' — Bild ' . ($index + 1) }}"
+                                         class="company-gallery__img"
+                                         loading="lazy"
+                                         width="600"
+                                         height="400">
+                                    <div class="company-gallery__overlay">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/>
+                                        </svg>
+                                    </div>
+                                </button>
+                            @endforeach
+                            @if($galleryRemaining > 0)
+                                <button class="company-gallery__item company-gallery__more"
+                                        @click="open({{ $galleryLimit }})"
+                                        type="button"
+                                        aria-label="Alle {{ $galleryMedia->count() }} Bilder anzeigen">
+                                    <span class="company-gallery__more-text">+{{ $galleryRemaining }}</span>
+                                </button>
+                            @endif
+                        </div>
+
+                        {{-- Lightbox --}}
+                        <div x-show="isOpen"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0"
+                             x-transition:enter-end="opacity-100"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100"
+                             x-transition:leave-end="opacity-0"
+                             class="company-gallery__lightbox"
+                             role="dialog"
+                             aria-modal="true"
+                             aria-label="Bildergalerie"
+                             @keydown.escape.window="close()"
+                             @keydown.left.window="prev()"
+                             @keydown.right.window="next()">
+                            {{-- Backdrop --}}
+                            <div class="company-gallery__lightbox-backdrop" @click="close()"></div>
+
+                            {{-- Close Button --}}
+                            <button @click="close()" class="company-gallery__lightbox-close" aria-label="Schließen">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+
+                            {{-- Counter --}}
+                            <div class="company-gallery__lightbox-counter" x-text="`${current + 1} / {{ $galleryMedia->count() }}`"></div>
+
+                            {{-- Navigation --}}
+                            @if($galleryMedia->count() > 1)
+                                <button @click="prev()" class="company-gallery__lightbox-nav company-gallery__lightbox-nav--prev" aria-label="Vorheriges Bild">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                </button>
+                                <button @click="next()" class="company-gallery__lightbox-nav company-gallery__lightbox-nav--next" aria-label="Nächstes Bild">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                </button>
+                            @endif
+
+                            {{-- Image --}}
+                            <div class="company-gallery__lightbox-content">
+                                @foreach($galleryMedia as $index => $media)
+                                    <img x-show="current === {{ $index }}"
+                                         x-transition:enter="transition ease-out duration-200"
+                                         x-transition:enter-start="opacity-0 scale-95"
+                                         x-transition:enter-end="opacity-100 scale-100"
+                                         src="{{ $media->getUrl() }}"
+                                         alt="{{ $media->name ?: $company->name . ' — Bild ' . ($index + 1) }}"
+                                         class="company-gallery__lightbox-img">
+                                @endforeach
+                            </div>
                         </div>
                     </section>
                 @endif
@@ -428,7 +524,16 @@
             'bestRating' => 5,
             'worstRating' => 1,
         ] : null,
-        'image' => $company->logo_path ? asset($company->logo_path) : null,
+        'image' => (function() use ($company) {
+            $images = [];
+            if ($company->logo_url) {
+                $images[] = $company->logo_url;
+            }
+            foreach ($company->getMedia('gallery') as $media) {
+                $images[] = $media->getUrl();
+            }
+            return count($images) === 1 ? $images[0] : ($images ?: null);
+        })(),
         'sameAs' => $company->website ?: null,
         'openingHoursSpecification' => $company->openingHours->isNotEmpty()
             ? $company->openingHours->map(fn ($h) => array_filter([
