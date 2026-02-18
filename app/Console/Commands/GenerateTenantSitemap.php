@@ -120,7 +120,7 @@ class GenerateTenantSitemap extends Command
             $sitemap->writeToFile("{$sitemapDir}/sitemap.xml");
 
             // Write robots.txt to tenant storage
-            $robotsContent = "User-agent: *\nDisallow: /firmenprofil/\nDisallow: /eintragen\n\nSitemap: {$baseUrl}/sitemap.xml\n";
+            $robotsContent = "User-agent: *\nAllow: /\nDisallow: /firmenprofil/dashboard\nDisallow: /login\nDisallow: /register\n\nSitemap: {$baseUrl}/sitemap.xml\n";
             file_put_contents("{$sitemapDir}/robots.txt", $robotsContent);
         });
 

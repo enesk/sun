@@ -40,7 +40,7 @@ Route::middleware([
         if (!file_exists($path)) {
             $scheme = app()->environment('production') ? 'https' : 'http';
             $domain = request()->getHost();
-            return response("User-agent: *\nDisallow: /firmenprofil/\n\nSitemap: {$scheme}://{$domain}/sitemap.xml\n", 200)
+            return response("User-agent: *\nAllow: /\nDisallow: /firmenprofil/dashboard\nDisallow: /login\nDisallow: /register\n\nSitemap: {$scheme}://{$domain}/sitemap.xml\n", 200)
                 ->header('Content-Type', 'text/plain');
         }
         return response()->file($path, ['Content-Type' => 'text/plain']);
