@@ -87,11 +87,31 @@ class CreateTenantDatabaseUsers extends Command
             }
 
             // Prüfen ob MySQL-User bereits existiert
+            // Kein SELECT auf mysql.user — Shared-Hosting hat dafür keine Rechte.
+            // Stattdessen: Versuch einer echten Verbindung mit den Tenant-Credentials.
             $mysqlUserExists = false;
-            if ($existingUsername) {
-                $userCheck = DB::connection($centralConnection)
-                    ->select("SELECT 1 FROM mysql.user WHERE user = ? AND host = 'localhost'", [$existingUsername]);
-                $mysqlUserExists = ! empty($userCheck);
+            if ($existingUsername && $existingPassword) {
+                try {
+                    $host = config("database.connections.{$centralConnection}.host", '127.0.0.1');
+                    $port = config("database.connections.{$centralConnection}.port", '3306');
+                    $testPdo = new \PDO(
+                        "mysql:host={$host};port={$port};dbname={$dbName}",
+                        $existingUsername,
+                        $existingPassword,
+                        [\PDO::ATTR_TIMEOUT => 3]
+                    );
+                    $testPdo = null; // Verbindung schließen
+                    $mysqlUserExists = true;
+                } catch (\PDOException $e) {
+                    // 1045 = Access denied → User existiert nicht oder falsches Passwort
+                    // Alles andere → User existiert vermutlich, aber anderer Fehler
+                    if ($e->getCode() == 1045) {
+                        $mysqlUserExists = false;
+                    } else {
+                        // z.B. 1049 (Unknown database) → DB fehlt, User-Status unklar
+                        $mysqlUserExists = false;
+                    }
+                }
             }
 
             // ─── SYNC-Modus: Bestehende Credentials verwenden ───
