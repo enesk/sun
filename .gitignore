@@ -3,6 +3,7 @@
 /public/build
 /public/hot
 /public/storage
+/public/storage-*
 /public/sitemap.xml
 /public/fonts/filament
 /public/robots.txt
