@@ -51,6 +51,8 @@
 
     @livewireStyles
     @stack('styles')
+
+    @include('partials.analytics')
 </head>
 <body class="min-h-screen flex flex-col bg-base-100 text-base-content antialiased">
 
