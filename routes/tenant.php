@@ -38,8 +38,8 @@ Route::middleware([
     Route::get('/robots.txt', function () {
         $path = storage_path('app/public/robots.txt');
         if (!file_exists($path)) {
-            $scheme = app()->environment('production') ? 'https' : 'http';
             $domain = request()->getHost();
+            $scheme = 'https';
             return response("User-agent: *\nAllow: /\nDisallow: /firmenprofil/dashboard\nDisallow: /login\nDisallow: /register\n\nSitemap: {$scheme}://{$domain}/sitemap.xml\n", 200)
                 ->header('Content-Type', 'text/plain');
         }
