@@ -12,7 +12,7 @@ class LegalPages extends Page
 {
     protected string $view = 'filament.dashboard.pages.legal-pages';
 
-    protected static ?string $navigationIcon = 'heroicon-o-scale';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-scale';
 
     protected static ?int $navigationSort = 90;
 
