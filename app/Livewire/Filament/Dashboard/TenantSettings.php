@@ -2,10 +2,8 @@
 
 namespace App\Livewire\Filament\Dashboard;
 
-use App\Constants\TenantConfigConstants;
 use App\Services\TenantService;
 use Filament\Facades\Filament;
-use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
@@ -39,8 +37,6 @@ class TenantSettings extends Component implements HasForms
 
         $fields = [
             'tenant_name' => $tenant->name,
-            'impressum' => $tenant->getAttribute(TenantConfigConstants::IMPRESSUM),
-            'datenschutz' => $tenant->getAttribute(TenantConfigConstants::DATENSCHUTZ),
         ];
 
         $address = $tenant->address()->first();
@@ -92,30 +88,6 @@ class TenantSettings extends Component implements HasForms
                         ->label(__('Tax Number')),
                 ])->heading(__('Organization Address'))
                     ->description(__('This address will be used for issuing invoices')),
-
-                Section::make([
-                    RichEditor::make('impressum')
-                        ->label('Impressum')
-                        ->helperText('Pflichtangaben gemäß § 5 TMG. Wird auf der Impressum-Seite und im Footer angezeigt.')
-                        ->toolbarButtons([
-                            'bold', 'italic', 'underline',
-                            'h2', 'h3',
-                            'bulletList', 'orderedList',
-                            'link',
-                        ])
-                        ->columnSpanFull(),
-                    RichEditor::make('datenschutz')
-                        ->label('Datenschutzerklärung')
-                        ->helperText('Datenschutzerklärung gemäß DSGVO. Wird auf der Datenschutz-Seite und im Footer angezeigt.')
-                        ->toolbarButtons([
-                            'bold', 'italic', 'underline',
-                            'h2', 'h3',
-                            'bulletList', 'orderedList',
-                            'link',
-                        ])
-                        ->columnSpanFull(),
-                ])->heading('Rechtliche Seiten')
-                    ->description('Impressum und Datenschutzerklärung für Ihr Portal. Links erscheinen automatisch im Footer sobald Inhalte hinterlegt sind.'),
             ])
             ->statePath('data');
     }
@@ -135,18 +107,6 @@ class TenantSettings extends Component implements HasForms
         } else {
             $tenant->address()->create($data);
         }
-
-        // Rechtliche Seiten — HTML sanitizen wegen {!! !!} im Template
-        $allowedHtml = 'p,br,strong,em,u,h2,h3,ul,ol,li,a[href|target|rel]';
-
-        $tenant->update([
-            TenantConfigConstants::IMPRESSUM => $data['impressum']
-                ? clean($data['impressum'], ['HTML.Allowed' => $allowedHtml])
-                : null,
-            TenantConfigConstants::DATENSCHUTZ => $data['datenschutz']
-                ? clean($data['datenschutz'], ['HTML.Allowed' => $allowedHtml])
-                : null,
-        ]);
 
         Notification::make()
             ->title(__('Settings Saved'))
