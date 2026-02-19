@@ -17,7 +17,6 @@ use Filament\Actions\EditAction;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
-use Filament\Forms\Components\RichEditor;
 use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Schemas\Components\Tabs;
@@ -142,12 +141,6 @@ class TenantResource extends Resource
                                     ->rows(2)
                                     ->default(TenantConfigConstants::DEFAULTS[TenantConfigConstants::FOOTER_TEXT])
                                     ->helperText(__('Platzhalter: {year}, {tenant_name}')),
-                                RichEditor::make(TenantConfigConstants::IMPRESSUM)
-                                    ->label(__('Impressum'))
-                                    ->toolbarButtons(['bold', 'italic', 'link', 'h2', 'h3', 'bulletList', 'orderedList']),
-                                RichEditor::make(TenantConfigConstants::DATENSCHUTZ)
-                                    ->label(__('Datenschutzerklärung'))
-                                    ->toolbarButtons(['bold', 'italic', 'link', 'h2', 'h3', 'bulletList', 'orderedList']),
                             ]),
 
                         Tabs\Tab::make(__('Kontakt & Social Media'))

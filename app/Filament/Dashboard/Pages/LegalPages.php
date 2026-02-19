@@ -4,17 +4,21 @@ namespace App\Filament\Dashboard\Pages;
 
 use App\Constants\TenancyPermissionConstants;
 use App\Services\TenantPermissionService;
+use BackedEnum;
 use Filament\Facades\Filament;
 use Filament\Pages\Page;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
 
 class LegalPages extends Page
 {
     protected string $view = 'filament.dashboard.pages.legal-pages';
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-scale';
+    protected static string|null|BackedEnum $navigationIcon = Heroicon::OutlinedScale;
 
     protected static ?int $navigationSort = 90;
+
+    protected static ?string $slug = 'legal-pages';
 
     public function getHeading(): string|Htmlable
     {
