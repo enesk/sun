@@ -17,9 +17,9 @@ trait RedirectAwareTrait
             return Redirect::getIntendedUrl();
         }
 
-        // Im Tenant-Kontext: Firmeninhaber ins Tenant-Dashboard leiten
+        // Im Tenant-Kontext: Firmeninhaber ins Firmenprofil-Dashboard leiten
         if (tenant()) {
-            return '/dashboard';
+            return '/firmenprofil';
         }
 
         if ($user->is_admin) {
