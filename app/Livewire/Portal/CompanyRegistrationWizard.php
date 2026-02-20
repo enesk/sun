@@ -47,6 +47,13 @@ class CompanyRegistrationWizard extends Component
     public ?Company $createdCompany = null;
     public ?string $selectedCityName = null;
 
+    public function mount(): void
+    {
+        if (Auth::check() && Auth::user()->email) {
+            $this->email = Auth::user()->email;
+        }
+    }
+
     protected function rules(): array
     {
         return match ($this->currentStep) {
@@ -98,11 +105,13 @@ class CompanyRegistrationWizard extends Component
     {
         $this->validate();
         $this->currentStep = min($this->currentStep + 1, $this->totalSteps);
+        $this->dispatch('step-changed');
     }
 
     public function previousStep(): void
     {
         $this->currentStep = max($this->currentStep - 1, 1);
+        $this->dispatch('step-changed');
     }
 
     public function goToStep(int $step): void
@@ -233,9 +242,12 @@ class CompanyRegistrationWizard extends Component
     {
         $categories = collect();
         if ($this->currentStep === 1) {
-            $query = Category::roots()->ordered();
+            $query = Category::roots()->ordered()->with(['children' => fn($q) => $q->ordered()]);
             if ($this->categoryFilter !== '') {
-                $query->where('name', 'like', '%' . $this->categoryFilter . '%');
+                $query->where(function ($q) {
+                    $q->where('name', 'like', '%' . $this->categoryFilter . '%')
+                      ->orWhereHas('children', fn($c) => $c->where('name', 'like', '%' . $this->categoryFilter . '%'));
+                });
             }
             $categories = $query->get();
         }

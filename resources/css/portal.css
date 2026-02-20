@@ -507,6 +507,11 @@
         box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
     }
 
+    .input-portal.input-success {
+        border-color: #22C55E;
+        box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.06);
+    }
+
     .input-portal.has-icon {
         padding-left: 2.75rem;
     }
@@ -619,6 +624,26 @@
     @media (max-width: 767px) {
         .eintragen-hero {
             padding: 1.5rem 0 2.5rem;
+        }
+    }
+
+    /* Step transition animation */
+    .step-content {
+        opacity: 0;
+        transform: translateY(8px);
+        transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    }
+
+    .step-content.step-enter-active {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .step-content {
+            opacity: 1;
+            transform: none;
+            transition: none;
         }
     }
 
@@ -2012,6 +2037,211 @@
 
         .footer-main {
             padding: 40px 0 32px;
+        }
+    }
+
+    /* ============================================================
+       Legal Pages (Datenschutz, Impressum) — Prose Overrides
+       ============================================================ */
+
+    /* Mini-Hero for legal pages */
+    .legal-hero {
+        background: linear-gradient(
+            135deg,
+            var(--portal-primary, #3B82F6),
+            var(--portal-secondary, #1E40AF) 50%,
+            var(--portal-primary-dark, #1E3A5F)
+        );
+        padding: 2.5rem 0 3.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .legal-hero::before {
+        content: '';
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        top: -20%;
+        right: -5%;
+        border-radius: 50%;
+        background: radial-gradient(circle, var(--portal-accent, #F59E0B), transparent 70%);
+        opacity: 0.15;
+        filter: blur(60px);
+    }
+
+    @media (max-width: 767px) {
+        .legal-hero {
+            padding: 1.5rem 0 2.5rem;
+        }
+    }
+
+    /* Legal page content card */
+    .legal-card {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(var(--portal-primary-rgb, 59, 130, 246), 0.06);
+        border-radius: 1.25rem;
+        box-shadow:
+            0 4px 24px rgba(0, 0, 0, 0.06),
+            0 1px 2px rgba(0, 0, 0, 0.04);
+        margin-top: -2rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Portal-branded prose overrides */
+    /* Hide first h1 in content — the Mini-Hero already shows the page title */
+    .legal-content > h1:first-child {
+        display: none;
+    }
+
+    .legal-content h1 {
+        font-size: 1.875rem;
+        font-weight: 800;
+        color: #0F172A;
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+        line-height: 1.3;
+    }
+
+    .legal-content h2 {
+        font-size: 1.375rem;
+        font-weight: 700;
+        color: #0F172A;
+        margin-top: 2.5rem;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid rgba(var(--portal-primary-rgb, 59, 130, 246), 0.1);
+        line-height: 1.35;
+    }
+
+    .legal-content h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1E293B;
+        margin-top: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .legal-content p {
+        font-size: 0.9375rem;
+        line-height: 1.75;
+        color: #475569;
+        margin-top: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .legal-content ul,
+    .legal-content ol {
+        margin-top: 0.75rem;
+        margin-bottom: 0.75rem;
+        padding-left: 1.5rem;
+    }
+
+    .legal-content ul {
+        list-style-type: disc;
+    }
+
+    .legal-content ol {
+        list-style-type: decimal;
+    }
+
+    .legal-content li {
+        font-size: 0.9375rem;
+        line-height: 1.75;
+        color: #475569;
+        margin-top: 0.25rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .legal-content a {
+        color: var(--portal-primary, #3B82F6);
+        text-decoration: underline;
+        text-decoration-color: rgba(var(--portal-primary-rgb, 59, 130, 246), 0.3);
+        text-underline-offset: 2px;
+        transition: text-decoration-color 200ms ease;
+    }
+
+    .legal-content a:hover {
+        text-decoration-color: var(--portal-primary, #3B82F6);
+    }
+
+    .legal-content strong {
+        font-weight: 600;
+        color: #1E293B;
+    }
+
+    .legal-content code {
+        font-size: 0.8125rem;
+        background: #F1F5F9;
+        padding: 0.125rem 0.375rem;
+        border-radius: 0.25rem;
+        color: #334155;
+    }
+
+    /* Table styling for cookie tables etc. */
+    .legal-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+        border-radius: 0.75rem;
+        overflow: hidden;
+        border: 1px solid #E2E8F0;
+    }
+
+    .legal-content thead {
+        background: rgba(var(--portal-primary-rgb, 59, 130, 246), 0.05);
+    }
+
+    .legal-content th {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: #1E293B;
+        border-bottom: 2px solid rgba(var(--portal-primary-rgb, 59, 130, 246), 0.12);
+    }
+
+    .legal-content td {
+        padding: 0.625rem 1rem;
+        color: #475569;
+        border-bottom: 1px solid #F1F5F9;
+    }
+
+    .legal-content tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .legal-content tbody tr:hover {
+        background: rgba(var(--portal-primary-rgb, 59, 130, 246), 0.02);
+    }
+
+    /* First h2 needs less top margin */
+    .legal-content h1 + p + h2,
+    .legal-content > h2:first-child {
+        margin-top: 1.5rem;
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 639px) {
+        .legal-content h1 {
+            font-size: 1.5rem;
+        }
+
+        .legal-content h2 {
+            font-size: 1.25rem;
+        }
+
+        .legal-content table {
+            font-size: 0.8125rem;
+        }
+
+        .legal-content th,
+        .legal-content td {
+            padding: 0.5rem 0.625rem;
         }
     }
 }

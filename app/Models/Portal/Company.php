@@ -41,6 +41,7 @@ class Company extends Model implements HasMedia
         'is_verified',
         'is_active',
         'logo_path',
+        'google_added_at',
     ];
 
     protected $casts = [
@@ -49,6 +50,7 @@ class Company extends Model implements HasMedia
         'is_premium' => 'boolean',
         'is_verified' => 'boolean',
         'is_active' => 'boolean',
+        'google_added_at' => 'datetime',
     ];
 
     protected static function booted(): void

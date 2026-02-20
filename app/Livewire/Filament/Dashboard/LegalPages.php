@@ -3,6 +3,7 @@
 namespace App\Livewire\Filament\Dashboard;
 
 use App\Constants\TenantConfigConstants;
+use App\Services\TenantBrandingService;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -73,11 +74,12 @@ class LegalPages extends Component implements HasForms
         $data = $this->form->getState();
 
         $tenant = Filament::getTenant();
+        $branding = app(TenantBrandingService::class);
 
         // HTML sanitizen — XSS-Schutz weil Templates {!! !!} nutzen
-        $allowedHtml = 'p,br,strong,em,u,h2,h3,ul,ol,li,a[href|target|rel]';
+        $allowedHtml = 'p,br,strong,em,u,h1,h2,h3,h4,ul,ol,li,a[href|target|rel],table,thead,tbody,tr,th,td';
 
-        $tenant->update([
+        $branding->setMany($tenant, [
             TenantConfigConstants::IMPRESSUM => $data['impressum']
                 ? clean($data['impressum'], ['HTML.Allowed' => $allowedHtml])
                 : null,

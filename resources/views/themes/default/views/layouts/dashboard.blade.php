@@ -61,7 +61,7 @@
 
     <div class="flex-1 flex">
         {{-- Desktop Sidebar --}}
-        <aside class="hidden md:flex md:w-64 md:flex-col md:border-r md:border-base-200 md:bg-base-100" aria-label="Dashboard-Navigation">
+        <aside class="hidden md:flex md:w-64 md:shrink-0 md:flex-col md:border-r md:border-base-200 md:bg-base-100 md:overflow-y-auto" aria-label="Dashboard-Navigation">
             <nav class="flex-1 px-3 py-4 space-y-1">
                 @php
                     $navItems = [

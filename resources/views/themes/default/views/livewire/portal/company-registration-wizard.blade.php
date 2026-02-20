@@ -1,4 +1,4 @@
-<div>
+<div x-data x-on:step-changed.window="$nextTick(() => { const card = document.querySelector('.wizard-card'); if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' }); })">
     @if($submitted && $createdCompany)
         {{-- Erfolgs-Seite --}}
         <div class="p-6 sm:p-8 text-center" x-data="{ show: false }" x-init="$nextTick(() => show = true)">
@@ -104,7 +104,7 @@
             </div>
         </div>
     @else
-        {{-- Step-Indicator (Desktop) — jetzt innerhalb der Livewire-Component --}}
+        {{-- Step-Indicator (Desktop) — klickbar für Rücknavigation --}}
         <div class="hidden md:block px-5 sm:px-7 pt-5 pb-0">
             @php
                 $steps = [
@@ -118,30 +118,33 @@
             <div class="flex items-center justify-between" role="navigation" aria-label="Fortschritt">
                 @foreach($steps as $stepNum => $stepInfo)
                     <div class="flex items-center {{ $stepNum < 5 ? 'flex-1' : '' }}">
-                        <div class="flex items-center gap-2">
-                            {{-- Step Circle --}}
-                            <div @class([
-                                'flex items-center justify-center w-9 h-9 rounded-full transition-all duration-300',
-                                'bg-portal-primary text-white shadow-md ring-2 ring-portal-primary/20' => $currentStep === $stepNum,
-                                'bg-green-100 text-green-600' => $currentStep > $stepNum,
-                                'bg-base-200/50 text-base-content/30' => $currentStep < $stepNum,
-                            ])>
-                                @if($currentStep > $stepNum)
+                        @if($currentStep > $stepNum)
+                            {{-- Bereits erledigte Steps — klickbar --}}
+                            <button type="button" wire:click="goToStep({{ $stepNum }})"
+                                    class="flex items-center gap-2 group cursor-pointer"
+                                    title="{{ $stepInfo['label'] }} bearbeiten">
+                                <div class="flex items-center justify-center w-9 h-9 rounded-full transition-all duration-300 bg-green-100 text-green-600 group-hover:bg-green-200 group-hover:ring-2 group-hover:ring-green-300/40">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                @else
+                                </div>
+                                <span class="text-xs whitespace-nowrap transition-colors duration-300 text-green-600 font-medium group-hover:text-green-700 group-hover:underline">{{ $stepInfo['label'] }}</span>
+                            </button>
+                        @else
+                            <div class="flex items-center gap-2">
+                                <div @class([
+                                    'flex items-center justify-center w-9 h-9 rounded-full transition-all duration-300',
+                                    'bg-portal-primary text-white shadow-md ring-2 ring-portal-primary/20' => $currentStep === $stepNum,
+                                    'bg-base-200/50 text-base-content/30' => $currentStep < $stepNum,
+                                ])>
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="{{ $stepInfo['icon'] }}"/></svg>
-                                @endif
+                                </div>
+                                <span @class([
+                                    'text-xs whitespace-nowrap transition-colors duration-300',
+                                    'text-portal-primary font-semibold' => $currentStep === $stepNum,
+                                    'text-base-content/30' => $currentStep < $stepNum,
+                                ])>{{ $stepInfo['label'] }}</span>
                             </div>
-                            {{-- Label --}}
-                            <span @class([
-                                'text-xs whitespace-nowrap transition-colors duration-300',
-                                'text-portal-primary font-semibold' => $currentStep === $stepNum,
-                                'text-green-600 font-medium' => $currentStep > $stepNum,
-                                'text-base-content/30' => $currentStep < $stepNum,
-                            ])>{{ $stepInfo['label'] }}</span>
-                        </div>
+                        @endif
                         @if($stepNum < 5)
-                            {{-- Progress Line --}}
                             <div class="flex-1 mx-3">
                                 <div class="h-[2px] bg-base-200 relative overflow-hidden rounded-full">
                                     <div @class([
@@ -176,7 +179,8 @@
 
         {{-- Step 1: Firmendaten --}}
         @if($currentStep === 1)
-            <div class="p-5 sm:p-7" role="group" aria-label="Firmendaten">
+            <div class="p-5 sm:p-7 step-content" role="group" aria-label="Firmendaten"
+                 x-data x-init="$nextTick(() => $el.classList.add('step-enter-active'))">
                 <div class="form-section-header">
                     <h2>Firmendaten</h2>
                     <p>Grundlegende Informationen zu Ihrem Unternehmen.</p>
@@ -188,10 +192,17 @@
                         <label for="name" class="label-portal">
                             Firmenname <span class="required">*</span>
                         </label>
-                        <input type="text" id="name" wire:model.blur="name"
-                               @class(['input-portal', 'input-error' => $errors->has('name')])
-                               placeholder="z.B. Müller Elektrotechnik GmbH"
-                               aria-describedby="name-help" autofocus>
+                        <div class="relative">
+                            <input type="text" id="name" wire:model.blur="name"
+                                   @class(['input-portal', 'input-error' => $errors->has('name'), 'input-success' => !$errors->has('name') && strlen($name) >= 3])
+                                   placeholder="z.B. Müller Elektrotechnik GmbH"
+                                   aria-describedby="name-help" autofocus>
+                            @if(!$errors->has('name') && strlen($name) >= 3)
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                            @endif
+                        </div>
                         <p id="name-help" class="help-portal">Der offizielle Name Ihres Unternehmens.</p>
                         @error('name') <p class="text-error text-sm mt-1" role="alert">{{ $message }}</p> @enderror
                     </div>
@@ -212,7 +223,7 @@
                         @error('description') <p class="text-error text-sm mt-1" role="alert">{{ $message }}</p> @enderror
                     </div>
 
-                    {{-- Kategorien --}}
+                    {{-- Kategorien (gruppiert) --}}
                     <div>
                         <label class="label-portal">
                             Kategorien <span class="required">*</span>
@@ -227,25 +238,74 @@
                             </div>
                         @endif
 
-                        <div class="flex flex-wrap gap-2" role="group" aria-label="Kategorie-Auswahl">
+                        <div class="space-y-4" role="group" aria-label="Kategorie-Auswahl">
                             @foreach($categories as $category)
-                                @php $isSelected = in_array($category->id, $selectedCategories); @endphp
-                                <button type="button" wire:click="toggleCategory({{ $category->id }})"
-                                        @class([
-                                            'inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-all duration-150',
-                                            'bg-portal-primary text-white border-transparent shadow-sm' => $isSelected,
-                                            'bg-white/60 text-base-content border-base-300/50 hover:border-portal-primary/30 hover:bg-portal-primary-light' => !$isSelected && count($selectedCategories) < 5,
-                                            'bg-base-100 text-base-content/30 border-base-200 cursor-not-allowed' => !$isSelected && count($selectedCategories) >= 5,
-                                        ])
-                                        @if(!$isSelected && count($selectedCategories) >= 5) disabled @endif
-                                        aria-pressed="{{ $isSelected ? 'true' : 'false' }}"
-                                        aria-label="{{ $category->name }} {{ $isSelected ? '(ausgewählt)' : '' }}">
-                                    @if($category->icon) <i data-lucide="{{ $category->icon }}" class="w-4 h-4 inline-block" aria-hidden="true"></i> @endif
-                                    {{ $category->name }}
-                                    @if($isSelected)
-                                        <svg class="w-4 h-4 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                    @endif
-                                </button>
+                                @php
+                                    $hasChildren = $category->children->isNotEmpty();
+                                    $isParentSelected = in_array($category->id, $selectedCategories);
+                                @endphp
+
+                                @if($hasChildren)
+                                    {{-- Gruppierte Kategorie mit Unterkategorien --}}
+                                    <div class="rounded-xl border border-base-200/60 overflow-hidden" x-data="{ expanded: {{ $isParentSelected || $category->children->pluck('id')->intersect($selectedCategories)->isNotEmpty() ? 'true' : 'false' }} }">
+                                        <button type="button" @click="expanded = !expanded"
+                                                class="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-base-50 transition-colors"
+                                                :aria-expanded="expanded">
+                                            <span class="flex items-center gap-2">
+                                                @if($category->icon)
+                                                    <i data-lucide="{{ $category->icon }}" class="w-4 h-4 text-portal-primary inline-block" aria-hidden="true"></i>
+                                                @endif
+                                                <span class="text-sm font-semibold text-base-content">{{ $category->name }}</span>
+                                                <span class="text-xs text-base-content/40">({{ $category->children->count() }})</span>
+                                            </span>
+                                            <svg class="w-4 h-4 text-base-content/30 transition-transform duration-200" :class="{ 'rotate-180': expanded }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                        </button>
+                                        <div x-show="expanded" x-collapse>
+                                            <div class="px-4 pb-3 flex flex-wrap gap-2 border-t border-base-200/40 pt-3">
+                                                @foreach($category->children as $child)
+                                                    @php $isSelected = in_array($child->id, $selectedCategories); @endphp
+                                                    <button type="button" wire:click="toggleCategory({{ $child->id }})"
+                                                            @class([
+                                                                'inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-all duration-150',
+                                                                'bg-portal-primary text-white border-transparent shadow-sm' => $isSelected,
+                                                                'bg-white/60 text-base-content border-base-300/50 hover:border-portal-primary/30 hover:bg-portal-primary-light' => !$isSelected && count($selectedCategories) < 5,
+                                                                'bg-base-100 text-base-content/30 border-base-200 cursor-not-allowed' => !$isSelected && count($selectedCategories) >= 5,
+                                                            ])
+                                                            @if(!$isSelected && count($selectedCategories) >= 5) disabled @endif
+                                                            aria-pressed="{{ $isSelected ? 'true' : 'false' }}"
+                                                            aria-label="{{ $child->name }} {{ $isSelected ? '(ausgewählt)' : '' }}">
+                                                        @if($child->icon) <i data-lucide="{{ $child->icon }}" class="w-4 h-4 inline-block" aria-hidden="true"></i> @endif
+                                                        {{ $child->name }}
+                                                        @if($isSelected)
+                                                            <svg class="w-4 h-4 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                        @endif
+                                                    </button>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+                                @else
+                                    {{-- Standalone Kategorie ohne Unterkategorien --}}
+                                    <div class="flex flex-wrap gap-2">
+                                        @php $isSelected = in_array($category->id, $selectedCategories); @endphp
+                                        <button type="button" wire:click="toggleCategory({{ $category->id }})"
+                                                @class([
+                                                    'inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-all duration-150',
+                                                    'bg-portal-primary text-white border-transparent shadow-sm' => $isSelected,
+                                                    'bg-white/60 text-base-content border-base-300/50 hover:border-portal-primary/30 hover:bg-portal-primary-light' => !$isSelected && count($selectedCategories) < 5,
+                                                    'bg-base-100 text-base-content/30 border-base-200 cursor-not-allowed' => !$isSelected && count($selectedCategories) >= 5,
+                                                ])
+                                                @if(!$isSelected && count($selectedCategories) >= 5) disabled @endif
+                                                aria-pressed="{{ $isSelected ? 'true' : 'false' }}"
+                                                aria-label="{{ $category->name }} {{ $isSelected ? '(ausgewählt)' : '' }}">
+                                            @if($category->icon) <i data-lucide="{{ $category->icon }}" class="w-4 h-4 inline-block" aria-hidden="true"></i> @endif
+                                            {{ $category->name }}
+                                            @if($isSelected)
+                                                <svg class="w-4 h-4 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                            @endif
+                                        </button>
+                                    </div>
+                                @endif
                             @endforeach
                         </div>
                         <p class="help-portal mt-2">{{ count($selectedCategories) }} von 5 ausgewählt</p>
@@ -257,7 +317,8 @@
 
         {{-- Step 2: Adresse --}}
         @if($currentStep === 2)
-            <div class="p-5 sm:p-7" role="group" aria-label="Adresse">
+            <div class="p-5 sm:p-7 step-content" role="group" aria-label="Adresse"
+                 x-data x-init="$nextTick(() => $el.classList.add('step-enter-active'))">
                 <div class="form-section-header">
                     <h2>Adresse</h2>
                     <p>Der Standort Ihres Unternehmens.</p>
@@ -267,9 +328,16 @@
                     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
                         <div class="sm:col-span-3">
                             <label for="street" class="label-portal">Straße <span class="required">*</span></label>
-                            <input type="text" id="street" wire:model.blur="street"
-                                   @class(['input-portal', 'input-error' => $errors->has('street')])
-                                   placeholder="Musterstraße" autocomplete="street-address">
+                            <div class="relative">
+                                <input type="text" id="street" wire:model.blur="street"
+                                       @class(['input-portal', 'input-error' => $errors->has('street'), 'input-success' => !$errors->has('street') && strlen($street) > 0])
+                                       placeholder="Musterstraße" autocomplete="street-address">
+                                @if(!$errors->has('street') && strlen($street) > 0)
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    </div>
+                                @endif
+                            </div>
                             @error('street') <p class="text-error text-sm mt-1" role="alert">{{ $message }}</p> @enderror
                         </div>
                         <div>
@@ -283,10 +351,17 @@
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div>
                             <label for="zipcode" class="label-portal">Postleitzahl <span class="required">*</span></label>
-                            <input type="text" id="zipcode" wire:model.blur="zipcode"
-                                   @class(['input-portal', 'input-error' => $errors->has('zipcode')])
-                                   placeholder="10115" maxlength="5" inputmode="numeric"
-                                   pattern="[0-9]{5}" autocomplete="postal-code">
+                            <div class="relative">
+                                <input type="text" id="zipcode" wire:model.blur="zipcode"
+                                       @class(['input-portal', 'input-error' => $errors->has('zipcode'), 'input-success' => !$errors->has('zipcode') && preg_match('/^\d{5}$/', $zipcode)])
+                                       placeholder="10115" maxlength="5" inputmode="numeric"
+                                       pattern="[0-9]{5}" autocomplete="postal-code">
+                                @if(!$errors->has('zipcode') && preg_match('/^\d{5}$/', $zipcode))
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                        <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    </div>
+                                @endif
+                            </div>
                             @error('zipcode') <p class="text-error text-sm mt-1" role="alert">{{ $message }}</p> @enderror
                         </div>
                         <div class="sm:col-span-2" x-data="{ open: false }" @click.outside="open = false">
@@ -343,7 +418,8 @@
 
         {{-- Step 3: Kontakt --}}
         @if($currentStep === 3)
-            <div class="p-5 sm:p-7" role="group" aria-label="Kontaktdaten">
+            <div class="p-5 sm:p-7 step-content" role="group" aria-label="Kontaktdaten"
+                 x-data x-init="$nextTick(() => $el.classList.add('step-enter-active'))">
                 <div class="form-section-header">
                     <h2>Kontaktdaten</h2>
                     <p>So können Kunden Sie erreichen.</p>
@@ -357,9 +433,14 @@
                                 <svg class="w-5 h-5 text-base-content/25" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                             </div>
                             <input type="email" id="email" wire:model.blur="email"
-                                   @class(['input-portal has-icon', 'input-error' => $errors->has('email')])
+                                   @class(['input-portal has-icon', 'input-error' => $errors->has('email'), 'input-success' => !$errors->has('email') && filter_var($email, FILTER_VALIDATE_EMAIL)])
                                    placeholder="info@ihre-firma.de" autocomplete="email"
                                    aria-describedby="email-help">
+                            @if(!$errors->has('email') && filter_var($email, FILTER_VALIDATE_EMAIL))
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                            @endif
                         </div>
                         <p id="email-help" class="help-portal">Wird auf der Firmenseite als Kontakt angezeigt.</p>
                         @error('email') <p class="text-error text-sm mt-1" role="alert">{{ $message }}</p> @enderror
@@ -402,7 +483,8 @@
 
         {{-- Step 4: Logo --}}
         @if($currentStep === 4)
-            <div class="p-5 sm:p-7" role="group" aria-label="Logo hochladen">
+            <div class="p-5 sm:p-7 step-content" role="group" aria-label="Logo hochladen"
+                 x-data x-init="$nextTick(() => $el.classList.add('step-enter-active'))">
                 <div class="form-section-header">
                     <h2>Logo hochladen</h2>
                     <p>Ein Logo macht Ihren Eintrag professioneller und wiedererkennbar. <span class="text-base-content/40">(optional)</span></p>
@@ -486,7 +568,8 @@
 
         {{-- Step 5: Zusammenfassung --}}
         @if($currentStep === 5)
-            <div class="p-5 sm:p-7" role="group" aria-label="Zusammenfassung">
+            <div class="p-5 sm:p-7 step-content" role="group" aria-label="Zusammenfassung"
+                 x-data x-init="$nextTick(() => $el.classList.add('step-enter-active'))">
                 <div class="form-section-header">
                     <h2>Zusammenfassung</h2>
                     <p>Überprüfen Sie Ihre Angaben.</p>

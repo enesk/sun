@@ -65,6 +65,23 @@ class TenantBrandingService
         );
     }
 
+    public function resolveLegalPlaceholders(string $content, Tenant $tenant): string
+    {
+        $address = $tenant->address()->first();
+
+        $replacements = [
+            '[PORTAL_NAME]' => $this->get($tenant, TenantConfigConstants::SITE_TITLE) ?: $tenant->name,
+            '[BETREIBER_NAME]' => $tenant->name,
+            '[BETREIBER_STRASSE]' => $address?->address_line_1 ?? '',
+            '[BETREIBER_PLZ]' => $address?->zip ?? '',
+            '[BETREIBER_ORT]' => $address?->city ?? '',
+            '[BETREIBER_EMAIL]' => $this->get($tenant, TenantConfigConstants::CONTACT_EMAIL) ?? '',
+            '[BETREIBER_TELEFON]' => $this->get($tenant, TenantConfigConstants::CONTACT_PHONE) ?? $address?->phone ?? '',
+        ];
+
+        return str_replace(array_keys($replacements), array_values($replacements), $content);
+    }
+
     public function isFeatureEnabled(Tenant $tenant, string $featureKey): bool
     {
         return (bool) $this->get($tenant, $featureKey, false);

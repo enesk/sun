@@ -6,7 +6,23 @@ use App\Http\Controllers\Portal\CompanyRegistrationController;
 use App\Http\Controllers\Portal\OwnerDashboardController;
 use App\Http\Controllers\Portal\PortalHomeController;
 use App\Http\Controllers\Portal\StaticPageController;
+use App\Http\Controllers\Verwaltung\VerwaltungCategoryController;
+use App\Http\Controllers\Verwaltung\VerwaltungCityController;
+use App\Http\Controllers\Verwaltung\VerwaltungCompanyController;
+use App\Http\Controllers\Verwaltung\VerwaltungController;
+use App\Http\Controllers\Verwaltung\VerwaltungOrderController;
+use App\Http\Controllers\Verwaltung\VerwaltungReviewController;
+use App\Http\Controllers\Verwaltung\VerwaltungSubscriptionController;
+use App\Http\Controllers\Verwaltung\VerwaltungTransactionController;
+use App\Http\Controllers\Verwaltung\VerwaltungUserController;
+use App\Http\Controllers\Verwaltung\VerwaltungTeamController;
+use App\Http\Controllers\Verwaltung\VerwaltungRoleController;
+use App\Http\Controllers\Verwaltung\VerwaltungInvitationController;
+use App\Http\Controllers\Verwaltung\VerwaltungSettingsController;
+use App\Http\Controllers\Verwaltung\VerwaltungProfileController;
+use App\Http\Controllers\Verwaltung\VerwaltungReferralController;
 use App\Http\Middleware\EnsureHasCompany;
+use App\Http\Middleware\EnsureTenantDashboardAccess;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -40,7 +56,7 @@ Route::middleware([
         if (!file_exists($path)) {
             $domain = request()->getHost();
             $scheme = 'https';
-            return response("User-agent: *\nAllow: /\nDisallow: /firmenprofil/dashboard\nDisallow: /login\nDisallow: /register\n\nSitemap: {$scheme}://{$domain}/sitemap.xml\n", 200)
+            return response("User-agent: *\nAllow: /\nDisallow: /firmenprofil\nDisallow: /verwaltung\nDisallow: /login\nDisallow: /register\n\nSitemap: {$scheme}://{$domain}/sitemap.xml\n", 200)
                 ->header('Content-Type', 'text/plain');
         }
         return response()->file($path, ['Content-Type' => 'text/plain']);
@@ -85,6 +101,81 @@ Route::middleware([
             Route::get('/statistiken', [OwnerDashboardController::class, 'stats'])->name('stats');
             Route::get('/einstellungen', [OwnerDashboardController::class, 'settings'])->name('settings');
             Route::get('/premium', [OwnerDashboardController::class, 'premium'])->name('premium');
+        });
+
+    // ========================================================================
+    // Verwaltung (Custom Tenant Dashboard — replaces Filament Dashboard)
+    // ========================================================================
+    Route::middleware(['auth', EnsureTenantDashboardAccess::class])
+        ->prefix('/verwaltung')
+        ->name('verwaltung.')
+        ->group(function () {
+            // Overview
+            Route::get('/', [VerwaltungController::class, 'index'])->name('index');
+
+            // --- Portal Management ---
+            // Companies (#106)
+            Route::get('/firmen', [VerwaltungCompanyController::class, 'index'])->name('companies.index');
+            Route::get('/firmen/erstellen', [VerwaltungCompanyController::class, 'create'])->name('companies.create');
+            Route::get('/firmen/{id}/bearbeiten', [VerwaltungCompanyController::class, 'edit'])->name('companies.edit');
+            Route::delete('/firmen/{id}', [VerwaltungCompanyController::class, 'destroy'])->name('companies.destroy');
+
+            // Reviews (#107)
+            Route::get('/bewertungen', [VerwaltungReviewController::class, 'index'])->name('reviews.index');
+
+            // Categories (#108)
+            Route::get('/kategorien', [VerwaltungCategoryController::class, 'index'])->name('categories.index');
+            Route::get('/kategorien/erstellen', [VerwaltungCategoryController::class, 'create'])->name('categories.create');
+            Route::get('/kategorien/{id}/bearbeiten', [VerwaltungCategoryController::class, 'edit'])->name('categories.edit');
+            Route::delete('/kategorien/{id}', [VerwaltungCategoryController::class, 'destroy'])->name('categories.destroy');
+
+            // Cities (#108)
+            Route::get('/staedte', [VerwaltungCityController::class, 'index'])->name('cities.index');
+            Route::get('/staedte/erstellen', [VerwaltungCityController::class, 'create'])->name('cities.create');
+            Route::get('/staedte/{id}/bearbeiten', [VerwaltungCityController::class, 'edit'])->name('cities.edit');
+            Route::delete('/staedte/{id}', [VerwaltungCityController::class, 'destroy'])->name('cities.destroy');
+
+            // --- Finanzen (#109) ---
+            // Subscriptions
+            Route::get('/abonnements', [VerwaltungSubscriptionController::class, 'index'])->name('subscriptions.index');
+            Route::get('/abonnements/{uuid}', [VerwaltungSubscriptionController::class, 'show'])->name('subscriptions.show');
+            Route::get('/abonnements/{uuid}/kuendigen', [VerwaltungSubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
+
+            // Transactions
+            Route::get('/zahlungen', [VerwaltungTransactionController::class, 'index'])->name('transactions.index');
+
+            // Orders
+            Route::get('/bestellungen', [VerwaltungOrderController::class, 'index'])->name('orders.index');
+            Route::get('/bestellungen/{uuid}', [VerwaltungOrderController::class, 'show'])->name('orders.show');
+
+            // --- Team (#110) ---
+            // Users
+            Route::get('/benutzer', [VerwaltungUserController::class, 'index'])->name('users.index');
+
+            // Teams
+            Route::get('/teams', [VerwaltungTeamController::class, 'index'])->name('teams.index');
+            Route::get('/teams/erstellen', [VerwaltungTeamController::class, 'create'])->name('teams.create');
+            Route::get('/teams/{uuid}/bearbeiten', [VerwaltungTeamController::class, 'edit'])->name('teams.edit');
+
+            // Roles
+            Route::get('/rollen', [VerwaltungRoleController::class, 'index'])->name('roles.index');
+            Route::get('/rollen/erstellen', [VerwaltungRoleController::class, 'create'])->name('roles.create');
+            Route::get('/rollen/{id}/bearbeiten', [VerwaltungRoleController::class, 'edit'])->name('roles.edit');
+
+            // Invitations
+            Route::get('/einladungen', [VerwaltungInvitationController::class, 'index'])->name('invitations.index');
+            Route::get('/einladungen/erstellen', [VerwaltungInvitationController::class, 'create'])->name('invitations.create');
+
+            // --- Einstellungen ---
+            Route::get('/einstellungen', [VerwaltungSettingsController::class, 'general'])->name('settings.general');
+            Route::get('/einstellungen/theme', [VerwaltungSettingsController::class, 'theme'])->name('settings.theme');
+            Route::get('/einstellungen/rechtliches', [VerwaltungSettingsController::class, 'legal'])->name('settings.legal');
+
+            // Profile
+            Route::get('/profil', [VerwaltungProfileController::class, 'index'])->name('profile');
+
+            // Referrals (#112)
+            Route::get('/empfehlungen', [VerwaltungReferralController::class, 'index'])->name('referrals.index');
         });
 
     // Firmen-Detailseite (Catch-All mit ID-Prefix, muss LETZTE Route sein)
