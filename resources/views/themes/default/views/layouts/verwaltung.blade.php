@@ -72,6 +72,7 @@
             .dash-sidebar {
                 position: static !important;
                 transform: none !important;
+                translate: none !important; /* Tailwind v4 uses 'translate' property, not 'transform' */
                 inset: auto !important;
                 z-index: auto !important;
                 width: var(--dash-sidebar-width) !important;
