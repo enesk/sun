@@ -1,0 +1,1612 @@
+/*
+ * Dashboard CSS — Tenant Verwaltung
+ *
+ * Erweitert das Portal-Token-System (--portal-*) um Dashboard-spezifische
+ * Tokens (--dash-*). Keine Duplikation, nur Ergänzung.
+ *
+ * Ticket: #113 [DASH-11]
+ * Spec: Uwes technische Spec + Rathanas Design-Spec
+ */
+
+/* ============================================================
+   0. DASHBOARD DESIGN TOKENS
+   ============================================================ */
+@layer base {
+    :root {
+        /* Layout */
+        --dash-sidebar-width: 16rem;
+        --dash-sidebar-width-collapsed: 4rem;
+        --dash-header-height: 3.5rem;
+        --dash-bottom-bar-height: 4rem;
+        --dash-content-max-width: 1280px;
+
+        /* Surfaces */
+        --dash-bg: #f8fafc;
+        --dash-surface: #ffffff;
+        --dash-surface-raised: #ffffff;
+        --dash-border: rgba(0, 0, 0, 0.08);
+        --dash-border-strong: rgba(0, 0, 0, 0.15);
+
+        /* Text */
+        --dash-text-primary: #1a1a2e;
+        --dash-text-secondary: rgba(26, 26, 46, 0.65);
+        --dash-text-muted: rgba(26, 26, 46, 0.4);
+
+        /* Status Colors */
+        --dash-success: #16a34a;
+        --dash-success-light: #f0fdf4;
+        --dash-success-border: #bbf7d0;
+        --dash-warning: #d97706;
+        --dash-warning-light: #fffbeb;
+        --dash-warning-border: #fde68a;
+        --dash-danger: #dc2626;
+        --dash-danger-light: #fef2f2;
+        --dash-danger-border: #fecaca;
+        --dash-info: #2563eb;
+        --dash-info-light: #eff6ff;
+        --dash-info-border: #bfdbfe;
+
+        /* Shadows */
+        --dash-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+        --dash-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+        --dash-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+        --dash-shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.12);
+
+        /* Z-Index Scale */
+        --dash-z-dropdown: 20;
+        --dash-z-sticky: 30;
+        --dash-z-overlay: 40;
+        --dash-z-modal: 50;
+        --dash-z-toast: 60;
+    }
+}
+
+/* ============================================================
+   1. BUTTONS — .dash-btn
+   4 Varianten: primary, secondary, danger, ghost
+   3 Größen: sm, (default), lg
+   ============================================================ */
+@layer components {
+
+    .dash-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        line-height: 1;
+        padding: 0.625rem 1rem;
+        border-radius: var(--portal-radius, 0.5rem);
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all 150ms ease;
+        white-space: nowrap;
+        min-height: var(--portal-touch-min, 44px);
+    }
+
+    .dash-btn:focus-visible {
+        outline: 2px solid var(--portal-primary, #3b82f6);
+        outline-offset: 2px;
+    }
+
+    .dash-btn:disabled,
+    .dash-btn[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    /* Primary */
+    .dash-btn-primary {
+        background-color: var(--portal-primary, #3b82f6);
+        color: white;
+    }
+    .dash-btn-primary:hover {
+        background-color: var(--portal-primary-hover, #2563eb);
+    }
+
+    /* Secondary */
+    .dash-btn-secondary {
+        background-color: var(--dash-surface, #ffffff);
+        color: var(--dash-text-primary, #1a1a2e);
+        border-color: var(--dash-border-strong, rgba(0, 0, 0, 0.15));
+    }
+    .dash-btn-secondary:hover {
+        background-color: #f1f5f9;
+    }
+
+    /* Danger */
+    .dash-btn-danger {
+        background-color: var(--dash-danger, #dc2626);
+        color: white;
+    }
+    .dash-btn-danger:hover {
+        background-color: #b91c1c;
+    }
+
+    /* Ghost */
+    .dash-btn-ghost {
+        background-color: transparent;
+        color: var(--dash-text-secondary, rgba(26, 26, 46, 0.65));
+    }
+    .dash-btn-ghost:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+        color: var(--dash-text-primary, #1a1a2e);
+    }
+
+    /* Icon-Only */
+    .dash-btn-icon {
+        padding: 0.5rem;
+        min-height: auto;
+        min-width: auto;
+        border-radius: 0.5rem;
+        color: var(--dash-text-muted, rgba(26, 26, 46, 0.4));
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: all 150ms ease;
+    }
+    .dash-btn-icon:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+        color: var(--dash-text-primary, #1a1a2e);
+    }
+    .dash-btn-icon.dash-btn-danger:hover {
+        background-color: var(--dash-danger-light, #fef2f2);
+        color: var(--dash-danger, #dc2626);
+    }
+
+    /* Sizes */
+    .dash-btn-sm {
+        font-size: 0.75rem;
+        padding: 0.375rem 0.75rem;
+        min-height: 32px;
+        gap: 0.375rem;
+    }
+    .dash-btn-lg {
+        font-size: 1rem;
+        padding: 0.75rem 1.5rem;
+        min-height: 48px;
+    }
+
+    /* Loading state */
+    .dash-btn-loading {
+        position: relative;
+        color: transparent !important;
+        pointer-events: none;
+    }
+    .dash-btn-loading::after {
+        content: '';
+        position: absolute;
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid currentColor;
+        border-right-color: transparent;
+        border-radius: 50%;
+        animation: dash-spin 0.6s linear infinite;
+        color: white;
+    }
+    .dash-btn-secondary.dash-btn-loading::after {
+        color: var(--dash-text-primary, #1a1a2e);
+    }
+
+    @keyframes dash-spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* ============================================================
+       2. BADGES — .dash-badge
+       5 Status-Varianten + neutral
+       ============================================================ */
+
+    .dash-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        padding: 0.25rem 0.625rem;
+        border-radius: 9999px;
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+
+    .dash-badge-success {
+        background-color: var(--dash-success-light, #f0fdf4);
+        color: var(--dash-success, #16a34a);
+    }
+    .dash-badge-warning {
+        background-color: var(--dash-warning-light, #fffbeb);
+        color: var(--dash-warning, #d97706);
+    }
+    .dash-badge-danger {
+        background-color: var(--dash-danger-light, #fef2f2);
+        color: var(--dash-danger, #dc2626);
+    }
+    .dash-badge-info {
+        background-color: var(--dash-info-light, #eff6ff);
+        color: var(--dash-info, #2563eb);
+    }
+    .dash-badge-neutral {
+        background-color: #f1f5f9;
+        color: var(--dash-text-secondary, rgba(26, 26, 46, 0.65));
+    }
+    .dash-badge-premium {
+        background-color: #fffbeb;
+        color: #b45309;
+    }
+
+    /* Pulsing dot */
+    .dash-badge-dot {
+        width: 0.375rem;
+        height: 0.375rem;
+        border-radius: 50%;
+        background-color: currentColor;
+        flex-shrink: 0;
+    }
+    .dash-badge-dot-pulse {
+        animation: dash-pulse 2s ease-in-out infinite;
+    }
+    @keyframes dash-pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+    }
+
+    /* Clickable badge */
+    .dash-badge-clickable {
+        cursor: pointer;
+        transition: all 150ms ease;
+    }
+    .dash-badge-clickable:hover {
+        filter: brightness(0.95);
+    }
+
+    /* ============================================================
+       3. CARDS — .dash-card, .dash-stat-card
+       ============================================================ */
+
+    .dash-card {
+        background-color: var(--dash-surface, #ffffff);
+        border-radius: var(--portal-radius, 0.5rem);
+        border: 1px solid var(--dash-border, rgba(0, 0, 0, 0.08));
+        box-shadow: var(--dash-shadow-sm);
+    }
+
+    .dash-card-padded {
+        padding: 1.5rem;
+    }
+
+    .dash-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--dash-border, rgba(0, 0, 0, 0.08));
+    }
+
+    .dash-card-header-title {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: var(--dash-text-primary, #1a1a2e);
+    }
+
+    .dash-card-body {
+        padding: 1.5rem;
+    }
+
+    .dash-card-footer {
+        padding: 0.75rem 1.5rem;
+        border-top: 1px solid var(--dash-border, rgba(0, 0, 0, 0.08));
+    }
+
+    /* Stat Card (KPI Widgets) */
+    .dash-stat-card {
+        background-color: var(--dash-surface, #ffffff);
+        border-radius: var(--portal-radius, 0.5rem);
+        border: 1px solid var(--dash-border, rgba(0, 0, 0, 0.08));
+        box-shadow: var(--dash-shadow-sm);
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .dash-stat-label {
+        font-size: 0.6875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--dash-text-muted, rgba(26, 26, 46, 0.4));
+    }
+
+    .dash-stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--dash-text-primary, #1a1a2e);
+        line-height: 1.2;
+        margin-top: 0.25rem;
+    }
+
+    .dash-stat-sub {
+        font-size: 0.75rem;
+        color: var(--dash-text-muted, rgba(26, 26, 46, 0.4));
+        margin-top: 0.25rem;
+    }
+
+    .dash-stat-trend {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    .dash-stat-trend-up { color: var(--dash-success, #16a34a); }
+    .dash-stat-trend-down { color: var(--dash-danger, #dc2626); }
+    .dash-stat-trend-flat { color: var(--dash-text-muted, rgba(26, 26, 46, 0.4)); }
+
+    /* ============================================================
+       4. MODAL — .dash-modal
+       Zentrierter Dialog mit Backdrop
+       ============================================================ */
+
+    .dash-modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: var(--dash-z-modal, 50);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .dash-modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .dash-modal {
+        position: relative;
+        z-index: 10;
+        background-color: var(--dash-surface, #ffffff);
+        border-radius: 0.75rem;
+        box-shadow: var(--dash-shadow-xl);
+        width: 100%;
+        max-width: 28rem; /* 448px */
+        max-height: calc(100vh - 2rem);
+        overflow-y: auto;
+    }
+
+    .dash-modal-lg { max-width: 36rem; }    /* 576px */
+    .dash-modal-xl { max-width: 48rem; }    /* 768px */
+
+    .dash-modal-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--dash-border, rgba(0, 0, 0, 0.08));
+    }
+
+    .dash-modal-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--dash-text-primary, #1a1a2e);
+    }
+
+    .dash-modal-body {
+        padding: 1.5rem;
+    }
+
+    .dash-modal-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--dash-border, rgba(0, 0, 0, 0.08));
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.75rem;
+    }
+
+    /* ============================================================
+       5. SLIDE-OVER — .dash-slideover
+       Von rechts einfliegendes Panel
+       ============================================================ */
+
+    .dash-slideover-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: var(--dash-z-modal, 50);
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .dash-slideover {
+        position: relative;
+        z-index: 10;
+        background-color: var(--dash-surface, #ffffff);
+        box-shadow: var(--dash-shadow-xl);
+        width: 100%;
+        max-width: 32rem; /* 512px */
+        height: 100%;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .dash-slideover-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--dash-border, rgba(0, 0, 0, 0.08));
+        flex-shrink: 0;
+    }
+
+    .dash-slideover-body {
+        flex: 1;
+        padding: 1.5rem;
+        overflow-y: auto;
+    }
+
+    .dash-slideover-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--dash-border, rgba(0, 0, 0, 0.08));
+        flex-shrink: 0;
+    }
+
+    /* Mobile: Bottom Sheet */
+    @media (max-width: 639px) {
+        .dash-slideover {
+            max-width: 100%;
+            max-height: 85vh;
+            border-radius: 1rem 1rem 0 0;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+    }
+
+    /* ============================================================
+       6. TOAST — .dash-toast
+       Erweitert die bestehende Toast-Implementierung im Layout
+       ============================================================ */
+
+    .dash-toast {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 0.875rem 1rem;
+        border-radius: var(--portal-radius, 0.5rem);
+        border: 1px solid;
+        box-shadow: var(--dash-shadow-md);
+        font-size: 0.875rem;
+        line-height: 1.4;
+    }
+
+    .dash-toast-success {
+        background-color: var(--dash-success-light, #f0fdf4);
+        border-color: var(--dash-success-border, #bbf7d0);
+        color: var(--dash-success, #16a34a);
+    }
+    .dash-toast-error {
+        background-color: var(--dash-danger-light, #fef2f2);
+        border-color: var(--dash-danger-border, #fecaca);
+        color: var(--dash-danger, #dc2626);
+    }
+    .dash-toast-warning {
+        background-color: var(--dash-warning-light, #fffbeb);
+        border-color: var(--dash-warning-border, #fde68a);
+        color: var(--dash-warning, #d97706);
+    }
+    .dash-toast-info {
+        background-color: var(--dash-info-light, #eff6ff);
+        border-color: var(--dash-info-border, #bfdbfe);
+        color: var(--dash-info, #2563eb);
+    }
+
+    .dash-toast-close {
+        flex-shrink: 0;
+        opacity: 0.5;
+        cursor: pointer;
+        transition: opacity 150ms ease;
+    }
+    .dash-toast-close:hover {
+        opacity: 1;
+    }
+
+    /* Toast enter/leave animations */
+    .dash-toast-enter {
+        animation: dashToastIn 0.3s ease-out;
+    }
+    .dash-toast-leave {
+        animation: dashToastOut 0.3s ease-in forwards;
+    }
+    @keyframes dashToastIn {
+        from { opacity: 0; transform: translateY(-0.5rem); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes dashToastOut {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(-0.5rem); }
+    }
+
+    /* ============================================================
+       7. EMPTY STATE — .dash-empty
+       ============================================================ */
+
+    .dash-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 3rem 1.5rem;
+    }
+
+    .dash-empty-icon {
+        width: 3rem;
+        height: 3rem;
+        color: var(--dash-text-muted, rgba(26, 26, 46, 0.4));
+        opacity: 0.4;
+        margin-bottom: 0.75rem;
+    }
+
+    .dash-empty-title {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: var(--dash-text-secondary, rgba(26, 26, 46, 0.65));
+        margin-bottom: 0.25rem;
+    }
+
+    .dash-empty-description {
+        font-size: 0.8125rem;
+        color: var(--dash-text-muted, rgba(26, 26, 46, 0.4));
+        margin-bottom: 1rem;
+        max-width: 20rem;
+    }
+
+    /* ============================================================
+       8. SKELETON LOADING — .dash-skeleton
+       ============================================================ */
+
+    .dash-skeleton {
+        background: linear-gradient(90deg,
+            #f1f5f9 25%,
+            #e2e8f0 50%,
+            #f1f5f9 75%);
+        background-size: 200% 100%;
+        animation: dash-shimmer 1.5s ease-in-out infinite;
+        border-radius: 0.375rem;
+    }
+
+    .dash-skeleton-text {
+        height: 0.875rem;
+        width: 80%;
+    }
+    .dash-skeleton-title {
+        height: 1.25rem;
+        width: 50%;
+    }
+    .dash-skeleton-card {
+        height: 8rem;
+        width: 100%;
+        border-radius: var(--portal-radius, 0.5rem);
+    }
+    .dash-skeleton-row {
+        height: 3rem;
+        width: 100%;
+    }
+    .dash-skeleton-avatar {
+        height: 2.25rem;
+        width: 2.25rem;
+        border-radius: 0.5rem;
+    }
+    .dash-skeleton-circle {
+        height: 2.25rem;
+        width: 2.25rem;
+        border-radius: 50%;
+    }
+
+    @keyframes dash-shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    /* ============================================================
+       9. TABLES — .dash-table
+       Vollständiges Tabellen-System mit Sorting, Hover, Bulk-Actions
+       ============================================================ */
+
+    .dash-table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .dash-table {
+        width: 100%;
+        font-size: 0.875rem;
+        text-align: left;
+        border-collapse: collapse;
+    }
+
+    .dash-table thead {
+        border-bottom: 1px solid var(--dash-border-strong, rgba(0, 0, 0, 0.15));
+    }
+
+    .dash-table th {
+        padding: 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--dash-text-muted, rgba(26, 26, 46, 0.4));
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        white-space: nowrap;
+    }
+
+    .dash-table td {
+        padding: 0.75rem;
+        color: var(--dash-text-primary, #1a1a2e);
+        vertical-align: middle;
+    }
+
+    .dash-table tbody tr {
+        border-bottom: 1px solid var(--dash-border, rgba(0, 0, 0, 0.08));
+        transition: background-color 150ms ease;
+    }
+
+    .dash-table tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    .dash-table tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    /* Sortable header */
+    .dash-table-sort {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        cursor: pointer;
+        user-select: none;
+        font-weight: 600;
+        color: var(--dash-text-muted, rgba(26, 26, 46, 0.4));
+        transition: color 150ms ease;
+    }
+    .dash-table-sort:hover {
+        color: var(--dash-text-primary, #1a1a2e);
+    }
+    .dash-table-sort-active {
+        color: var(--portal-primary, #3b82f6);
+    }
+
+    /* Selected row */
+    .dash-table-row-selected {
+        background-color: rgba(var(--portal-primary-rgb, 59 130 246), 0.04) !important;
+    }
+
+    /* Bulk actions bar */
+    .dash-table-bulk {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        border-top: 1px solid var(--dash-border, rgba(0, 0, 0, 0.08));
+        background-color: rgba(var(--portal-primary-rgb, 59 130 246), 0.03);
+    }
+
+    .dash-table-bulk-count {
+        font-size: 0.8125rem;
+        color: var(--dash-text-secondary, rgba(26, 26, 46, 0.65));
+    }
+
+    /* Table footer (pagination, counts) */
+    .dash-table-footer {
+        padding: 0.625rem 1rem;
+        border-top: 1px solid var(--dash-border, rgba(0, 0, 0, 0.08));
+        font-size: 0.75rem;
+        color: var(--dash-text-muted, rgba(26, 26, 46, 0.4));
+    }
+
+    /* Mobile Card-List (ersetzt Tabelle unter 768px) */
+    .dash-mobile-cards {
+        display: none;
+    }
+    @media (max-width: 767px) {
+        .dash-mobile-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .dash-mobile-card {
+            background-color: var(--dash-surface, #ffffff);
+            border: 1px solid var(--dash-border, rgba(0, 0, 0, 0.08));
+            border-radius: var(--portal-radius, 0.5rem);
+            padding: 1rem;
+        }
+    }
+
+    /* ============================================================
+       10. FILTER BAR — .dash-filter
+       Suchfeld + Dropdowns über Tabellen
+       ============================================================ */
+
+    .dash-filter-bar {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--dash-border, rgba(0, 0, 0, 0.08));
+    }
+
+    @media (min-width: 1024px) {
+        .dash-filter-bar {
+            flex-direction: row;
+            align-items: center;
+        }
+    }
+
+    .dash-filter-search {
+        flex: 1;
+        position: relative;
+    }
+
+    .dash-filter-search-icon {
+        position: absolute;
+        left: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 1rem;
+        height: 1rem;
+        color: var(--dash-text-muted, rgba(26, 26, 46, 0.4));
+        pointer-events: none;
+    }
+
+    .dash-filter-search input {
+        width: 100%;
+        padding: 0.625rem 0.75rem 0.625rem 2.5rem;
+        font-size: 0.875rem;
+        border: 1px solid var(--dash-border, rgba(0, 0, 0, 0.08));
+        border-radius: var(--portal-radius, 0.5rem);
+        background-color: var(--dash-surface, #ffffff);
+        color: var(--dash-text-primary, #1a1a2e);
+        transition: border-color 150ms ease, box-shadow 150ms ease;
+    }
+
+    .dash-filter-search input::placeholder {
+        color: var(--dash-text-muted, rgba(26, 26, 46, 0.4));
+    }
+
+    .dash-filter-search input:focus {
+        outline: none;
+        border-color: var(--portal-primary, #3b82f6);
+        box-shadow: 0 0 0 3px rgba(var(--portal-primary-rgb, 59 130 246), 0.1);
+    }
+
+    .dash-filter-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    /* ============================================================
+       11. FORM ELEMENTS — .dash-input, .dash-select, .dash-textarea
+       ============================================================ */
+
+    .dash-input,
+    .dash-select,
+    .dash-textarea {
+        width: 100%;
+        padding: 0.625rem 0.75rem;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        color: var(--dash-text-primary, #1a1a2e);
+        background-color: var(--dash-surface, #ffffff);
+        border: 1px solid var(--dash-border, rgba(0, 0, 0, 0.08));
+        border-radius: var(--portal-radius, 0.5rem);
+        transition: border-color 150ms ease, box-shadow 150ms ease;
+    }
+
+    .dash-input::placeholder,
+    .dash-textarea::placeholder {
+        color: var(--dash-text-muted, rgba(26, 26, 46, 0.4));
+    }
+
+    .dash-input:focus,
+    .dash-select:focus,
+    .dash-textarea:focus {
+        outline: none;
+        border-color: var(--portal-primary, #3b82f6);
+        box-shadow: 0 0 0 3px rgba(var(--portal-primary-rgb, 59 130 246), 0.1);
+    }
+
+    /* Error state */
+    .dash-input-error,
+    .dash-select-error,
+    .dash-textarea-error {
+        border-color: var(--dash-danger, #dc2626);
+    }
+    .dash-input-error:focus,
+    .dash-select-error:focus,
+    .dash-textarea-error:focus {
+        border-color: var(--dash-danger, #dc2626);
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
+
+    .dash-input-hint {
+        font-size: 0.75rem;
+        color: var(--dash-text-muted, rgba(26, 26, 46, 0.4));
+        margin-top: 0.375rem;
+    }
+
+    .dash-input-error-msg {
+        font-size: 0.75rem;
+        color: var(--dash-danger, #dc2626);
+        margin-top: 0.375rem;
+    }
+
+    .dash-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--dash-text-secondary, rgba(26, 26, 46, 0.65));
+        margin-bottom: 0.375rem;
+    }
+
+    .dash-label-required::after {
+        content: ' *';
+        color: var(--dash-danger, #dc2626);
+    }
+
+    /* Select */
+    .dash-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%236b7280' viewBox='0 0 24 24'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19.5 8.25l-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        padding-right: 2.5rem;
+    }
+
+    /* Textarea */
+    .dash-textarea {
+        resize: vertical;
+        min-height: 5rem;
+    }
+
+    /* Checkbox & Radio */
+    .dash-checkbox,
+    .dash-radio {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        cursor: pointer;
+    }
+
+    .dash-checkbox input[type="checkbox"],
+    .dash-radio input[type="radio"] {
+        flex-shrink: 0;
+        width: 1.125rem;
+        height: 1.125rem;
+        margin-top: 0.125rem;
+        accent-color: var(--portal-primary, #3b82f6);
+    }
+
+    /* Toggle/Switch */
+    .dash-toggle {
+        position: relative;
+        display: inline-block;
+        width: 2.75rem;
+        height: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .dash-toggle input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+        position: absolute;
+    }
+
+    .dash-toggle-track {
+        position: absolute;
+        inset: 0;
+        background-color: #d1d5db;
+        border-radius: 9999px;
+        transition: background-color 200ms ease;
+        cursor: pointer;
+    }
+
+    .dash-toggle-track::after {
+        content: '';
+        position: absolute;
+        left: 0.125rem;
+        top: 0.125rem;
+        width: 1.25rem;
+        height: 1.25rem;
+        background-color: white;
+        border-radius: 50%;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: transform 200ms ease;
+    }
+
+    .dash-toggle input:checked + .dash-toggle-track {
+        background-color: var(--portal-primary, #3b82f6);
+    }
+
+    .dash-toggle input:checked + .dash-toggle-track::after {
+        transform: translateX(1.25rem);
+    }
+
+    .dash-toggle input:focus-visible + .dash-toggle-track {
+        outline: 2px solid var(--portal-primary, #3b82f6);
+        outline-offset: 2px;
+    }
+
+    /* Form Grid */
+    .dash-form-grid {
+        display: grid;
+        gap: 1rem;
+    }
+    @media (min-width: 640px) {
+        .dash-form-grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .dash-form-grid-3 { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .dash-form-section {
+        margin-bottom: 0;
+    }
+
+    .dash-form-section + .dash-form-section {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--dash-border, rgba(0, 0, 0, 0.08));
+    }
+
+    .dash-form-section-title {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: var(--dash-text-primary, #1a1a2e);
+        margin-bottom: 1rem;
+    }
+
+    /* ============================================================
+       12. SIDEBAR NAVIGATION
+       ============================================================ */
+
+    .dash-nav-active {
+        background-color: rgba(var(--portal-primary-rgb, 59 130 246), 0.08);
+        color: var(--portal-primary-dark, #1e40af);
+        font-weight: 600;
+    }
+
+    .dash-nav-active .dash-nav-icon {
+        color: var(--portal-primary, #3b82f6);
+    }
+
+    .dash-nav-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--dash-text-secondary, rgba(26, 26, 46, 0.65));
+        transition: all 150ms ease;
+    }
+
+    .dash-nav-item:hover:not(.dash-nav-active) {
+        background-color: rgba(0, 0, 0, 0.04);
+        color: var(--dash-text-primary, #1a1a2e);
+    }
+
+    .dash-nav-group {
+        font-size: 0.675rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--dash-text-muted, rgba(26, 26, 46, 0.4));
+        padding: 0.75rem 0.75rem 0.25rem;
+    }
+
+    /* Sidebar scrollbar */
+    .dash-sidebar-nav::-webkit-scrollbar {
+        width: 4px;
+    }
+    .dash-sidebar-nav::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .dash-sidebar-nav::-webkit-scrollbar-thumb {
+        background-color: rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+    }
+    .dash-sidebar-nav:hover::-webkit-scrollbar-thumb {
+        background-color: rgba(0, 0, 0, 0.2);
+    }
+
+    /* Sidebar footer link */
+    .dash-sidebar-footer {
+        padding: 0.75rem;
+        border-top: 1px solid var(--dash-border, rgba(0, 0, 0, 0.08));
+    }
+
+    .dash-sidebar-footer a {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--dash-text-muted, rgba(26, 26, 46, 0.4));
+        transition: all 150ms ease;
+    }
+    .dash-sidebar-footer a:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+        color: var(--dash-text-primary, #1a1a2e);
+    }
+
+    /* ============================================================
+       13. HEADER — .dash-header
+       Compact, portal-branded, sticky
+       ============================================================ */
+
+    .dash-header {
+        position: sticky;
+        top: 0;
+        z-index: var(--dash-z-sticky, 30);
+        height: var(--dash-header-height);
+        background-color: var(--dash-surface, #ffffff);
+        border-bottom: 1px solid var(--dash-border, rgba(0, 0, 0, 0.08));
+    }
+
+    @supports (backdrop-filter: blur(8px)) {
+        .dash-header {
+            background-color: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+    }
+
+    .dash-header-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 100%;
+        padding: 0 1rem;
+    }
+
+    .dash-header-left {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .dash-header-right {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .dash-header-toggle {
+        display: none;
+        padding: 0.375rem;
+        margin-left: -0.25rem;
+        border-radius: 0.5rem;
+        color: var(--dash-text-muted, rgba(26, 26, 46, 0.4));
+        cursor: pointer;
+        transition: all 150ms ease;
+        border: none;
+        background: none;
+    }
+    .dash-header-toggle:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+        color: var(--dash-text-primary, #1a1a2e);
+    }
+    @media (max-width: 767px) {
+        .dash-header-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    }
+
+    .dash-header-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--dash-text-muted, rgba(26, 26, 46, 0.4));
+        text-decoration: none;
+        transition: color 150ms ease;
+    }
+    .dash-header-brand:hover {
+        color: var(--dash-text-primary, #1a1a2e);
+    }
+
+    .dash-header-brand-name {
+        display: none;
+        font-weight: 500;
+    }
+    @media (min-width: 640px) {
+        .dash-header-brand-name {
+            display: inline;
+        }
+    }
+
+    .dash-header-divider {
+        display: none;
+        color: var(--dash-border, rgba(0, 0, 0, 0.08));
+    }
+    @media (min-width: 640px) {
+        .dash-header-divider {
+            display: inline;
+        }
+    }
+
+    .dash-header-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--portal-primary-dark, #1e40af);
+    }
+
+    /* User menu button */
+    .dash-header-user-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.375rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--dash-text-secondary, rgba(26, 26, 46, 0.65));
+        cursor: pointer;
+        transition: all 150ms ease;
+        border: none;
+        background: none;
+    }
+    .dash-header-user-btn:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+        color: var(--dash-text-primary, #1a1a2e);
+    }
+
+    .dash-header-avatar {
+        width: 1.75rem;
+        height: 1.75rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        color: white;
+        background-color: var(--portal-primary, #3b82f6);
+        flex-shrink: 0;
+    }
+
+    .dash-header-user-name {
+        display: none;
+    }
+    @media (min-width: 640px) {
+        .dash-header-user-name {
+            display: inline;
+        }
+    }
+
+    .dash-header-user-chevron {
+        display: none;
+        width: 1rem;
+        height: 1rem;
+    }
+    @media (min-width: 640px) {
+        .dash-header-user-chevron {
+            display: block;
+        }
+    }
+
+    /* User dropdown menu */
+    .dash-header-dropdown {
+        position: absolute;
+        right: 0;
+        margin-top: 0.5rem;
+        width: 12rem;
+        background-color: var(--dash-surface, #ffffff);
+        border-radius: 0.5rem;
+        border: 1px solid var(--dash-border, rgba(0, 0, 0, 0.08));
+        box-shadow: var(--dash-shadow-lg);
+        padding: 0.25rem;
+        z-index: var(--dash-z-dropdown, 20);
+    }
+
+    .dash-header-dropdown-item {
+        display: block;
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        color: var(--dash-text-secondary, rgba(26, 26, 46, 0.65));
+        border-radius: 0.375rem;
+        text-align: left;
+        text-decoration: none;
+        transition: all 100ms ease;
+        border: none;
+        background: none;
+        cursor: pointer;
+    }
+    .dash-header-dropdown-item:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+        color: var(--dash-text-primary, #1a1a2e);
+    }
+    .dash-header-dropdown-item-danger {
+        color: var(--dash-danger, #dc2626);
+    }
+    .dash-header-dropdown-item-danger:hover {
+        background-color: var(--dash-danger-light, #fef2f2);
+        color: var(--dash-danger, #dc2626);
+    }
+
+    .dash-header-dropdown-divider {
+        height: 1px;
+        background-color: var(--dash-border, rgba(0, 0, 0, 0.08));
+        margin: 0.25rem 0;
+    }
+
+    /* ============================================================
+       14. LAYOUT UTILITIES
+       ============================================================ */
+
+    /* Page header (title + actions row) */
+    .dash-page-header {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+    @media (min-width: 640px) {
+        .dash-page-header {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
+    }
+
+    .dash-page-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--dash-text-primary, #1a1a2e);
+        line-height: 1.3;
+    }
+
+    .dash-page-subtitle {
+        font-size: 0.875rem;
+        color: var(--dash-text-muted, rgba(26, 26, 46, 0.4));
+        margin-top: 0.125rem;
+    }
+
+    /* Content sections with spacing */
+    .dash-section + .dash-section {
+        margin-top: 1.5rem;
+    }
+
+    /* Breadcrumb */
+    .dash-breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        font-size: 0.875rem;
+        color: var(--dash-text-muted, rgba(26, 26, 46, 0.4));
+        padding: 1rem 1rem 0.25rem;
+    }
+    @media (min-width: 640px) {
+        .dash-breadcrumb { padding-left: 1.5rem; padding-right: 1.5rem; }
+    }
+    @media (min-width: 1024px) {
+        .dash-breadcrumb { padding-left: 2rem; padding-right: 2rem; }
+    }
+
+    .dash-breadcrumb a {
+        color: inherit;
+        text-decoration: none;
+        transition: color 150ms ease;
+    }
+    .dash-breadcrumb a:hover {
+        color: var(--dash-text-primary, #1a1a2e);
+    }
+
+    .dash-breadcrumb-current {
+        color: var(--dash-text-primary, #1a1a2e);
+        font-weight: 500;
+    }
+
+    .dash-breadcrumb-sep {
+        width: 0.875rem;
+        height: 0.875rem;
+        color: var(--dash-border-strong, rgba(0, 0, 0, 0.15));
+        flex-shrink: 0;
+    }
+
+    /* Flash messages */
+    .dash-flash {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        border-radius: var(--portal-radius, 0.5rem);
+        font-size: 0.875rem;
+        border: 1px solid;
+    }
+
+    .dash-flash-success {
+        background-color: var(--dash-success-light, #f0fdf4);
+        border-color: var(--dash-success-border, #bbf7d0);
+        color: var(--dash-success, #16a34a);
+    }
+
+    .dash-flash-error {
+        background-color: var(--dash-danger-light, #fef2f2);
+        border-color: var(--dash-danger-border, #fecaca);
+        color: var(--dash-danger, #dc2626);
+    }
+
+    .dash-flash-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    /* Content area */
+    .dash-content {
+        padding: 1rem;
+        max-width: var(--dash-content-max-width);
+    }
+    @media (min-width: 640px) {
+        .dash-content { padding: 1.5rem; }
+    }
+    @media (min-width: 1024px) {
+        .dash-content { padding: 1.5rem 2rem; }
+    }
+
+    /* Main area with bottom-bar offset on mobile */
+    .dash-main {
+        flex: 1;
+        min-width: 0;
+        overflow-y: auto;
+        padding-bottom: 0;
+    }
+    @media (max-width: 767px) {
+        .dash-main {
+            padding-bottom: calc(var(--dash-bottom-bar-height) + env(safe-area-inset-bottom, 0px));
+        }
+    }
+
+    /* Safe area padding for mobile bottom bar */
+    .safe-area-pb {
+        padding-bottom: env(safe-area-inset-bottom, 0);
+    }
+
+    /* ============================================================
+       15. SIDEBAR LAYOUT
+       ============================================================ */
+
+    /* Sidebar Desktop fix (Tailwind v4 specificity workaround) */
+    @media (min-width: 768px) {
+        .dash-sidebar {
+            position: static !important;
+            transform: none !important;
+            translate: none !important;
+            inset: auto !important;
+            z-index: auto !important;
+            width: var(--dash-sidebar-width) !important;
+            flex-shrink: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow-y: auto !important;
+            height: 100% !important;
+        }
+    }
+
+    /* Mobile: sidebar as overlay */
+    @media (max-width: 767px) {
+        .dash-sidebar {
+            position: fixed;
+            top: var(--dash-header-height);
+            bottom: 0;
+            left: 0;
+            z-index: var(--dash-z-overlay, 40);
+            width: 16rem;
+        }
+    }
+
+    /* Mobile overlay backdrop */
+    .dash-sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: calc(var(--dash-z-overlay, 40) - 1);
+        background-color: rgba(0, 0, 0, 0.3);
+    }
+    @media (min-width: 768px) {
+        .dash-sidebar-overlay {
+            display: none !important;
+        }
+    }
+
+    /* ============================================================
+       16. BOTTOM TAB BAR — .dash-bottom-bar
+       Mobile-only fixed navigation
+       ============================================================ */
+
+    .dash-bottom-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: var(--dash-z-sticky, 30);
+        height: var(--dash-bottom-bar-height);
+        background-color: var(--dash-surface, #ffffff);
+        border-top: 1px solid var(--dash-border, rgba(0, 0, 0, 0.08));
+        padding-bottom: env(safe-area-inset-bottom, 0);
+    }
+
+    @supports (backdrop-filter: blur(8px)) {
+        .dash-bottom-bar {
+            background-color: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+    }
+
+    @media (min-width: 768px) {
+        .dash-bottom-bar {
+            display: none;
+        }
+    }
+
+    .dash-bottom-bar-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        height: 100%;
+    }
+
+    .dash-bottom-bar-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.125rem;
+        font-size: 0.6875rem;
+        color: var(--dash-text-muted, rgba(26, 26, 46, 0.4));
+        text-decoration: none;
+        position: relative;
+        transition: color 150ms ease;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .dash-bottom-bar-item:active {
+        background-color: rgba(0, 0, 0, 0.04);
+    }
+
+    .dash-bottom-bar-item-active {
+        color: var(--portal-primary, #3b82f6);
+        font-weight: 600;
+    }
+
+    /* Active indicator dot */
+    .dash-bottom-bar-item-active::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 1.25rem;
+        height: 2px;
+        border-radius: 0 0 2px 2px;
+        background-color: var(--portal-primary, #3b82f6);
+    }
+
+    .dash-bottom-bar-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .dash-bottom-bar-label {
+        line-height: 1;
+    }
+
+    /* ============================================================
+       18. DROPDOWN — .dash-dropdown
+       ============================================================ */
+
+    .dash-dropdown {
+        position: absolute;
+        z-index: var(--dash-z-dropdown, 20);
+        background-color: var(--dash-surface, #ffffff);
+        border: 1px solid var(--dash-border, rgba(0, 0, 0, 0.08));
+        border-radius: var(--portal-radius, 0.5rem);
+        box-shadow: var(--dash-shadow-lg);
+        padding: 0.25rem;
+        min-width: 10rem;
+        max-height: 20rem;
+        overflow-y: auto;
+    }
+
+    .dash-dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        color: var(--dash-text-secondary, rgba(26, 26, 46, 0.65));
+        border-radius: 0.375rem;
+        cursor: pointer;
+        transition: all 100ms ease;
+    }
+
+    .dash-dropdown-item:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+        color: var(--dash-text-primary, #1a1a2e);
+    }
+
+    .dash-dropdown-item-active {
+        color: var(--portal-primary, #3b82f6);
+        font-weight: 500;
+    }
+
+    .dash-dropdown-divider {
+        height: 1px;
+        background-color: var(--dash-border, rgba(0, 0, 0, 0.08));
+        margin: 0.25rem 0;
+    }
+
+    /* ============================================================
+       19. ACCESSIBILITY — Focus, Reduced Motion, Skip Links
+       ============================================================ */
+
+    /* Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+        .dash-toast-enter,
+        .dash-toast-leave {
+            animation: none;
+        }
+
+        .dash-skeleton {
+            animation: none;
+            background: #f1f5f9;
+        }
+
+        .dash-badge-dot-pulse {
+            animation: none;
+        }
+
+        .dash-toggle-track,
+        .dash-toggle-track::after,
+        .dash-btn,
+        .dash-table tbody tr {
+            transition: none;
+        }
+    }
+
+    /* Keyboard-only focus ring (when not using mouse) */
+    .dash-focus-ring:focus-visible {
+        outline: 2px solid var(--portal-primary, #3b82f6);
+        outline-offset: 2px;
+    }
+
+    /* ============================================================
+       20. LIVEWIRE LOADING STATES
+       ============================================================ */
+
+    .dash-loading-overlay {
+        position: relative;
+    }
+
+    .dash-loading-overlay::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-color: rgba(255, 255, 255, 0.6);
+        z-index: 10;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 200ms ease;
+    }
+
+    .dash-loading-overlay[wire\:loading]::after,
+    .dash-loading-overlay.htmx-request::after {
+        opacity: 1;
+        pointer-events: auto;
+    }
+}

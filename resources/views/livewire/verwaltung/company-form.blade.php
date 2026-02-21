@@ -4,50 +4,42 @@
         {{-- ================================================================ --}}
         {{-- SEKTION 1: Firmendaten                                          --}}
         {{-- ================================================================ --}}
-        <div class="card-portal">
-            <h2 class="text-base font-semibold text-base-content mb-4">Firmendaten</h2>
+        <div class="dash-card dash-card-padded">
+            <h2 class="dash-form-section-title">Firmendaten</h2>
 
             <div class="space-y-4">
                 {{-- Firmenname --}}
                 <div>
-                    <label for="name" class="block text-sm font-medium text-base-content/80 mb-1.5">
-                        Firmenname <span class="text-red-500">*</span>
-                    </label>
+                    <label for="name" class="dash-label dash-label-required">Firmenname</label>
                     <input type="text"
                            id="name"
                            wire:model.blur="name"
                            placeholder="z.B. Malerbetrieb Müller GmbH"
-                           class="w-full px-3 py-2.5 text-sm border rounded-lg bg-base-100 text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:border-transparent transition-colors
-                                  {{ $errors->has('name') ? 'border-red-300 focus:ring-red-500' : 'border-base-200 focus:ring-[var(--portal-primary,#3b82f6)]' }}">
+                           class="dash-input {{ $errors->has('name') ? 'dash-input-error' : '' }}">
                     @error('name')
-                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                        <p class="dash-input-error-msg">{{ $message }}</p>
                     @enderror
                 </div>
 
                 {{-- Beschreibung --}}
                 <div>
-                    <label for="description" class="block text-sm font-medium text-base-content/80 mb-1.5">
-                        Beschreibung
-                    </label>
+                    <label for="description" class="dash-label">Beschreibung</label>
                     <textarea id="description"
                               wire:model.blur="description"
                               rows="4"
                               placeholder="Beschreiben Sie Ihr Unternehmen, Ihre Leistungen und was Sie auszeichnet..."
-                              class="w-full px-3 py-2.5 text-sm border rounded-lg bg-base-100 text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:border-transparent transition-colors resize-y
-                                     {{ $errors->has('description') ? 'border-red-300 focus:ring-red-500' : 'border-base-200 focus:ring-[var(--portal-primary,#3b82f6)]' }}"></textarea>
-                    <p class="mt-1 text-xs text-base-content/40">
-                        {{ strlen($description) }}/5000 Zeichen
-                    </p>
+                              class="dash-textarea {{ $errors->has('description') ? 'dash-textarea-error' : '' }}"></textarea>
+                    <p class="dash-input-hint">{{ strlen($description) }}/5000 Zeichen</p>
                     @error('description')
-                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                        <p class="dash-input-error-msg">{{ $message }}</p>
                     @enderror
                 </div>
 
                 {{-- Kategorien --}}
                 <div>
-                    <label class="block text-sm font-medium text-base-content/80 mb-1.5">
-                        Kategorien <span class="text-red-500">*</span>
-                        <span class="font-normal text-base-content/40">({{ count($selectedCategories) }}/5)</span>
+                    <label class="dash-label dash-label-required">
+                        Kategorien
+                        <span class="font-normal" style="color: var(--dash-text-muted);">({{ count($selectedCategories) }}/5)</span>
                     </label>
                     <div class="flex flex-wrap gap-2">
                         @foreach($categories as $category)
@@ -58,15 +50,15 @@
                             <button type="button"
                                     wire:click="toggleCategory({{ $category->id }})"
                                     @if($isDisabled) disabled @endif
-                                    class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium transition-all border
+                                    class="dash-badge dash-badge-clickable
                                            {{ $isSelected
-                                               ? 'text-white border-transparent shadow-sm'
+                                               ? 'text-white'
                                                : ($isDisabled
-                                                   ? 'bg-base-100 text-base-content/30 border-base-200 cursor-not-allowed'
-                                                   : 'bg-base-100 text-base-content/70 border-base-200 hover:border-base-300 hover:bg-base-200/50') }}"
-                                    @if($isSelected) style="background-color: var(--portal-primary, #3b82f6);" @endif>
+                                                   ? 'dash-badge-neutral opacity-40 cursor-not-allowed'
+                                                   : 'dash-badge-neutral') }}"
+                                    @if($isSelected) style="background-color: var(--portal-primary, #3b82f6); color: white;" @endif>
                                 @if($isSelected)
-                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
                                     </svg>
                                 @endif
@@ -75,7 +67,7 @@
                         @endforeach
                     </div>
                     @error('selectedCategories')
-                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                        <p class="dash-input-error-msg">{{ $message }}</p>
                     @enderror
                 </div>
             </div>
@@ -84,63 +76,52 @@
         {{-- ================================================================ --}}
         {{-- SEKTION 2: Adresse                                              --}}
         {{-- ================================================================ --}}
-        <div class="card-portal">
-            <h2 class="text-base font-semibold text-base-content mb-4">Adresse</h2>
+        <div class="dash-card dash-card-padded">
+            <h2 class="dash-form-section-title">Adresse</h2>
 
             <div class="space-y-4">
                 {{-- Straße + Hausnummer --}}
-                <div class="grid grid-cols-3 gap-3">
+                <div class="dash-form-grid dash-form-grid-3">
                     <div class="col-span-2">
-                        <label for="street" class="block text-sm font-medium text-base-content/80 mb-1.5">
-                            Straße <span class="text-red-500">*</span>
-                        </label>
+                        <label for="street" class="dash-label dash-label-required">Straße</label>
                         <input type="text"
                                id="street"
                                wire:model.blur="street"
                                placeholder="Musterstraße"
-                               class="w-full px-3 py-2.5 text-sm border rounded-lg bg-base-100 text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:border-transparent
-                                      {{ $errors->has('street') ? 'border-red-300 focus:ring-red-500' : 'border-base-200 focus:ring-[var(--portal-primary,#3b82f6)]' }}">
+                               class="dash-input {{ $errors->has('street') ? 'dash-input-error' : '' }}">
                         @error('street')
-                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                            <p class="dash-input-error-msg">{{ $message }}</p>
                         @enderror
                     </div>
                     <div>
-                        <label for="house_no" class="block text-sm font-medium text-base-content/80 mb-1.5">
-                            Nr.
-                        </label>
+                        <label for="house_no" class="dash-label">Nr.</label>
                         <input type="text"
                                id="house_no"
                                wire:model.blur="house_no"
                                placeholder="12a"
-                               class="w-full px-3 py-2.5 text-sm border rounded-lg bg-base-100 text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:border-transparent
-                                      {{ $errors->has('house_no') ? 'border-red-300 focus:ring-red-500' : 'border-base-200 focus:ring-[var(--portal-primary,#3b82f6)]' }}">
+                               class="dash-input {{ $errors->has('house_no') ? 'dash-input-error' : '' }}">
                         @error('house_no')
-                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                            <p class="dash-input-error-msg">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
 
                 {{-- PLZ + Stadt --}}
-                <div class="grid grid-cols-3 gap-3">
+                <div class="dash-form-grid dash-form-grid-3">
                     <div>
-                        <label for="zipcode" class="block text-sm font-medium text-base-content/80 mb-1.5">
-                            PLZ <span class="text-red-500">*</span>
-                        </label>
+                        <label for="zipcode" class="dash-label dash-label-required">PLZ</label>
                         <input type="text"
                                id="zipcode"
                                wire:model.blur="zipcode"
                                placeholder="10115"
                                maxlength="5"
-                               class="w-full px-3 py-2.5 text-sm border rounded-lg bg-base-100 text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:border-transparent
-                                      {{ $errors->has('zipcode') ? 'border-red-300 focus:ring-red-500' : 'border-base-200 focus:ring-[var(--portal-primary,#3b82f6)]' }}">
+                               class="dash-input {{ $errors->has('zipcode') ? 'dash-input-error' : '' }}">
                         @error('zipcode')
-                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                            <p class="dash-input-error-msg">{{ $message }}</p>
                         @enderror
                     </div>
                     <div class="col-span-2" x-data="{ open: false }" @click.outside="open = false">
-                        <label for="citySearch" class="block text-sm font-medium text-base-content/80 mb-1.5">
-                            Stadt <span class="text-red-500">*</span>
-                        </label>
+                        <label for="citySearch" class="dash-label dash-label-required">Stadt</label>
                         <div class="relative">
                             <input type="text"
                                    id="citySearch"
@@ -148,13 +129,12 @@
                                    @focus="open = true"
                                    @input="open = true"
                                    placeholder="{{ $currentCity ? $currentCity->name : 'Stadt suchen...' }}"
-                                   class="w-full px-3 py-2.5 text-sm border rounded-lg bg-base-100 text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:border-transparent
-                                          {{ $errors->has('city_id') ? 'border-red-300 focus:ring-red-500' : 'border-base-200 focus:ring-[var(--portal-primary,#3b82f6)]' }}">
+                                   class="dash-input {{ $errors->has('city_id') ? 'dash-input-error' : '' }}">
 
                             {{-- Aktuelle Stadt anzeigen --}}
                             @if($currentCity && !$citySearch)
                                 <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                                    <span class="text-sm text-base-content">{{ $currentCity->name }}</span>
+                                    <span class="text-sm" style="color: var(--dash-text-primary);">{{ $currentCity->name }}</span>
                                 </div>
                             @endif
 
@@ -162,27 +142,25 @@
                             @if(count($cityResults) > 0)
                                 <div x-show="open"
                                      x-transition
-                                     class="absolute z-20 mt-1 w-full bg-base-100 border border-base-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                     class="dash-dropdown mt-1 w-full" style="position: absolute; min-width: 100%;">
                                     @foreach($cityResults as $id => $name)
                                         <button type="button"
                                                 wire:click="$set('city_id', {{ $id }}); $set('citySearch', '')"
                                                 @click="open = false"
-                                                class="w-full text-left px-3 py-2 text-sm hover:bg-base-200 transition-colors
-                                                       {{ $city_id === $id ? 'font-medium' : 'text-base-content/70' }}"
-                                                style="{{ $city_id === $id ? 'color: var(--portal-primary, #3b82f6);' : '' }}">
+                                                class="dash-dropdown-item {{ $city_id === $id ? 'dash-dropdown-item-active' : '' }}">
                                             {{ $name }}
                                         </button>
                                     @endforeach
                                 </div>
                             @elseif(strlen($citySearch) >= 2)
                                 <div x-show="open"
-                                     class="absolute z-20 mt-1 w-full bg-base-100 border border-base-200 rounded-lg shadow-lg p-3 text-sm text-base-content/50 text-center">
-                                    Keine Stadt gefunden
+                                     class="dash-dropdown mt-1 w-full p-3 text-center" style="position: absolute; min-width: 100%;">
+                                    <span class="text-sm" style="color: var(--dash-text-muted);">Keine Stadt gefunden</span>
                                 </div>
                             @endif
                         </div>
                         @error('city_id')
-                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                            <p class="dash-input-error-msg">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
@@ -192,53 +170,27 @@
         {{-- ================================================================ --}}
         {{-- SEKTION 3: Kontakt                                              --}}
         {{-- ================================================================ --}}
-        <div class="card-portal">
-            <h2 class="text-base font-semibold text-base-content mb-4">Kontakt</h2>
+        <div class="dash-card dash-card-padded">
+            <h2 class="dash-form-section-title">Kontakt</h2>
 
             <div class="space-y-4">
-                {{-- Telefon --}}
                 <div>
-                    <label for="tel" class="block text-sm font-medium text-base-content/80 mb-1.5">
-                        Telefon
-                    </label>
-                    <input type="tel"
-                           id="tel"
-                           wire:model.blur="tel"
-                           placeholder="030 1234567"
-                           class="w-full px-3 py-2.5 text-sm border border-base-200 rounded-lg bg-base-100 text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:ring-[var(--portal-primary,#3b82f6)] focus:border-transparent">
-                    @error('tel')
-                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                    @enderror
+                    <label for="tel" class="dash-label">Telefon</label>
+                    <input type="tel" id="tel" wire:model.blur="tel" placeholder="030 1234567"
+                           class="dash-input {{ $errors->has('tel') ? 'dash-input-error' : '' }}">
+                    @error('tel') <p class="dash-input-error-msg">{{ $message }}</p> @enderror
                 </div>
-
-                {{-- E-Mail --}}
                 <div>
-                    <label for="email" class="block text-sm font-medium text-base-content/80 mb-1.5">
-                        E-Mail
-                    </label>
-                    <input type="email"
-                           id="email"
-                           wire:model.blur="email"
-                           placeholder="info@firma.de"
-                           class="w-full px-3 py-2.5 text-sm border border-base-200 rounded-lg bg-base-100 text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:ring-[var(--portal-primary,#3b82f6)] focus:border-transparent">
-                    @error('email')
-                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                    @enderror
+                    <label for="email" class="dash-label">E-Mail</label>
+                    <input type="email" id="email" wire:model.blur="email" placeholder="info@firma.de"
+                           class="dash-input {{ $errors->has('email') ? 'dash-input-error' : '' }}">
+                    @error('email') <p class="dash-input-error-msg">{{ $message }}</p> @enderror
                 </div>
-
-                {{-- Website --}}
                 <div>
-                    <label for="website" class="block text-sm font-medium text-base-content/80 mb-1.5">
-                        Website
-                    </label>
-                    <input type="url"
-                           id="website"
-                           wire:model.blur="website"
-                           placeholder="https://www.firma.de"
-                           class="w-full px-3 py-2.5 text-sm border border-base-200 rounded-lg bg-base-100 text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:ring-[var(--portal-primary,#3b82f6)] focus:border-transparent">
-                    @error('website')
-                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                    @enderror
+                    <label for="website" class="dash-label">Website</label>
+                    <input type="url" id="website" wire:model.blur="website" placeholder="https://www.firma.de"
+                           class="dash-input {{ $errors->has('website') ? 'dash-input-error' : '' }}">
+                    @error('website') <p class="dash-input-error-msg">{{ $message }}</p> @enderror
                 </div>
             </div>
         </div>
@@ -246,8 +198,8 @@
         {{-- ================================================================ --}}
         {{-- SEKTION 4: Öffnungszeiten                                       --}}
         {{-- ================================================================ --}}
-        <div class="card-portal">
-            <h2 class="text-base font-semibold text-base-content mb-4">Öffnungszeiten</h2>
+        <div class="dash-card dash-card-padded">
+            <h2 class="dash-form-section-title">Öffnungszeiten</h2>
 
             <div class="space-y-2">
                 @php
@@ -255,33 +207,31 @@
                 @endphp
 
                 @foreach($dayNames as $index => $dayName)
-                    <div class="flex items-center gap-3 py-2 {{ $index < 6 ? 'border-b border-base-200/50' : '' }}">
-                        {{-- Tag-Name --}}
-                        <span class="w-24 sm:w-28 text-sm font-medium text-base-content/80 shrink-0">
+                    <div class="flex items-center gap-3 py-2 {{ $index < 6 ? 'border-b' : '' }}"
+                         style="{{ $index < 6 ? 'border-color: var(--dash-border);' : '' }}">
+                        <span class="w-24 sm:w-28 text-sm font-medium shrink-0" style="color: var(--dash-text-secondary);">
                             {{ $dayName }}
                         </span>
 
-                        {{-- Geschlossen-Toggle --}}
-                        <label class="flex items-center gap-2 shrink-0 cursor-pointer">
+                        <label class="dash-checkbox shrink-0">
                             <input type="checkbox"
                                    wire:model.live="openingHours.{{ $index }}.is_closed"
-                                   class="rounded border-base-300 text-red-500 focus:ring-red-500 w-4 h-4">
-                            <span class="text-xs text-base-content/50">Geschlossen</span>
+                                   style="accent-color: var(--dash-danger, #dc2626);">
+                            <span class="text-xs" style="color: var(--dash-text-muted);">Geschlossen</span>
                         </label>
 
-                        {{-- Zeiten --}}
                         @if(!($openingHours[$index]['is_closed'] ?? false))
                             <div class="flex items-center gap-2 ml-auto">
                                 <input type="time"
                                        wire:model.blur="openingHours.{{ $index }}.opens_at"
-                                       class="px-2 py-1.5 text-sm border border-base-200 rounded-lg bg-base-100 text-base-content focus:outline-none focus:ring-1 focus:ring-[var(--portal-primary,#3b82f6)]">
-                                <span class="text-base-content/40 text-sm">–</span>
+                                       class="dash-input" style="width: auto; padding: 0.375rem 0.5rem;">
+                                <span style="color: var(--dash-text-muted);">–</span>
                                 <input type="time"
                                        wire:model.blur="openingHours.{{ $index }}.closes_at"
-                                       class="px-2 py-1.5 text-sm border border-base-200 rounded-lg bg-base-100 text-base-content focus:outline-none focus:ring-1 focus:ring-[var(--portal-primary,#3b82f6)]">
+                                       class="dash-input" style="width: auto; padding: 0.375rem 0.5rem;">
                             </div>
                         @else
-                            <span class="ml-auto text-sm text-red-500/70">Geschlossen</span>
+                            <span class="ml-auto text-sm" style="color: var(--dash-danger);">Geschlossen</span>
                         @endif
                     </div>
                 @endforeach
@@ -291,28 +241,30 @@
         {{-- ================================================================ --}}
         {{-- SEKTION 5: Bilder                                               --}}
         {{-- ================================================================ --}}
-        <div class="card-portal">
-            <h2 class="text-base font-semibold text-base-content mb-4">Bilder</h2>
+        <div class="dash-card dash-card-padded">
+            <h2 class="dash-form-section-title">Bilder</h2>
 
             <div class="space-y-6">
                 {{-- Logo --}}
                 <div>
-                    <label class="block text-sm font-medium text-base-content/80 mb-1.5">
+                    <label class="dash-label">
                         Logo
-                        <span class="font-normal text-base-content/40">(max. 2 MB, JPG/PNG/WebP)</span>
+                        <span class="font-normal" style="color: var(--dash-text-muted);">(max. 2 MB, JPG/PNG/WebP)</span>
                     </label>
                     <div class="flex items-start gap-4">
-                        {{-- Vorschau --}}
                         @if($isEdit && $company && $company->logo_url && !$logo)
                             <img src="{{ $company->logo_thumb_url ?? $company->logo_url }}"
                                  alt="Aktuelles Logo"
-                                 class="w-16 h-16 rounded-lg object-cover border border-base-200 shrink-0">
+                                 class="w-16 h-16 rounded-lg object-cover shrink-0"
+                                 style="border: 1px solid var(--dash-border);">
                         @elseif($logo)
                             <img src="{{ $logo->temporaryUrl() }}"
                                  alt="Neues Logo"
-                                 class="w-16 h-16 rounded-lg object-cover border border-base-200 shrink-0">
+                                 class="w-16 h-16 rounded-lg object-cover shrink-0"
+                                 style="border: 1px solid var(--dash-border);">
                         @else
-                            <div class="w-16 h-16 rounded-lg border-2 border-dashed border-base-300 flex items-center justify-center text-base-content/30 shrink-0">
+                            <div class="w-16 h-16 rounded-lg border-2 border-dashed flex items-center justify-center shrink-0"
+                                 style="border-color: var(--dash-border-strong); color: var(--dash-text-muted);">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5a2.25 2.25 0 002.25-2.25V5.25a2.25 2.25 0 00-2.25-2.25H3.75a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 003.75 21z"/>
                                 </svg>
@@ -323,61 +275,55 @@
                             <input type="file"
                                    wire:model="logo"
                                    accept="image/jpeg,image/png,image/webp"
-                                   class="text-sm text-base-content/60 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-base-200 file:text-base-content/70 hover:file:bg-base-300 file:cursor-pointer file:transition-colors">
-                            <div wire:loading wire:target="logo" class="mt-1 text-xs text-base-content/50">Wird hochgeladen...</div>
+                                   class="text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:cursor-pointer file:transition-colors"
+                                   style="color: var(--dash-text-muted); --tw-file-bg: #f1f5f9; --tw-file-text: var(--dash-text-secondary);">
+                            <div wire:loading wire:target="logo" class="dash-input-hint mt-1">Wird hochgeladen...</div>
                         </div>
                     </div>
-                    @error('logo')
-                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                    @enderror
+                    @error('logo') <p class="dash-input-error-msg">{{ $message }}</p> @enderror
                 </div>
 
                 {{-- Cover-Bild --}}
                 <div>
-                    <label class="block text-sm font-medium text-base-content/80 mb-1.5">
+                    <label class="dash-label">
                         Cover-Bild
-                        <span class="font-normal text-base-content/40">(max. 4 MB, JPG/PNG/WebP, empfohlen 1200x400)</span>
+                        <span class="font-normal" style="color: var(--dash-text-muted);">(max. 4 MB, JPG/PNG/WebP, empfohlen 1200x400)</span>
                     </label>
                     @if($isEdit && $company && $company->cover_url && !$cover)
                         <div class="mb-2">
-                            <img src="{{ $company->cover_url }}"
-                                 alt="Aktuelles Cover"
-                                 class="w-full max-w-md h-24 object-cover rounded-lg border border-base-200">
+                            <img src="{{ $company->cover_url }}" alt="Aktuelles Cover"
+                                 class="w-full max-w-md h-24 object-cover rounded-lg"
+                                 style="border: 1px solid var(--dash-border);">
                         </div>
                     @elseif($cover)
                         <div class="mb-2">
-                            <img src="{{ $cover->temporaryUrl() }}"
-                                 alt="Neues Cover"
-                                 class="w-full max-w-md h-24 object-cover rounded-lg border border-base-200">
+                            <img src="{{ $cover->temporaryUrl() }}" alt="Neues Cover"
+                                 class="w-full max-w-md h-24 object-cover rounded-lg"
+                                 style="border: 1px solid var(--dash-border);">
                         </div>
                     @endif
-                    <input type="file"
-                           wire:model="cover"
-                           accept="image/jpeg,image/png,image/webp"
-                           class="text-sm text-base-content/60 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-base-200 file:text-base-content/70 hover:file:bg-base-300 file:cursor-pointer file:transition-colors">
-                    <div wire:loading wire:target="cover" class="mt-1 text-xs text-base-content/50">Wird hochgeladen...</div>
-                    @error('cover')
-                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                    @enderror
+                    <input type="file" wire:model="cover" accept="image/jpeg,image/png,image/webp"
+                           class="text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:cursor-pointer file:transition-colors"
+                           style="color: var(--dash-text-muted);">
+                    <div wire:loading wire:target="cover" class="dash-input-hint mt-1">Wird hochgeladen...</div>
+                    @error('cover') <p class="dash-input-error-msg">{{ $message }}</p> @enderror
                 </div>
 
                 {{-- Galerie --}}
                 <div>
-                    <label class="block text-sm font-medium text-base-content/80 mb-1.5">
+                    <label class="dash-label">
                         Galerie
-                        <span class="font-normal text-base-content/40">(max. 10 Bilder, je max. 4 MB)</span>
+                        <span class="font-normal" style="color: var(--dash-text-muted);">(max. 10 Bilder, je max. 4 MB)</span>
                     </label>
 
-                    {{-- Bestehende Galerie-Bilder --}}
                     @if(count($existingGallery) > 0)
                         <div class="flex flex-wrap gap-3 mb-3">
                             @foreach($existingGallery as $img)
                                 <div class="relative group">
-                                    <img src="{{ $img['url'] }}"
-                                         alt="{{ $img['name'] }}"
-                                         class="w-20 h-20 object-cover rounded-lg border border-base-200">
-                                    <button type="button"
-                                            wire:click="removeGalleryImage({{ $img['id'] }})"
+                                    <img src="{{ $img['url'] }}" alt="{{ $img['name'] }}"
+                                         class="w-20 h-20 object-cover rounded-lg"
+                                         style="border: 1px solid var(--dash-border);">
+                                    <button type="button" wire:click="removeGalleryImage({{ $img['id'] }})"
                                             class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
                                             title="Entfernen">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
@@ -389,16 +335,14 @@
                         </div>
                     @endif
 
-                    {{-- Neue Galerie-Bilder (Vorschau) --}}
                     @if(count($gallery) > 0)
                         <div class="flex flex-wrap gap-3 mb-3">
                             @foreach($gallery as $index => $img)
                                 <div class="relative group">
-                                    <img src="{{ $img->temporaryUrl() }}"
-                                         alt="Neues Bild"
-                                         class="w-20 h-20 object-cover rounded-lg border border-base-200 border-dashed">
-                                    <button type="button"
-                                            wire:click="removeNewGalleryImage({{ $index }})"
+                                    <img src="{{ $img->temporaryUrl() }}" alt="Neues Bild"
+                                         class="w-20 h-20 object-cover rounded-lg border-dashed"
+                                         style="border: 2px dashed var(--dash-border-strong);">
+                                    <button type="button" wire:click="removeNewGalleryImage({{ $index }})"
                                             class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
                                             title="Entfernen">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
@@ -410,72 +354,58 @@
                         </div>
                     @endif
 
-                    <input type="file"
-                           wire:model="gallery"
-                           accept="image/jpeg,image/png,image/webp"
-                           multiple
-                           class="text-sm text-base-content/60 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-base-200 file:text-base-content/70 hover:file:bg-base-300 file:cursor-pointer file:transition-colors">
-                    <div wire:loading wire:target="gallery" class="mt-1 text-xs text-base-content/50">Wird hochgeladen...</div>
-                    @error('gallery.*')
-                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                    @enderror
+                    <input type="file" wire:model="gallery" accept="image/jpeg,image/png,image/webp" multiple
+                           class="text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:cursor-pointer file:transition-colors"
+                           style="color: var(--dash-text-muted);">
+                    <div wire:loading wire:target="gallery" class="dash-input-hint mt-1">Wird hochgeladen...</div>
+                    @error('gallery.*') <p class="dash-input-error-msg">{{ $message }}</p> @enderror
                 </div>
             </div>
         </div>
 
         {{-- ================================================================ --}}
-        {{-- SEKTION 6: Status (Admin-only Felder werden ausgeblendet)       --}}
+        {{-- SEKTION 6: Status                                               --}}
         {{-- ================================================================ --}}
-        <div class="card-portal">
-            <h2 class="text-base font-semibold text-base-content mb-4">Status</h2>
+        <div class="dash-card dash-card-padded">
+            <h2 class="dash-form-section-title">Status</h2>
 
             <div class="space-y-3">
-                {{-- Aktiv --}}
-                <label class="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox"
-                           wire:model="is_active"
-                           class="rounded border-base-300 w-5 h-5 focus:ring-2 focus:ring-[var(--portal-primary,#3b82f6)]"
-                           style="color: var(--portal-primary, #3b82f6);">
+                <label class="dash-checkbox">
+                    <input type="checkbox" wire:model="is_active"
+                           style="accent-color: var(--portal-primary, #3b82f6);">
                     <div>
-                        <span class="text-sm font-medium text-base-content">Aktiv</span>
-                        <p class="text-xs text-base-content/50">Firma ist im Portal sichtbar</p>
+                        <span class="text-sm font-medium" style="color: var(--dash-text-primary);">Aktiv</span>
+                        <p class="text-xs" style="color: var(--dash-text-muted);">Firma ist im Portal sichtbar</p>
                     </div>
                 </label>
 
                 @if($isAdmin)
-                    {{-- Premium --}}
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox"
-                               wire:model="is_premium"
-                               class="rounded border-base-300 text-amber-500 w-5 h-5 focus:ring-2 focus:ring-amber-500">
+                    <label class="dash-checkbox">
+                        <input type="checkbox" wire:model="is_premium"
+                               style="accent-color: var(--dash-warning, #d97706);">
                         <div>
-                            <span class="text-sm font-medium text-base-content">Premium</span>
-                            <p class="text-xs text-base-content/50">Premium-Eintrag mit erweiterten Features</p>
+                            <span class="text-sm font-medium" style="color: var(--dash-text-primary);">Premium</span>
+                            <p class="text-xs" style="color: var(--dash-text-muted);">Premium-Eintrag mit erweiterten Features</p>
                         </div>
                     </label>
 
-                    {{-- Verifiziert --}}
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox"
-                               wire:model="is_verified"
-                               class="rounded border-base-300 text-green-500 w-5 h-5 focus:ring-2 focus:ring-green-500">
+                    <label class="dash-checkbox">
+                        <input type="checkbox" wire:model="is_verified"
+                               style="accent-color: var(--dash-success, #16a34a);">
                         <div>
-                            <span class="text-sm font-medium text-base-content">Verifiziert</span>
-                            <p class="text-xs text-base-content/50">Firma wurde manuell verifiziert</p>
+                            <span class="text-sm font-medium" style="color: var(--dash-text-primary);">Verifiziert</span>
+                            <p class="text-xs" style="color: var(--dash-text-muted);">Firma wurde manuell verifiziert</p>
                         </div>
                     </label>
 
-                    {{-- Owner (Admin) --}}
-                    <div class="pt-3 border-t border-base-200">
-                        <label for="user_id" class="block text-sm font-medium text-base-content/80 mb-1.5">
+                    <div class="dash-form-section">
+                        <label for="user_id" class="dash-label">
                             Inhaber (User-ID)
-                            <span class="font-normal text-base-content/40">— nur Admin</span>
+                            <span class="font-normal" style="color: var(--dash-text-muted);">— nur Admin</span>
                         </label>
-                        <input type="number"
-                               id="user_id"
-                               wire:model.blur="user_id"
+                        <input type="number" id="user_id" wire:model.blur="user_id"
                                placeholder="User-ID des Firmeninhabers"
-                               class="w-full max-w-xs px-3 py-2.5 text-sm border border-base-200 rounded-lg bg-base-100 text-base-content placeholder-base-content/40 focus:outline-none focus:ring-2 focus:ring-[var(--portal-primary,#3b82f6)] focus:border-transparent">
+                               class="dash-input" style="max-width: 16rem;">
                     </div>
                 @endif
             </div>
@@ -485,10 +415,8 @@
         {{-- AKTIONEN                                                        --}}
         {{-- ================================================================ --}}
         <div class="flex flex-col sm:flex-row items-center gap-3">
-            {{-- Speichern — overlay technique: text stays in DOM, spinner floats on top --}}
             <button type="submit"
-                    class="relative w-full sm:w-auto inline-flex items-center justify-center px-6 py-2.5 rounded-lg text-white text-sm font-medium shadow-sm hover:opacity-90 disabled:opacity-50 overflow-hidden"
-                    style="background-color: var(--portal-primary, #3b82f6);"
+                    class="dash-btn dash-btn-primary w-full sm:w-auto relative overflow-hidden"
                     wire:loading.attr="disabled"
                     wire:target="save">
                 <span wire:loading.class="opacity-0" wire:target="save" class="transition-opacity duration-200">
@@ -502,18 +430,16 @@
                 </span>
             </button>
 
-            {{-- Abbrechen --}}
             <a href="{{ route('verwaltung.companies.index') }}"
-               class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-2.5 rounded-lg text-sm font-medium text-base-content/70 bg-base-200 hover:bg-base-300 transition-colors">
+               class="dash-btn dash-btn-secondary w-full sm:w-auto">
                 Abbrechen
             </a>
 
-            {{-- Löschen (nur bei Edit) --}}
             @if($isEdit)
                 <div class="sm:ml-auto">
                     <button type="button"
                             wire:click="$set('showDeleteModal', true)"
-                            class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
+                            class="dash-btn dash-btn-ghost" style="color: var(--dash-danger);">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
                         </svg>
@@ -528,27 +454,28 @@
     {{-- LÖSCH-BESTÄTIGUNG (Modal)                                       --}}
     {{-- ================================================================ --}}
     @if($isEdit && $showDeleteModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center px-4" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
-            {{-- Overlay --}}
-            <div class="absolute inset-0 bg-black/40" wire:click="$set('showDeleteModal', false)"></div>
+        <div class="dash-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
+            <div class="dash-modal-backdrop" wire:click="$set('showDeleteModal', false)"></div>
 
-            {{-- Modal --}}
-            <div class="relative bg-base-100 rounded-xl shadow-xl max-w-sm w-full p-6 z-10">
-                <h3 id="delete-modal-title" class="text-lg font-semibold text-base-content mb-2">Firma löschen?</h3>
-                <p class="text-sm text-base-content/60 mb-6">
-                    <strong>{{ $company->name }}</strong> wird unwiderruflich gelöscht — inklusive aller Bilder, Bewertungen und Öffnungszeiten.
-                </p>
-                <div class="flex items-center gap-3 justify-end">
+            <div class="dash-modal">
+                <div class="dash-modal-header">
+                    <h3 id="delete-modal-title" class="dash-modal-title">Firma löschen?</h3>
+                </div>
+                <div class="dash-modal-body">
+                    <p class="text-sm" style="color: var(--dash-text-secondary);">
+                        <strong>{{ $company->name }}</strong> wird unwiderruflich gelöscht — inklusive aller Bilder, Bewertungen und Öffnungszeiten.
+                    </p>
+                </div>
+                <div class="dash-modal-footer">
                     <button type="button"
                             wire:click="$set('showDeleteModal', false)"
-                            class="px-4 py-2 rounded-lg text-sm font-medium text-base-content/70 bg-base-200 hover:bg-base-300 transition-colors">
+                            class="dash-btn dash-btn-secondary">
                         Abbrechen
                     </button>
                     <form method="POST" action="{{ route('verwaltung.companies.destroy', $company->id) }}">
                         @csrf
                         @method('DELETE')
-                        <button type="submit"
-                                class="px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors">
+                        <button type="submit" class="dash-btn dash-btn-danger">
                             Endgültig löschen
                         </button>
                     </form>

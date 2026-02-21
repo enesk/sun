@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import './colors.css';
 @import './portal.css';
+@import './dashboard.css';
 @import './styles.css';
 @plugin "daisyui" {
     themes: light --default;
