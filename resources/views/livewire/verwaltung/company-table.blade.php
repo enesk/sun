@@ -149,7 +149,7 @@
                                     @if($company->logo_url)
                                         <img src="{{ $company->logo_thumb_url ?? $company->logo_url }}"
                                              alt="{{ $company->name }}"
-                                             class="w-9 h-9 rounded-lg object-cover shrink-0 border border-base-200">
+                                             class="w-9 h-9 rounded-lg object-cover shrink-0" style="border: 1px solid var(--dash-border);">
                                     @else
                                         <div class="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0"
                                              style="background-color: var(--portal-primary, #3b82f6);">
