@@ -4,9 +4,11 @@
 
 @section('content')
     {{-- Page Header --}}
-    <div class="mb-6">
-        <h1 class="text-xl sm:text-2xl font-bold text-base-content">Bewertungen</h1>
-        <p class="text-sm text-base-content/60 mt-1">Bewertungen prüfen, freigeben und moderieren</p>
+    <div class="dash-page-header">
+        <div>
+            <h1 class="dash-page-title">Bewertungen</h1>
+            <p class="dash-page-subtitle">Bewertungen prüfen, freigeben und moderieren</p>
+        </div>
     </div>
 
     {{-- Review Table (Livewire) --}}

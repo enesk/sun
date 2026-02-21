@@ -3,9 +3,11 @@
 @section('title', 'Neues Team — Verwaltung')
 
 @section('content')
-    <div class="mb-6">
-        <h1 class="text-xl sm:text-2xl font-bold text-base-content">Neues Team erstellen</h1>
-        <p class="text-sm text-base-content/60 mt-1">Team anlegen und Mitglieder zuweisen</p>
+    <div class="dash-page-header">
+        <div>
+            <h1 class="dash-page-title">Neues Team erstellen</h1>
+            <p class="dash-page-subtitle">Team anlegen und Mitglieder zuweisen</p>
+        </div>
     </div>
 
     @livewire('verwaltung.team-form')

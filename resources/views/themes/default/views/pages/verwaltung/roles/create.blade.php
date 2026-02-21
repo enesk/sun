@@ -3,9 +3,11 @@
 @section('title', 'Neue Rolle — Verwaltung')
 
 @section('content')
-    <div class="mb-6">
-        <h1 class="text-xl sm:text-2xl font-bold text-base-content">Neue Rolle erstellen</h1>
-        <p class="text-sm text-base-content/60 mt-1">Berechtigungsrolle mit Zugriffsrechten definieren</p>
+    <div class="dash-page-header">
+        <div>
+            <h1 class="dash-page-title">Neue Rolle erstellen</h1>
+            <p class="dash-page-subtitle">Berechtigungsrolle mit Zugriffsrechten definieren</p>
+        </div>
     </div>
 
     @livewire('verwaltung.role-form')

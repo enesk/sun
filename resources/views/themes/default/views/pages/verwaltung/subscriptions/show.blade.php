@@ -4,13 +4,12 @@
 
 @section('content')
     {{-- Page Header --}}
-    <div class="mb-6 flex items-center justify-between">
+    <div class="dash-page-header">
         <div>
-            <h1 class="text-xl sm:text-2xl font-bold text-base-content">{{ $subscription->plan->name ?? 'Abonnement' }}</h1>
-            <p class="text-sm text-base-content/60 mt-1">Details zum Abonnement</p>
+            <h1 class="dash-page-title">{{ $subscription->plan->name ?? 'Abonnement' }}</h1>
+            <p class="dash-page-subtitle">Details zum Abonnement</p>
         </div>
-        <a href="{{ route('verwaltung.subscriptions.index') }}"
-           class="btn-portal btn-portal-ghost text-sm">
+        <a href="{{ route('verwaltung.subscriptions.index') }}" class="dash-btn dash-btn-ghost dash-btn-sm">
             ← Zurück
         </a>
     </div>

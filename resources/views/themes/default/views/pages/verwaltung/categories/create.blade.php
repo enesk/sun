@@ -3,9 +3,11 @@
 @section('title', 'Neue Kategorie — Verwaltung')
 
 @section('content')
-    <div class="mb-6">
-        <h1 class="text-xl sm:text-2xl font-bold text-base-content">Neue Kategorie erstellen</h1>
-        <p class="text-sm text-base-content/60 mt-1">Kategorie für das Branchenverzeichnis anlegen</p>
+    <div class="dash-page-header">
+        <div>
+            <h1 class="dash-page-title">Neue Kategorie erstellen</h1>
+            <p class="dash-page-subtitle">Kategorie für das Branchenverzeichnis anlegen</p>
+        </div>
     </div>
 
     @livewire('verwaltung.category-form')

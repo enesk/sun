@@ -3,9 +3,11 @@
 @section('title', 'Neue Einladung — Verwaltung')
 
 @section('content')
-    <div class="mb-6">
-        <h1 class="text-xl sm:text-2xl font-bold text-base-content">Neue Einladung versenden</h1>
-        <p class="text-sm text-base-content/60 mt-1">Mitglied per E-Mail zum Workspace einladen</p>
+    <div class="dash-page-header">
+        <div>
+            <h1 class="dash-page-title">Neue Einladung versenden</h1>
+            <p class="dash-page-subtitle">Mitglied per E-Mail zum Workspace einladen</p>
+        </div>
     </div>
 
     @livewire('verwaltung.invitation-form')
