@@ -115,10 +115,10 @@
                     <table class="dash-table">
                         <thead>
                             <tr>
-                                <th>Benutzer</th>
-                                <th>E-Mail</th>
-                                <th>Status</th>
-                                <th>Datum</th>
+                                <th scope="col">Benutzer</th>
+                                <th scope="col">E-Mail</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Datum</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -226,11 +226,11 @@
                     <table class="dash-table">
                         <thead>
                             <tr>
-                                <th>Art</th>
-                                <th>Code</th>
-                                <th>Details</th>
-                                <th>Empfohlener Benutzer</th>
-                                <th>Datum</th>
+                                <th scope="col">Art</th>
+                                <th scope="col">Code</th>
+                                <th scope="col">Details</th>
+                                <th scope="col">Empfohlener Benutzer</th>
+                                <th scope="col">Datum</th>
                             </tr>
                         </thead>
                         <tbody>

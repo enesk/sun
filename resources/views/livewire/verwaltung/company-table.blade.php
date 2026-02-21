@@ -91,14 +91,14 @@
             <table class="dash-table">
                 <thead>
                     <tr>
-                        <th class="w-10">
+                        <th scope="col" class="w-10">
                             <input type="checkbox"
                                    wire:model.live="selectAll"
                                    class="rounded border-base-300"
                                    style="accent-color: var(--portal-primary, #3b82f6);"
                                    aria-label="Alle auswählen">
                         </th>
-                        <th>
+                        <th scope="col">
                             <button wire:click="sort('name')" class="dash-table-sort {{ $sortBy === 'name' ? 'dash-table-sort-active' : '' }}">
                                 Firma
                                 @if($sortBy === 'name')
@@ -106,7 +106,7 @@
                                 @endif
                             </button>
                         </th>
-                        <th class="hidden md:table-cell">
+                        <th scope="col" class="hidden md:table-cell">
                             <button wire:click="sort('zipcode')" class="dash-table-sort {{ $sortBy === 'zipcode' ? 'dash-table-sort-active' : '' }}">
                                 Ort
                                 @if($sortBy === 'zipcode')
@@ -114,8 +114,8 @@
                                 @endif
                             </button>
                         </th>
-                        <th class="hidden lg:table-cell">Kategorien</th>
-                        <th class="hidden md:table-cell text-center">
+                        <th scope="col" class="hidden lg:table-cell">Kategorien</th>
+                        <th scope="col" class="hidden md:table-cell text-center">
                             <button wire:click="sort('rating')" class="dash-table-sort {{ $sortBy === 'rating' ? 'dash-table-sort-active' : '' }}">
                                 Bewertung
                                 @if($sortBy === 'rating')
@@ -123,11 +123,11 @@
                                 @endif
                             </button>
                         </th>
-                        <th class="text-center">Status</th>
+                        <th scope="col" class="text-center">Status</th>
                         @if($isAdmin)
-                            <th class="text-center hidden lg:table-cell">Premium</th>
+                            <th scope="col" class="text-center hidden lg:table-cell">Premium</th>
                         @endif
-                        <th class="text-right">Aktionen</th>
+                        <th scope="col" class="text-right">Aktionen</th>
                     </tr>
                 </thead>
                 <tbody>

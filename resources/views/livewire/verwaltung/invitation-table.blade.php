@@ -61,13 +61,13 @@
             <table class="dash-table">
                 <thead>
                     <tr>
-                        <th>E-Mail</th>
-                        <th class="hidden md:table-cell">Rolle</th>
-                        <th class="hidden lg:table-cell">Team</th>
-                        <th>Status</th>
-                        <th class="hidden md:table-cell">Gesendet</th>
-                        <th class="hidden lg:table-cell">Läuft ab</th>
-                        <th class="text-right">Aktionen</th>
+                        <th scope="col">E-Mail</th>
+                        <th scope="col" class="hidden md:table-cell">Rolle</th>
+                        <th scope="col" class="hidden lg:table-cell">Team</th>
+                        <th scope="col">Status</th>
+                        <th scope="col" class="hidden md:table-cell">Gesendet</th>
+                        <th scope="col" class="hidden lg:table-cell">Läuft ab</th>
+                        <th scope="col" class="text-right">Aktionen</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -186,19 +186,20 @@
 
     {{-- Revoke Invitation Modal --}}
     @if($showRevokeModal)
-        <div class="dash-modal-overlay" role="dialog" aria-modal="true">
+        <div class="dash-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="revoke-invite-title"
+             @keydown.escape.window="$wire.cancelRevoke()">
             <div class="dash-modal-backdrop" wire:click="cancelRevoke"></div>
 
             <div class="dash-modal">
                 <div class="dash-modal-header">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background-color: var(--dash-danger-light);">
-                            <svg class="w-5 h-5" style="color: var(--dash-danger);" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                            <svg class="w-5 h-5" style="color: var(--dash-danger);" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
                         </div>
                         <div>
-                            <h3 class="dash-modal-title">Einladung widerrufen</h3>
+                            <h3 id="revoke-invite-title" class="dash-modal-title">Einladung widerrufen</h3>
                             <p class="text-sm" style="color: var(--dash-text-muted);">Der Einladungslink wird sofort ungültig.</p>
                         </div>
                     </div>

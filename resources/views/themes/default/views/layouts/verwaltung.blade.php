@@ -38,11 +38,12 @@
       x-cloak>
 
     {{-- Skip to Content (Accessibility) --}}
-    <a href="#main-content"
-       class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:rounded focus:shadow-lg focus:text-sm focus:font-medium"
-       style="color: var(--portal-primary-dark, #1e40af);">
+    <a href="#main-content" class="dash-skip-link">
         Zum Inhalt springen
     </a>
+
+    {{-- Live region for dynamic announcements (screen readers) --}}
+    <div id="dash-announcements" class="dash-live-region" aria-live="polite" aria-atomic="true"></div>
 
     {{-- ================================================================ --}}
     {{-- HEADER — Compact, portal-branded                                --}}
@@ -52,7 +53,7 @@
             {{-- Left: Mobile menu toggle + Logo + Back to Portal --}}
             <div class="dash-header-left">
                 {{-- Mobile sidebar toggle --}}
-                <button @click="sidebarOpen = !sidebarOpen"
+                <button @click="toggleSidebar()"
                         class="dash-header-toggle"
                         aria-label="Navigation öffnen"
                         :aria-expanded="sidebarOpen">
@@ -79,9 +80,12 @@
                 <div class="relative">
                     <button @click="userMenuOpen = !userMenuOpen"
                             @click.outside="userMenuOpen = false"
+                            @keydown.escape="userMenuOpen = false"
                             class="dash-header-user-btn"
+                            aria-label="Benutzermenü"
+                            aria-haspopup="true"
                             :aria-expanded="userMenuOpen">
-                        <span class="dash-header-avatar">
+                        <span class="dash-header-avatar" aria-hidden="true">
                             {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}
                         </span>
                         <span class="dash-header-user-name">{{ auth()->user()->name }}</span>
@@ -98,19 +102,23 @@
                          x-transition:leave="transition ease-in duration-75"
                          x-transition:leave-start="opacity-100 scale-100"
                          x-transition:leave-end="opacity-0 scale-95"
-                         class="dash-header-dropdown">
-                        <a href="{{ route('verwaltung.profile') }}" class="dash-header-dropdown-item">
+                         @keydown.escape="userMenuOpen = false; $refs.userMenuBtn?.focus()"
+                         class="dash-header-dropdown"
+                         role="menu"
+                         aria-label="Benutzermenü"
+                         :aria-hidden="!userMenuOpen">
+                        <a href="{{ route('verwaltung.profile') }}" class="dash-header-dropdown-item" role="menuitem">
                             Profil & Sicherheit
                         </a>
                         @if(auth()->user()->isAdmin())
-                            <a href="{{ route('home') }}" class="dash-header-dropdown-item">
+                            <a href="{{ route('home') }}" class="dash-header-dropdown-item" role="menuitem">
                                 Portal ansehen
                             </a>
                         @endif
-                        <div class="dash-header-dropdown-divider"></div>
+                        <div class="dash-header-dropdown-divider" role="separator"></div>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" class="dash-header-dropdown-item dash-header-dropdown-item-danger">
+                            <button type="submit" class="dash-header-dropdown-item dash-header-dropdown-item-danger" role="menuitem">
                                 Abmelden
                             </button>
                         </form>
@@ -133,7 +141,7 @@
              x-transition:leave="transition-opacity ease-linear duration-200"
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0"
-             @click="sidebarOpen = false"
+             @click="sidebarOpen = false; if (_previousFocus) _previousFocus.focus();"
              class="dash-sidebar-overlay md:hidden"
              aria-hidden="true"></div>
 
@@ -181,14 +189,16 @@
             </nav>
 
             {{-- Sidebar footer: Portal link --}}
-            <div class="dash-sidebar-footer">
-                <a href="{{ route('home') }}" target="_blank" rel="noopener">
+            <footer class="dash-sidebar-footer">
+                <a href="{{ route('home') }}" target="_blank" rel="noopener"
+                   aria-label="Portal in neuem Tab öffnen">
                     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
                     </svg>
                     Portal öffnen
+                    <span class="dash-sr-only">(öffnet in neuem Tab)</span>
                 </a>
-            </div>
+            </footer>
         </aside>
 
         {{-- ================================================================ --}}
@@ -255,7 +265,7 @@
     {{-- MOBILE BOTTOM-TAB-BAR                                           --}}
     {{-- ================================================================ --}}
     <nav class="dash-bottom-bar" aria-label="Mobile Navigation">
-        <div class="dash-bottom-bar-grid">
+        <ul class="dash-bottom-bar-grid" role="list">
             @php
                 $mobileItems = [
                     ['route' => 'verwaltung.index', 'label' => 'Übersicht', 'icon' => 'M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z'],
@@ -270,17 +280,19 @@
                 @php
                     $isActive = request()->routeIs($item['route'] . '*');
                 @endphp
-                <a href="{{ route($item['route']) }}"
-                   class="dash-bottom-bar-item {{ $isActive ? 'dash-bottom-bar-item-active' : '' }}"
-                   @if($isActive) aria-current="page" @endif>
-                    <svg class="dash-bottom-bar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                         stroke-width="{{ $isActive ? '2' : '1.5' }}" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}"/>
-                    </svg>
-                    <span class="dash-bottom-bar-label">{{ $item['label'] }}</span>
-                </a>
+                <li>
+                    <a href="{{ route($item['route']) }}"
+                       class="dash-bottom-bar-item {{ $isActive ? 'dash-bottom-bar-item-active' : '' }}"
+                       @if($isActive) aria-current="page" @endif>
+                        <svg class="dash-bottom-bar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                             stroke-width="{{ $isActive ? '2' : '1.5' }}" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}"/>
+                        </svg>
+                        <span class="dash-bottom-bar-label">{{ $item['label'] }}</span>
+                    </a>
+                </li>
             @endforeach
-        </div>
+        </ul>
     </nav>
 
     {{-- ================================================================ --}}
@@ -317,6 +329,36 @@
         function dashboardApp() {
             return {
                 sidebarOpen: false,
+                _previousFocus: null,
+
+                toggleSidebar() {
+                    this.sidebarOpen = !this.sidebarOpen;
+                    if (this.sidebarOpen) {
+                        this._previousFocus = document.activeElement;
+                        this.$nextTick(() => {
+                            const sidebar = document.querySelector('.dash-sidebar');
+                            const firstLink = sidebar?.querySelector('.dash-nav-item');
+                            if (firstLink) firstLink.focus();
+                        });
+                    } else {
+                        if (this._previousFocus) this._previousFocus.focus();
+                    }
+                },
+
+                closeSidebarOnEscape(e) {
+                    if (e.key === 'Escape' && this.sidebarOpen && window.innerWidth < 768) {
+                        this.sidebarOpen = false;
+                        if (this._previousFocus) this._previousFocus.focus();
+                    }
+                },
+
+                init() {
+                    document.addEventListener('keydown', (e) => this.closeSidebarOnEscape(e));
+                    this.announce = (msg) => {
+                        const el = document.getElementById('dash-announcements');
+                        if (el) { el.textContent = ''; requestAnimationFrame(() => { el.textContent = msg; }); }
+                    };
+                }
             }
         }
 

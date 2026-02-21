@@ -1628,6 +1628,9 @@
         display: grid;
         grid-template-columns: repeat(5, 1fr);
         height: 100%;
+        list-style: none;
+        margin: 0;
+        padding: 0;
     }
 
     .dash-bottom-bar-item {
@@ -1902,6 +1905,41 @@
        19. ACCESSIBILITY — Focus, Reduced Motion, Skip Links
        ============================================================ */
 
+    /* Skip-to-content link */
+    .dash-skip-link {
+        position: absolute;
+        top: -100%;
+        left: 0.5rem;
+        z-index: 100;
+        padding: 0.5rem 1rem;
+        background-color: #ffffff;
+        color: var(--portal-primary-dark, #1e40af);
+        font-size: 0.875rem;
+        font-weight: 500;
+        border-radius: 0.375rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        text-decoration: none;
+    }
+
+    .dash-skip-link:focus {
+        top: 0.5rem;
+        outline: 2px solid var(--portal-primary, #3b82f6);
+        outline-offset: 2px;
+    }
+
+    /* Screen-reader-only (visual hide, accessible to AT) */
+    .dash-sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+    }
+
     /* Reduced Motion */
     @media (prefers-reduced-motion: reduce) {
         .dash-toast-enter,
@@ -1921,8 +1959,15 @@
         .dash-toggle-track,
         .dash-toggle-track::after,
         .dash-btn,
-        .dash-table tbody tr {
+        .dash-table tbody tr,
+        .dash-sidebar,
+        .dash-sidebar-overlay,
+        .dash-header-dropdown {
             transition: none;
+        }
+
+        .dash-loading-spinner {
+            animation: none;
         }
     }
 
@@ -1930,6 +1975,37 @@
     .dash-focus-ring:focus-visible {
         outline: 2px solid var(--portal-primary, #3b82f6);
         outline-offset: 2px;
+    }
+
+    /* Enhanced focus states for all interactive dashboard elements */
+    .dash-nav-item:focus-visible,
+    .dash-bottom-bar-item:focus-visible,
+    .dash-header-user-btn:focus-visible,
+    .dash-header-toggle:focus-visible,
+    .dash-header-brand:focus-visible,
+    .dash-header-dropdown-item:focus-visible,
+    .dash-tab:focus-visible,
+    .dash-pagination-btn:focus-visible {
+        outline: 2px solid var(--portal-primary, #3b82f6);
+        outline-offset: 2px;
+    }
+
+    /* Focus within cards (for keyboard tabbing through card content) */
+    .dash-card:focus-within {
+        box-shadow: 0 0 0 2px var(--portal-primary, #3b82f6);
+    }
+
+    /* Aria-live announcement region (visually hidden, announced by SR) */
+    .dash-live-region {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
     }
 
     /* ============================================================
@@ -1955,5 +2031,106 @@
     .dash-loading-overlay.htmx-request::after {
         opacity: 1;
         pointer-events: auto;
+    }
+
+    /* Inline loading spinner (for buttons, inputs) */
+    .dash-loading-spinner {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid rgba(0, 0, 0, 0.15);
+        border-top-color: currentColor;
+        border-radius: 50%;
+        animation: dash-spin 0.6s linear infinite;
+    }
+
+    .dash-loading-spinner-sm {
+        width: 0.75rem;
+        height: 0.75rem;
+        border-width: 1.5px;
+    }
+
+    .dash-loading-spinner-lg {
+        width: 1.5rem;
+        height: 1.5rem;
+        border-width: 2.5px;
+    }
+
+    @keyframes dash-spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Full-section loading placeholder */
+    .dash-loading-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 3rem 1rem;
+        color: var(--dash-text-secondary, #64748b);
+        font-size: 0.875rem;
+    }
+
+    /* Skeleton row for tables */
+    .dash-skeleton-row {
+        height: 3rem;
+        background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+        background-size: 200% 100%;
+        animation: dash-skeleton-shimmer 1.5s ease-in-out infinite;
+        border-radius: 0.375rem;
+        margin-bottom: 0.5rem;
+    }
+
+    @keyframes dash-skeleton-shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    /* ============================================================
+       21. RESPONSIVE FEINSCHLIFF
+       ============================================================ */
+
+    /* Touch targets: minimum 44x44px on mobile (WCAG 2.5.8) */
+    @media (pointer: coarse) {
+        .dash-btn,
+        .dash-nav-item,
+        .dash-bottom-bar-item,
+        .dash-tab,
+        .dash-pagination-btn,
+        .dash-header-toggle,
+        .dash-header-user-btn,
+        .dash-header-dropdown-item {
+            min-height: 44px;
+        }
+
+        .dash-table td a,
+        .dash-table td button {
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+        }
+    }
+
+    /* Print styles: hide navigation, show content */
+    @media print {
+        .dash-header,
+        .dash-sidebar,
+        .dash-sidebar-overlay,
+        .dash-bottom-bar,
+        .dash-breadcrumb,
+        .dash-skip-link {
+            display: none !important;
+        }
+
+        .dash-main {
+            margin-left: 0 !important;
+            padding-bottom: 0 !important;
+        }
+
+        .dash-card {
+            box-shadow: none;
+            border: 1px solid #d1d5db;
+            break-inside: avoid;
+        }
     }
 }

@@ -16,9 +16,9 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>{{ __('Workspace') }}</th>
-                        <th>{{ __('Inviter') }}</th>
-                        <th class="text-end">{{ __('Actions') }}</th>
+                        <th scope="col">{{ __('Workspace') }}</th>
+                        <th scope="col">{{ __('Inviter') }}</th>
+                        <th scope="col" class="text-end">{{ __('Actions') }}</th>
                     </tr>
                 </thead>
 

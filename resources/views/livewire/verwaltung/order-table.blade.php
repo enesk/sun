@@ -63,8 +63,8 @@
                 <table class="dash-table">
                     <thead>
                         <tr>
-                            <th>Bestell-ID</th>
-                            <th>
+                            <th scope="col">Bestell-ID</th>
+                            <th scope="col">
                                 <button wire:click="sort('total_amount')" class="dash-table-sort {{ $sortBy === 'total_amount' ? 'dash-table-sort-active' : '' }}">
                                     Betrag
                                     @if($sortBy === 'total_amount')
@@ -72,7 +72,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th>
+                            <th scope="col">
                                 <button wire:click="sort('status')" class="dash-table-sort {{ $sortBy === 'status' ? 'dash-table-sort-active' : '' }}">
                                     Status
                                     @if($sortBy === 'status')
@@ -80,8 +80,8 @@
                                     @endif
                                 </button>
                             </th>
-                            <th class="hidden md:table-cell">Produkte</th>
-                            <th>
+                            <th scope="col" class="hidden md:table-cell">Produkte</th>
+                            <th scope="col">
                                 <button wire:click="sort('updated_at')" class="dash-table-sort {{ $sortBy === 'updated_at' ? 'dash-table-sort-active' : '' }}">
                                     Datum
                                     @if($sortBy === 'updated_at')
@@ -89,7 +89,7 @@
                                     @endif
                                 </button>
                             </th>
-                            <th class="text-right">Aktionen</th>
+                            <th scope="col" class="text-right">Aktionen</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -56,14 +56,14 @@
                 <thead>
                     <tr>
                         @if($isAdmin)
-                            <th style="width: 2.5rem;">
+                            <th scope="col" style="width: 2.5rem;">
                                 <input type="checkbox"
                                        wire:model.live="selectAll"
                                        style="accent-color: var(--portal-primary);"
                                        aria-label="Alle auswählen">
                             </th>
                         @endif
-                        <th>
+                        <th scope="col">
                             <button wire:click="sort('name')" class="dash-table-sort {{ $sortBy === 'name' ? 'dash-table-sort-active' : '' }}">
                                 Stadt
                                 @if($sortBy === 'name')
@@ -71,7 +71,7 @@
                                 @endif
                             </button>
                         </th>
-                        <th>
+                        <th scope="col">
                             <button wire:click="sort('zipcode')" class="dash-table-sort {{ $sortBy === 'zipcode' ? 'dash-table-sort-active' : '' }}">
                                 PLZ
                                 @if($sortBy === 'zipcode')
@@ -79,7 +79,7 @@
                                 @endif
                             </button>
                         </th>
-                        <th class="hidden md:table-cell">
+                        <th scope="col" class="hidden md:table-cell">
                             <button wire:click="sort('administrative_area_level_1')" class="dash-table-sort {{ $sortBy === 'administrative_area_level_1' ? 'dash-table-sort-active' : '' }}">
                                 Bundesland
                                 @if($sortBy === 'administrative_area_level_1')
@@ -87,8 +87,8 @@
                                 @endif
                             </button>
                         </th>
-                        <th class="hidden lg:table-cell">Gemeinde</th>
-                        <th class="text-center">
+                        <th scope="col" class="hidden lg:table-cell">Gemeinde</th>
+                        <th scope="col" class="text-center">
                             <button wire:click="sort('companies_count')" class="dash-table-sort {{ $sortBy === 'companies_count' ? 'dash-table-sort-active' : '' }}">
                                 Firmen
                                 @if($sortBy === 'companies_count')
@@ -96,8 +96,8 @@
                                 @endif
                             </button>
                         </th>
-                        <th class="hidden lg:table-cell text-center">Geodaten</th>
-                        <th class="text-right">Aktionen</th>
+                        <th scope="col" class="hidden lg:table-cell text-center">Geodaten</th>
+                        <th scope="col" class="text-right">Aktionen</th>
                     </tr>
                 </thead>
                 <tbody>

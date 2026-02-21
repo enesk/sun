@@ -147,12 +147,13 @@
 
     {{-- Discard Cancellation Modal --}}
     @if($showDiscardModal)
-        <div class="dash-modal-overlay" role="dialog" aria-modal="true">
+        <div class="dash-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="discard-cancel-title"
+             @keydown.escape.window="$wire.cancelDiscard()">
             <div class="dash-modal-backdrop" wire:click="cancelDiscard"></div>
 
             <div class="dash-modal">
                 <div class="dash-modal-header">
-                    <h3 class="dash-modal-title">Kündigung widerrufen?</h3>
+                    <h3 id="discard-cancel-title" class="dash-modal-title">Kündigung widerrufen?</h3>
                 </div>
                 <div class="dash-modal-body">
                     <p class="text-sm" style="color: var(--dash-text-secondary);">

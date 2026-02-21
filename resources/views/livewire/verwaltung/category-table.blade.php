@@ -57,7 +57,7 @@
                 <thead>
                     <tr>
                         @if($isAdmin)
-                            <th style="width: 2.5rem;">
+                            <th scope="col" style="width: 2.5rem;">
                                 <input type="checkbox"
                                        wire:model.live="selectAll"
                                        class="dash-checkbox-input"
@@ -65,7 +65,7 @@
                                        style="accent-color: var(--portal-primary);">
                             </th>
                         @endif
-                        <th>
+                        <th scope="col">
                             <button wire:click="sort('name')" class="dash-table-sort {{ $sortBy === 'name' ? 'dash-table-sort-active' : '' }}">
                                 Name
                                 @if($sortBy === 'name')
@@ -73,9 +73,9 @@
                                 @endif
                             </button>
                         </th>
-                        <th class="hidden md:table-cell">Oberkategorie</th>
-                        <th class="hidden lg:table-cell">Icon</th>
-                        <th class="text-center">
+                        <th scope="col" class="hidden md:table-cell">Oberkategorie</th>
+                        <th scope="col" class="hidden lg:table-cell">Icon</th>
+                        <th scope="col" class="text-center">
                             <button wire:click="sort('sort_order')" class="dash-table-sort {{ $sortBy === 'sort_order' ? 'dash-table-sort-active' : '' }}">
                                 Sortierung
                                 @if($sortBy === 'sort_order')
@@ -83,7 +83,7 @@
                                 @endif
                             </button>
                         </th>
-                        <th class="text-center hidden md:table-cell">
+                        <th scope="col" class="text-center hidden md:table-cell">
                             <button wire:click="sort('companies_count')" class="dash-table-sort {{ $sortBy === 'companies_count' ? 'dash-table-sort-active' : '' }}">
                                 Firmen
                                 @if($sortBy === 'companies_count')
@@ -91,8 +91,8 @@
                                 @endif
                             </button>
                         </th>
-                        <th class="text-center hidden lg:table-cell">Unterkategorien</th>
-                        <th class="text-right">Aktionen</th>
+                        <th scope="col" class="text-center hidden lg:table-cell">Unterkategorien</th>
+                        <th scope="col" class="text-right">Aktionen</th>
                     </tr>
                 </thead>
                 <tbody>
