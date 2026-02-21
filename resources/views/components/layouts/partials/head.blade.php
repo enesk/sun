@@ -12,7 +12,11 @@
     @endisset
 </title>
 
-<link rel="shortcut icon" type="image/x-icon" href="{{asset('images/favicon.ico')}}">
+@if(!empty(tenant()) && tenant()->getAttribute('branding.favicon_path'))
+    <link rel="icon" href="{{ asset(tenant()->getAttribute('branding.favicon_path')) }}">
+@else
+    <link rel="shortcut icon" type="image/x-icon" href="{{asset('images/favicon.ico')}}">
+@endif
 
 @include('components.layouts.partials.social-cards')
 

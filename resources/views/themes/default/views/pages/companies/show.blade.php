@@ -376,6 +376,19 @@
                                     @if($review->body)
                                         <p class="text-sm text-[#64748B] leading-relaxed ml-12">{{ $review->body }}</p>
                                     @endif
+
+                                    {{-- Owner Response --}}
+                                    @if(!empty($review->owner_response))
+                                        <div class="ml-12 mt-3 pl-3 py-2" style="border-left: 2px solid var(--portal-primary);">
+                                            <div class="flex items-center gap-1.5 mb-1">
+                                                <svg class="w-3.5 h-3.5" style="color: var(--portal-primary)" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                                                </svg>
+                                                <span class="text-xs font-semibold" style="color: var(--portal-primary)">Antwort vom Inhaber</span>
+                                            </div>
+                                            <p class="text-sm text-[#64748B] leading-relaxed">{{ $review->owner_response }}</p>
+                                        </div>
+                                    @endif
                                 </article>
                             @endforeach
                         </div>

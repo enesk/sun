@@ -132,7 +132,13 @@
     {{-- ─── Stufe 3: Copyright-Bar ─── --}}
     <div class="footer-bottom">
         <div class="container mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <p>&copy; {{ date('Y') }} {{ $currentTenant->name ?? config('app.name') }}. Alle Rechte vorbehalten.</p>
+            <p>
+                @if(!empty($currentTenant))
+                    {{ app(\App\Services\TenantBrandingService::class)->getFooterText($currentTenant) }}
+                @else
+                    &copy; {{ date('Y') }} {{ config('app.name') }}. Alle Rechte vorbehalten.
+                @endif
+            </p>
             <p class="text-[#475569]">Mit <span class="text-red-400" aria-label="Liebe">&#10084;</span> für lokale Unternehmen</p>
         </div>
     </div>
