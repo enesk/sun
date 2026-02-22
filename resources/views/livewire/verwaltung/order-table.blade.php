@@ -138,6 +138,34 @@
                 </table>
             </div>
 
+            {{-- Mobile Card-List --}}
+            <div class="dash-mobile-cards">
+                @foreach($orders as $order)
+                    <div class="dash-mobile-card">
+                        <div class="dash-mobile-card-header">
+                            <div>
+                                <span class="dash-mobile-card-title">{{ $order->formatted_amount }}</span>
+                                <span class="font-mono text-xs" style="color: var(--dash-text-muted);">#{{ substr($order->uuid, 0, 8) }}</span>
+                            </div>
+                            @php
+                                $colorMap = ['success' => 'success', 'danger' => 'danger', 'warning' => 'warning'];
+                                $badgeColor = $colorMap[$order->status_color] ?? 'warning';
+                            @endphp
+                            <span class="dash-badge dash-badge-{{ $badgeColor }}">{{ $order->status_label }}</span>
+                        </div>
+                        <div class="dash-mobile-card-meta">
+                            @if($order->items->isNotEmpty())
+                                <span>{{ $order->items->map(fn($i) => $i->oneTimeProduct->name ?? '-')->join(', ') }}</span>
+                            @endif
+                            <span>{{ $order->updated_at->format('d.m.Y H:i') }}</span>
+                        </div>
+                        <div class="dash-mobile-card-actions">
+                            <a href="{{ route('verwaltung.orders.show', $order->uuid) }}" class="dash-btn dash-btn-sm dash-btn-primary" style="flex: 1; text-align: center;">Details</a>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
             {{-- Pagination --}}
             @if($orders->hasPages())
                 <div class="dash-pagination">

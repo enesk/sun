@@ -1,4 +1,5 @@
 import intersect from '@alpinejs/intersect'
+import focus from '@alpinejs/focus'
 
 // ============================================================
 // Livewire v4 bundles Alpine.js — DO NOT import/start Alpine separately.
@@ -6,6 +7,7 @@ import intersect from '@alpinejs/intersect'
 // ============================================================
 document.addEventListener('alpine:init', () => {
     window.Alpine.plugin(intersect)
+    window.Alpine.plugin(focus)
 
     // Visual Redesign (VR-2) — Floating Header with Scroll-Shrink
     // IMG-3: Company Gallery Lightbox

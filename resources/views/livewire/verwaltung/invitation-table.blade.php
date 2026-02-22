@@ -171,6 +171,44 @@
             </table>
         </div>
 
+        {{-- Mobile Card-List --}}
+        <div class="dash-mobile-cards">
+            @forelse($invitations as $invitation)
+                <div class="dash-mobile-card" wire:key="invitation-mobile-{{ $invitation->id }}">
+                    <div class="dash-mobile-card-header">
+                        <div class="min-w-0">
+                            <div class="dash-mobile-card-title truncate">{{ $invitation->email }}</div>
+                            @if($invitation->user)
+                                <span class="text-xs" style="color: var(--dash-text-muted);">von {{ $invitation->user->name }}</span>
+                            @endif
+                        </div>
+                        @php
+                            $statusMap = match($invitation->status_color) {
+                                'success' => 'success', 'error' => 'danger', 'warning' => 'warning', 'info' => 'info', default => 'neutral',
+                            };
+                        @endphp
+                        <span class="dash-badge dash-badge-{{ $statusMap }}">{{ $invitation->status_label }}</span>
+                    </div>
+                    <div class="dash-mobile-card-meta">
+                        <span>{{ ucfirst($invitation->role ?? 'user') }}</span>
+                        @if($invitation->team)
+                            <span>{{ $invitation->team->name }}</span>
+                        @endif
+                        <span title="{{ $invitation->created_at->format('d.m.Y H:i') }}">{{ $invitation->created_at->diffForHumans() }}</span>
+                    </div>
+                    @if($invitation->can_revoke)
+                        <div class="dash-mobile-card-actions">
+                            <button wire:click="confirmRevoke({{ $invitation->id }}, '{{ addslashes($invitation->email) }}')" class="dash-btn dash-btn-sm dash-btn-danger">Widerrufen</button>
+                        </div>
+                    @endif
+                </div>
+            @empty
+                <div class="dash-empty">
+                    <p class="dash-empty-title">Keine Einladungen</p>
+                </div>
+            @endforelse
+        </div>
+
         {{-- Pagination --}}
         @if($invitations->hasPages())
             <div class="dash-pagination">
@@ -187,6 +225,7 @@
     {{-- Revoke Invitation Modal --}}
     @if($showRevokeModal)
         <div class="dash-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="revoke-invite-title"
+             x-data x-trap.noscroll="true"
              @keydown.escape.window="$wire.cancelRevoke()">
             <div class="dash-modal-backdrop" wire:click="cancelRevoke"></div>
 

@@ -138,6 +138,27 @@
                 </table>
             </div>
 
+            {{-- Mobile Card-List --}}
+            <div class="dash-mobile-cards">
+                @foreach($transactions as $tx)
+                    <div class="dash-mobile-card">
+                        <div class="dash-mobile-card-header">
+                            <span class="dash-mobile-card-title">{{ $tx->formatted_amount }}</span>
+                            <span class="dash-badge dash-badge-{{ $tx->status_color === 'success' ? 'success' : 'warning' }}">{{ $tx->status_label }}</span>
+                        </div>
+                        <div class="dash-mobile-card-meta">
+                            <span>{{ $tx->owner_label }}</span>
+                            <span>{{ $tx->created_at->format('d.m.Y H:i') }}</span>
+                        </div>
+                        @if($tx->can_download_invoice)
+                            <div class="dash-mobile-card-actions">
+                                <button wire:click="downloadInvoice({{ $tx->id }})" class="dash-btn dash-btn-sm dash-btn-secondary">Rechnung</button>
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+
             {{-- Pagination --}}
             @if($transactions->hasPages())
                 <div class="dash-pagination">

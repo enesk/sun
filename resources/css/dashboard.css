@@ -709,6 +709,10 @@
         display: none;
     }
     @media (max-width: 767px) {
+        /* Hide table when mobile cards exist */
+        .dash-card:has(> .dash-mobile-cards) > .dash-table-wrap {
+            display: none;
+        }
         .dash-mobile-cards {
             display: flex;
             flex-direction: column;

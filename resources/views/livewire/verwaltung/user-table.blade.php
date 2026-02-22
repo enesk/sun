@@ -186,6 +186,45 @@
             </table>
         </div>
 
+        {{-- Mobile Card-List --}}
+        <div class="dash-mobile-cards">
+            @forelse($users as $user)
+                <div class="dash-mobile-card {{ $user->is_current_user ? 'dash-table-row-selected' : '' }}" wire:key="user-mobile-{{ $user->id }}">
+                    <div class="dash-mobile-card-header">
+                        <div class="flex items-center gap-3">
+                            <div class="dash-header-avatar shrink-0">{{ strtoupper(substr($user->name, 0, 1)) }}</div>
+                            <div class="min-w-0">
+                                <div class="dash-mobile-card-title">
+                                    {{ $user->name }}
+                                    @if($user->is_current_user)
+                                        <span class="text-xs" style="color: var(--dash-text-muted);">(Du)</span>
+                                    @endif
+                                </div>
+                                <span class="text-xs" style="color: var(--dash-text-secondary);">{{ $user->email }}</span>
+                            </div>
+                        </div>
+                        <span class="dash-badge dash-badge-neutral">{{ ucfirst($user->primary_role) }}</span>
+                    </div>
+                    <div class="dash-mobile-card-meta">
+                        @if($user->last_seen_at)
+                            <span title="{{ $user->last_seen_at->format('d.m.Y H:i') }}">Aktiv {{ $user->last_seen_at->diffForHumans() }}</span>
+                        @else
+                            <span style="opacity: 0.5;">Nie aktiv</span>
+                        @endif
+                    </div>
+                    @if(!$user->is_current_user)
+                        <div class="dash-mobile-card-actions">
+                            <button wire:click="confirmRemove({{ $user->id }}, '{{ addslashes($user->name) }}')" class="dash-btn dash-btn-sm dash-btn-danger">Entfernen</button>
+                        </div>
+                    @endif
+                </div>
+            @empty
+                <div class="dash-empty">
+                    <p class="dash-empty-title">Keine Benutzer gefunden</p>
+                </div>
+            @endforelse
+        </div>
+
         {{-- Pagination --}}
         @if($users->hasPages())
             <div class="dash-pagination">
@@ -202,6 +241,7 @@
     {{-- Remove User Modal --}}
     @if($showRemoveModal)
         <div class="dash-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="remove-user-title"
+             x-data x-trap.noscroll="true"
              @keydown.escape.window="$wire.cancelRemove()">
             <div class="dash-modal-backdrop" wire:click="cancelRemove"></div>
 

@@ -135,6 +135,35 @@
             </table>
         </div>
 
+        {{-- Mobile Card-List --}}
+        <div class="dash-mobile-cards">
+            @forelse($roles as $role)
+                <div class="dash-mobile-card" wire:key="role-mobile-{{ $role->id }}">
+                    <div class="dash-mobile-card-header">
+                        <div class="dash-mobile-card-title">{{ $role->name }}</div>
+                        @if($role->is_global)
+                            <span class="dash-badge dash-badge-premium">System</span>
+                        @else
+                            <span class="dash-badge dash-badge-info">Custom</span>
+                        @endif
+                    </div>
+                    <div class="dash-mobile-card-meta">
+                        <span>{{ $role->users_count }} Benutzer</span>
+                    </div>
+                    <div class="dash-mobile-card-actions">
+                        <a href="{{ route('verwaltung.roles.edit', $role->id) }}" class="dash-btn dash-btn-sm dash-btn-primary" style="flex: 1; text-align: center;">Bearbeiten</a>
+                        @if($role->can_delete)
+                            <button wire:click="confirmDelete({{ $role->id }}, '{{ addslashes($role->name) }}')" class="dash-btn dash-btn-sm dash-btn-danger">Löschen</button>
+                        @endif
+                    </div>
+                </div>
+            @empty
+                <div class="dash-empty">
+                    <p class="dash-empty-title">Keine Rollen gefunden</p>
+                </div>
+            @endforelse
+        </div>
+
         {{-- Pagination --}}
         @if($roles->hasPages())
             <div class="dash-pagination">
@@ -151,6 +180,7 @@
     {{-- Delete Role Modal --}}
     @if($showDeleteModal)
         <div class="dash-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="delete-role-title"
+             x-data x-trap.noscroll="true"
              @keydown.escape.window="$wire.cancelDelete()">
             <div class="dash-modal-backdrop" wire:click="cancelDelete"></div>
 

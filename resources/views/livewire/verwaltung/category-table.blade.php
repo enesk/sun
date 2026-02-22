@@ -214,6 +214,36 @@
             </table>
         </div>
 
+        {{-- Mobile Card-List --}}
+        <div class="dash-mobile-cards">
+            @forelse($categories as $category)
+                <div class="dash-mobile-card" wire:key="category-mobile-{{ $category->id }}">
+                    <div class="dash-mobile-card-header">
+                        <div class="dash-mobile-card-title">
+                            @if($category->parent_id)<span style="color: var(--dash-text-muted); font-size: 0.75rem;">└ </span>@endif{{ $category->name }}
+                        </div>
+                        <span class="dash-badge dash-badge-neutral">{{ $category->sort_order }}</span>
+                    </div>
+                    <div class="dash-mobile-card-meta">
+                        @if($category->parent)
+                            <span>Unter: {{ $category->parent->name }}</span>
+                        @endif
+                        <span>{{ $category->companies_count }} Firmen</span>
+                        @if($category->children_count > 0)
+                            <span>{{ $category->children_count }} Unterkategorien</span>
+                        @endif
+                    </div>
+                    <div class="dash-mobile-card-actions">
+                        <a href="{{ route('verwaltung.categories.edit', $category->id) }}" class="dash-btn dash-btn-sm dash-btn-primary">Bearbeiten</a>
+                    </div>
+                </div>
+            @empty
+                <div class="dash-empty">
+                    <p class="dash-empty-title">Keine Kategorien gefunden</p>
+                </div>
+            @endforelse
+        </div>
+
         {{-- Pagination --}}
         @if($categories->hasPages())
             <div class="dash-pagination">

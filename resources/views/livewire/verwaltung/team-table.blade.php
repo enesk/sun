@@ -123,6 +123,26 @@
             </table>
         </div>
 
+        {{-- Mobile Card-List --}}
+        <div class="dash-mobile-cards">
+            @forelse($teams as $team)
+                <div class="dash-mobile-card" wire:key="team-mobile-{{ $team->id }}">
+                    <div class="dash-mobile-card-header">
+                        <div class="dash-mobile-card-title">{{ $team->name }}</div>
+                        <span class="dash-badge {{ $team->tenant_users_count > 0 ? 'dash-badge-info' : 'dash-badge-neutral' }}">{{ $team->tenant_users_count }} Mitglieder</span>
+                    </div>
+                    <div class="dash-mobile-card-actions">
+                        <a href="{{ route('verwaltung.teams.edit', $team->uuid) }}" class="dash-btn dash-btn-sm dash-btn-primary" style="flex: 1; text-align: center;">Bearbeiten</a>
+                        <button wire:click="confirmDelete('{{ $team->uuid }}', '{{ addslashes($team->name) }}')" class="dash-btn dash-btn-sm dash-btn-danger">Löschen</button>
+                    </div>
+                </div>
+            @empty
+                <div class="dash-empty">
+                    <p class="dash-empty-title">Keine Teams gefunden</p>
+                </div>
+            @endforelse
+        </div>
+
         {{-- Pagination --}}
         @if($teams->hasPages())
             <div class="dash-pagination">
@@ -139,6 +159,7 @@
     {{-- Delete Team Modal --}}
     @if($showDeleteModal)
         <div class="dash-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="delete-team-title"
+             x-data x-trap.noscroll="true"
              @keydown.escape.window="$wire.cancelDelete()">
             <div class="dash-modal-backdrop" wire:click="cancelDelete"></div>
 

@@ -454,7 +454,9 @@
     {{-- LÖSCH-BESTÄTIGUNG (Modal)                                       --}}
     {{-- ================================================================ --}}
     @if($isEdit && $showDeleteModal)
-        <div class="dash-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
+        <div class="dash-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title"
+             x-data x-trap.noscroll="true"
+             @keydown.escape.window="$wire.set('showDeleteModal', false)">
             <div class="dash-modal-backdrop" wire:click="$set('showDeleteModal', false)"></div>
 
             <div class="dash-modal">

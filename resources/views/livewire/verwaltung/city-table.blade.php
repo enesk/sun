@@ -214,6 +214,37 @@
             </table>
         </div>
 
+        {{-- Mobile Card-List --}}
+        <div class="dash-mobile-cards">
+            @forelse($cities as $city)
+                <div class="dash-mobile-card" wire:key="city-mobile-{{ $city->id }}">
+                    <div class="dash-mobile-card-header">
+                        <div class="dash-mobile-card-title">{{ $city->name }}</div>
+                        <span class="dash-badge dash-badge-neutral">{{ $city->zipcode ?: '—' }}</span>
+                    </div>
+                    <div class="dash-mobile-card-meta">
+                        @if($city->administrative_area_level_1)
+                            <span>{{ $city->administrative_area_level_1 }}</span>
+                        @endif
+                        @if($city->community)
+                            <span>{{ $city->community }}</span>
+                        @endif
+                        <span>{{ $city->companies_count }} Firmen</span>
+                        @if($city->latitude && $city->longitude)
+                            <span style="color: var(--dash-success);">Geodaten vorhanden</span>
+                        @endif
+                    </div>
+                    <div class="dash-mobile-card-actions">
+                        <a href="{{ route('verwaltung.cities.edit', $city->id) }}" class="dash-btn dash-btn-sm dash-btn-primary">Bearbeiten</a>
+                    </div>
+                </div>
+            @empty
+                <div class="dash-empty">
+                    <p class="dash-empty-title">Keine Städte gefunden</p>
+                </div>
+            @endforelse
+        </div>
+
         {{-- Pagination --}}
         @if($cities->hasPages())
             <div class="dash-pagination">
