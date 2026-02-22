@@ -223,31 +223,36 @@
                         @error('description') <p class="text-error text-sm mt-1" role="alert">{{ $message }}</p> @enderror
                     </div>
 
-                    {{-- Kategorien (gruppiert) --}}
-                    <div>
+                    {{-- Kategorien — Alpine-only Toggle, kein Livewire-Roundtrip --}}
+                    <div wire:ignore x-data="{
+                        selected: @entangle('selectedCategories'),
+                        toggle(id) {
+                            if (this.selected.includes(id)) {
+                                this.selected = this.selected.filter(i => i !== id);
+                            } else if (this.selected.length < 5) {
+                                this.selected = [...this.selected, id];
+                            }
+                        },
+                        has(id) { return this.selected.includes(id); },
+                        isFull() { return this.selected.length >= 5; }
+                    }">
                         <label class="label-portal">
                             Kategorien <span class="required">*</span>
                         </label>
                         <p class="help-portal mb-3">Wählen Sie 1–5 Kategorien, die zu Ihrem Unternehmen passen.</p>
 
-                        @if($categories->count() > 12)
-                            <div class="mb-3">
-                                <input type="text" wire:model.live.debounce.200ms="categoryFilter"
-                                       class="input-portal !py-2 !text-sm w-full sm:w-64"
-                                       placeholder="Kategorie suchen..." aria-label="Kategorien filtern">
-                            </div>
-                        @endif
-
                         <div class="space-y-4" role="group" aria-label="Kategorie-Auswahl">
                             @foreach($categories as $category)
                                 @php
                                     $hasChildren = $category->children->isNotEmpty();
-                                    $isParentSelected = in_array($category->id, $selectedCategories);
+                                    $childIds = $hasChildren ? $category->children->pluck('id')->toArray() : [];
                                 @endphp
 
                                 @if($hasChildren)
                                     {{-- Gruppierte Kategorie mit Unterkategorien --}}
-                                    <div wire:key="cat-group-{{ $category->id }}" class="rounded-xl border border-base-200/60 overflow-hidden" x-data="{ expanded: {{ $isParentSelected || $category->children->pluck('id')->intersect($selectedCategories)->isNotEmpty() ? 'true' : 'false' }} }">
+                                    <div class="rounded-xl border border-base-200/60 overflow-hidden"
+                                         x-data="{ expanded: false }"
+                                         x-init="expanded = selected.includes({{ $category->id }}) || {{ json_encode($childIds) }}.some(id => selected.includes(id))">
                                         <button type="button" @click="expanded = !expanded"
                                                 class="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-base-50 transition-colors"
                                                 :aria-expanded="expanded">
@@ -263,22 +268,20 @@
                                         <div x-show="expanded" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
                                             <div class="px-4 pb-3 flex flex-wrap gap-2 border-t border-base-200/40 pt-3">
                                                 @foreach($category->children as $child)
-                                                    @php $isSelected = in_array($child->id, $selectedCategories); @endphp
-                                                    <button type="button" wire:key="cat-btn-{{ $child->id }}" wire:click="toggleCategory({{ $child->id }})"
-                                                            @class([
-                                                                'inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-all duration-150',
-                                                                'bg-portal-primary text-white border-transparent shadow-sm' => $isSelected,
-                                                                'bg-white/60 text-base-content border-base-300/50 hover:border-portal-primary/30 hover:bg-portal-primary-light' => !$isSelected && count($selectedCategories) < 5,
-                                                                'bg-base-100 text-base-content/30 border-base-200 cursor-not-allowed' => !$isSelected && count($selectedCategories) >= 5,
-                                                            ])
-                                                            @if(!$isSelected && count($selectedCategories) >= 5) disabled @endif
-                                                            aria-pressed="{{ $isSelected ? 'true' : 'false' }}"
-                                                            aria-label="{{ $child->name }} {{ $isSelected ? '(ausgewählt)' : '' }}">
+                                                    <button type="button"
+                                                            @click="toggle({{ $child->id }})"
+                                                            class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-all duration-150"
+                                                            :class="{
+                                                                'bg-portal-primary text-white border-transparent shadow-sm': has({{ $child->id }}),
+                                                                'bg-white/60 text-base-content border-base-300/50 hover:border-portal-primary/30 hover:bg-portal-primary-light': !has({{ $child->id }}) && !isFull(),
+                                                                'bg-base-100 text-base-content/30 border-base-200 cursor-not-allowed': !has({{ $child->id }}) && isFull()
+                                                            }"
+                                                            :disabled="!has({{ $child->id }}) && isFull()"
+                                                            :aria-pressed="has({{ $child->id }}) ? 'true' : 'false'"
+                                                            aria-label="{{ $child->name }}">
                                                         @if($child->icon) <i data-lucide="{{ $child->icon }}" class="w-4 h-4 inline-block" aria-hidden="true"></i> @endif
                                                         {{ $child->name }}
-                                                        @if($isSelected)
-                                                            <svg class="w-4 h-4 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                                        @endif
+                                                        <svg x-show="has({{ $child->id }})" x-cloak class="w-4 h-4 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                                     </button>
                                                 @endforeach
                                             </div>
@@ -286,29 +289,27 @@
                                     </div>
                                 @else
                                     {{-- Standalone Kategorie ohne Unterkategorien --}}
-                                    <div wire:key="cat-standalone-{{ $category->id }}" class="flex flex-wrap gap-2">
-                                        @php $isSelected = in_array($category->id, $selectedCategories); @endphp
-                                        <button type="button" wire:click="toggleCategory({{ $category->id }})"
-                                                @class([
-                                                    'inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-all duration-150',
-                                                    'bg-portal-primary text-white border-transparent shadow-sm' => $isSelected,
-                                                    'bg-white/60 text-base-content border-base-300/50 hover:border-portal-primary/30 hover:bg-portal-primary-light' => !$isSelected && count($selectedCategories) < 5,
-                                                    'bg-base-100 text-base-content/30 border-base-200 cursor-not-allowed' => !$isSelected && count($selectedCategories) >= 5,
-                                                ])
-                                                @if(!$isSelected && count($selectedCategories) >= 5) disabled @endif
-                                                aria-pressed="{{ $isSelected ? 'true' : 'false' }}"
-                                                aria-label="{{ $category->name }} {{ $isSelected ? '(ausgewählt)' : '' }}">
+                                    <div class="flex flex-wrap gap-2">
+                                        <button type="button"
+                                                @click="toggle({{ $category->id }})"
+                                                class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-all duration-150"
+                                                :class="{
+                                                    'bg-portal-primary text-white border-transparent shadow-sm': has({{ $category->id }}),
+                                                    'bg-white/60 text-base-content border-base-300/50 hover:border-portal-primary/30 hover:bg-portal-primary-light': !has({{ $category->id }}) && !isFull(),
+                                                    'bg-base-100 text-base-content/30 border-base-200 cursor-not-allowed': !has({{ $category->id }}) && isFull()
+                                                }"
+                                                :disabled="!has({{ $category->id }}) && isFull()"
+                                                :aria-pressed="has({{ $category->id }}) ? 'true' : 'false'"
+                                                aria-label="{{ $category->name }}">
                                             @if($category->icon) <i data-lucide="{{ $category->icon }}" class="w-4 h-4 inline-block" aria-hidden="true"></i> @endif
                                             {{ $category->name }}
-                                            @if($isSelected)
-                                                <svg class="w-4 h-4 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                            @endif
+                                            <svg x-show="has({{ $category->id }})" x-cloak class="w-4 h-4 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                         </button>
                                     </div>
                                 @endif
                             @endforeach
                         </div>
-                        <p class="help-portal mt-2">{{ count($selectedCategories) }} von 5 ausgewählt</p>
+                        <p class="help-portal mt-2" x-text="selected.length + ' von 5 ausgewählt'"></p>
                         @error('selectedCategories') <p class="text-error text-sm mt-1" role="alert">{{ $message }}</p> @enderror
                     </div>
                 </div>
