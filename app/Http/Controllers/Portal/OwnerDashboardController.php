@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
 use App\Models\Portal\Company;
+use App\Models\Portal\Review;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -70,6 +71,28 @@ class OwnerDashboardController extends Controller
     {
         $company = $this->getCompany();
         return view('pages.dashboard.settings', compact('company'));
+    }
+
+    public function respondToReview(Request $request, Review $review)
+    {
+        $company = $this->getCompany();
+
+        // Verify review belongs to this company
+        abort_unless($review->company_id === $company->id, 403);
+
+        // Premium gate
+        abort_unless($company->is_premium, 403, 'Premium-Abo erforderlich.');
+
+        // Only respond to approved reviews
+        abort_unless($review->isApproved(), 422);
+
+        $validated = $request->validate([
+            'owner_response' => ['required', 'string', 'max:1000'],
+        ]);
+
+        $review->respondAsOwner($validated['owner_response']);
+
+        return back()->with('success', 'Ihre Antwort wurde gespeichert.');
     }
 
     public function premium()

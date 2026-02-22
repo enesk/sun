@@ -31,12 +31,15 @@ class Review extends Model
         'moderation_status',
         'moderation_note',
         'moderated_by',
+        'owner_response',
+        'owner_response_at',
     ];
 
     protected $casts = [
         'rating' => 'decimal:1',
         'is_approved' => 'boolean',
         'approved_at' => 'datetime',
+        'owner_response_at' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -99,6 +102,14 @@ class Review extends Model
     public function isRejected(): bool
     {
         return $this->moderation_status === self::STATUS_REJECTED;
+    }
+
+    public function respondAsOwner(string $response): void
+    {
+        $this->update([
+            'owner_response' => $response,
+            'owner_response_at' => now(),
+        ]);
     }
 
     public function scopeRejected($query)

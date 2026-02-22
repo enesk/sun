@@ -123,17 +123,48 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
                                             </svg>
                                             <span class="text-xs font-semibold" style="color: var(--portal-primary)">Ihre Antwort</span>
+                                            @if($review->owner_response_at)
+                                                <span class="text-xs" style="color: var(--dash-text-muted)">· {{ $review->owner_response_at->format('d.m.Y') }}</span>
+                                            @endif
                                         </div>
                                         <p class="text-sm" style="color: var(--dash-text-secondary)">{{ $review->owner_response }}</p>
                                     </div>
                                 @else
-                                    {{-- Reply CTA --}}
-                                    <button type="button" class="mt-2 inline-flex items-center gap-1 text-xs font-medium transition-colors hover:opacity-80" style="color: var(--portal-primary);" disabled title="Funktion wird bald verfügbar">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
-                                        </svg>
-                                        Antworten (bald verfügbar)
-                                    </button>
+                                    {{-- Reply Form (Alpine.js toggle) --}}
+                                    <div x-data="{ open: false }" class="mt-3">
+                                        <button type="button"
+                                                @click="open = !open"
+                                                class="inline-flex items-center gap-1 text-xs font-medium transition-colors hover:opacity-80"
+                                                style="color: var(--portal-primary);">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                                            </svg>
+                                            <span x-text="open ? 'Abbrechen' : 'Antworten'">Antworten</span>
+                                        </button>
+
+                                        <form x-show="open"
+                                              x-cloak
+                                              x-transition
+                                              action="{{ route('portal.owner.reviews.respond', $review) }}"
+                                              method="POST"
+                                              class="mt-2 ml-4 pl-3"
+                                              style="border-left: 2px solid var(--portal-primary);">
+                                            @csrf
+                                            <textarea name="owner_response"
+                                                      rows="3"
+                                                      maxlength="1000"
+                                                      required
+                                                      placeholder="Ihre Antwort auf diese Bewertung..."
+                                                      class="dash-textarea"
+                                                      style="font-size: 0.875rem;"></textarea>
+                                            <div class="flex items-center justify-between mt-2">
+                                                <span class="text-xs" style="color: var(--dash-text-muted)">Max. 1.000 Zeichen · Wird öffentlich angezeigt</span>
+                                                <button type="submit" class="dash-btn dash-btn-sm dash-btn-primary">
+                                                    Antwort speichern
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
                                 @endif
                             @endif
                         </div>

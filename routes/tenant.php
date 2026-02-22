@@ -98,6 +98,7 @@ Route::middleware([
             Route::get('/', [OwnerDashboardController::class, 'index'])->name('dashboard');
             Route::get('/bearbeiten', [OwnerDashboardController::class, 'edit'])->name('edit');
             Route::get('/bewertungen', [OwnerDashboardController::class, 'reviews'])->name('reviews');
+            Route::post('/bewertungen/{review}/antwort', [OwnerDashboardController::class, 'respondToReview'])->name('reviews.respond');
             Route::get('/statistiken', [OwnerDashboardController::class, 'stats'])->name('stats');
             Route::get('/einstellungen', [OwnerDashboardController::class, 'settings'])->name('settings');
             Route::get('/premium', [OwnerDashboardController::class, 'premium'])->name('premium');

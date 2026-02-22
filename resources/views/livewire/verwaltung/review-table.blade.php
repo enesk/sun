@@ -143,6 +143,22 @@
                             <p class="text-sm mb-2 line-clamp-3" style="color: var(--dash-text-secondary);">{{ $review->body }}</p>
                         @endif
 
+                        {{-- Owner Response --}}
+                        @if(!empty($review->owner_response))
+                            <div class="mt-2 ml-4 pl-3 py-1.5" style="border-left: 2px solid var(--portal-primary, #3b82f6);">
+                                <div class="flex items-center gap-1 mb-0.5">
+                                    <svg class="w-3 h-3" style="color: var(--portal-primary, #3b82f6)" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                                    </svg>
+                                    <span class="text-xs font-semibold" style="color: var(--portal-primary, #3b82f6)">Inhaber-Antwort</span>
+                                    @if($review->owner_response_at)
+                                        <span class="text-xs" style="color: var(--dash-text-muted);">· {{ $review->owner_response_at->format('d.m.Y') }}</span>
+                                    @endif
+                                </div>
+                                <p class="text-xs line-clamp-2" style="color: var(--dash-text-secondary);">{{ $review->owner_response }}</p>
+                            </div>
+                        @endif
+
                         {{-- Meta: Author + Company --}}
                         <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs" style="color: var(--dash-text-muted);">
                             <span class="inline-flex items-center gap-1">
