@@ -247,7 +247,7 @@
 
                                 @if($hasChildren)
                                     {{-- Gruppierte Kategorie mit Unterkategorien --}}
-                                    <div class="rounded-xl border border-base-200/60 overflow-hidden" x-data="{ expanded: {{ $isParentSelected || $category->children->pluck('id')->intersect($selectedCategories)->isNotEmpty() ? 'true' : 'false' }} }">
+                                    <div wire:key="cat-group-{{ $category->id }}" class="rounded-xl border border-base-200/60 overflow-hidden" x-data="{ expanded: {{ $isParentSelected || $category->children->pluck('id')->intersect($selectedCategories)->isNotEmpty() ? 'true' : 'false' }} }">
                                         <button type="button" @click="expanded = !expanded"
                                                 class="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-base-50 transition-colors"
                                                 :aria-expanded="expanded">
@@ -260,11 +260,11 @@
                                             </span>
                                             <svg class="w-4 h-4 text-base-content/30 transition-transform duration-200" :class="{ 'rotate-180': expanded }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                         </button>
-                                        <div x-show="expanded" x-collapse>
+                                        <div x-show="expanded" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
                                             <div class="px-4 pb-3 flex flex-wrap gap-2 border-t border-base-200/40 pt-3">
                                                 @foreach($category->children as $child)
                                                     @php $isSelected = in_array($child->id, $selectedCategories); @endphp
-                                                    <button type="button" wire:click="toggleCategory({{ $child->id }})"
+                                                    <button type="button" wire:key="cat-btn-{{ $child->id }}" wire:click="toggleCategory({{ $child->id }})"
                                                             @class([
                                                                 'inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-all duration-150',
                                                                 'bg-portal-primary text-white border-transparent shadow-sm' => $isSelected,
@@ -286,7 +286,7 @@
                                     </div>
                                 @else
                                     {{-- Standalone Kategorie ohne Unterkategorien --}}
-                                    <div class="flex flex-wrap gap-2">
+                                    <div wire:key="cat-standalone-{{ $category->id }}" class="flex flex-wrap gap-2">
                                         @php $isSelected = in_array($category->id, $selectedCategories); @endphp
                                         <button type="button" wire:click="toggleCategory({{ $category->id }})"
                                                 @class([
