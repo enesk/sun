@@ -3,6 +3,8 @@
 namespace App\Livewire\Verwaltung;
 
 use App\Constants\TenantConfigConstants;
+use App\Models\Portal\Category;
+use App\Models\Portal\Company;
 use App\Services\CompanyUrlService;
 use App\Services\TenantBrandingService;
 use App\Services\TenantService;
@@ -204,8 +206,51 @@ class GeneralSettingsForm extends Component
         $this->dispatch('toast', type: 'success', message: 'Einstellungen gespeichert');
     }
 
+    public function generateSitemap(): void
+    {
+        $tenant = tenant();
+        $domain = $tenant->domain;
+
+        if (empty($domain)) {
+            $this->dispatch('toast', type: 'error', message: 'Keine Domain konfiguriert — Sitemap kann nicht generiert werden.');
+            return;
+        }
+
+        try {
+            Artisan::call('tenants:generate-sitemap', ['--tenant' => $tenant->id]);
+
+            $sitemapPath = storage_path('app/public/sitemap.xml');
+            if (file_exists($sitemapPath)) {
+                $companyCount = Company::active()->count();
+                $categoryCount = Category::count();
+                $this->dispatch('toast', type: 'success', message: "Sitemap generiert: {$companyCount} Firmen + {$categoryCount} Kategorien. Abrufbar unter {$domain}/sitemap.xml");
+            } else {
+                $this->dispatch('toast', type: 'error', message: 'Sitemap-Generierung fehlgeschlagen — Datei nicht erstellt.');
+            }
+        } catch (\Exception $e) {
+            $this->dispatch('toast', type: 'error', message: 'Fehler: ' . $e->getMessage());
+        }
+    }
+
+    public function getSitemapInfo(): array
+    {
+        $sitemapPath = storage_path('app/public/sitemap.xml');
+        $robotsPath = storage_path('app/public/robots.txt');
+        $domain = tenant()->domain ?? null;
+
+        return [
+            'exists' => file_exists($sitemapPath),
+            'lastGenerated' => file_exists($sitemapPath) ? date('d.m.Y H:i', filemtime($sitemapPath)) : null,
+            'size' => file_exists($sitemapPath) ? round(filesize($sitemapPath) / 1024) : 0,
+            'robotsExists' => file_exists($robotsPath),
+            'url' => $domain ? "https://{$domain}/sitemap.xml" : null,
+        ];
+    }
+
     public function render()
     {
-        return view('livewire.verwaltung.general-settings-form');
+        return view('livewire.verwaltung.general-settings-form', [
+            'sitemapInfo' => $this->getSitemapInfo(),
+        ]);
     }
 }
