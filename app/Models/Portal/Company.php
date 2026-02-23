@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Services\CompanyUrlService;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -27,6 +28,7 @@ class Company extends Model implements HasMedia
         'name',
         'slug',
         'description',
+        'description_source',
         'street',
         'house_no',
         'zipcode',
@@ -159,6 +161,22 @@ class Company extends Model implements HasMedia
         }
 
         return static::find($id);
+    }
+
+    /**
+     * Vollständige Portal-URL basierend auf Tenant-URL-Pattern.
+     */
+    public function getPortalUrlAttribute(): string
+    {
+        return CompanyUrlService::url($this);
+    }
+
+    /**
+     * Relativer Pfad basierend auf Tenant-URL-Pattern (für Sitemap).
+     */
+    public function getPortalPathAttribute(): string
+    {
+        return CompanyUrlService::path($this);
     }
 
     // ── Accessors ──

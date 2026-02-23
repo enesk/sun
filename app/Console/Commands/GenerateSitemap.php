@@ -3,7 +3,9 @@
 namespace App\Console\Commands;
 
 use App\Models\BlogPostCategory;
+use App\Models\Portal\Company;
 use App\Services\BlogService;
+use App\Services\CompanyUrlService;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Console\Isolatable;
 use Illuminate\Support\Facades\Route;
@@ -54,6 +56,15 @@ class GenerateSitemap extends Command implements Isolatable
         })->map(function ($route) {
             return route($route->getName());
         })->values()->toArray();
+
+        // Portal Companies (chunked — kann 12.000+ Einträge sein)
+        Company::active()
+            ->with('city')
+            ->chunk(200, function ($companies) use (&$routes) {
+                foreach ($companies as $company) {
+                    $routes[] = CompanyUrlService::url($company);
+                }
+            });
 
         // go through all blog posts and add them to the sitemap (chunked to avoid memory issues)
 

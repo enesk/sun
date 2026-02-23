@@ -179,7 +179,12 @@ Route::middleware([
             Route::get('/empfehlungen', [VerwaltungReferralController::class, 'index'])->name('referrals.index');
         });
 
-    // Firmen-Detailseite (Catch-All mit ID-Prefix, muss LETZTE Route sein)
+    // Firmen-Detailseite: /{citySlug}/{id}-{slug} (konfigurierbar pro Tenant)
+    Route::get('/{citySlug}/{companySlug}', [CompanyController::class, 'showWithCity'])
+        ->where(['citySlug' => '[a-z0-9\-]+', 'companySlug' => '\d+-.+'])
+        ->name('portal.companies.show.city');
+
+    // Firmen-Detailseite: /{id}-{slug} (Default, muss LETZTE Route sein)
     Route::get('/{companySlug}', [CompanyController::class, 'show'])
         ->where('companySlug', '\d+-.+')
         ->name('portal.companies.show');

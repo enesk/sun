@@ -60,7 +60,7 @@
                 <p class="dash-empty-description" style="max-width: 24rem;">
                     Sobald Kunden Bewertungen abgeben, erscheinen sie hier. Teilen Sie Ihre Firmenseite, um Bewertungen zu erhalten.
                 </p>
-                <a href="{{ route('portal.companies.show', $company->url_slug) }}" target="_blank"
+                <a href="{{ $company->portal_url }}" target="_blank"
                    class="dash-btn dash-btn-sm dash-btn-secondary inline-flex items-center gap-1">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>

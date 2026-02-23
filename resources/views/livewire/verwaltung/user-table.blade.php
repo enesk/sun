@@ -27,7 +27,7 @@
                 </select>
 
                 @if($search || $filterRole)
-                    <button wire:click="$set('search', ''); $set('filterRole', '');"
+                    <button wire:click="resetFilters"
                             class="dash-btn-icon"
                             title="Filter zurücksetzen">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -172,7 +172,7 @@
                                     @if($search || $filterRole)
                                         <p class="dash-empty-title">Keine Benutzer gefunden</p>
                                         <p class="dash-empty-description">Versuchen Sie es mit anderen Suchbegriffen.</p>
-                                        <button wire:click="$set('search', ''); $set('filterRole', '');" class="dash-btn dash-btn-sm dash-btn-primary">
+                                        <button wire:click="resetFilters" class="dash-btn dash-btn-sm dash-btn-primary">
                                             Filter zurücksetzen
                                         </button>
                                     @else

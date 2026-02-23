@@ -177,7 +177,7 @@ class CreateTenantDatabaseUsers extends Command
                 $this->warn("  [{$tenant->name}] Credentials gespeichert aber MySQL-User fehlt — erstelle neu.");
             }
 
-            $username = 'tn_' . str_replace('-', '', substr($tenant->uuid, 0, 8));
+            $username = 'tn_' . str_replace('-', '', substr((string) $tenant->uuid, 0, 8));
             $password = Str::random(32);
 
             $this->line(sprintf(

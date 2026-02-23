@@ -34,6 +34,13 @@ class OrderTable extends Component
         $this->resetPage();
     }
 
+    public function resetFilters(): void
+    {
+        $this->search = '';
+        $this->filterStatus = '';
+        $this->resetPage();
+    }
+
     public function sort(string $column): void
     {
         if ($this->sortBy === $column) {

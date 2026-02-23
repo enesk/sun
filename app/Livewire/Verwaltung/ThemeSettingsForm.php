@@ -138,7 +138,7 @@ class ThemeSettingsForm extends Component
         }
 
         $this->saved = true;
-        $this->dispatch('toast', message: 'Theme-Einstellungen gespeichert', type: 'success');
+        $this->dispatch('toast', type: 'success', message: 'Theme-Einstellungen gespeichert');
     }
 
     public function deleteLogo(): void

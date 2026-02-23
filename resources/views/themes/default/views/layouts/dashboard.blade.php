@@ -101,7 +101,7 @@
             {{-- Firmenvorschau in Sidebar --}}
             @if(isset($ownerCompany))
                 <div class="p-3 border-t border-base-200">
-                    <a href="{{ route('portal.companies.show', $ownerCompany->url_slug) }}"
+                    <a href="{{ $ownerCompany->portal_url }}"
                        class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-base-200 transition-colors text-sm text-base-content/60 hover:text-base-content"
                        target="_blank">
                         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

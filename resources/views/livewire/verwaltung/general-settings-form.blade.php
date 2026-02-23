@@ -309,6 +309,39 @@
                         </div>
                     </div>
                 </div>
+
+                {{-- URL-Konfiguration --}}
+                <div style="border-top: 1px solid var(--dash-border); padding-top: 1.5rem;">
+                    <h4 class="text-sm font-semibold mb-1" style="color: var(--dash-text-primary);">Firmen-URL-Format</h4>
+                    <p class="dash-input-hint mb-4">Bestimmt wie Firmen-URLs in Ihrem Portal aufgebaut sind</p>
+
+                    <div class="space-y-2">
+                        @foreach(\App\Services\CompanyUrlService::PATTERNS as $key => $info)
+                            <label @click="$wire.set('companyUrlPattern', '{{ $key }}')"
+                                   :class="$wire.companyUrlPattern === '{{ $key }}' ? 'border-2' : 'border'"
+                                   :style="$wire.companyUrlPattern === '{{ $key }}' ? 'border-color: var(--portal-primary); background: rgba(var(--portal-primary-rgb, 59,130,246), 0.04);' : ''"
+                                   class="dash-card flex items-start gap-3 p-4 cursor-pointer transition-all duration-200 hover:shadow-sm"
+                                   style="border-radius: 0.75rem;">
+                                <div class="mt-0.5">
+                                    <div :class="$wire.companyUrlPattern === '{{ $key }}' ? '' : ''"
+                                         :style="$wire.companyUrlPattern === '{{ $key }}' ? 'border-color: var(--portal-primary); background: var(--portal-primary);' : 'border-color: var(--dash-border);'"
+                                         class="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200">
+                                        <div x-show="$wire.companyUrlPattern === '{{ $key }}'" class="w-2 h-2 rounded-full bg-white"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-semibold font-mono" style="color: var(--dash-text-primary);">{{ $info['label'] }}</span>
+                                    <p class="text-xs mt-1 font-mono" style="color: var(--dash-text-muted);">{{ $info['example'] }}</p>
+                                </div>
+                            </label>
+                        @endforeach
+                    </div>
+                    @error('companyUrlPattern') <p class="dash-input-error-msg mt-2">{{ $message }}</p> @enderror
+                    <p class="dash-input-hint mt-3">
+                        <svg class="w-4 h-4 inline-block" style="color: var(--portal-accent, #f59e0b);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                        Bestehende URLs werden automatisch per 301-Redirect weitergeleitet.
+                    </p>
+                </div>
             </div>
         </div>
 

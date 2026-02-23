@@ -46,6 +46,13 @@ class TransactionTable extends Component
         $this->resetPage();
     }
 
+    public function resetFilters(): void
+    {
+        $this->search = '';
+        $this->filterStatus = '';
+        $this->resetPage();
+    }
+
     public function downloadInvoice(int $transactionId): mixed
     {
         $tenant = tenant();
@@ -56,7 +63,7 @@ class TransactionTable extends Component
         $invoiceService = app(InvoiceService::class);
 
         if (! $invoiceService->canGenerateInvoices($transaction)) {
-            session()->flash('error', 'Für diese Transaktion kann keine Rechnung erstellt werden.');
+            $this->dispatch('toast', type: 'error', message: 'Für diese Transaktion kann keine Rechnung erstellt werden.');
             return null;
         }
 

@@ -101,5 +101,8 @@
         document.addEventListener('livewire:navigated', initLucide);
         document.addEventListener('livewire:morph.updated', initLucide);
     </script>
+
+    {{-- LEGAL-3: DSGVO Cookie-Consent --}}
+    @include('partials.cookie-consent')
 </body>
 </html>

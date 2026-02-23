@@ -3,8 +3,10 @@
 namespace App\Livewire\Verwaltung;
 
 use App\Constants\TenantConfigConstants;
+use App\Services\CompanyUrlService;
 use App\Services\TenantBrandingService;
 use App\Services\TenantService;
+use Illuminate\Support\Facades\Artisan;
 use Livewire\Component;
 
 class GeneralSettingsForm extends Component
@@ -39,6 +41,9 @@ class GeneralSettingsForm extends Component
     public bool $reviewsEnabled = true;
     public bool $registrationEnabled = true;
     public bool $premiumListingsEnabled = false;
+
+    // URL-Konfiguration
+    public string $companyUrlPattern = 'id-slug';
 
     // SEO
     public string $siteTitle = '';
@@ -91,6 +96,9 @@ class GeneralSettingsForm extends Component
         $this->registrationEnabled = (bool) $branding->get($tenant, TenantConfigConstants::REGISTRATION_ENABLED, true);
         $this->premiumListingsEnabled = (bool) $branding->get($tenant, TenantConfigConstants::PREMIUM_LISTINGS_ENABLED, false);
 
+        // URL-Konfiguration
+        $this->companyUrlPattern = $branding->get($tenant, TenantConfigConstants::COMPANY_URL_PATTERN) ?? 'id-slug';
+
         // SEO
         $this->siteTitle = $branding->get($tenant, TenantConfigConstants::SITE_TITLE) ?? '';
         $this->siteDescription = $branding->get($tenant, TenantConfigConstants::SITE_DESCRIPTION) ?? '';
@@ -124,6 +132,7 @@ class GeneralSettingsForm extends Component
             'reviewsEnabled' => ['boolean'],
             'registrationEnabled' => ['boolean'],
             'premiumListingsEnabled' => ['boolean'],
+            'companyUrlPattern' => ['required', 'string', 'in:' . implode(',', array_keys(CompanyUrlService::PATTERNS))],
             'siteTitle' => ['nullable', 'string', 'max:255'],
             'siteDescription' => ['nullable', 'string', 'max:500'],
             'metaKeywords' => ['nullable', 'string', 'max:500'],
@@ -138,6 +147,10 @@ class GeneralSettingsForm extends Component
         $tenant = tenant();
         $branding = app(TenantBrandingService::class);
         $tenantService = app(TenantService::class);
+
+        // Track URL-Pattern-Wechsel für Sitemap-Regenerierung
+        $previousPattern = $branding->get($tenant, TenantConfigConstants::COMPANY_URL_PATTERN) ?? 'id-slug';
+        $patternChanged = $previousPattern !== $this->companyUrlPattern;
 
         // Workspace name
         $tenantService->updateTenantName($tenant, $this->tenantName);
@@ -175,14 +188,20 @@ class GeneralSettingsForm extends Component
             TenantConfigConstants::REVIEWS_ENABLED => $this->reviewsEnabled,
             TenantConfigConstants::REGISTRATION_ENABLED => $this->registrationEnabled,
             TenantConfigConstants::PREMIUM_LISTINGS_ENABLED => $this->premiumListingsEnabled,
+            TenantConfigConstants::COMPANY_URL_PATTERN => $this->companyUrlPattern,
             TenantConfigConstants::SITE_TITLE => $this->siteTitle ?: null,
             TenantConfigConstants::SITE_DESCRIPTION => $this->siteDescription ?: null,
             TenantConfigConstants::META_KEYWORDS => $this->metaKeywords ?: null,
             TenantConfigConstants::FOOTER_TEXT => $this->footerText ?: null,
         ]);
 
+        // Sitemap regenerieren bei URL-Pattern-Wechsel
+        if ($patternChanged && app()->environment('production')) {
+            Artisan::queue('app:generate-sitemap');
+        }
+
         $this->saved = true;
-        $this->dispatch('toast', message: 'Einstellungen gespeichert', type: 'success');
+        $this->dispatch('toast', type: 'success', message: 'Einstellungen gespeichert');
     }
 
     public function render()

@@ -25,7 +25,7 @@
                 </select>
 
                 @if($search || $filterStatus)
-                    <button wire:click="$set('search', ''); $set('filterStatus', '');"
+                    <button wire:click="resetFilters"
                             class="dash-btn-icon"
                             title="Filter zurücksetzen">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -154,7 +154,7 @@
                                     @if($search || $filterStatus)
                                         <p class="dash-empty-title">Keine Einladungen gefunden</p>
                                         <p class="dash-empty-description">Versuchen Sie es mit anderen Suchbegriffen.</p>
-                                        <button wire:click="$set('search', ''); $set('filterStatus', '');" class="dash-btn dash-btn-sm dash-btn-primary">
+                                        <button wire:click="resetFilters" class="dash-btn dash-btn-sm dash-btn-primary">
                                             Filter zurücksetzen
                                         </button>
                                     @else

@@ -25,11 +25,13 @@ class City extends Model
         'longitude',
         'community',
         'slug',
+        'checked',
     ];
 
     protected $casts = [
         'latitude' => 'decimal:7',
         'longitude' => 'decimal:7',
+        'checked' => 'boolean',
     ];
 
     protected static function booted(): void

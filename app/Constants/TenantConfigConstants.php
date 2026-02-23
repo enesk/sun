@@ -40,6 +40,9 @@ class TenantConfigConstants
     public const REGISTRATION_ENABLED = 'features.registration_enabled';
     public const PREMIUM_LISTINGS_ENABLED = 'features.premium_listings_enabled';
 
+    // URL-Konfiguration
+    public const COMPANY_URL_PATTERN = 'settings.company_url_pattern';
+
     // Analytics
     public const GOOGLE_ANALYTICS_ID = 'settings.google_analytics_id';
     public const GOOGLE_TAG_MANAGER_ID = 'settings.google_tag_manager_id';
@@ -55,6 +58,7 @@ class TenantConfigConstants
         self::REGISTRATION_ENABLED => true,
         self::PREMIUM_LISTINGS_ENABLED => false,
         self::FOOTER_TEXT => '© {year} {tenant_name}. Alle Rechte vorbehalten.',
+        self::COMPANY_URL_PATTERN => 'id-slug',
     ];
 
     // Felder die Datei-Uploads sind (für Storage-Handling)

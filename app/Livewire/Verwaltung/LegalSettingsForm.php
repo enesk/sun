@@ -51,7 +51,7 @@ class LegalSettingsForm extends Component
         ]);
 
         $this->saved = true;
-        $this->dispatch('toast', message: 'Rechtliche Seiten gespeichert', type: 'success');
+        $this->dispatch('toast', type: 'success', message: 'Rechtliche Seiten gespeichert');
     }
 
     public function render()

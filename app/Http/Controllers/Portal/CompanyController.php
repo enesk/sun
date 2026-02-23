@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Portal\Category;
 use App\Models\Portal\City;
 use App\Models\Portal\Company;
+use App\Services\CompanyUrlService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
@@ -86,7 +88,7 @@ class CompanyController extends Controller
         ));
     }
 
-    public function show(string $companySlug): View|\Illuminate\Http\RedirectResponse
+    public function show(string $companySlug): View|RedirectResponse
     {
         $company = Company::findByUrlSlug($companySlug);
 
@@ -94,11 +96,48 @@ class CompanyController extends Controller
             abort(404);
         }
 
-        // 301 Redirect bei falschem Slug (SEO: kanonische URL)
-        if ($company->url_slug !== $companySlug) {
-            return redirect()->route('portal.companies.show', $company->url_slug, 301);
+        // 301 Redirect: falsches Pattern oder falscher Slug
+        $redirect = CompanyUrlService::canonicalRedirect(
+            $company,
+            CompanyUrlService::PATTERN_ID_SLUG,
+            companySlug: $companySlug
+        );
+        if ($redirect) {
+            return redirect($redirect, 301);
         }
 
+        return $this->renderCompanyShow($company);
+    }
+
+    public function showWithCity(string $citySlug, string $companySlug): View|RedirectResponse
+    {
+        $company = Company::findByUrlSlug($companySlug);
+
+        if (! $company || ! $company->is_active) {
+            abort(404);
+        }
+
+        // City eager-loaden falls noch nicht geladen (für Redirect-Check)
+        if (! $company->relationLoaded('city')) {
+            $company->load('city');
+        }
+
+        // 301 Redirect: falsches Pattern, falscher City-Slug oder falscher Company-Slug
+        $redirect = CompanyUrlService::canonicalRedirect(
+            $company,
+            CompanyUrlService::PATTERN_CITY_ID_SLUG,
+            citySlug: $citySlug,
+            companySlug: $companySlug
+        );
+        if ($redirect) {
+            return redirect($redirect, 301);
+        }
+
+        return $this->renderCompanyShow($company);
+    }
+
+    private function renderCompanyShow(Company $company): View
+    {
         $company->load([
             'categories',
             'city',

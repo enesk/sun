@@ -28,6 +28,12 @@ class RoleTable extends Component
         $this->resetPage();
     }
 
+    public function resetFilters(): void
+    {
+        $this->search = '';
+        $this->resetPage();
+    }
+
     public function confirmDelete(int $id, string $name): void
     {
         $this->deletingRoleId = $id;
@@ -52,7 +58,7 @@ class RoleTable extends Component
         $permissionService = app(TenantPermissionService::class);
 
         if (! $permissionService->tenantUserHasPermissionTo($tenant, Auth::user(), TenancyPermissionConstants::PERMISSION_DELETE_ROLES)) {
-            session()->flash('error', 'Keine Berechtigung.');
+            $this->dispatch('toast', type: 'error', message: 'Keine Berechtigung.');
             $this->cancelDelete();
             return;
         }
@@ -63,20 +69,20 @@ class RoleTable extends Component
             ->first();
 
         if (! $role) {
-            session()->flash('error', 'Rolle nicht gefunden.');
+            $this->dispatch('toast', type: 'error', message: 'Rolle nicht gefunden.');
             $this->cancelDelete();
             return;
         }
 
         // Check if role is in use
         if ($role->users()->count() > 0) {
-            session()->flash('error', "Die Rolle \"{$role->name}\" wird noch von Benutzern verwendet und kann nicht gelöscht werden.");
+            $this->dispatch('toast', type: 'error', message: "Die Rolle \"{$role->name}\" wird noch von Benutzern verwendet und kann nicht gelöscht werden.");
             $this->cancelDelete();
             return;
         }
 
         $role->delete();
-        session()->flash('success', "Rolle \"{$this->deletingRoleName}\" wurde gelöscht.");
+        $this->dispatch('toast', type: 'success', message: "Rolle \"{$this->deletingRoleName}\" wurde gelöscht.");
         $this->cancelDelete();
     }
 

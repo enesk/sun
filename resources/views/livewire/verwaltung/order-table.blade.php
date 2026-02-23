@@ -34,7 +34,7 @@
                 </select>
 
                 @if($search || $filterStatus)
-                    <button wire:click="$set('search', ''); $set('filterStatus', '');"
+                    <button wire:click="resetFilters"
                             class="dash-btn-icon"
                             title="Filter zurücksetzen">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">

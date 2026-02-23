@@ -28,6 +28,12 @@ class TeamTable extends Component
         $this->resetPage();
     }
 
+    public function resetFilters(): void
+    {
+        $this->search = '';
+        $this->resetPage();
+    }
+
     public function confirmDelete(string $uuid, string $name): void
     {
         $this->deletingTeamUuid = $uuid;
@@ -52,7 +58,7 @@ class TeamTable extends Component
         $permissionService = app(TenantPermissionService::class);
 
         if (! $permissionService->tenantUserHasPermissionTo($tenant, Auth::user(), TenancyPermissionConstants::PERMISSION_MANAGE_TEAM)) {
-            session()->flash('error', 'Keine Berechtigung.');
+            $this->dispatch('toast', type: 'error', message: 'Keine Berechtigung.');
             $this->cancelDelete();
             return;
         }
@@ -62,7 +68,7 @@ class TeamTable extends Component
             ->first();
 
         if (! $team) {
-            session()->flash('error', 'Team nicht gefunden.');
+            $this->dispatch('toast', type: 'error', message: 'Team nicht gefunden.');
             $this->cancelDelete();
             return;
         }
@@ -71,7 +77,7 @@ class TeamTable extends Component
         $team->tenantUsers()->detach();
         $team->delete();
 
-        session()->flash('success', "Team \"{$this->deletingTeamName}\" wurde gelöscht.");
+        $this->dispatch('toast', type: 'success', message: "Team \"{$this->deletingTeamName}\" wurde gelöscht.");
         $this->cancelDelete();
     }
 

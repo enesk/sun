@@ -79,11 +79,26 @@ class PermissionControlledMySQLDatabaseManager extends BaseManager
     }
 
     /**
-     * Connection-Config mit Tenant-eigenem User/Passwort überschreiben.
+     * Connection-Config: Immer zentrale (root) Credentials nutzen.
+     *
+     * Stancl's DatabaseConfig::tenantConfig() injiziert die gespeicherten
+     * Tenant-Credentials (db_username, db_password) in $baseConfig BEVOR
+     * diese Methode aufgerufen wird. Da unser Tenant-User keine DDL-Rechte
+     * hat (kein CREATE, ALTER, DROP), schlagen Migrations fehl.
+     *
+     * Fix: Wir überschreiben username/password explizit mit den zentralen
+     * Credentials. Schema-Operationen (Migrations) und Runtime-Queries
+     * laufen beide über den Root-User. Die DB-User-Isolation (tn_xxx) dient
+     * als zusätzliche Sicherheitsschicht für direkten MySQL-Zugriff,
+     * nicht für die Laravel-Application.
      */
     public function makeConnectionConfig(array $baseConfig, string $databaseName): array
     {
+        $centralConnection = config('tenancy.database.central_connection', 'central');
+
         $baseConfig['database'] = $databaseName;
+        $baseConfig['username'] = config("database.connections.{$centralConnection}.username");
+        $baseConfig['password'] = config("database.connections.{$centralConnection}.password");
 
         return $baseConfig;
     }

@@ -68,7 +68,7 @@ class ProfileForm extends Component
         ]);
 
         $this->saved = true;
-        $this->dispatch('toast', message: 'Profil gespeichert', type: 'success');
+        $this->dispatch('toast', type: 'success', message: 'Profil gespeichert');
     }
 
     public function changePassword(): void
@@ -91,7 +91,7 @@ class ProfileForm extends Component
         $this->newPasswordConfirmation = '';
 
         $this->passwordChanged = true;
-        $this->dispatch('toast', message: 'Passwort geändert', type: 'success');
+        $this->dispatch('toast', type: 'success', message: 'Passwort geändert');
     }
 
     public function render()

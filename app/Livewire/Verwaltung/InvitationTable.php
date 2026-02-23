@@ -36,6 +36,13 @@ class InvitationTable extends Component
         $this->resetPage();
     }
 
+    public function resetFilters(): void
+    {
+        $this->search = '';
+        $this->filterStatus = '';
+        $this->resetPage();
+    }
+
     public function confirmRevoke(int $id, string $email): void
     {
         $this->revokingId = $id;
@@ -60,7 +67,7 @@ class InvitationTable extends Component
         $permissionService = app(TenantPermissionService::class);
 
         if (! $permissionService->tenantUserHasPermissionTo($tenant, Auth::user(), TenancyPermissionConstants::PERMISSION_INVITE_MEMBERS)) {
-            session()->flash('error', 'Keine Berechtigung.');
+            $this->dispatch('toast', type: 'error', message: 'Keine Berechtigung.');
             $this->cancelRevoke();
             return;
         }
@@ -70,13 +77,13 @@ class InvitationTable extends Component
             ->first();
 
         if (! $invitation) {
-            session()->flash('error', 'Einladung nicht gefunden.');
+            $this->dispatch('toast', type: 'error', message: 'Einladung nicht gefunden.');
             $this->cancelRevoke();
             return;
         }
 
         $invitation->delete();
-        session()->flash('success', "Einladung an {$this->revokingEmail} wurde widerrufen.");
+        $this->dispatch('toast', type: 'success', message: "Einladung an {$this->revokingEmail} wurde widerrufen.");
         $this->cancelRevoke();
     }
 

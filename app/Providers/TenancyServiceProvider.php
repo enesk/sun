@@ -105,7 +105,7 @@ class TenancyServiceProvider extends ServiceProvider
     {
         // Lesbarer Username: tn_ + erste 8 Zeichen der UUID (ohne Bindestriche)
         DatabaseConfig::generateUsernamesUsing(function ($tenant) {
-            return 'tn_' . str_replace('-', '', substr($tenant->getTenantKey(), 0, 8));
+            return 'tn_' . str_replace('-', '', substr((string) $tenant->getTenantKey(), 0, 8));
         });
 
         // Sicheres Klartext-Passwort (32 Zeichen) — kein Hash, MySQL braucht Klartext

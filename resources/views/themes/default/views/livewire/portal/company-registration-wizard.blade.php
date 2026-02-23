@@ -90,7 +90,7 @@
 
             {{-- CTAs --}}
             <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <a href="{{ route('portal.companies.show', $createdCompany->url_slug) }}"
+                <a href="{{ $createdCompany->portal_url }}"
                    class="btn-portal flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-semibold w-full sm:w-auto"
                    style="border-radius: 0.75rem;">
                     Zum Firmenprofil

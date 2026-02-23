@@ -15,7 +15,7 @@ class CreateTenant extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $data['uuid'] = Str::uuid();
+        $data['uuid'] = (string) Str::uuid();
 
         // Flatten nested arrays from Filament form into dot-notation
         // keys for Stancl's VirtualColumn storage

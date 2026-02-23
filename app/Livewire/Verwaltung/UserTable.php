@@ -37,6 +37,13 @@ class UserTable extends Component
         $this->resetPage();
     }
 
+    public function resetFilters(): void
+    {
+        $this->search = '';
+        $this->filterRole = '';
+        $this->resetPage();
+    }
+
     public function sort(string $column): void
     {
         if ($this->sortBy === $column) {
@@ -55,23 +62,23 @@ class UserTable extends Component
         $permissionService = app(TenantPermissionService::class);
 
         if (! $permissionService->tenantUserHasPermissionTo($tenant, $user, TenancyPermissionConstants::PERMISSION_MANAGE_TEAM)) {
-            session()->flash('error', 'Keine Berechtigung.');
+            $this->dispatch('toast', type: 'error', message: 'Keine Berechtigung.');
             return;
         }
 
         if ($userId === $user->id) {
-            session()->flash('error', 'Du kannst deine eigene Rolle nicht ändern.');
+            $this->dispatch('toast', type: 'error', message: 'Du kannst deine eigene Rolle nicht ändern.');
             return;
         }
 
         $targetUser = $tenant->users()->where('users.id', $userId)->first();
         if (! $targetUser) {
-            session()->flash('error', 'Benutzer nicht gefunden.');
+            $this->dispatch('toast', type: 'error', message: 'Benutzer nicht gefunden.');
             return;
         }
 
         $permissionService->assignTenantUserRole($tenant, $targetUser, $roleName);
-        session()->flash('success', "Rolle von {$targetUser->name} wurde auf \"{$roleName}\" geändert.");
+        $this->dispatch('toast', type: 'success', message: "Rolle von {$targetUser->name} wurde auf \"{$roleName}\" geändert.");
     }
 
     public function confirmRemove(int $userId, string $userName): void
@@ -100,26 +107,26 @@ class UserTable extends Component
         $permissionService = app(TenantPermissionService::class);
 
         if (! $permissionService->tenantUserHasPermissionTo($tenant, $user, TenancyPermissionConstants::PERMISSION_MANAGE_TEAM)) {
-            session()->flash('error', 'Keine Berechtigung.');
+            $this->dispatch('toast', type: 'error', message: 'Keine Berechtigung.');
             $this->cancelRemove();
             return;
         }
 
         $targetUser = $tenant->users()->where('users.id', $this->removingUserId)->first();
         if (! $targetUser) {
-            session()->flash('error', 'Benutzer nicht gefunden.');
+            $this->dispatch('toast', type: 'error', message: 'Benutzer nicht gefunden.');
             $this->cancelRemove();
             return;
         }
 
         if (! $tenantService->canRemoveUser($tenant, $targetUser)) {
-            session()->flash('error', 'Dieser Benutzer kann nicht entfernt werden (mindestens ein Mitglied muss bleiben).');
+            $this->dispatch('toast', type: 'error', message: 'Dieser Benutzer kann nicht entfernt werden (mindestens ein Mitglied muss bleiben).');
             $this->cancelRemove();
             return;
         }
 
         $tenantService->removeUser($tenant, $targetUser);
-        session()->flash('success', "{$targetUser->name} wurde aus dem Workspace entfernt.");
+        $this->dispatch('toast', type: 'success', message: "{$targetUser->name} wurde aus dem Workspace entfernt.");
         $this->cancelRemove();
     }
 

@@ -123,6 +123,15 @@
                                 </a>
                             </li>
                         @endif
+                        <li>
+                            <button
+                                type="button"
+                                class="footer-main__link cursor-pointer bg-transparent border-0 p-0 text-left"
+                                @click="window.dispatchEvent(new Event('open-cookie-settings'))"
+                            >
+                                Cookie-Einstellungen
+                            </button>
+                        </li>
                     </ul>
                 </nav>
             </div>

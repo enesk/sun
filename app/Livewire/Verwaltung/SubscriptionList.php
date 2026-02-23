@@ -26,7 +26,7 @@ class SubscriptionList extends Component
 
         $permissionService = app(TenantPermissionService::class);
         if (! $permissionService->tenantUserHasPermissionTo($tenant, $user, TenancyPermissionConstants::PERMISSION_UPDATE_SUBSCRIPTIONS)) {
-            session()->flash('error', 'Keine Berechtigung für diese Aktion.');
+            $this->dispatch('toast', type: 'error', message: 'Keine Berechtigung für diese Aktion.');
             return;
         }
 
@@ -34,7 +34,7 @@ class SubscriptionList extends Component
         $subscription = $subscriptionService->findActiveByTenantAndSubscriptionUuid($tenant, $uuid);
 
         if (! $subscription || ! $subscriptionService->canDiscardSubscriptionCancellation($subscription)) {
-            session()->flash('error', 'Kündigung kann nicht widerrufen werden.');
+            $this->dispatch('toast', type: 'error', message: 'Kündigung kann nicht widerrufen werden.');
             return;
         }
 
@@ -44,7 +44,7 @@ class SubscriptionList extends Component
 
         $subscriptionService->discardSubscriptionCancellation($subscription, $strategy);
 
-        session()->flash('success', 'Kündigung wurde widerrufen. Das Abonnement wird automatisch verlängert.');
+        $this->dispatch('toast', type: 'success', message: 'Kündigung wurde widerrufen. Das Abonnement wird automatisch verlängert.');
         $this->showDiscardModal = false;
         $this->discardingUuid = null;
     }

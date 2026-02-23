@@ -39,7 +39,7 @@ class CancelSubscriptionForm extends Component
 
         $permissionService = app(TenantPermissionService::class);
         if (! $permissionService->tenantUserHasPermissionTo($tenant, $user, TenancyPermissionConstants::PERMISSION_UPDATE_SUBSCRIPTIONS)) {
-            session()->flash('error', 'Keine Berechtigung für diese Aktion.');
+            $this->dispatch('toast', type: 'error', message: 'Keine Berechtigung für diese Aktion.');
             return;
         }
 
@@ -47,7 +47,7 @@ class CancelSubscriptionForm extends Component
         $subscription = $subscriptionService->findActiveByTenantAndSubscriptionUuid($tenant, $this->subscriptionUuid);
 
         if (! $subscription) {
-            session()->flash('error', 'Abonnement nicht gefunden.');
+            $this->dispatch('toast', type: 'error', message: 'Abonnement nicht gefunden.');
             return;
         }
 

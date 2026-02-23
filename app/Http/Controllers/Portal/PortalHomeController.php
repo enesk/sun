@@ -17,6 +17,7 @@ class PortalHomeController extends Controller
         $featuredCompanies = Company::active()
             ->with(['categories', 'city', 'media'])
             ->premium()
+            ->whereHas('media', fn ($q) => $q->where('collection_name', 'gallery'))
             ->latest()
             ->take(6)
             ->get();
@@ -74,7 +75,8 @@ class PortalHomeController extends Controller
      */
     private function getRandomCompanies(int $count): \Illuminate\Database\Eloquent\Collection
     {
-        $total = Company::active()->count();
+        $baseQuery = Company::active()->whereHas('media', fn ($q) => $q->where('collection_name', 'gallery'));
+        $total = $baseQuery->count();
 
         if ($total === 0) {
             return new \Illuminate\Database\Eloquent\Collection();
@@ -86,7 +88,7 @@ class PortalHomeController extends Controller
 
         while ($ids->count() < $count && $attempts < $maxAttempts) {
             $offset = random_int(0, max(0, $total - 1));
-            $id = Company::active()->select('id')->skip($offset)->first()?->id;
+            $id = (clone $baseQuery)->select('companies.id')->skip($offset)->first()?->id;
             if ($id && !$ids->contains($id)) {
                 $ids->push($id);
             }

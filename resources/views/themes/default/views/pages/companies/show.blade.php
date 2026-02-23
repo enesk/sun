@@ -2,6 +2,7 @@
 
 @section('title', $company->name . ' — ' . ($currentTenant->name ?? config('app.name')))
 @section('meta_description', Str::limit($company->description, 160))
+@section('canonical', $company->portal_url)
 @section('og_type', 'business.business')
 @if($company->cover_url)
 @section('og_image', $company->cover_url)
