@@ -109,38 +109,32 @@ document.addEventListener('alpine:init', () => {
         },
 
         _applyConsent() {
+            // GA4 Consent Mode v2: GA ist bereits geladen (analytics.blade.php)
+            // Hier nur noch Consent-Status updaten
             if (this.statistics) {
                 window.dispatchEvent(new CustomEvent('cookie-consent-statistics', { detail: { allowed: true } }));
-                this._loadAnalytics();
+                this._upgradeConsent();
+            } else {
+                this._revokeConsent();
             }
         },
 
-        _loadAnalytics() {
-            // GA/GTM scripts are loaded dynamically when statistics consent is given
-            const gaId = document.querySelector('meta[name="ga-id"]')?.content;
-            const gtmId = document.querySelector('meta[name="gtm-id"]')?.content;
+        _upgradeConsent() {
+            // GA4 Consent Mode v2: Upgrade von denied → granted
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){window.dataLayer.push(arguments);}
+            gtag('consent', 'update', {
+                'analytics_storage': 'granted'
+            });
+        },
 
-            if (gaId && !document.querySelector('script[data-ga]')) {
-                const script = document.createElement('script');
-                script.src = 'https://www.googletagmanager.com/gtag/js?id=' + gaId;
-                script.async = true;
-                script.dataset.ga = 'true';
-                document.head.appendChild(script);
-
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){window.dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', gaId);
-            }
-
-            if (gtmId && !document.querySelector('script[data-gtm]')) {
-                (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-                new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-                j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.dataset.gtm='true';
-                j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
-                f.parentNode.insertBefore(j,f);
-                })(window,document,'script','dataLayer',gtmId);
-            }
+        _revokeConsent() {
+            // GA4 Consent Mode v2: Revoke — zurück auf denied
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){window.dataLayer.push(arguments);}
+            gtag('consent', 'update', {
+                'analytics_storage': 'denied'
+            });
         }
     }))
 
