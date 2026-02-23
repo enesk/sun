@@ -11,7 +11,16 @@ class SetTenantStorageUrl
 {
     public function handle(TenancyBootstrapped $event): void
     {
-        $tenantKey = $event->tenancy->tenant->getTenantKey();
+        $tenant = $event->tenancy->tenant;
+        $tenantKey = $tenant->getTenantKey();
+
+        // APP_URL dynamisch auf die aktuelle Tenant-Domain setzen.
+        // Ohne das generiert Spatie Media Library alle URLs mit der
+        // statischen .env APP_URL — Cross-Tenant URL-Leak.
+        if ($tenant->domain) {
+            $scheme = request()->isSecure() ? 'https' : 'http';
+            config(['app.url' => $scheme . '://' . $tenant->domain]);
+        }
 
         // URL der public Disk auf den Tenant-Symlink umbiegen:
         // public/storage-{tenant_key} → storage/tenant{key}/app/public
