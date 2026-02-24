@@ -1,28 +1,33 @@
 <x-layouts.email>
     <x-slot name="preview">
-        Ihre Testphase läuft bald ab — jetzt Premium sichern
+        Ihre Testphase ist abgelaufen — sichern Sie sich jetzt Premium
     </x-slot>
 
     <tr>
         <td class="sm-px-6" style="border-radius: 4px; padding: 48px; font-size: 16px; color: #334155; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05)" bgcolor="#ffffff">
             <h1 class="sm-leading-8" style="margin: 0 0 24px; font-size: 24px; font-weight: 600; color: #000">
-                Ihre Testphase läuft bald ab
+                Ihre Testphase ist abgelaufen
             </h1>
             <p style="margin: 0; line-height: 24px">
                 Hallo {{ $subscription->user->name }},
                 <br>
                 <br>
-                Ihre kostenlose Testphase für den <strong>{{ $subscription->plan->name }}</strong>-Plan läuft in Kürze ab. Aktivieren Sie jetzt Premium, um Ihre erweiterten Funktionen zu behalten.
+                Ihre 30-tägige Testphase für den <strong>{{ $subscription->plan->name ?? 'Premium' }}</strong>-Plan ist heute abgelaufen.
+            </p>
+
+            <p style="margin: 16px 0; line-height: 24px">
+                Ihre bisherigen Inhalte (Bilder, Antworten, Beschreibungen) bleiben gespeichert — sie werden nur nicht mehr öffentlich angezeigt, bis Sie upgraden.
             </p>
 
             <p style="margin: 16px 0 0 0; line-height: 24px; font-weight: 600;">
-                Was Sie verlieren würden:
+                Was Sie mit Premium behalten:
             </p>
             <ul style="margin: 8px 0 24px; padding-left: 20px; line-height: 28px;">
                 <li>Auf Bewertungen antworten</li>
                 <li>Bildergalerie & Cover-Bild</li>
-                <li>Top-Platzierung in der Suche</li>
+                <li>Top-Platzierung in Suchergebnissen</li>
                 <li>Detaillierte Statistiken</li>
+                <li>Verifiziert-Badge</li>
             </ul>
 
             <div style="text-align: center;">

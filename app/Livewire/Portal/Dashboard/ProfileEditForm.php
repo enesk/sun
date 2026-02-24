@@ -31,6 +31,7 @@ class ProfileEditForm extends Component
     // File uploads
     public $logo;
     public $cover;
+    public $galleryUploads = [];
 
     // UI State
     public array $citySuggestions = [];
@@ -40,6 +41,7 @@ class ProfileEditForm extends Component
     // Cached data (avoid re-querying on every render)
     public ?string $currentLogoUrl = null;
     public ?string $currentCoverUrl = null;
+    public array $existingGallery = [];
     public int $companyId = 0;
 
     public function mount(): void
@@ -59,6 +61,7 @@ class ProfileEditForm extends Component
         $this->selectedCategories = $company->categories->pluck('id')->toArray();
         $this->currentLogoUrl = $company->getFirstMediaUrl('logo', 'medium') ?: null;
         $this->currentCoverUrl = $company->getFirstMediaUrl('cover', 'banner') ?: null;
+        $this->loadExistingGallery($company);
 
         if ($company->city) {
             $this->citySearch = "{$company->city->zipcode} {$company->city->name}";
@@ -81,6 +84,8 @@ class ProfileEditForm extends Component
             'selectedCategories.*' => ['integer', 'exists:categories,id'],
             'logo' => ['nullable', 'image', 'max:2048'],
             'cover' => ['nullable', 'image', 'max:5120'],
+            'galleryUploads' => ['nullable', 'array', 'max:20'],
+            'galleryUploads.*' => ['image', 'max:5120'],
         ];
     }
 
@@ -102,6 +107,9 @@ class ProfileEditForm extends Component
             'logo.max' => 'Das Logo darf maximal 2 MB groß sein.',
             'cover.image' => 'Das Titelbild muss ein Bild sein (JPEG, PNG, WebP).',
             'cover.max' => 'Das Titelbild darf maximal 5 MB groß sein.',
+            'galleryUploads.max' => 'Maximal 20 Bilder erlaubt.',
+            'galleryUploads.*.image' => 'Nur Bilder erlaubt (JPEG, PNG, WebP).',
+            'galleryUploads.*.max' => 'Jedes Bild darf maximal 5 MB groß sein.',
         ];
     }
 
@@ -178,6 +186,24 @@ class ProfileEditForm extends Component
             $this->currentCoverUrl = $company->fresh()->getFirstMediaUrl('cover', 'banner') ?: null;
         }
 
+        // Gallery uploads (Premium only)
+        if (!empty($this->galleryUploads) && $company->is_premium) {
+            $currentCount = $company->getMedia('gallery')->count();
+            $maxAllowed = 20;
+
+            foreach ($this->galleryUploads as $galleryImage) {
+                if ($currentCount >= $maxAllowed) {
+                    break;
+                }
+                $company->addMedia($galleryImage->getRealPath())
+                    ->usingFileName('gallery_' . uniqid() . '.' . $galleryImage->getClientOriginalExtension())
+                    ->toMediaCollection('gallery');
+                $currentCount++;
+            }
+            $this->galleryUploads = [];
+            $this->loadExistingGallery($company->fresh());
+        }
+
         $this->saved = true;
         $this->dispatch('profile-saved');
     }
@@ -220,6 +246,27 @@ class ProfileEditForm extends Component
         $company = $this->getCompany();
         $company->clearMediaCollection('cover');
         $this->currentCoverUrl = null;
+    }
+
+    public function removeGalleryImage(int $mediaId): void
+    {
+        $company = $this->getCompany();
+        $media = $company->getMedia('gallery')->firstWhere('id', $mediaId);
+
+        if ($media) {
+            $media->delete();
+            $this->loadExistingGallery($company->fresh());
+        }
+    }
+
+    private function loadExistingGallery(Company $company): void
+    {
+        $this->existingGallery = $company->getMedia('gallery')->map(fn ($media) => [
+            'id' => $media->id,
+            'url' => $media->getUrl('medium'),
+            'name' => $media->file_name,
+            'size' => $media->human_readable_size,
+        ])->toArray();
     }
 
     private function getCompany(): Company

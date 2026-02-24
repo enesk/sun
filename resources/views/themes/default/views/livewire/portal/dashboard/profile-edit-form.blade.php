@@ -204,6 +204,115 @@
             </div>
         @endif
 
+        {{-- Bildergalerie --}}
+        @if($ownerIsPremium)
+            <div class="card-portal">
+                <h2 class="text-base font-semibold text-base-content mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-portal-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    Bildergalerie
+                    <span class="text-xs font-normal text-base-content/50">({{ count($existingGallery) }} von 20)</span>
+                </h2>
+
+                {{-- Existing Gallery Grid --}}
+                @if(count($existingGallery) > 0)
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-4">
+                        @foreach($existingGallery as $image)
+                            <div class="relative group rounded-lg overflow-hidden border border-base-200 aspect-square">
+                                <img src="{{ $image['url'] }}" alt="{{ $image['name'] }}" class="w-full h-full object-cover">
+                                <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                                    <button type="button"
+                                            wire:click="removeGalleryImage({{ $image['id'] }})"
+                                            wire:confirm="Bild wirklich löschen?"
+                                            class="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 hover:bg-red-50 text-red-600 rounded-full p-2"
+                                            aria-label="Bild löschen">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <span class="absolute bottom-1 right-1 text-[10px] bg-black/50 text-white px-1.5 py-0.5 rounded">{{ $image['size'] }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
+                {{-- Upload Area --}}
+                @if(count($existingGallery) < 20)
+                    <div class="relative">
+                        <label for="gallery-upload"
+                               class="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed border-base-300 rounded-xl cursor-pointer hover:border-portal-primary/50 hover:bg-portal-primary/[0.02] transition-colors">
+                            <svg class="w-8 h-8 text-base-content/30 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                            </svg>
+                            <span class="text-sm font-medium text-base-content/60">Bilder hochladen</span>
+                            <span class="text-xs text-base-content/40 mt-1">JPEG, PNG, WebP — max. 5 MB pro Bild</span>
+                            <span class="text-xs text-base-content/40">Noch {{ 20 - count($existingGallery) }} Bilder möglich</span>
+                        </label>
+                        <input type="file" id="gallery-upload" wire:model="galleryUploads" class="hidden" accept="image/jpeg,image/png,image/webp" multiple>
+                    </div>
+
+                    <div wire:loading wire:target="galleryUploads" class="text-xs text-portal-primary mt-2 flex items-center gap-1">
+                        <span class="loading loading-spinner loading-xs"></span> Bilder werden hochgeladen...
+                    </div>
+                @else
+                    <p class="text-xs text-base-content/50">Maximum erreicht (20 von 20 Bildern).</p>
+                @endif
+
+                @error('galleryUploads') <p class="text-xs text-error mt-1">{{ $message }}</p> @enderror
+                @error('galleryUploads.*') <p class="text-xs text-error mt-1">{{ $message }}</p> @enderror
+            </div>
+        @else
+            {{-- Soft-Lock: Bildergalerie ist Premium-Feature --}}
+            <div class="card-portal relative overflow-hidden">
+                <h2 class="text-base font-semibold text-base-content mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-portal-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    Bildergalerie
+                    <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full" style="background-color: rgba(var(--portal-accent-rgb, 245 158 11), 0.12); color: var(--portal-accent-dark, #92400e);">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                        Premium
+                    </span>
+                </h2>
+
+                {{-- Blurred placeholder gallery grid --}}
+                <div class="relative">
+                    <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 opacity-40 pointer-events-none select-none" style="filter: blur(2px);" aria-hidden="true">
+                        @for($i = 0; $i < 8; $i++)
+                            <div class="aspect-square rounded-lg" style="background: linear-gradient(135deg, rgba(var(--portal-primary-rgb, 59 130 246), {{ 0.05 + ($i * 0.02) }}), rgba(var(--portal-accent-rgb, 245 158 11), {{ 0.03 + ($i * 0.01) }}));"></div>
+                        @endfor
+                    </div>
+
+                    {{-- Lock overlay --}}
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <div class="text-center px-4">
+                            <div class="w-10 h-10 mx-auto mb-2 rounded-full flex items-center justify-center" style="background-color: rgba(var(--portal-accent-rgb, 245 158 11), 0.12);">
+                                <svg class="w-5 h-5" style="color: var(--portal-accent)" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                </svg>
+                            </div>
+                            <p class="text-sm font-medium" style="color: var(--portal-accent-dark)">Premium-Feature</p>
+                            <p class="text-xs mt-0.5 text-base-content/50">Bis zu 20 Bilder auf Ihrer Firmenseite</p>
+                            @if(count($existingGallery) > 0)
+                                <p class="text-xs mt-1 font-medium text-base-content/60">{{ count($existingGallery) }} Bilder gespeichert — mit Premium wieder sichtbar</p>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <a href="{{ route('portal.owner.premium') }}" class="mt-3 flex items-center gap-2 text-xs font-medium transition-colors hover:opacity-80" style="color: var(--portal-accent);">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                    </svg>
+                    Mit Premium freischalten — 9,90 €/Monat
+                </a>
+            </div>
+        @endif
+
         {{-- Adresse --}}
         <div class="card-portal">
             <h2 class="text-base font-semibold text-base-content mb-4 flex items-center gap-2">

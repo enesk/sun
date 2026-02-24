@@ -196,46 +196,182 @@
         </div>
 
         {{-- ================================================================ --}}
-        {{-- SEKTION 4: Öffnungszeiten                                       --}}
+        {{-- SEKTION 4: Social Links (Premium)                              --}}
         {{-- ================================================================ --}}
         <div class="dash-card dash-card-padded">
-            <h2 class="dash-form-section-title">Öffnungszeiten</h2>
+            <h2 class="dash-form-section-title">
+                Social Media
+                @if(!$isPremium)
+                    <span class="inline-flex items-center gap-0.5 text-xs font-medium ml-1 px-1.5 py-0.5 rounded" style="background-color: rgba(var(--portal-accent-rgb, 245 158 11), 0.12); color: var(--portal-accent-dark, #92400e);">
+                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                        Premium
+                    </span>
+                @endif
+            </h2>
 
-            <div class="space-y-2">
-                @php
-                    $dayNames = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
-                @endphp
-
-                @foreach($dayNames as $index => $dayName)
-                    <div class="flex items-center gap-3 py-2 {{ $index < 6 ? 'border-b' : '' }}"
-                         style="{{ $index < 6 ? 'border-color: var(--dash-border);' : '' }}">
-                        <span class="w-24 sm:w-28 text-sm font-medium shrink-0" style="color: var(--dash-text-secondary);">
-                            {{ $dayName }}
-                        </span>
-
-                        <label class="dash-checkbox shrink-0">
-                            <input type="checkbox"
-                                   wire:model.live="openingHours.{{ $index }}.is_closed"
-                                   style="accent-color: var(--dash-danger, #dc2626);">
-                            <span class="text-xs" style="color: var(--dash-text-muted);">Geschlossen</span>
-                        </label>
-
-                        @if(!($openingHours[$index]['is_closed'] ?? false))
-                            <div class="flex items-center gap-2 ml-auto">
-                                <input type="time"
-                                       wire:model.blur="openingHours.{{ $index }}.opens_at"
-                                       class="dash-input" style="width: auto; padding: 0.375rem 0.5rem;">
-                                <span style="color: var(--dash-text-muted);">–</span>
-                                <input type="time"
-                                       wire:model.blur="openingHours.{{ $index }}.closes_at"
-                                       class="dash-input" style="width: auto; padding: 0.375rem 0.5rem;">
-                            </div>
-                        @else
-                            <span class="ml-auto text-sm" style="color: var(--dash-danger);">Geschlossen</span>
-                        @endif
+            @if($isPremium || $isAdmin)
+                <div class="dash-form-grid dash-form-grid-2">
+                    <div>
+                        <label class="dash-label">Facebook</label>
+                        <input type="url" wire:model.blur="socialFacebook" placeholder="https://facebook.com/..."
+                               class="dash-input {{ $errors->has('socialFacebook') ? 'dash-input-error' : '' }}">
+                        @error('socialFacebook') <p class="dash-input-error-msg">{{ $message }}</p> @enderror
                     </div>
-                @endforeach
-            </div>
+                    <div>
+                        <label class="dash-label">Instagram</label>
+                        <input type="url" wire:model.blur="socialInstagram" placeholder="https://instagram.com/..."
+                               class="dash-input {{ $errors->has('socialInstagram') ? 'dash-input-error' : '' }}">
+                        @error('socialInstagram') <p class="dash-input-error-msg">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="dash-label">LinkedIn</label>
+                        <input type="url" wire:model.blur="socialLinkedin" placeholder="https://linkedin.com/..."
+                               class="dash-input {{ $errors->has('socialLinkedin') ? 'dash-input-error' : '' }}">
+                        @error('socialLinkedin') <p class="dash-input-error-msg">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="dash-label">X (Twitter)</label>
+                        <input type="url" wire:model.blur="socialTwitter" placeholder="https://x.com/..."
+                               class="dash-input {{ $errors->has('socialTwitter') ? 'dash-input-error' : '' }}">
+                        @error('socialTwitter') <p class="dash-input-error-msg">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+                <p class="dash-input-hint mt-2">Links werden auf Ihrem öffentlichen Firmenprofil angezeigt.</p>
+            @else
+                {{-- Soft-Lock: Social Links sind Premium --}}
+                <div class="relative">
+                    <div class="dash-form-grid dash-form-grid-2 opacity-40 pointer-events-none select-none" aria-hidden="true">
+                        <div>
+                            <label class="dash-label">Facebook</label>
+                            <div class="dash-input" style="background: var(--dash-bg-secondary);">&nbsp;</div>
+                        </div>
+                        <div>
+                            <label class="dash-label">Instagram</label>
+                            <div class="dash-input" style="background: var(--dash-bg-secondary);">&nbsp;</div>
+                        </div>
+                        <div>
+                            <label class="dash-label">LinkedIn</label>
+                            <div class="dash-input" style="background: var(--dash-bg-secondary);">&nbsp;</div>
+                        </div>
+                        <div>
+                            <label class="dash-label">X (Twitter)</label>
+                            <div class="dash-input" style="background: var(--dash-bg-secondary);">&nbsp;</div>
+                        </div>
+                    </div>
+                    <div class="absolute inset-0 flex items-center justify-center" style="background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.7) 40%, rgba(255,255,255,0.9) 100%);">
+                        <div class="text-center p-4">
+                            <div class="w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center" style="background-color: rgba(var(--portal-accent-rgb, 245 158 11), 0.12);">
+                                <svg class="w-5 h-5" style="color: var(--portal-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                                </svg>
+                            </div>
+                            <p class="text-sm font-semibold" style="color: var(--dash-text-primary);">Social Media Links</p>
+                            <p class="text-xs mt-0.5" style="color: var(--dash-text-secondary);">Verlinken Sie Facebook, Instagram & mehr auf Ihrem Profil.</p>
+                            <a href="{{ route('verwaltung.subscriptions.index') }}" class="inline-flex items-center gap-1 text-xs font-medium mt-2 transition-colors hover:opacity-80" style="color: var(--portal-accent);">
+                                Auf Premium upgraden
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        </div>
+
+        {{-- ================================================================ --}}
+        {{-- SEKTION 5: Öffnungszeiten (Premium)                             --}}
+        {{-- ================================================================ --}}
+        <div class="dash-card dash-card-padded">
+            <h2 class="dash-form-section-title">
+                Öffnungszeiten
+                @if(!$isPremium)
+                    <span class="inline-flex items-center gap-0.5 text-xs font-medium ml-1 px-1.5 py-0.5 rounded" style="background-color: rgba(var(--portal-accent-rgb, 245 158 11), 0.12); color: var(--portal-accent-dark, #92400e);">
+                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                        Premium
+                    </span>
+                @endif
+            </h2>
+
+            @if($isPremium || $isAdmin)
+                <div class="space-y-2">
+                    @php
+                        $dayNames = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+                    @endphp
+
+                    @foreach($dayNames as $index => $dayName)
+                        <div class="flex items-center gap-3 py-2 {{ $index < 6 ? 'border-b' : '' }}"
+                             style="{{ $index < 6 ? 'border-color: var(--dash-border);' : '' }}">
+                            <span class="w-24 sm:w-28 text-sm font-medium shrink-0" style="color: var(--dash-text-secondary);">
+                                {{ $dayName }}
+                            </span>
+
+                            <label class="dash-checkbox shrink-0">
+                                <input type="checkbox"
+                                       wire:model.live="openingHours.{{ $index }}.is_closed"
+                                       style="accent-color: var(--dash-danger, #dc2626);">
+                                <span class="text-xs" style="color: var(--dash-text-muted);">Geschlossen</span>
+                            </label>
+
+                            @if(!($openingHours[$index]['is_closed'] ?? false))
+                                <div class="flex items-center gap-2 ml-auto">
+                                    <input type="time"
+                                           wire:model.blur="openingHours.{{ $index }}.opens_at"
+                                           class="dash-input" style="width: auto; padding: 0.375rem 0.5rem;">
+                                    <span style="color: var(--dash-text-muted);">–</span>
+                                    <input type="time"
+                                           wire:model.blur="openingHours.{{ $index }}.closes_at"
+                                           class="dash-input" style="width: auto; padding: 0.375rem 0.5rem;">
+                                </div>
+                            @else
+                                <span class="ml-auto text-sm" style="color: var(--dash-danger);">Geschlossen</span>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+                <p class="dash-input-hint mt-3">Öffnungszeiten werden auf Ihrem öffentlichen Firmenprofil angezeigt.</p>
+            @else
+                {{-- Soft-Lock: Öffnungszeiten sind Premium --}}
+                <div class="relative">
+                    @php $dayNames = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']; @endphp
+                    <div class="space-y-2 opacity-40 pointer-events-none select-none" aria-hidden="true">
+                        @foreach($dayNames as $index => $dayName)
+                            <div class="flex items-center gap-3 py-2 {{ $index < 6 ? 'border-b' : '' }}"
+                                 style="{{ $index < 6 ? 'border-color: var(--dash-border);' : '' }}">
+                                <span class="w-24 sm:w-28 text-sm font-medium shrink-0" style="color: var(--dash-text-secondary);">
+                                    {{ $dayName }}
+                                </span>
+                                <div class="flex items-center gap-2 ml-auto">
+                                    <div class="dash-input" style="width: 5rem; padding: 0.375rem 0.5rem; background: var(--dash-bg-secondary);">{{ $index < 5 ? '08:00' : '--:--' }}</div>
+                                    <span style="color: var(--dash-text-muted);">–</span>
+                                    <div class="dash-input" style="width: 5rem; padding: 0.375rem 0.5rem; background: var(--dash-bg-secondary);">{{ $index < 5 ? '17:00' : '--:--' }}</div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <div class="absolute inset-0 flex items-center justify-center" style="background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 30%, rgba(255,255,255,0.9) 100%);">
+                        <div class="text-center p-4">
+                            <div class="w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center" style="background-color: rgba(var(--portal-accent-rgb, 245 158 11), 0.12);">
+                                <svg class="w-5 h-5" style="color: var(--portal-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <p class="text-sm font-semibold" style="color: var(--dash-text-primary);">Öffnungszeiten anzeigen</p>
+                            <p class="text-xs mt-0.5" style="color: var(--dash-text-secondary);">Zeigen Sie Besuchern wann Sie erreichbar sind.</p>
+                            <a href="{{ route('verwaltung.subscriptions.index') }}" class="inline-flex items-center gap-1 text-xs font-medium mt-2 transition-colors hover:opacity-80" style="color: var(--portal-accent);">
+                                Auf Premium upgraden
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            @endif
         </div>
 
         {{-- ================================================================ --}}
@@ -333,7 +469,6 @@
                 {{-- Galerie --}}
                 <div>
                     @php
-                        $isPremium = $isEdit && $company ? $company->is_premium : ($is_premium ?? false);
                         $maxGallery = $isPremium ? 20 : 3;
                         $currentGalleryCount = count($existingGallery) + count($gallery);
                         $galleryFull = $currentGalleryCount >= $maxGallery;
@@ -406,7 +541,7 @@
                                     <p class="text-xs mt-0.5" style="color: var(--dash-text-secondary)">
                                         Mit Premium laden Sie bis zu <strong>20 Fotos</strong> hoch und zeigen Ihr Unternehmen von seiner besten Seite.
                                     </p>
-                                    <a href="{{ route('verwaltung.settings') }}" class="inline-flex items-center gap-1 text-xs font-medium mt-1.5 transition-colors hover:opacity-80" style="color: var(--portal-accent);">
+                                    <a href="{{ route('verwaltung.subscriptions.index') }}" class="inline-flex items-center gap-1 text-xs font-medium mt-1.5 transition-colors hover:opacity-80" style="color: var(--portal-accent);">
                                         Auf Premium upgraden
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -418,7 +553,7 @@
                     @elseif(!$isPremium && $currentGalleryCount > 0)
                         <p class="dash-input-hint mt-1">
                             {{ $maxGallery - $currentGalleryCount }} {{ ($maxGallery - $currentGalleryCount) === 1 ? 'Bild' : 'Bilder' }} verbleibend ·
-                            <a href="{{ route('verwaltung.settings') }}" class="font-medium transition-colors hover:opacity-80" style="color: var(--portal-accent);">Premium: bis zu 20 Bilder</a>
+                            <a href="{{ route('verwaltung.subscriptions.index') }}" class="font-medium transition-colors hover:opacity-80" style="color: var(--portal-accent);">Premium: bis zu 20 Bilder</a>
                         </p>
                     @endif
                 </div>

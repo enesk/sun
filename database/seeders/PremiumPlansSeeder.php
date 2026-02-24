@@ -15,6 +15,7 @@ class PremiumPlansSeeder extends Seeder
     public function run(): void
     {
         $eurCurrency = Currency::where('code', 'EUR')->firstOrFail();
+        $dayInterval = Interval::where('slug', 'day')->firstOrFail();
         $monthInterval = Interval::where('slug', 'month')->firstOrFail();
         $yearInterval = Interval::where('slug', 'year')->firstOrFail();
 
@@ -75,7 +76,7 @@ class PremiumPlansSeeder extends Seeder
             ]
         );
 
-        // Plan: Premium Monatlich (29,90 €)
+        // Plan: Premium Monatlich (9,90 €)
         $premiumMonthly = Plan::updateOrCreate(
             ['slug' => 'premium-monthly'],
             [
@@ -87,13 +88,13 @@ class PremiumPlansSeeder extends Seeder
                 'is_active' => true,
                 'is_visible' => true,
                 'has_trial' => true,
-                'trial_interval_id' => $monthInterval->id,
-                'trial_interval_count' => 14, // 14 Tage Trial
+                'trial_interval_id' => $dayInterval->id,
+                'trial_interval_count' => 30, // 30 Tage Trial ohne Kreditkarte
                 'description' => 'Premium-Eintrag mit monatlicher Abrechnung. Jederzeit kündbar.',
             ]
         );
 
-        // Plan: Premium Jährlich (249,00 € — 2 Monate gespart)
+        // Plan: Premium Jährlich (99,00 € — 2 Monate gratis)
         $premiumYearly = Plan::updateOrCreate(
             ['slug' => 'premium-yearly'],
             [
@@ -105,9 +106,9 @@ class PremiumPlansSeeder extends Seeder
                 'is_active' => true,
                 'is_visible' => true,
                 'has_trial' => true,
-                'trial_interval_id' => $monthInterval->id,
-                'trial_interval_count' => 14, // 14 Tage Trial
-                'description' => 'Premium-Eintrag mit jährlicher Abrechnung. Sie sparen über 100 € im Jahr.',
+                'trial_interval_id' => $dayInterval->id,
+                'trial_interval_count' => 30, // 30 Tage Trial ohne Kreditkarte
+                'description' => 'Premium-Eintrag mit jährlicher Abrechnung. Sie sparen über 20 € im Jahr.',
             ]
         );
 
@@ -115,7 +116,7 @@ class PremiumPlansSeeder extends Seeder
         PlanPrice::updateOrCreate(
             ['plan_id' => $premiumMonthly->id, 'currency_id' => $eurCurrency->id],
             [
-                'price' => 2990, // 29,90 €
+                'price' => 990, // 9,90 €
                 'type' => 'flat_rate',
             ]
         );
@@ -123,14 +124,14 @@ class PremiumPlansSeeder extends Seeder
         PlanPrice::updateOrCreate(
             ['plan_id' => $premiumYearly->id, 'currency_id' => $eurCurrency->id],
             [
-                'price' => 24900, // 249,00 €
+                'price' => 9900, // 99,00 €
                 'type' => 'flat_rate',
             ]
         );
 
         $this->command->info('Premium-Pläne erfolgreich erstellt:');
         $this->command->info("  - Basis (Produkt, kostenlos)");
-        $this->command->info("  - Premium Monatlich: 29,90 €/Monat (14 Tage Trial)");
-        $this->command->info("  - Premium Jährlich: 249,00 €/Jahr (14 Tage Trial)");
+        $this->command->info("  - Premium Monatlich: 9,90 €/Monat (30 Tage Trial ohne Kreditkarte)");
+        $this->command->info("  - Premium Jährlich: 99,00 €/Jahr (30 Tage Trial ohne Kreditkarte)");
     }
 }

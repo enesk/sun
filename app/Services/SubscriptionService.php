@@ -306,6 +306,7 @@ class SubscriptionService
                     Subscribed::dispatch($subscription);
                     break;
                 case SubscriptionStatus::CANCELED->value:
+                case SubscriptionStatus::INACTIVE->value:
                     SubscriptionCancelled::dispatch($subscription);
                     break;
             }
@@ -641,6 +642,12 @@ class SubscriptionService
             $this->updateSubscription($subscription, [
                 'status' => SubscriptionStatus::INACTIVE->value,
             ]);
+
+            // Trial-Expired E-Mail senden
+            if ($subscription->user) {
+                \Illuminate\Support\Facades\Mail::to($subscription->user->email)
+                    ->queue(new \App\Mail\Subscription\TrialExpired($subscription));
+            }
         });
     }
 

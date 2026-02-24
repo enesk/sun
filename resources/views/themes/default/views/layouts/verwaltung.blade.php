@@ -254,6 +254,12 @@
                 </div>
             @endif
 
+            {{-- Trial Banner --}}
+            @livewire('verwaltung.trial-banner')
+
+            {{-- Downgrade-Modal (nach Trial-Ende) --}}
+            @livewire('verwaltung.downgrade-modal')
+
             {{-- Page content --}}
             <div class="dash-content">
                 @yield('content')

@@ -43,6 +43,12 @@ class CompanyForm extends Component
     // Owner (admin only)
     public ?int $user_id = null;
 
+    // Social Links (Premium)
+    public string $socialFacebook = '';
+    public string $socialInstagram = '';
+    public string $socialLinkedin = '';
+    public string $socialTwitter = '';
+
     // Media
     public $logo;
     public $cover;
@@ -87,6 +93,10 @@ class CompanyForm extends Component
             'logo' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
             'cover' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:4096'],
             'gallery.*' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:4096'],
+            'socialFacebook' => ['nullable', 'url:http,https', 'max:255'],
+            'socialInstagram' => ['nullable', 'url:http,https', 'max:255'],
+            'socialLinkedin' => ['nullable', 'url:http,https', 'max:255'],
+            'socialTwitter' => ['nullable', 'url:http,https', 'max:255'],
             'openingHours.*.opens_at' => ['nullable', 'string'],
             'openingHours.*.closes_at' => ['nullable', 'string'],
             'openingHours.*.is_closed' => ['boolean'],
@@ -129,6 +139,14 @@ class CompanyForm extends Component
             'website' => $this->website ?: null,
             'is_active' => $this->is_active,
         ];
+
+        // Social Links (Premium — columns must exist)
+        if (\Schema::hasColumn('companies', 'social_facebook')) {
+            $data['social_facebook'] = $this->socialFacebook ?: null;
+            $data['social_instagram'] = $this->socialInstagram ?: null;
+            $data['social_linkedin'] = $this->socialLinkedin ?: null;
+            $data['social_twitter'] = $this->socialTwitter ?: null;
+        }
 
         // Admin-only fields
         if (auth()->user()->isAdmin()) {
@@ -222,9 +240,15 @@ class CompanyForm extends Component
             $currentCity = City::find($this->city_id);
         }
 
+        // Premium-Status: Edit → aus Company, Create → aus Formular-Feld
+        $isPremium = $this->isEdit && $this->company
+            ? $this->company->is_premium
+            : $this->is_premium;
+
         return view('livewire.verwaltung.company-form', compact(
             'categories',
             'isAdmin',
+            'isPremium',
             'cityResults',
             'currentCity',
         ));
@@ -246,6 +270,14 @@ class CompanyForm extends Component
         $this->is_premium = $company->is_premium;
         $this->is_verified = $company->is_verified;
         $this->user_id = $company->user_id;
+
+        // Social Links laden (falls Spalten existieren)
+        if (\Schema::hasColumn('companies', 'social_facebook')) {
+            $this->socialFacebook = $company->social_facebook ?? '';
+            $this->socialInstagram = $company->social_instagram ?? '';
+            $this->socialLinkedin = $company->social_linkedin ?? '';
+            $this->socialTwitter = $company->social_twitter ?? '';
+        }
 
         // Öffnungszeiten laden
         $hours = $company->openingHours;

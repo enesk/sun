@@ -98,6 +98,19 @@ class Tenant extends Model implements TenantWithDatabase
         return $subscriptionService->getTenantSubscriptionProductMetadata($this);
     }
 
+    /**
+     * Prüft ob der Tenant ein bestimmtes Premium-Feature hat.
+     * Liest aus der Product-Metadata des aktiven Abos.
+     *
+     * Beispiel: $tenant->hasFeature('gallery_enabled')
+     */
+    public function hasFeature(string $feature, mixed $default = false): mixed
+    {
+        $metadata = $this->subscriptionProductMetadata();
+
+        return $metadata[$feature] ?? $default;
+    }
+
     public function roles(): HasMany
     {
         return $this->hasMany(Role::class);
