@@ -333,16 +333,16 @@
 
                     {{-- Bewertungs-Zusammenfassung (wenn Bewertungen vorhanden) --}}
                     @if($company->rating_count > 0)
-                        <div class="flex items-center gap-4 mb-6 p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                            <div class="text-center">
-                                <div class="text-3xl font-bold text-[#0F172A]">{{ number_format($company->rating, 1) }}</div>
-                                <div class="mt-1">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-6 p-3 sm:p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                            <div class="flex items-center sm:block sm:text-center gap-3 sm:gap-0">
+                                <div class="text-2xl sm:text-3xl font-bold text-[#0F172A]">{{ number_format($company->rating, 1) }}</div>
+                                <div class="sm:mt-1">
                                     @include('components.star-rating', ['rating' => $company->rating, 'size' => 'sm'])
                                 </div>
-                                <div class="text-xs text-[#94A3B8] mt-1">{{ $company->rating_count }} {{ $company->rating_count === 1 ? 'Bewertung' : 'Bewertungen' }}</div>
+                                <div class="text-xs text-[#94A3B8] sm:mt-1">{{ $company->rating_count }} {{ $company->rating_count === 1 ? 'Bewertung' : 'Bewertungen' }}</div>
                             </div>
-                            <div class="h-12 w-px bg-[#E2E8F0]"></div>
-                            <div class="flex-1">
+                            <div class="hidden sm:block h-12 w-px bg-[#E2E8F0]"></div>
+                            <div class="border-t sm:border-t-0 border-[#E2E8F0] pt-3 sm:pt-0 flex-1">
                                 <livewire:portal.submit-review-form :company="$company" />
                             </div>
                         </div>
