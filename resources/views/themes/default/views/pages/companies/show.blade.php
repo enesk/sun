@@ -247,55 +247,57 @@
                             @endif
                         </div>
 
-                        {{-- Lightbox --}}
-                        <div x-show="isOpen"
-                             x-transition:enter="transition ease-out duration-200"
-                             x-transition:enter-start="opacity-0"
-                             x-transition:enter-end="opacity-100"
-                             x-transition:leave="transition ease-in duration-150"
-                             x-transition:leave-start="opacity-100"
-                             x-transition:leave-end="opacity-0"
-                             class="company-gallery__lightbox"
-                             role="dialog"
-                             aria-modal="true"
-                             aria-label="Bildergalerie"
-                             @keydown.escape.window="close()"
-                             @keydown.left.window="prev()"
-                             @keydown.right.window="next()">
-                            {{-- Backdrop --}}
-                            <div class="company-gallery__lightbox-backdrop" @click="close()"></div>
+                        {{-- Lightbox — teleported to body to escape .reveal stacking context --}}
+                        <template x-teleport="body">
+                            <div x-show="isOpen"
+                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0"
+                                 x-transition:enter-end="opacity-100"
+                                 x-transition:leave="transition ease-in duration-150"
+                                 x-transition:leave-start="opacity-100"
+                                 x-transition:leave-end="opacity-0"
+                                 class="company-gallery__lightbox"
+                                 role="dialog"
+                                 aria-modal="true"
+                                 aria-label="Bildergalerie"
+                                 @keydown.escape.window="close()"
+                                 @keydown.left.window="prev()"
+                                 @keydown.right.window="next()">
+                                {{-- Backdrop --}}
+                                <div class="company-gallery__lightbox-backdrop" @click="close()"></div>
 
-                            {{-- Close Button --}}
-                            <button @click="close()" class="company-gallery__lightbox-close" aria-label="Schließen">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                            </button>
-
-                            {{-- Counter --}}
-                            <div class="company-gallery__lightbox-counter" x-text="`${current + 1} / {{ $galleryMedia->count() }}`"></div>
-
-                            {{-- Navigation --}}
-                            @if($galleryMedia->count() > 1)
-                                <button @click="prev()" class="company-gallery__lightbox-nav company-gallery__lightbox-nav--prev" aria-label="Vorheriges Bild">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                {{-- Close Button --}}
+                                <button @click="close()" class="company-gallery__lightbox-close" aria-label="Schließen">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                 </button>
-                                <button @click="next()" class="company-gallery__lightbox-nav company-gallery__lightbox-nav--next" aria-label="Nächstes Bild">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                                </button>
-                            @endif
 
-                            {{-- Image --}}
-                            <div class="company-gallery__lightbox-content">
-                                @foreach($galleryMedia as $index => $media)
-                                    <img x-show="current === {{ $index }}"
-                                         x-transition:enter="transition ease-out duration-200"
-                                         x-transition:enter-start="opacity-0 scale-95"
-                                         x-transition:enter-end="opacity-100 scale-100"
-                                         src="{{ $media->getUrl() }}"
-                                         alt="{{ $media->name ?: $company->name . ' — Bild ' . ($index + 1) }}"
-                                         class="company-gallery__lightbox-img">
-                                @endforeach
+                                {{-- Counter --}}
+                                <div class="company-gallery__lightbox-counter" x-text="`${current + 1} / {{ $galleryMedia->count() }}`"></div>
+
+                                {{-- Navigation --}}
+                                @if($galleryMedia->count() > 1)
+                                    <button @click="prev()" class="company-gallery__lightbox-nav company-gallery__lightbox-nav--prev" aria-label="Vorheriges Bild">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                    </button>
+                                    <button @click="next()" class="company-gallery__lightbox-nav company-gallery__lightbox-nav--next" aria-label="Nächstes Bild">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                    </button>
+                                @endif
+
+                                {{-- Image --}}
+                                <div class="company-gallery__lightbox-content">
+                                    @foreach($galleryMedia as $index => $media)
+                                        <img x-show="current === {{ $index }}"
+                                             x-transition:enter="transition ease-out duration-200"
+                                             x-transition:enter-start="opacity-0 scale-95"
+                                             x-transition:enter-end="opacity-100 scale-100"
+                                             src="{{ $media->getUrl() }}"
+                                             alt="{{ $media->name ?: $company->name . ' — Bild ' . ($index + 1) }}"
+                                             class="company-gallery__lightbox-img">
+                                    @endforeach
+                                </div>
                             </div>
-                        </div>
+                        </template>
                     </section>
                 @endif
 
