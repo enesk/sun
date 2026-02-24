@@ -104,6 +104,12 @@ abstract class VerwaltungBaseController extends Controller
                         'visible' => $permissions['manage_reviews'] ?? false,
                     ],
                     [
+                        'route' => 'verwaltung.edit-suggestions.index',
+                        'label' => 'Änderungsvorschläge',
+                        'icon' => 'pencil-square',
+                        'visible' => $permissions['manage_reviews'] ?? false,
+                    ],
+                    [
                         'route' => 'verwaltung.categories.index',
                         'label' => 'Kategorien',
                         'icon' => 'tag',

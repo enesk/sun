@@ -184,6 +184,35 @@
         </section>
     @endif
 
+    {{-- PROF-1: Claim-CTA Banner — nur für ungeclaimte Firmen --}}
+    @if(!$company->user_id)
+        <div class="container mx-auto px-4 mt-6">
+            <div class="claim-cta-banner reveal" role="banner" aria-label="Eintrag übernehmen">
+                <div class="claim-cta-banner__inner">
+                    <div class="claim-cta-banner__icon" aria-hidden="true">
+                        <svg class="w-10 h-10 sm:w-12 sm:h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
+                    </div>
+                    <div class="claim-cta-banner__content">
+                        <h3 class="claim-cta-banner__title">Ist das Ihr Unternehmen?</h3>
+                        <p class="claim-cta-banner__text">
+                            Übernehmen Sie diesen Eintrag — kostenlos. Aktualisieren Sie Ihre Daten, antworten Sie auf Bewertungen und gewinnen Sie neue Kunden.
+                        </p>
+                    </div>
+                    <div class="claim-cta-banner__action">
+                        <a href="{{ route('register') }}" class="btn-portal inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl text-sm sm:text-base font-semibold ripple whitespace-nowrap">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                            Jetzt übernehmen
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <div class="container mx-auto px-4 pb-12">
 
         <div class="flex flex-col lg:flex-row gap-8 mt-8">
@@ -410,6 +439,32 @@
             {{-- Sidebar: Kontakt-Box (Sticky on Desktop) --}}
             <aside class="lg:w-80 shrink-0 space-y-6">
               <div class="lg:sticky lg:top-28">
+
+                {{-- PROF-1: Claim-CTA für ungeclaimte Firmen --}}
+                @if(!$company->user_id)
+                    <div class="company-sidebar reveal border-2 !border-portal-primary/20" style="background: linear-gradient(135deg, rgba(var(--portal-primary-rgb), 0.04), rgba(var(--portal-primary-rgb), 0.08));">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                                 style="background: rgba(var(--portal-primary-rgb), 0.12);">
+                                <svg class="w-5 h-5" style="color: var(--portal-primary)" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-bold text-base-content text-base leading-tight">Ist das Ihr Unternehmen?</h3>
+                                <p class="text-sm text-base-content/60 mt-1">Übernehmen Sie Ihren Eintrag — kostenlos. Aktualisieren Sie Ihre Daten und antworten Sie auf Bewertungen.</p>
+                                <a href="{{ route('register') }}"
+                                   class="btn-portal w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium ripple mt-3">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                    Jetzt kostenlos übernehmen
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
                 {{-- Kontaktdaten --}}
                 <div class="company-sidebar reveal" data-stagger-delay="100ms">
                     <h3 class="font-semibold text-base-content text-lg mb-1">Kontakt</h3>
@@ -568,6 +623,12 @@
                         </iframe>
                     </div>
                 @endif
+                {{-- PROF-1: "Änderung vorschlagen" + SuggestEditModal --}}
+                <div class="company-sidebar reveal" data-stagger-delay="250ms">
+                    @livewire('portal.suggest-edit-modal', ['company' => $company])
+                </div>
+
+                {{-- Claim-CTA wurde nach oben verschoben (vor Kontaktdaten, PROF-1) --}}
               </div>{{-- /lg:sticky --}}
             </aside>
         </div>

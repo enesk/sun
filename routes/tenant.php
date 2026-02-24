@@ -11,6 +11,7 @@ use App\Http\Controllers\Verwaltung\VerwaltungCityController;
 use App\Http\Controllers\Verwaltung\VerwaltungCompanyController;
 use App\Http\Controllers\Verwaltung\VerwaltungController;
 use App\Http\Controllers\Verwaltung\VerwaltungOrderController;
+use App\Http\Controllers\Verwaltung\VerwaltungEditSuggestionController;
 use App\Http\Controllers\Verwaltung\VerwaltungReviewController;
 use App\Http\Controllers\Verwaltung\VerwaltungSubscriptionController;
 use App\Http\Controllers\Verwaltung\VerwaltungTransactionController;
@@ -123,6 +124,9 @@ Route::middleware([
 
             // Reviews (#107)
             Route::get('/bewertungen', [VerwaltungReviewController::class, 'index'])->name('reviews.index');
+
+            // Edit Suggestions (#150)
+            Route::get('/aenderungsvorschlaege', [VerwaltungEditSuggestionController::class, 'index'])->name('edit-suggestions.index');
 
             // Categories (#108)
             Route::get('/kategorien', [VerwaltungCategoryController::class, 'index'])->name('categories.index');

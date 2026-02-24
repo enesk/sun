@@ -2732,3 +2732,308 @@ details[open] > .cookie-category__summary::before {
         transition: none !important;
     }
 }
+
+/* =====================================================
+   PROF-1: Claim-CTA Banner + "Änderung vorschlagen"
+   ===================================================== */
+
+/* --- Claim-CTA Banner (prominenter Banner nach Hero) --- */
+.claim-cta-banner {
+    border-radius: 16px;
+    border: 2px solid rgba(var(--portal-primary-rgb), 0.15);
+    background: linear-gradient(135deg,
+        rgba(var(--portal-primary-rgb), 0.04) 0%,
+        rgba(var(--portal-primary-rgb), 0.08) 100%);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.claim-cta-banner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg,
+        rgba(var(--portal-primary-rgb), 0.03),
+        transparent 60%);
+    pointer-events: none;
+}
+
+.claim-cta-banner__inner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    z-index: 1;
+}
+
+.claim-cta-banner__icon {
+    display: none;
+    color: var(--portal-primary);
+    opacity: 0.7;
+}
+
+.claim-cta-banner__content {
+    flex: 1;
+    min-width: 0;
+}
+
+.claim-cta-banner__title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #0F172A;
+    margin-bottom: 4px;
+}
+
+.claim-cta-banner__text {
+    font-size: 0.8125rem;
+    color: #64748B;
+    line-height: 1.5;
+}
+
+.claim-cta-banner__action {
+    flex-shrink: 0;
+}
+
+@media (min-width: 640px) {
+    .claim-cta-banner {
+        padding: 24px 28px;
+    }
+
+    .claim-cta-banner__icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        background: rgba(var(--portal-primary-rgb), 0.1);
+        flex-shrink: 0;
+    }
+
+    .claim-cta-banner__title {
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 639px) {
+    .claim-cta-banner__inner {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .claim-cta-banner__action {
+        width: 100%;
+    }
+
+    .claim-cta-banner__action .btn-portal {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* --- Claim Sidebar CTA (kompakte Version in der Sidebar) --- */
+.claim-sidebar-cta {
+    background: linear-gradient(135deg,
+        rgba(var(--portal-primary-rgb), 0.04) 0%,
+        rgba(var(--portal-primary-rgb), 0.08) 100%);
+    border: 1px solid rgba(var(--portal-primary-rgb), 0.12);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+}
+
+.claim-sidebar-cta__icon {
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 12px;
+    border-radius: 12px;
+    background: rgba(var(--portal-primary-rgb), 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--portal-primary);
+}
+
+.claim-sidebar-cta > h4 {
+    margin-bottom: 4px;
+}
+
+.claim-sidebar-cta > p {
+    margin-bottom: 12px;
+}
+
+/* --- "Änderung vorschlagen" Trigger Button --- */
+.suggest-edit-trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8125rem;
+    color: #94A3B8;
+    transition: color 0.2s ease;
+}
+
+.suggest-edit-trigger:hover {
+    color: var(--portal-primary);
+}
+
+.suggest-edit-trigger:focus-visible {
+    outline: 2px solid var(--portal-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* --- Success State --- */
+.suggest-edit-success {
+    padding: 12px 0;
+}
+
+/* --- Suggest Edit Modal --- */
+.suggest-edit-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.suggest-edit-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.suggest-edit-modal {
+    position: relative;
+    z-index: 1;
+    background: white;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 520px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    box-shadow:
+        0 24px 48px -12px rgba(0, 0, 0, 0.18),
+        0 0 0 1px rgba(0, 0, 0, 0.05);
+    animation: suggest-modal-enter 0.25s ease-out;
+}
+
+@keyframes suggest-modal-enter {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.suggest-edit-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px 0;
+    gap: 12px;
+}
+
+.suggest-edit-modal__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: none;
+    background: none;
+    color: #94A3B8;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.suggest-edit-modal__close:hover {
+    background: #F1F5F9;
+    color: #0F172A;
+}
+
+.suggest-edit-modal__close:focus-visible {
+    outline: 2px solid var(--portal-primary);
+    outline-offset: 2px;
+}
+
+.suggest-edit-modal__body {
+    padding: 20px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* --- Claim-CTA nach Success --- */
+.suggest-edit-claim-cta {
+    background: rgba(var(--portal-primary-rgb), 0.04);
+    border: 1px solid rgba(var(--portal-primary-rgb), 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: left;
+}
+
+/* --- Dark Mode --- */
+@media (prefers-color-scheme: dark) {
+    .claim-cta-banner {
+        background: linear-gradient(135deg,
+            rgba(var(--portal-primary-rgb), 0.08) 0%,
+            rgba(var(--portal-primary-rgb), 0.12) 100%);
+        border-color: rgba(var(--portal-primary-rgb), 0.2);
+    }
+
+    .claim-cta-banner__title {
+        color: #F1F5F9;
+    }
+
+    .claim-cta-banner__text {
+        color: #94A3B8;
+    }
+
+    .claim-sidebar-cta {
+        background: linear-gradient(135deg,
+            rgba(var(--portal-primary-rgb), 0.08) 0%,
+            rgba(var(--portal-primary-rgb), 0.12) 100%);
+        border-color: rgba(var(--portal-primary-rgb), 0.2);
+    }
+
+    .suggest-edit-modal {
+        background: #1E293B;
+        box-shadow:
+            0 24px 48px -12px rgba(0, 0, 0, 0.4),
+            0 0 0 1px rgba(255, 255, 255, 0.05);
+    }
+
+    .suggest-edit-modal__close:hover {
+        background: #334155;
+        color: #F1F5F9;
+    }
+
+    .suggest-edit-claim-cta {
+        background: rgba(var(--portal-primary-rgb), 0.08);
+        border-color: rgba(var(--portal-primary-rgb), 0.15);
+    }
+}
+
+/* --- Reduced Motion --- */
+@media (prefers-reduced-motion: reduce) {
+    .suggest-edit-modal {
+        animation: none;
+    }
+}

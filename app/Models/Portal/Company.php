@@ -96,6 +96,16 @@ class Company extends Model implements HasMedia
         return $this->hasMany(CompanyOpeningHour::class)->orderBy('day_of_week');
     }
 
+    public function editSuggestions(): HasMany
+    {
+        return $this->hasMany(CompanyEditSuggestion::class);
+    }
+
+    public function pendingEditSuggestions(): HasMany
+    {
+        return $this->hasMany(CompanyEditSuggestion::class)->where('status', CompanyEditSuggestion::STATUS_PENDING);
+    }
+
     // ── Scopes ──
 
     public function scopeActive($query)
