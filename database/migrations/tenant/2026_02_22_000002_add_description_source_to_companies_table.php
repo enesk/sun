@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('companies', 'description_source')) {
+            return;
+        }
+
         Schema::table('companies', function (Blueprint $table) {
             $table->string('description_source', 20)->nullable()->after('description')
                 ->comment('manual, ai_generated, google');

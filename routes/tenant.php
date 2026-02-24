@@ -183,6 +183,10 @@ Route::middleware([
             Route::get('/empfehlungen', [VerwaltungReferralController::class, 'index'])->name('referrals.index');
         });
 
+    // PROF-1: Änderung vorschlagen — Landingpage
+    Route::get('/firma/{slug}/aenderung-vorschlagen', [CompanyController::class, 'suggestEdit'])
+        ->name('companies.suggest-edit');
+
     // Firmen-Detailseite: /{citySlug}/{id}-{slug} (konfigurierbar pro Tenant)
     Route::get('/{citySlug}/{companySlug}', [CompanyController::class, 'showWithCity'])
         ->where(['citySlug' => '[a-z0-9\-]+', 'companySlug' => '\d+-.+'])

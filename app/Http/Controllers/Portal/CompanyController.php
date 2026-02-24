@@ -136,6 +136,26 @@ class CompanyController extends Controller
         return $this->renderCompanyShow($company);
     }
 
+    /**
+     * PROF-1: Landingpage "Änderung vorschlagen"
+     */
+    public function suggestEdit(string $slug): View
+    {
+        $company = Company::where('slug', $slug)
+            ->where('is_active', true)
+            ->with(['categories', 'city', 'media'])
+            ->firstOrFail();
+
+        $breadcrumb = [
+            ['label' => 'Home', 'url' => route('home')],
+            ['label' => 'Firmen', 'url' => route('portal.companies.index')],
+            ['label' => $company->name, 'url' => $company->portal_url],
+            ['label' => 'Änderung vorschlagen'],
+        ];
+
+        return view('pages.companies.suggest-edit', compact('company', 'breadcrumb'));
+    }
+
     private function renderCompanyShow(Company $company): View
     {
         $company->load([

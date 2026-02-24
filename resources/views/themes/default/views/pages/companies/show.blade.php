@@ -230,6 +230,20 @@
                     </section>
                 @endif
 
+                {{-- PROF-1: Inline-CTA "Stimmt etwas nicht?" --}}
+                <div class="suggest-edit-inline-cta reveal">
+                    <svg class="w-4 h-4 text-base-content/40 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                    <span class="text-sm text-base-content/50">Stimmt etwas nicht?</span>
+                    <a href="{{ route('companies.suggest-edit', $company->slug) }}"
+                       class="text-sm font-medium hover:underline transition-colors"
+                       style="color: var(--portal-primary)"
+                       aria-label="Änderung für {{ $company->name }} vorschlagen">
+                        Änderung vorschlagen
+                    </a>
+                </div>
+
                 {{-- Bildergalerie --}}
                 @php
                     $galleryMedia = $company->relationLoaded('media')
@@ -442,7 +456,7 @@
 
                 {{-- PROF-1: Claim-CTA für ungeclaimte Firmen --}}
                 @if(!$company->user_id)
-                    <div class="company-sidebar reveal border-2 !border-portal-primary/20" style="background: linear-gradient(135deg, rgba(var(--portal-primary-rgb), 0.04), rgba(var(--portal-primary-rgb), 0.08));">
+                    <div class="company-sidebar claim-cta-sidebar reveal border-2 !border-portal-primary/20" style="background: linear-gradient(135deg, rgba(var(--portal-primary-rgb), 0.04), rgba(var(--portal-primary-rgb), 0.08));">
                         <div class="flex items-start gap-3">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                                  style="background: rgba(var(--portal-primary-rgb), 0.12);">
@@ -464,6 +478,26 @@
                         </div>
                     </div>
                 @endif
+
+                {{-- PROF-1: "Änderung vorschlagen" — direkt unter Claim-CTA --}}
+                <div class="company-sidebar reveal" data-stagger-delay="50ms">
+                    <a href="{{ route('companies.suggest-edit', $company->slug) }}"
+                       class="suggest-edit-sidebar-link"
+                       aria-label="Änderung für {{ $company->name }} vorschlagen">
+                        <div class="suggest-edit-sidebar-link__icon">
+                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <span class="text-sm font-medium text-base-content">Änderung vorschlagen</span>
+                            <p class="text-xs text-base-content/50">Stimmt etwas nicht? Helfen Sie uns.</p>
+                        </div>
+                        <svg class="suggest-edit-sidebar-link__chevron w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
 
                 {{-- Kontaktdaten --}}
                 <div class="company-sidebar reveal" data-stagger-delay="100ms">
@@ -623,11 +657,6 @@
                         </iframe>
                     </div>
                 @endif
-                {{-- PROF-1: "Änderung vorschlagen" + SuggestEditModal --}}
-                <div class="company-sidebar reveal" data-stagger-delay="250ms">
-                    @livewire('portal.suggest-edit-modal', ['company' => $company])
-                </div>
-
                 {{-- Claim-CTA wurde nach oben verschoben (vor Kontaktdaten, PROF-1) --}}
               </div>{{-- /lg:sticky --}}
             </aside>
