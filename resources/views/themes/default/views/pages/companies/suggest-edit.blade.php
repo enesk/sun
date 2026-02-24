@@ -2,7 +2,7 @@
 
 @section('title', $company->name . ' übernehmen — ' . config('app.name'))
 
-{{-- PROF-1 Iteration 3: noindex — rein funktional, kein SEO --}}
+{{-- PROF-1 Iteration 4: noindex — rein funktional, kein SEO --}}
 @section('meta_robots', 'noindex, nofollow')
 
 @section('content')
@@ -18,7 +18,7 @@
                     <img src="{{ $company->logo_url }}"
                          alt="{{ $company->name }}"
                          class="claim-hero__logo-img"
-                         width="72" height="72"
+                         width="96" height="96"
                          loading="eager">
                 </div>
             @else
@@ -32,6 +32,16 @@
             <h1 class="claim-hero__headline">{{ $company->name }} gehört Ihnen?</h1>
             <p class="claim-hero__subline">Übernehmen Sie Ihren Eintrag und verwalten Sie Ihr Unternehmensprofil — kostenlos.</p>
 
+            {{-- Social Proof --}}
+            <div class="claim-hero__social-proof">
+                <div class="claim-hero__social-avatars">
+                    <span class="claim-hero__avatar" aria-hidden="true"></span>
+                    <span class="claim-hero__avatar" aria-hidden="true"></span>
+                    <span class="claim-hero__avatar" aria-hidden="true"></span>
+                </div>
+                <span>Bereits <strong>2.400+</strong> Unternehmen verwalten ihren Eintrag</span>
+            </div>
+
             {{-- Primary CTA --}}
             <a href="{{ route('register') }}?claim={{ $company->slug }}"
                class="claim-hero__cta"
@@ -42,6 +52,24 @@
                 </svg>
             </a>
 
+            {{-- Dringlichkeits-Hinweis --}}
+            <p class="claim-hero__urgency">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Kostenlos
+                <span class="claim-hero__urgency-dot" aria-hidden="true">&middot;</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Keine Kreditkarte
+                <span class="claim-hero__urgency-dot" aria-hidden="true">&middot;</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                In 2 Minuten fertig
+            </p>
+
             {{-- Login-Link --}}
             <a href="{{ route('login') }}" class="claim-hero__login">
                 Bereits registriert? <span class="underline">Einloggen</span>
@@ -50,37 +78,45 @@
     </section>
 
     {{-- ============================
-         2. BENEFIT-STRIP
+         2. BENEFIT-CARDS
          ============================ --}}
     <section class="claim-benefits" aria-label="Vorteile der Übernahme">
         <div class="claim-benefits__grid">
-            <div class="claim-benefits__item">
-                <svg class="claim-benefits__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/>
-                </svg>
-                <span class="claim-benefits__label">Daten pflegen</span>
-                <span class="claim-benefits__sublabel">Name, Adresse, Öffnungszeiten</span>
+            <div class="claim-benefits__card">
+                <div class="claim-benefits__icon-circle">
+                    <svg class="claim-benefits__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/>
+                    </svg>
+                </div>
+                <h3 class="claim-benefits__title">Daten pflegen</h3>
+                <p class="claim-benefits__desc">Name, Adresse und Öffnungszeiten selbst aktualisieren</p>
             </div>
-            <div class="claim-benefits__item">
-                <svg class="claim-benefits__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"/>
-                </svg>
-                <span class="claim-benefits__label">Bewertungen antworten</span>
-                <span class="claim-benefits__sublabel">Auf Kundenfeedback reagieren</span>
+            <div class="claim-benefits__card">
+                <div class="claim-benefits__icon-circle">
+                    <svg class="claim-benefits__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"/>
+                    </svg>
+                </div>
+                <h3 class="claim-benefits__title">Bewertungen antworten</h3>
+                <p class="claim-benefits__desc">Auf Kundenfeedback reagieren und Vertrauen aufbauen</p>
             </div>
-            <div class="claim-benefits__item">
-                <svg class="claim-benefits__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/>
-                </svg>
-                <span class="claim-benefits__label">Fotos hochladen</span>
-                <span class="claim-benefits__sublabel">Logo, Galerie, Titelbild</span>
+            <div class="claim-benefits__card">
+                <div class="claim-benefits__icon-circle">
+                    <svg class="claim-benefits__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/>
+                    </svg>
+                </div>
+                <h3 class="claim-benefits__title">Fotos hochladen</h3>
+                <p class="claim-benefits__desc">Logo, Galerie und Titelbild für mehr Sichtbarkeit</p>
             </div>
-            <div class="claim-benefits__item">
-                <svg class="claim-benefits__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/>
-                </svg>
-                <span class="claim-benefits__label">Statistiken</span>
-                <span class="claim-benefits__sublabel">Profilaufrufe, Kontaktklicks</span>
+            <div class="claim-benefits__card">
+                <div class="claim-benefits__icon-circle">
+                    <svg class="claim-benefits__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/>
+                    </svg>
+                </div>
+                <h3 class="claim-benefits__title">Statistiken einsehen</h3>
+                <p class="claim-benefits__desc">Profilaufrufe, Kontaktklicks und Trends verfolgen</p>
             </div>
         </div>
     </section>
@@ -89,6 +125,7 @@
          3. PREVIEW-CARD (Firmenprofil)
          ============================ --}}
     <section class="claim-preview-section" aria-label="Vorschau Ihres Firmenprofils">
+        <h2 class="claim-preview-section__heading">So sieht Ihr Eintrag gerade aus:</h2>
         <div class="claim-preview-card">
             {{-- Firmendaten --}}
             <div class="claim-preview-card__header">
@@ -96,7 +133,7 @@
                     <img src="{{ $company->logo_url }}"
                          alt="{{ $company->name }}"
                          class="claim-preview-card__logo"
-                         width="64" height="64"
+                         width="72" height="72"
                          loading="lazy">
                 @else
                     <div class="claim-preview-card__logo claim-preview-card__logo--fallback"
@@ -105,7 +142,7 @@
                     </div>
                 @endif
                 <div class="claim-preview-card__info">
-                    <h2 class="claim-preview-card__name">{{ $company->name }}</h2>
+                    <h3 class="claim-preview-card__name">{{ $company->name }}</h3>
                     @if($company->full_address)
                         <p class="claim-preview-card__address">{{ $company->full_address }}</p>
                     @endif
