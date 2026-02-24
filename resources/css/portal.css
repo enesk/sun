@@ -3405,22 +3405,104 @@ details[open] > .cookie-category__summary::before {
     background: white;
     border: 1px solid rgba(var(--portal-primary-rgb, 59, 130, 246), 0.12);
     border-radius: 16px;
-    padding: 1.5rem;
+    padding: 2rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(var(--portal-primary-rgb, 59, 130, 246), 0.04);
 }
 
 .claim-edit-card__title {
-    font-size: 1.0625rem;
-    font-weight: 600;
+    font-size: 1.125rem;
+    font-weight: 700;
     color: var(--portal-primary, #3B82F6);
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.375rem;
 }
 
 .claim-edit-card__desc {
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     color: #475569;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
     line-height: 1.5;
+}
+
+/* Formular-Felder innerhalb der Edit-Card — sauber, kontrastreich */
+.claim-edit-card .input-portal,
+.claim-edit-card select.input-portal,
+.claim-edit-card textarea.input-portal {
+    background-color: #F8FAFC;
+    border: 1.5px solid #CBD5E1;
+    border-radius: 0.625rem;
+    color: #1E293B;
+    font-size: 0.9375rem;
+    padding: 0.6875rem 0.875rem;
+    transition: border-color 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
+}
+
+.claim-edit-card .input-portal:hover,
+.claim-edit-card select.input-portal:hover,
+.claim-edit-card textarea.input-portal:hover {
+    border-color: rgba(var(--portal-primary-rgb, 59, 130, 246), 0.5);
+    background-color: white;
+}
+
+.claim-edit-card .input-portal:focus,
+.claim-edit-card select.input-portal:focus,
+.claim-edit-card textarea.input-portal:focus {
+    outline: none;
+    border-color: var(--portal-primary, #3B82F6);
+    box-shadow: 0 0 0 3px rgba(var(--portal-primary-rgb, 59, 130, 246), 0.12);
+    background-color: white;
+}
+
+.claim-edit-card .input-portal::placeholder,
+.claim-edit-card textarea.input-portal::placeholder {
+    color: #94A3B8;
+}
+
+/* Select-Dropdown Arrow + Padding */
+.claim-edit-card select.input-portal {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.25em 1.25em;
+    padding-right: 2.5rem;
+}
+
+/* Labels — etwas kräftiger */
+.claim-edit-card .label-portal {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1E293B;
+    margin-bottom: 0.375rem;
+}
+
+/* Optional-Hinweis in Labels */
+.claim-edit-card .label-portal span {
+    color: #94A3B8;
+    font-weight: 400;
+}
+
+/* Error-States */
+.claim-edit-card .input-portal.input-error,
+.claim-edit-card .input-portal:invalid:not(:placeholder-shown) {
+    border-color: #EF4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
+}
+
+/* Submit-Button aufwerten */
+.claim-edit-card .btn-portal {
+    padding: 0.75rem 2rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    border-radius: 0.75rem;
+    min-height: 48px;
+    box-shadow: 0 1px 3px rgba(var(--portal-primary-rgb, 59, 130, 246), 0.2);
+    transition: all 200ms ease;
+}
+
+.claim-edit-card .btn-portal:hover {
+    box-shadow: 0 4px 12px rgba(var(--portal-primary-rgb, 59, 130, 246), 0.25);
+    transform: translateY(-1px);
 }
 
 /* Trust-Hinweise */
@@ -3689,6 +3771,51 @@ details[open] > .cookie-category__summary::before {
 
     .claim-edit-card__desc {
         color: #94A3B8;
+    }
+
+    /* Dark Mode: Formular-Felder innerhalb Edit-Card */
+    .claim-edit-card .input-portal,
+    .claim-edit-card select.input-portal,
+    .claim-edit-card textarea.input-portal {
+        background-color: rgba(30, 41, 59, 0.6);
+        border-color: rgba(255, 255, 255, 0.12);
+        color: #F1F5F9;
+    }
+
+    .claim-edit-card .input-portal:hover,
+    .claim-edit-card select.input-portal:hover,
+    .claim-edit-card textarea.input-portal:hover {
+        border-color: rgba(var(--portal-primary-rgb, 59, 130, 246), 0.4);
+        background-color: rgba(30, 41, 59, 0.8);
+    }
+
+    .claim-edit-card .input-portal:focus,
+    .claim-edit-card select.input-portal:focus,
+    .claim-edit-card textarea.input-portal:focus {
+        border-color: var(--portal-primary, #3B82F6);
+        box-shadow: 0 0 0 3px rgba(var(--portal-primary-rgb, 59, 130, 246), 0.2);
+        background-color: rgba(30, 41, 59, 0.9);
+    }
+
+    .claim-edit-card .input-portal::placeholder,
+    .claim-edit-card textarea.input-portal::placeholder {
+        color: #64748B;
+    }
+
+    .claim-edit-card .label-portal {
+        color: #E2E8F0;
+    }
+
+    .claim-edit-card .label-portal span {
+        color: #64748B;
+    }
+
+    .claim-edit-card select.input-portal {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394A3B8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    }
+
+    .claim-edit-card .btn-portal:hover {
+        box-shadow: 0 4px 12px rgba(var(--portal-primary-rgb, 59, 130, 246), 0.35);
     }
 
     .suggest-edit-inline-cta {
