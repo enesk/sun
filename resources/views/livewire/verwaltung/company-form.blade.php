@@ -288,32 +288,62 @@
                     <label class="dash-label">
                         Cover-Bild
                         <span class="font-normal" style="color: var(--dash-text-muted);">(max. 4 MB, JPG/PNG/WebP, empfohlen 1200x400)</span>
+                        @if(!$isPremium)
+                            <span class="inline-flex items-center gap-0.5 text-xs font-medium ml-1 px-1.5 py-0.5 rounded" style="background-color: rgba(var(--portal-accent-rgb, 245 158 11), 0.12); color: var(--portal-accent-dark, #92400e);">
+                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                </svg>
+                                Premium
+                            </span>
+                        @endif
                     </label>
-                    @if($isEdit && $company && $company->cover_url && !$cover)
-                        <div class="mb-2">
-                            <img src="{{ $company->cover_url }}" alt="Aktuelles Cover"
-                                 class="w-full max-w-md h-24 object-cover rounded-lg"
-                                 style="border: 1px solid var(--dash-border);">
-                        </div>
-                    @elseif($cover)
-                        <div class="mb-2">
-                            <img src="{{ $cover->temporaryUrl() }}" alt="Neues Cover"
-                                 class="w-full max-w-md h-24 object-cover rounded-lg"
-                                 style="border: 1px solid var(--dash-border);">
+
+                    @if($isPremium || $isAdmin)
+                        @if($isEdit && $company && $company->cover_url && !$cover)
+                            <div class="mb-2">
+                                <img src="{{ $company->cover_url }}" alt="Aktuelles Cover"
+                                     class="w-full max-w-md h-24 object-cover rounded-lg"
+                                     style="border: 1px solid var(--dash-border);">
+                            </div>
+                        @elseif($cover)
+                            <div class="mb-2">
+                                <img src="{{ $cover->temporaryUrl() }}" alt="Neues Cover"
+                                     class="w-full max-w-md h-24 object-cover rounded-lg"
+                                     style="border: 1px solid var(--dash-border);">
+                            </div>
+                        @endif
+                        <input type="file" wire:model="cover" accept="image/jpeg,image/png,image/webp"
+                               class="text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:cursor-pointer file:transition-colors"
+                               style="color: var(--dash-text-muted);">
+                        <div wire:loading wire:target="cover" class="dash-input-hint mt-1">Wird hochgeladen...</div>
+                        @error('cover') <p class="dash-input-error-msg">{{ $message }}</p> @enderror
+                    @else
+                        {{-- Soft-Lock: Cover ist Premium --}}
+                        <div class="w-full max-w-md h-24 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg, rgba(var(--portal-primary-rgb, 59 130 246), 0.04), rgba(var(--portal-accent-rgb, 245 158 11), 0.04)); border: 1px dashed var(--dash-border);">
+                            <div class="text-center">
+                                <svg class="w-5 h-5 mx-auto mb-1" style="color: var(--portal-accent); opacity: 0.6;" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                </svg>
+                                <p class="text-xs" style="color: var(--dash-text-muted);">Premium-Feature</p>
+                            </div>
                         </div>
                     @endif
-                    <input type="file" wire:model="cover" accept="image/jpeg,image/png,image/webp"
-                           class="text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:cursor-pointer file:transition-colors"
-                           style="color: var(--dash-text-muted);">
-                    <div wire:loading wire:target="cover" class="dash-input-hint mt-1">Wird hochgeladen...</div>
-                    @error('cover') <p class="dash-input-error-msg">{{ $message }}</p> @enderror
                 </div>
 
                 {{-- Galerie --}}
                 <div>
+                    @php
+                        $isPremium = $isEdit && $company ? $company->is_premium : ($is_premium ?? false);
+                        $maxGallery = $isPremium ? 20 : 3;
+                        $currentGalleryCount = count($existingGallery) + count($gallery);
+                        $galleryFull = $currentGalleryCount >= $maxGallery;
+                    @endphp
+
                     <label class="dash-label">
                         Galerie
-                        <span class="font-normal" style="color: var(--dash-text-muted);">(max. 10 Bilder, je max. 4 MB)</span>
+                        <span class="font-normal" style="color: var(--dash-text-muted);">
+                            ({{ $currentGalleryCount }}/{{ $maxGallery }} Bilder{{ !$isPremium ? ' · Kostenlos' : '' }}, je max. 4 MB)
+                        </span>
                     </label>
 
                     @if(count($existingGallery) > 0)
@@ -354,11 +384,43 @@
                         </div>
                     @endif
 
-                    <input type="file" wire:model="gallery" accept="image/jpeg,image/png,image/webp" multiple
-                           class="text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:cursor-pointer file:transition-colors"
-                           style="color: var(--dash-text-muted);">
-                    <div wire:loading wire:target="gallery" class="dash-input-hint mt-1">Wird hochgeladen...</div>
+                    @if(!$galleryFull)
+                        <input type="file" wire:model="gallery" accept="image/jpeg,image/png,image/webp" multiple
+                               class="text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:cursor-pointer file:transition-colors"
+                               style="color: var(--dash-text-muted);">
+                        <div wire:loading wire:target="gallery" class="dash-input-hint mt-1">Wird hochgeladen...</div>
+                    @endif
                     @error('gallery.*') <p class="dash-input-error-msg">{{ $message }}</p> @enderror
+
+                    {{-- Soft-Lock: Free-User Galerie-Limit erreicht --}}
+                    @if(!$isPremium && $galleryFull)
+                        <div class="mt-3 p-3 rounded-lg" style="background-color: rgba(var(--portal-accent-rgb, 245 158 11), 0.06); border: 1px solid rgba(var(--portal-accent-rgb, 245 158 11), 0.15);">
+                            <div class="flex items-start gap-2.5">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style="background-color: rgba(var(--portal-accent-rgb, 245 158 11), 0.12);">
+                                    <svg class="w-4 h-4" style="color: var(--portal-accent)" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-xs font-semibold" style="color: var(--portal-accent-dark)">Bilder-Limit erreicht ({{ $maxGallery }}/{{ $maxGallery }})</p>
+                                    <p class="text-xs mt-0.5" style="color: var(--dash-text-secondary)">
+                                        Mit Premium laden Sie bis zu <strong>20 Fotos</strong> hoch und zeigen Ihr Unternehmen von seiner besten Seite.
+                                    </p>
+                                    <a href="{{ route('verwaltung.settings') }}" class="inline-flex items-center gap-1 text-xs font-medium mt-1.5 transition-colors hover:opacity-80" style="color: var(--portal-accent);">
+                                        Auf Premium upgraden
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    @elseif(!$isPremium && $currentGalleryCount > 0)
+                        <p class="dash-input-hint mt-1">
+                            {{ $maxGallery - $currentGalleryCount }} {{ ($maxGallery - $currentGalleryCount) === 1 ? 'Bild' : 'Bilder' }} verbleibend ·
+                            <a href="{{ route('verwaltung.settings') }}" class="font-medium transition-colors hover:opacity-80" style="color: var(--portal-accent);">Premium: bis zu 20 Bilder</a>
+                        </p>
+                    @endif
                 </div>
             </div>
         </div>

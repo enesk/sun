@@ -114,56 +114,89 @@
                             @endif
 
                             {{-- Owner Response (Premium) --}}
-                            @if($company->is_premium && $review->isApproved())
-                                @if(!empty($review->owner_response))
-                                    {{-- Existing response --}}
-                                    <div class="mt-3 ml-4 pl-3" style="border-left: 2px solid var(--portal-primary); padding-top: 0.5rem; padding-bottom: 0.5rem;">
-                                        <div class="flex items-center gap-1 mb-1">
-                                            <svg class="w-3.5 h-3.5" style="color: var(--portal-primary)" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
-                                            </svg>
-                                            <span class="text-xs font-semibold" style="color: var(--portal-primary)">Ihre Antwort</span>
-                                            @if($review->owner_response_at)
-                                                <span class="text-xs" style="color: var(--dash-text-muted)">· {{ $review->owner_response_at->format('d.m.Y') }}</span>
-                                            @endif
-                                        </div>
-                                        <p class="text-sm" style="color: var(--dash-text-secondary)">{{ $review->owner_response }}</p>
-                                    </div>
-                                @else
-                                    {{-- Reply Form (Alpine.js toggle) --}}
-                                    <div x-data="{ open: false }" class="mt-3">
-                                        <button type="button"
-                                                @click="open = !open"
-                                                class="inline-flex items-center gap-1 text-xs font-medium transition-colors hover:opacity-80"
-                                                style="color: var(--portal-primary);">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
-                                            </svg>
-                                            <span x-text="open ? 'Abbrechen' : 'Antworten'">Antworten</span>
-                                        </button>
-
-                                        <form x-show="open"
-                                              x-cloak
-                                              x-transition
-                                              action="{{ route('portal.owner.reviews.respond', $review) }}"
-                                              method="POST"
-                                              class="mt-2 ml-4 pl-3"
-                                              style="border-left: 2px solid var(--portal-primary);">
-                                            @csrf
-                                            <textarea name="owner_response"
-                                                      rows="3"
-                                                      maxlength="1000"
-                                                      required
-                                                      placeholder="Ihre Antwort auf diese Bewertung..."
-                                                      class="dash-textarea"
-                                                      style="font-size: 0.875rem;"></textarea>
-                                            <div class="flex items-center justify-between mt-2">
-                                                <span class="text-xs" style="color: var(--dash-text-muted)">Max. 1.000 Zeichen · Wird öffentlich angezeigt</span>
-                                                <button type="submit" class="dash-btn dash-btn-sm dash-btn-primary">
-                                                    Antwort speichern
-                                                </button>
+                            @if($review->isApproved())
+                                @if($company->is_premium)
+                                    @if(!empty($review->owner_response))
+                                        {{-- Existing response --}}
+                                        <div class="mt-3 ml-4 pl-3" style="border-left: 2px solid var(--portal-primary); padding-top: 0.5rem; padding-bottom: 0.5rem;">
+                                            <div class="flex items-center gap-1 mb-1">
+                                                <svg class="w-3.5 h-3.5" style="color: var(--portal-primary)" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                                                </svg>
+                                                <span class="text-xs font-semibold" style="color: var(--portal-primary)">Ihre Antwort</span>
+                                                @if($review->owner_response_at)
+                                                    <span class="text-xs" style="color: var(--dash-text-muted)">· {{ $review->owner_response_at->format('d.m.Y') }}</span>
+                                                @endif
                                             </div>
-                                        </form>
+                                            <p class="text-sm" style="color: var(--dash-text-secondary)">{{ $review->owner_response }}</p>
+                                        </div>
+                                    @else
+                                        {{-- Reply Form (Alpine.js toggle) --}}
+                                        <div x-data="{ open: false }" class="mt-3">
+                                            <button type="button"
+                                                    @click="open = !open"
+                                                    class="inline-flex items-center gap-1 text-xs font-medium transition-colors hover:opacity-80"
+                                                    style="color: var(--portal-primary);">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                                                </svg>
+                                                <span x-text="open ? 'Abbrechen' : 'Antworten'">Antworten</span>
+                                            </button>
+
+                                            <form x-show="open"
+                                                  x-cloak
+                                                  x-transition
+                                                  action="{{ route('portal.owner.reviews.respond', $review) }}"
+                                                  method="POST"
+                                                  class="mt-2 ml-4 pl-3"
+                                                  style="border-left: 2px solid var(--portal-primary);">
+                                                @csrf
+                                                <textarea name="owner_response"
+                                                          rows="3"
+                                                          maxlength="1000"
+                                                          required
+                                                          placeholder="Ihre Antwort auf diese Bewertung..."
+                                                          class="dash-textarea"
+                                                          style="font-size: 0.875rem;"></textarea>
+                                                <div class="flex items-center justify-between mt-2">
+                                                    <span class="text-xs" style="color: var(--dash-text-muted)">Max. 1.000 Zeichen · Wird öffentlich angezeigt</span>
+                                                    <button type="submit" class="dash-btn dash-btn-sm dash-btn-primary">
+                                                        Antwort speichern
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    @endif
+                                @else
+                                    {{-- Soft-Lock: Blurred reply area for Free users --}}
+                                    <div class="mt-3 relative">
+                                        {{-- Blurred mock reply button --}}
+                                        <div class="pointer-events-none select-none" style="filter: blur(2px); opacity: 0.4;" aria-hidden="true">
+                                            <span class="inline-flex items-center gap-1 text-xs font-medium" style="color: var(--portal-primary);">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                                                </svg>
+                                                Antworten
+                                            </span>
+                                        </div>
+
+                                        {{-- Lock overlay --}}
+                                        <a href="{{ route('portal.owner.premium') }}"
+                                           class="mt-2 flex items-center gap-2.5 p-2.5 rounded-lg transition-colors group"
+                                           style="background-color: rgba(var(--portal-accent-rgb, 245 158 11), 0.06); border: 1px solid rgba(var(--portal-accent-rgb, 245 158 11), 0.15);">
+                                            <div class="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style="background-color: rgba(var(--portal-accent-rgb, 245 158 11), 0.12);">
+                                                <svg class="w-3.5 h-3.5" style="color: var(--portal-accent)" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                                </svg>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <span class="text-xs font-semibold block" style="color: var(--portal-accent-dark)">Auf diese Bewertung antworten</span>
+                                                <span class="text-xs" style="color: var(--dash-text-secondary)">Premium-Feature — ab 9,90 €/Monat</span>
+                                            </div>
+                                            <svg class="w-4 h-4 shrink-0 transition-transform group-hover:translate-x-0.5" style="color: var(--portal-accent)" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                            </svg>
+                                        </a>
                                     </div>
                                 @endif
                             @endif
@@ -171,29 +204,6 @@
 
                         <span class="text-xs shrink-0" style="color: var(--dash-text-muted)">{{ $review->created_at->format('d.m.Y') }}</span>
                     </div>
-
-                    {{-- Soft-Lock: Review Response for Free Users --}}
-                    @if(!$company->is_premium && $review->isApproved() && $loop->first)
-                        <div class="mt-3 p-3 rounded-lg" style="background-color: rgba(var(--portal-accent-rgb, 245 158 11), 0.06); border: 1px solid rgba(var(--portal-accent-rgb, 245 158 11), 0.15);">
-                            <div class="flex items-start gap-2">
-                                <svg class="w-4 h-4 shrink-0 mt-0.5" style="color: var(--portal-accent)" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                                </svg>
-                                <div class="flex-1">
-                                    <p class="text-xs font-semibold" style="color: var(--portal-accent-dark)">Premium-Feature: Auf Bewertungen antworten</p>
-                                    <p class="text-xs mt-0.5" style="color: var(--dash-text-secondary)">
-                                        Mit Premium können Sie direkt auf Kundenbewertungen reagieren und zeigen, dass Ihnen Feedback wichtig ist.
-                                    </p>
-                                    <a href="{{ route('portal.owner.premium') }}" class="inline-flex items-center gap-1 text-xs font-medium mt-1.5 transition-colors hover:opacity-80" style="color: var(--portal-accent);">
-                                        Mehr erfahren
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                        </svg>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
                 </div>
             @endforeach
         </div>

@@ -104,59 +104,105 @@
         </div>
 
         {{-- Cover/Banner-Bild --}}
-        <div class="card-portal">
-            <h2 class="text-base font-semibold text-base-content mb-4 flex items-center gap-2">
-                <svg class="w-5 h-5 text-portal-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
-                Titelbild / Banner
-            </h2>
+        @php
+            $company = \App\Models\Portal\Company::ownedBy(auth()->id())->first();
+            $ownerIsPremium = $company && $company->is_premium;
+        @endphp
 
-            {{-- Preview --}}
-            <div class="relative w-full rounded-xl overflow-hidden border-2 border-dashed border-base-300 bg-base-200" style="aspect-ratio: 3/1;">
-                @if($cover)
-                    @if($this->coverPreviewUrl)
-                        <img src="{{ $this->coverPreviewUrl }}" alt="Neues Titelbild" class="w-full h-full object-cover">
+        @if($ownerIsPremium)
+            <div class="card-portal">
+                <h2 class="text-base font-semibold text-base-content mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-portal-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Titelbild / Banner
+                </h2>
+
+                {{-- Preview --}}
+                <div class="relative w-full rounded-xl overflow-hidden border-2 border-dashed border-base-300 bg-base-200" style="aspect-ratio: 3/1;">
+                    @if($cover)
+                        @if($this->coverPreviewUrl)
+                            <img src="{{ $this->coverPreviewUrl }}" alt="Neues Titelbild" class="w-full h-full object-cover">
+                        @else
+                            <div class="w-full h-full flex items-center justify-center bg-portal-primary/5">
+                                <svg class="w-12 h-12 text-portal-primary/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/></svg>
+                            </div>
+                        @endif
+                    @elseif($currentCoverUrl)
+                        <img src="{{ $currentCoverUrl }}" alt="{{ $name }} Titelbild" class="w-full h-full object-cover">
                     @else
-                        <div class="w-full h-full flex items-center justify-center bg-portal-primary/5">
-                            <svg class="w-12 h-12 text-portal-primary/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/></svg>
+                        <div class="w-full h-full flex flex-col items-center justify-center text-base-content/30 gap-2">
+                            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <span class="text-xs">Empfohlen: 1200 x 400 px (3:1)</span>
                         </div>
                     @endif
-                @elseif($currentCoverUrl)
-                    <img src="{{ $currentCoverUrl }}" alt="{{ $name }} Titelbild" class="w-full h-full object-cover">
-                @else
-                    <div class="w-full h-full flex flex-col items-center justify-center text-base-content/30 gap-2">
-                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </div>
+
+                <div class="flex items-center gap-2 mt-3">
+                    <label for="cover-upload" class="btn btn-sm btn-portal-outline cursor-pointer inline-flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                         </svg>
-                        <span class="text-xs">Empfohlen: 1200 x 400 px (3:1)</span>
-                    </div>
-                @endif
-            </div>
+                        Titelbild hochladen
+                    </label>
+                    <input type="file" id="cover-upload" wire:model="cover" class="hidden" accept="image/jpeg,image/png,image/webp">
 
-            <div class="flex items-center gap-2 mt-3">
-                <label for="cover-upload" class="btn btn-sm btn-portal-outline cursor-pointer inline-flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                    @if($currentCoverUrl && !$cover)
+                        <button type="button" wire:click="removeCover" class="btn btn-sm btn-ghost text-error">Entfernen</button>
+                    @endif
+                </div>
+
+                <p class="text-xs text-base-content/50 mt-2">JPEG, PNG oder WebP. Max. 5 MB. Wird als Banner auf Ihrer Firmenseite angezeigt.</p>
+                @error('cover') <p class="text-xs text-error mt-1">{{ $message }}</p> @enderror
+
+                <div wire:loading wire:target="cover" class="text-xs text-portal-primary mt-1 flex items-center gap-1">
+                    <span class="loading loading-spinner loading-xs"></span> Wird hochgeladen...
+                </div>
+            </div>
+        @else
+            {{-- Soft-Lock: Cover-Bild ist Premium-Feature --}}
+            <div class="card-portal relative overflow-hidden">
+                <h2 class="text-base font-semibold text-base-content mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-portal-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
                     </svg>
-                    Titelbild hochladen
-                </label>
-                <input type="file" id="cover-upload" wire:model="cover" class="hidden" accept="image/jpeg,image/png,image/webp">
+                    Titelbild / Banner
+                    <span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full" style="background-color: rgba(var(--portal-accent-rgb, 245 158 11), 0.12); color: var(--portal-accent-dark, #92400e);">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                        Premium
+                    </span>
+                </h2>
 
-                @if($currentCoverUrl && !$cover)
-                    <button type="button" wire:click="removeCover" class="btn btn-sm btn-ghost text-error">Entfernen</button>
-                @endif
+                {{-- Blurred placeholder --}}
+                <div class="relative w-full rounded-xl overflow-hidden bg-base-200" style="aspect-ratio: 3/1;">
+                    <div class="w-full h-full flex flex-col items-center justify-center" style="background: linear-gradient(135deg, rgba(var(--portal-primary-rgb, 59 130 246), 0.05), rgba(var(--portal-accent-rgb, 245 158 11), 0.05));">
+                        <div class="text-center px-4">
+                            <div class="w-10 h-10 mx-auto mb-2 rounded-full flex items-center justify-center" style="background-color: rgba(var(--portal-accent-rgb, 245 158 11), 0.12);">
+                                <svg class="w-5 h-5" style="color: var(--portal-accent)" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                </svg>
+                            </div>
+                            <p class="text-sm font-medium" style="color: var(--portal-accent-dark)">Premium-Feature</p>
+                            <p class="text-xs mt-0.5 text-base-content/50">Ein professionelles Banner auf Ihrer Firmenseite</p>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="{{ route('portal.owner.premium') }}" class="mt-3 flex items-center gap-2 text-xs font-medium transition-colors hover:opacity-80" style="color: var(--portal-accent);">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                    </svg>
+                    Mit Premium freischalten — 9,90 €/Monat
+                </a>
             </div>
-
-            <p class="text-xs text-base-content/50 mt-2">JPEG, PNG oder WebP. Max. 5 MB. Wird als Banner auf Ihrer Firmenseite angezeigt.</p>
-            @error('cover') <p class="text-xs text-error mt-1">{{ $message }}</p> @enderror
-
-            <div wire:loading wire:target="cover" class="text-xs text-portal-primary mt-1 flex items-center gap-1">
-                <span class="loading loading-spinner loading-xs"></span> Wird hochgeladen...
-            </div>
-        </div>
+        @endif
 
         {{-- Adresse --}}
         <div class="card-portal">
