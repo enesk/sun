@@ -41,7 +41,7 @@ class ProfileForm extends Component
     {
         return [
             'name' => ['required', 'string', 'min:2', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . Auth::id()],
+            'email' => ['required', 'email', 'max:255', 'unique:central.users,email,' . Auth::id()],
             'publicName' => ['nullable', 'string', 'max:255'],
         ];
     }

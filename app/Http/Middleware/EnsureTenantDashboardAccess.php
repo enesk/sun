@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\Response;
  * 1. User is authenticated
  * 2. Tenant is initialized (tenancy context active)
  * 3. User is assigned to this tenant (tenant_user pivot exists)
+ * 4. User has a dashboard-relevant role (admin, company_owner) or is global admin
  *
  * Runs AFTER InitializeTenancyByDomain so tenant() is available.
  */
@@ -44,6 +45,16 @@ class EnsureTenantDashboardAccess
             abort(403, 'Sie haben keinen Zugriff auf diesen Bereich.');
         }
 
+        // Only global admins and tenant admins have access to /verwaltung
+        // Company owners use /firmenprofil instead
+        if (! $user->isAdmin()) {
+            $roles = $this->permissionService->getTenantUserRoles($tenant, $user);
+
+            if (! in_array(TenancyPermissionConstants::ROLE_ADMIN, $roles, true)) {
+                abort(403, 'Sie haben keinen Zugriff auf diesen Bereich.');
+            }
+        }
+
         // Share tenant and user data with all views
         view()->share('dashboardTenant', $tenant);
         view()->share('dashboardUser', $user);
@@ -69,6 +80,7 @@ class EnsureTenantDashboardAccess
             'invite_members' => $user->isAdmin() || $this->permissionService->tenantUserHasPermissionTo($tenant, $user, TenancyPermissionConstants::PERMISSION_INVITE_MEMBERS),
             'manage_roles' => $user->isAdmin() || $this->permissionService->tenantUserHasPermissionTo($tenant, $user, TenancyPermissionConstants::PERMISSION_VIEW_ROLES),
             'update_settings' => $user->isAdmin() || $this->permissionService->tenantUserHasPermissionTo($tenant, $user, TenancyPermissionConstants::PERMISSION_UPDATE_TENANT_SETTINGS),
+            'manage_claims' => $user->isAdmin() || $this->permissionService->tenantUserHasPermissionTo($tenant, $user, TenancyPermissionConstants::PERMISSION_MANAGE_CLAIMS),
             'is_admin' => $user->isAdmin(),
         ];
     }

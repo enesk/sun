@@ -1,6 +1,6 @@
 <div>
-    {{-- Trigger Button --}}
-    @if(!$submitted || $showModal)
+    {{-- Trigger Button (hidden when external trigger is used) --}}
+    @if(!$hideTrigger && (!$submitted || $showModal))
         <button
             wire:click="openModal"
             class="suggest-edit-trigger group"

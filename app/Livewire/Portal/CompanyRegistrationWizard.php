@@ -2,9 +2,11 @@
 
 namespace App\Livewire\Portal;
 
+use App\Constants\TenancyPermissionConstants;
 use App\Models\Portal\Category;
 use App\Models\Portal\City;
 use App\Models\Portal\Company;
+use App\Services\TenantPermissionService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -231,6 +233,20 @@ class CompanyRegistrationWizard extends Component
                 ->addMedia($this->logo->getRealPath())
                 ->usingFileName('logo.' . $this->logo->getClientOriginalExtension())
                 ->toMediaCollection('logo');
+        }
+
+        // company_owner Rolle zuweisen (damit der User auf /verwaltung zugreifen kann)
+        $tenant = tenant();
+        if ($tenant) {
+            $permissionService = app(TenantPermissionService::class);
+            $currentRoles = $permissionService->getTenantUserRoles($tenant, Auth::user());
+            if (!in_array(TenancyPermissionConstants::ROLE_COMPANY_OWNER, $currentRoles)) {
+                $permissionService->assignTenantUserRole(
+                    $tenant,
+                    Auth::user(),
+                    TenancyPermissionConstants::ROLE_COMPANY_OWNER,
+                );
+            }
         }
 
         $this->submitted = true;

@@ -2,16 +2,18 @@
 
 namespace App\Listeners\User;
 
-use App\Constants\TenancyPermissionConstants;
-use App\Services\TenantPermissionService;
 use Illuminate\Auth\Events\Registered;
 
+/**
+ * Attaches a newly registered user to the current tenant.
+ *
+ * IMPORTANT: Does NOT assign any role. Roles are assigned when:
+ * - User creates a company (CompanyRegistrationWizard)
+ * - Admin approves a claim (ClaimService::approveClaimRequest)
+ * - Admin manually assigns a role (UserTable, Filament)
+ */
 class AssignCompanyOwnerRoleOnTenantRegistration
 {
-    public function __construct(
-        private TenantPermissionService $tenantPermissionService,
-    ) {}
-
     public function handle(Registered $event): void
     {
         $tenant = tenant();
@@ -27,14 +29,7 @@ class AssignCompanyOwnerRoleOnTenantRegistration
             return;
         }
 
-        // Attach user to the current tenant
+        // Attach user to the current tenant (without role)
         $tenant->users()->attach($user);
-
-        // Assign company_owner role
-        $this->tenantPermissionService->assignTenantUserRole(
-            $tenant,
-            $user,
-            TenancyPermissionConstants::ROLE_COMPANY_OWNER,
-        );
     }
 }

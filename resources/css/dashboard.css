@@ -2138,3 +2138,734 @@
         }
     }
 }
+
+
+/* ============================================================
+   ONBOARDING OVERLAY — Nach erfolgreichem Claim
+   Ticket: #162 [CLAIM-M3]
+   ============================================================ */
+
+/* --- Overlay Container --- */
+.dash-onboarding-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: var(--dash-z-modal, 50);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+/* --- Card --- */
+.dash-onboarding-card {
+    position: relative;
+    z-index: 10;
+    background: var(--dash-surface, #ffffff);
+    border-radius: var(--radius-glass, 16px);
+    width: 100%;
+    max-width: 440px;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    box-shadow: var(--dash-shadow-xl, 0 16px 40px rgba(0, 0, 0, 0.12));
+    animation: dash-onboarding-enter 400ms var(--ease-spring, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+@keyframes dash-onboarding-enter {
+    from {
+        opacity: 0;
+        transform: translateY(24px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* --- Header --- */
+.dash-onboarding__header {
+    text-align: center;
+    padding: 28px 24px 20px;
+    position: relative;
+}
+
+.dash-onboarding__confetti {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: dash-confetti-bounce 600ms ease-out;
+}
+
+.dash-onboarding__emoji {
+    font-size: 2.5rem;
+    display: block;
+}
+
+@keyframes dash-confetti-bounce {
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px) scale(0.5);
+    }
+    50% {
+        transform: translateX(-50%) translateY(4px) scale(1.1);
+    }
+    100% {
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+}
+
+.dash-onboarding__success-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 32px auto 12px;
+    background: linear-gradient(135deg,
+        var(--dash-success-light, #f0fdf4),
+        rgba(22, 163, 74, 0.1));
+    color: var(--dash-success, #16a34a);
+}
+
+.dash-onboarding__title {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--dash-text-primary, #1a1a2e);
+    margin: 0;
+}
+
+.dash-onboarding__subtitle {
+    font-size: 0.9375rem;
+    color: var(--dash-text-secondary);
+    margin-top: 4px;
+    line-height: 1.5;
+}
+
+/* --- Trial Badge --- */
+.dash-onboarding__trial-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: linear-gradient(135deg,
+        rgba(var(--portal-accent-rgb, 245, 158, 11), 0.1),
+        rgba(var(--portal-accent-rgb, 245, 158, 11), 0.05));
+    color: var(--portal-accent-dark, #B45309);
+    border: 1px solid rgba(var(--portal-accent-rgb, 245, 158, 11), 0.2);
+}
+
+/* --- Progress --- */
+.dash-onboarding__progress {
+    padding: 0 24px 16px;
+}
+
+.dash-onboarding__progress-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.dash-onboarding__progress-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--dash-text-primary, #1a1a2e);
+}
+
+.dash-onboarding__progress-value {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--portal-primary, #3B82F6);
+}
+
+.dash-onboarding__progress-bar {
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(var(--portal-primary-rgb, 59, 130, 246), 0.1);
+    overflow: hidden;
+}
+
+.dash-onboarding__progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg,
+        var(--portal-primary, #3B82F6),
+        var(--portal-accent, #F59E0B));
+    transition: width 800ms var(--ease-spring, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.dash-onboarding__progress-hint {
+    font-size: 0.75rem;
+    color: var(--dash-text-muted);
+    margin-top: 6px;
+    line-height: 1.4;
+}
+
+/* --- Quick Actions --- */
+.dash-onboarding__actions {
+    padding: 0 24px 16px;
+}
+
+.dash-onboarding__actions-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--dash-text-secondary);
+    margin-bottom: 10px;
+}
+
+.dash-onboarding__action-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.dash-onboarding__action {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--dash-border, rgba(0, 0, 0, 0.08));
+    background: var(--dash-surface, #ffffff);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.dash-onboarding__action:hover {
+    border-color: var(--portal-primary, #3B82F6);
+    background: rgba(var(--portal-primary-rgb, 59, 130, 246), 0.02);
+    box-shadow: var(--dash-shadow-sm);
+}
+
+.dash-onboarding__action--done {
+    border-color: var(--dash-success-border, #bbf7d0);
+    background: var(--dash-success-light, #f0fdf4);
+}
+
+.dash-onboarding__action-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.dash-onboarding__action-icon--purple {
+    background: rgba(139, 92, 246, 0.1);
+    color: #8B5CF6;
+}
+
+.dash-onboarding__action-icon--blue {
+    background: rgba(var(--portal-primary-rgb, 59, 130, 246), 0.1);
+    color: var(--portal-primary, #3B82F6);
+}
+
+.dash-onboarding__action-icon--green {
+    background: rgba(22, 163, 74, 0.1);
+    color: #16A34A;
+}
+
+.dash-onboarding__action-label {
+    flex: 1;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--dash-text-primary, #1a1a2e);
+}
+
+/* --- Footer --- */
+.dash-onboarding__footer {
+    padding: 16px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-top: 1px solid var(--dash-border, rgba(0, 0, 0, 0.08));
+}
+
+/* --- Mobile Responsive --- */
+@media (max-width: 639px) {
+    .dash-onboarding-overlay {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .dash-onboarding-card {
+        max-width: 100%;
+        max-height: 92vh;
+        border-radius: 20px 20px 0 0;
+    }
+}
+
+/* --- Reduced Motion --- */
+@media (prefers-reduced-motion: reduce) {
+    .dash-onboarding-card {
+        animation: none;
+    }
+
+    .dash-onboarding__confetti {
+        animation: none;
+    }
+
+    .dash-onboarding__progress-fill {
+        transition: none;
+    }
+}
+
+/* ============================================================
+   CLAIM-VERIFIZIERUNG STATUS-BANNER (#167)
+   Zeigt pending/rejected Status im Dashboard
+   ============================================================ */
+
+.dash-claim-banner {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border-radius: var(--dash-radius, 12px);
+    margin: 0 1rem 1rem;
+    border: 1px solid;
+}
+
+@media (min-width: 640px) {
+    .dash-claim-banner {
+        margin: 0 1.5rem 1rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .dash-claim-banner {
+        margin: 0 2rem 1rem;
+    }
+}
+
+/* --- Pending State --- */
+.dash-claim-banner--pending {
+    background: rgba(59, 130, 246, 0.06);
+    border-color: rgba(59, 130, 246, 0.15);
+}
+
+.dash-claim-banner__icon--pending {
+    color: #3B82F6;
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+}
+
+/* --- Rejected State --- */
+.dash-claim-banner--rejected {
+    background: rgba(239, 68, 68, 0.06);
+    border-color: rgba(239, 68, 68, 0.15);
+}
+
+.dash-claim-banner__icon--rejected {
+    color: #EF4444;
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+}
+
+/* --- Content --- */
+.dash-claim-banner__content {
+    flex: 1;
+    min-width: 0;
+}
+
+.dash-claim-banner__title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--dash-text-primary, #1a1a2e);
+    margin: 0 0 0.25rem;
+}
+
+.dash-claim-banner__text {
+    font-size: 0.8125rem;
+    color: var(--dash-text-secondary, #64748B);
+    line-height: 1.5;
+    margin: 0 0 0.5rem;
+}
+
+.dash-claim-banner__meta {
+    font-size: 0.75rem;
+    color: var(--dash-text-muted, #94A3B8);
+    margin: 0;
+}
+
+.dash-claim-banner__reason {
+    font-size: 0.8125rem;
+    color: var(--dash-text-primary, #1a1a2e);
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.1);
+    border-radius: var(--dash-radius-sm, 8px);
+    padding: 0.625rem 0.875rem;
+    margin: 0.5rem 0;
+}
+
+.dash-claim-banner__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #EF4444;
+    color: white;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border-radius: var(--dash-radius-sm, 8px);
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.dash-claim-banner__cta:hover {
+    background: #DC2626;
+    transform: translateY(-1px);
+}
+
+/* --- Mobile --- */
+@media (max-width: 639px) {
+    .dash-claim-banner {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
+
+/* ============================================================
+   CLAIM MODERATION — Queue Cards + Slide-Over Detail (#169)
+   ============================================================ */
+
+/* --- Slide-Over BEM Aliases (Blade nutzt __ statt -) --- */
+.dash-slideover__header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; border-bottom: 1px solid var(--dash-border, rgba(0,0,0,0.08)); flex-shrink: 0; }
+.dash-slideover__title { font-size: 1rem; font-weight: 600; color: var(--dash-text-primary, #1a1a2e); margin: 0; }
+.dash-slideover__body { flex: 1; padding: 1.5rem; overflow-y: auto; }
+.dash-slideover__footer { padding: 1rem 1.5rem; border-top: 1px solid var(--dash-border, rgba(0,0,0,0.08)); flex-shrink: 0; display: flex; flex-direction: column; gap: 0.75rem; }
+.dash-slideover-backdrop { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(2px); }
+
+/* --- Claim Card (Queue-Liste) --- */
+.dash-claim-card {
+    background: var(--dash-surface, #ffffff);
+    border: 1px solid var(--dash-border, rgba(0,0,0,0.08));
+    border-radius: var(--dash-radius, 12px);
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.dash-claim-card:hover {
+    border-color: rgba(var(--portal-primary-rgb, 59,130,246), 0.3);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transform: translateY(-1px);
+}
+
+.dash-claim-card:focus-visible {
+    outline: 2px solid var(--portal-primary, #3B82F6);
+    outline-offset: 2px;
+}
+
+.dash-claim-card__main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.dash-claim-card__company {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.dash-claim-card__logo {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--dash-radius-sm, 8px);
+    flex-shrink: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dash-claim-card__logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.dash-claim-card__logo-placeholder {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--dash-radius-sm, 8px);
+    background: linear-gradient(135deg, rgba(var(--portal-primary-rgb, 59,130,246), 0.1), rgba(var(--portal-primary-rgb, 59,130,246), 0.05));
+    color: var(--portal-primary, #3B82F6);
+    font-weight: 600;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dash-claim-card__info {
+    flex: 1;
+    min-width: 0;
+}
+
+.dash-claim-card__company-name {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--dash-text-primary, #1a1a2e);
+    margin: 0 0 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dash-claim-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    font-size: 0.75rem;
+    color: var(--dash-text-muted, #94A3B8);
+}
+
+.dash-claim-card__meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.dash-claim-card__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+.dash-claim-card__arrow {
+    width: 20px;
+    height: 20px;
+    color: var(--dash-text-muted, #94A3B8);
+    transition: transform 0.15s ease;
+}
+
+.dash-claim-card:hover .dash-claim-card__arrow {
+    transform: translateX(2px);
+    color: var(--portal-primary, #3B82F6);
+}
+
+.dash-claim-card__comment {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.375rem;
+    margin-top: 0.625rem;
+    padding-top: 0.625rem;
+    border-top: 1px solid var(--dash-border, rgba(0,0,0,0.05));
+    font-size: 0.8125rem;
+    color: var(--dash-text-secondary, #64748B);
+}
+
+.dash-claim-card__rejection {
+    margin-top: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.1);
+    border-radius: var(--dash-radius-sm, 8px);
+    font-size: 0.75rem;
+    color: #DC2626;
+}
+
+/* --- Claim Detail (Slide-Over Inhalt) --- */
+.dash-claim-detail__company-header {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--dash-border, rgba(0,0,0,0.08));
+    margin-bottom: 1.25rem;
+}
+
+.dash-claim-detail__section {
+    margin-bottom: 1.25rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--dash-border, rgba(0,0,0,0.05));
+}
+
+.dash-claim-detail__section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.dash-claim-detail__section-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--dash-text-muted, #94A3B8);
+    margin: 0 0 0.625rem;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.dash-claim-detail__doc-count {
+    font-weight: 400;
+    color: var(--dash-text-muted, #94A3B8);
+}
+
+.dash-claim-detail__info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.dash-claim-detail__label {
+    display: block;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--dash-text-muted, #94A3B8);
+    margin-bottom: 0.125rem;
+}
+
+.dash-claim-detail__value {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--dash-text-primary, #1a1a2e);
+    font-weight: 500;
+}
+
+/* --- Dokumente Grid --- */
+.dash-claim-detail__docs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.75rem;
+}
+
+.dash-claim-detail__doc-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.75rem;
+    background: var(--dash-surface-secondary, #f8f9fa);
+    border: 1px solid var(--dash-border, rgba(0,0,0,0.08));
+    border-radius: var(--dash-radius-sm, 8px);
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.dash-claim-detail__doc-item:hover {
+    border-color: rgba(var(--portal-primary-rgb, 59,130,246), 0.3);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    transform: translateY(-1px);
+}
+
+.dash-claim-detail__doc-thumb {
+    width: 100%;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.dash-claim-detail__doc-icon {
+    width: 100%;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(var(--portal-primary-rgb, 59,130,246), 0.05);
+    border-radius: 4px;
+    color: var(--portal-primary, #3B82F6);
+}
+
+.dash-claim-detail__doc-info {
+    text-align: center;
+    width: 100%;
+}
+
+.dash-claim-detail__doc-name {
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: var(--dash-text-primary, #1a1a2e);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dash-claim-detail__doc-size {
+    display: block;
+    font-size: 0.625rem;
+    color: var(--dash-text-muted, #94A3B8);
+}
+
+/* --- Rejection Reason (Detail) --- */
+.dash-claim-detail__rejection-reason {
+    font-size: 0.8125rem;
+    color: #DC2626;
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.1);
+    border-radius: var(--dash-radius-sm, 8px);
+    padding: 0.625rem 0.875rem;
+}
+
+/* --- Footer Actions (Approve/Reject) --- */
+.dash-claim-detail__reject-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.dash-claim-detail__action-buttons {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+}
+
+.dash-claim-detail__action-buttons .dash-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+/* --- Tab Count Warning --- */
+.dash-tab-count-warning {
+    background: rgba(245, 158, 11, 0.15);
+    color: #D97706;
+}
+
+/* --- Mobile Responsive --- */
+@media (max-width: 639px) {
+    .dash-claim-card__meta {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .dash-claim-card__actions {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.375rem;
+    }
+
+    .dash-claim-detail__info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dash-claim-detail__docs {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    }
+
+    .dash-claim-detail__action-buttons {
+        flex-direction: column;
+    }
+
+    .dash-claim-detail__action-buttons .dash-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

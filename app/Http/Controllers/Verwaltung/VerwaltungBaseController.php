@@ -110,6 +110,12 @@ abstract class VerwaltungBaseController extends Controller
                         'visible' => $permissions['manage_reviews'] ?? false,
                     ],
                     [
+                        'route' => 'verwaltung.claims.index',
+                        'label' => 'Claim-Anträge',
+                        'icon' => 'shield-check',
+                        'visible' => $permissions['manage_claims'] ?? false,
+                    ],
+                    [
                         'route' => 'verwaltung.categories.index',
                         'label' => 'Kategorien',
                         'icon' => 'tag',

@@ -50,7 +50,7 @@ class StoreCompanyRequest extends FormRequest
             'opening_hours.*.is_closed' => ['boolean'],
 
             // Owner (admin only)
-            'user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'user_id' => ['nullable', 'integer', 'exists:central.users,id'],
         ];
     }
 

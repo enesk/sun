@@ -21,6 +21,7 @@ use App\Http\Controllers\Verwaltung\VerwaltungRoleController;
 use App\Http\Controllers\Verwaltung\VerwaltungInvitationController;
 use App\Http\Controllers\Verwaltung\VerwaltungSettingsController;
 use App\Http\Controllers\Verwaltung\VerwaltungProfileController;
+use App\Http\Controllers\Verwaltung\VerwaltungClaimController;
 use App\Http\Controllers\Verwaltung\VerwaltungReferralController;
 use App\Http\Middleware\EnsureHasCompany;
 use App\Http\Middleware\EnsureTenantDashboardAccess;
@@ -128,6 +129,9 @@ Route::middleware([
             // Edit Suggestions (#150)
             Route::get('/aenderungsvorschlaege', [VerwaltungEditSuggestionController::class, 'index'])->name('edit-suggestions.index');
 
+            // Claim-Anträge (#169)
+            Route::get('/claim-antraege', [VerwaltungClaimController::class, 'index'])->name('claims.index');
+
             // Categories (#108)
             Route::get('/kategorien', [VerwaltungCategoryController::class, 'index'])->name('categories.index');
             Route::get('/kategorien/erstellen', [VerwaltungCategoryController::class, 'create'])->name('categories.create');
@@ -186,6 +190,11 @@ Route::middleware([
     // PROF-1: Änderung vorschlagen — Landingpage
     Route::get('/firma/{slug}/aenderung-vorschlagen', [CompanyController::class, 'suggestEdit'])
         ->name('companies.suggest-edit');
+
+    // Claim-Verifizierung: Dokument-Upload nach Claim-Request
+    Route::get('/firma/{slug}/verifizierung', [CompanyController::class, 'claimVerification'])
+        ->middleware('auth')
+        ->name('companies.claim-verification');
 
     // Firmen-Detailseite: /{citySlug}/{id}-{slug} (konfigurierbar pro Tenant)
     Route::get('/{citySlug}/{companySlug}', [CompanyController::class, 'showWithCity'])

@@ -58,4 +58,8 @@ class TenancyPermissionConstants
     public const PERMISSION_MANAGE_OWN_REVIEWS = 'tenancy: manage own reviews';
 
     public const PERMISSION_UPLOAD_COMPANY_IMAGES = 'tenancy: upload company images';
+
+    public const PERMISSION_MANAGE_COMPANIES = 'tenancy: manage companies';
+
+    public const PERMISSION_MANAGE_CLAIMS = 'tenancy: manage claims';
 }

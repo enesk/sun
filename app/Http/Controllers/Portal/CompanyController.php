@@ -137,13 +137,38 @@ class CompanyController extends Controller
     }
 
     /**
+     * Claim-Verifizierung: Dokument-Upload nach Claim-Request
+     */
+    public function claimVerification(string $slug): View
+    {
+        $company = Company::where('slug', $slug)
+            ->where('is_active', true)
+            ->with(['media'])
+            ->firstOrFail();
+
+        // Ohne Login kein Zugriff
+        if (!auth()->check()) {
+            return redirect()->route('login');
+        }
+
+        // User besitzt bereits eine Firma — keine zweite Verifizierung erlaubt
+        $user = auth()->user();
+        if (Company::where('user_id', $user->id)->exists()) {
+            abort(403, 'Sie verwalten bereits ein Unternehmen. Eine zweite Übernahme ist nicht möglich.');
+        }
+
+        return view('pages.companies.verify-claim', compact('company'));
+    }
+
+    /**
      * PROF-1: Landingpage "Änderung vorschlagen"
      */
     public function suggestEdit(string $slug): View
     {
         $company = Company::where('slug', $slug)
             ->where('is_active', true)
-            ->with(['categories', 'city', 'media'])
+            ->with(['categories', 'city', 'media', 'openingHours'])
+            ->withCount('approvedReviews as reviews_count')
             ->firstOrFail();
 
         $breadcrumb = [

@@ -45,7 +45,13 @@
             {{-- Desktop: Auth + CTA --}}
             <div class="hidden md:flex items-center gap-3">
                 @auth
-                    @if(auth()->user()->companies && auth()->user()->companies->count() > 0)
+                    @php
+                        $ownedCompany = auth()->user()->getOwnedCompany();
+                        $pendingClaim = $ownedCompany ? null : auth()->user()->getPendingClaimRequest();
+                    @endphp
+
+                    @if($ownedCompany)
+                        {{-- User besitzt eine Firma → Link zur Bearbeitungsseite --}}
                         <a href="{{ route('portal.owner.dashboard') }}"
                            class="header-nav-link font-medium">
                             <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -53,14 +59,44 @@
                             </svg>
                             Mein Firmenprofil
                         </a>
+                        <a href="{{ route('portal.owner.edit') }}"
+                           class="header-cta-btn ripple">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                            Firma bearbeiten
+                        </a>
+                    @elseif($pendingClaim && $pendingClaim->company)
+                        {{-- User hat einen Claim-Antrag laufen → Link zur Verifizierungsseite --}}
+                        <a href="{{ url('/firma/' . $pendingClaim->company->slug . '/verifizierung') }}"
+                           class="header-cta-btn ripple">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                            Verifizierung läuft
+                        </a>
+                    @else
+                        {{-- User hat weder Firma noch Claim → Firma eintragen --}}
+                        <a href="{{ route('portal.companies.create') }}"
+                           class="header-cta-btn ripple">
+                            Firma eintragen
+                            <svg class="w-4 h-4 ml-1 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                            </svg>
+                        </a>
                     @endif
-                    <a href="{{ route('portal.companies.create') }}"
-                       class="header-cta-btn ripple">
-                        Firma eintragen
-                        <svg class="w-4 h-4 ml-1 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-                        </svg>
-                    </a>
+
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit"
+                                class="header-nav-link font-medium text-red-600/80 hover:text-red-700 hover:bg-red-50/50"
+                                aria-label="Abmelden">
+                            <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                            </svg>
+                            Abmelden
+                        </button>
+                    </form>
                 @else
                     <a href="{{ route('login') }}"
                        class="header-nav-link font-medium">
@@ -128,13 +164,31 @@
             </a>
             <div class="pt-2 border-t border-black/10 space-y-1">
                 @auth
-                    @if(auth()->user()->companies && auth()->user()->companies->count() > 0)
+                    @php
+                        // Variablen aus Desktop-Block wiederverwenden (sind im selben Scope)
+                        $ownedCompany = $ownedCompany ?? auth()->user()->getOwnedCompany();
+                        $pendingClaim = $pendingClaim ?? ($ownedCompany ? null : auth()->user()->getPendingClaimRequest());
+                    @endphp
+
+                    @if($ownedCompany)
                         <a href="{{ route('portal.owner.dashboard') }}"
                            class="block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-black/5 touch-target"
                            @click="mobileOpen = false">
                             Mein Firmenprofil
                         </a>
                     @endif
+
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit"
+                                class="block w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-red-600/80 transition-colors hover:bg-red-50/50 touch-target"
+                                @click="mobileOpen = false">
+                            <svg class="w-4 h-4 inline-block mr-1.5 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                            </svg>
+                            Abmelden
+                        </button>
+                    </form>
                 @else
                     <a href="{{ route('login') }}"
                        class="block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-black/5 touch-target"
@@ -142,11 +196,26 @@
                         Anmelden
                     </a>
                 @endauth
-                <a href="{{ route('portal.companies.create') }}"
-                   class="block w-full text-center btn-portal text-sm py-2.5 ripple"
-                   @click="mobileOpen = false">
-                    Firma eintragen
-                </a>
+
+                @if(auth()->check() && isset($ownedCompany) && $ownedCompany)
+                    <a href="{{ route('portal.owner.edit') }}"
+                       class="block w-full text-center btn-portal text-sm py-2.5 ripple"
+                       @click="mobileOpen = false">
+                        Firma bearbeiten
+                    </a>
+                @elseif(auth()->check() && isset($pendingClaim) && $pendingClaim && $pendingClaim->company)
+                    <a href="{{ url('/firma/' . $pendingClaim->company->slug . '/verifizierung') }}"
+                       class="block w-full text-center btn-portal text-sm py-2.5 ripple"
+                       @click="mobileOpen = false">
+                        Verifizierung läuft
+                    </a>
+                @else
+                    <a href="{{ route('portal.companies.create') }}"
+                       class="block w-full text-center btn-portal text-sm py-2.5 ripple"
+                       @click="mobileOpen = false">
+                        Firma eintragen
+                    </a>
+                @endif
             </div>
         </nav>
     </div>

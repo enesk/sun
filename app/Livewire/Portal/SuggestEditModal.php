@@ -5,6 +5,7 @@ namespace App\Livewire\Portal;
 use App\Models\Portal\Company;
 use App\Models\Portal\CompanyEditSuggestion;
 use Illuminate\Support\Facades\RateLimiter;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class SuggestEditModal extends Component
@@ -22,6 +23,7 @@ class SuggestEditModal extends Component
 
     public bool $showModal = false;
     public bool $submitted = false;
+    public bool $hideTrigger = false;
 
     protected function rules(): array
     {
@@ -45,6 +47,7 @@ class SuggestEditModal extends Component
         ];
     }
 
+    #[On('openSuggestEditModal')]
     public function openModal(): void
     {
         $this->showModal = true;

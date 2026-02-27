@@ -184,35 +184,6 @@
         </section>
     @endif
 
-    {{-- PROF-1: Claim-CTA Banner — nur für ungeclaimte Firmen --}}
-    @if(!$company->user_id)
-        <div class="container mx-auto px-4 mt-6">
-            <div class="claim-cta-banner reveal" role="banner" aria-label="Eintrag übernehmen">
-                <div class="claim-cta-banner__inner">
-                    <div class="claim-cta-banner__icon" aria-hidden="true">
-                        <svg class="w-10 h-10 sm:w-12 sm:h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                        </svg>
-                    </div>
-                    <div class="claim-cta-banner__content">
-                        <h3 class="claim-cta-banner__title">Ist das Ihr Unternehmen?</h3>
-                        <p class="claim-cta-banner__text">
-                            Übernehmen Sie diesen Eintrag — kostenlos. Aktualisieren Sie Ihre Daten, antworten Sie auf Bewertungen und gewinnen Sie neue Kunden.
-                        </p>
-                    </div>
-                    <div class="claim-cta-banner__action">
-                        <a href="{{ route('register') }}" class="btn-portal inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl text-sm sm:text-base font-semibold ripple whitespace-nowrap">
-                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                            </svg>
-                            Jetzt übernehmen
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endif
-
     <div class="container mx-auto px-4 pb-12">
 
         <div class="flex flex-col lg:flex-row gap-8 mt-8">
@@ -456,7 +427,7 @@
 
                 {{-- PROF-1: Claim-CTA für ungeclaimte Firmen --}}
                 @if(!$company->user_id)
-                    <div class="company-sidebar claim-cta-sidebar reveal border-2 !border-portal-primary/20" style="background: linear-gradient(135deg, rgba(var(--portal-primary-rgb), 0.04), rgba(var(--portal-primary-rgb), 0.08));">
+                    <div class="company-sidebar claim-cta-sidebar reveal border-2 !border-portal-primary/20 mb-5" style="background: linear-gradient(135deg, rgba(var(--portal-primary-rgb), 0.04), rgba(var(--portal-primary-rgb), 0.08));">
                         <div class="flex items-start gap-3">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                                  style="background: rgba(var(--portal-primary-rgb), 0.12);">
@@ -479,28 +450,8 @@
                     </div>
                 @endif
 
-                {{-- PROF-1: "Änderung vorschlagen" — direkt unter Claim-CTA --}}
-                <div class="company-sidebar reveal" data-stagger-delay="50ms">
-                    <a href="{{ route('companies.suggest-edit', $company->slug) }}"
-                       class="suggest-edit-sidebar-link"
-                       aria-label="Änderung für {{ $company->name }} vorschlagen">
-                        <div class="suggest-edit-sidebar-link__icon">
-                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                            </svg>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <span class="text-sm font-medium text-base-content">Änderung vorschlagen</span>
-                            <p class="text-xs text-base-content/50">Stimmt etwas nicht? Helfen Sie uns.</p>
-                        </div>
-                        <svg class="suggest-edit-sidebar-link__chevron w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                        </svg>
-                    </a>
-                </div>
-
                 {{-- Kontaktdaten --}}
-                <div class="company-sidebar reveal" data-stagger-delay="100ms">
+                <div class="company-sidebar reveal mb-5" data-stagger-delay="100ms">
                     <h3 class="font-semibold text-base-content text-lg mb-1">Kontakt</h3>
 
                     {{-- Adresse --}}
@@ -582,7 +533,7 @@
                             $isOpen = $nowTime >= $todayHours->opens_at && $nowTime <= $todayHours->closes_at;
                         }
                     @endphp
-                    <div class="company-sidebar reveal" data-stagger-delay="150ms"
+                    <div class="company-sidebar reveal mb-5" data-stagger-delay="150ms"
                          x-data="{ expanded: window.innerWidth >= 1024 }"
                          role="region"
                          aria-label="Öffnungszeiten">

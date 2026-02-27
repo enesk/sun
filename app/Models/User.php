@@ -46,6 +46,8 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
         'phone_number',
         'phone_number_verified_at',
         'last_seen_at',
+        'first_claim_at',
+        'onboarding_dismissed_at',
     ];
 
     /**
@@ -68,6 +70,8 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
         'phone_number_verified_at' => 'datetime',
         'password' => 'hashed',
         'last_seen_at' => 'datetime',
+        'first_claim_at' => 'datetime',
+        'onboarding_dismissed_at' => 'datetime',
     ];
 
     public function roadmapItems(): HasMany
@@ -211,5 +215,68 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
     public function referralRewards(): HasMany
     {
         return $this->hasMany(ReferralReward::class, 'referrer_user_id');
+    }
+
+    // ── Company & Claim Helpers (Cross-DB: User=Central, Company/ClaimRequest=Tenant) ──
+
+    /**
+     * Gibt die Firma zurück, die diesem User gehört (user_id Match in Tenant-DB).
+     * Cached pro Request um Mehrfach-Queries im Header zu vermeiden.
+     */
+    public function getOwnedCompany(): ?\App\Models\Portal\Company
+    {
+        if (! property_exists($this, '_cachedOwnedCompany') || ! isset($this->_cachedOwnedCompany)) {
+            $this->_cachedOwnedCompany = \App\Models\Portal\Company::where('user_id', $this->id)->first();
+        }
+
+        return $this->_cachedOwnedCompany;
+    }
+
+    /**
+     * Prüft ob der User einen ausstehenden Claim-Antrag hat.
+     * Gibt den ClaimRequest mit Company zurück (für Redirect-URL).
+     */
+    public function getPendingClaimRequest(): ?\App\Models\Portal\ClaimRequest
+    {
+        return \App\Models\Portal\ClaimRequest::where('user_id', $this->id)
+            ->where('status', \App\Models\Portal\ClaimRequest::STATUS_PENDING)
+            ->with('company')
+            ->first();
+    }
+
+    // ── Claim & Onboarding ──
+
+    public function hasClaimedCompany(): bool
+    {
+        return $this->first_claim_at !== null;
+    }
+
+    public function markFirstClaim(): void
+    {
+        try {
+            if ($this->first_claim_at === null) {
+                $this->update(['first_claim_at' => now()]);
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning('markFirstClaim failed — column may not exist yet', [
+                'user_id' => $this->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    public function hasOnboardingDismissed(): bool
+    {
+        return $this->onboarding_dismissed_at !== null;
+    }
+
+    public function dismissOnboarding(): void
+    {
+        $this->update(['onboarding_dismissed_at' => now()]);
+    }
+
+    public function shouldShowOnboarding(): bool
+    {
+        return $this->hasClaimedCompany() && !$this->hasOnboardingDismissed();
     }
 }
