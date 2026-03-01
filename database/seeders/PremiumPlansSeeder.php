@@ -27,14 +27,14 @@ class PremiumPlansSeeder extends Seeder
                 'description' => 'Kostenloser Firmeneintrag mit Grundfunktionen',
                 'is_default' => true,
                 'is_popular' => false,
-                'features' => json_encode([
+                'features' => [
                     ['feature' => 'Firmeneintrag mit Kontaktdaten'],
                     ['feature' => 'Kategorie-Zuordnung'],
                     ['feature' => 'Bewertungen empfangen'],
                     ['feature' => '1 Foto im Profil'],
                     ['feature' => 'Standard-Platzierung in Suchergebnissen'],
-                ]),
-                'metadata' => json_encode([
+                ],
+                'metadata' => [
                     'max_images' => 1,
                     'show_statistics' => false,
                     'priority_listing' => false,
@@ -42,7 +42,7 @@ class PremiumPlansSeeder extends Seeder
                     'hide_ads' => false,
                     'gallery_enabled' => false,
                     'cover_image' => false,
-                ]),
+                ],
             ]
         );
 
@@ -54,7 +54,7 @@ class PremiumPlansSeeder extends Seeder
                 'description' => 'Maximale Sichtbarkeit und erweiterte Funktionen für Ihr Unternehmen',
                 'is_default' => false,
                 'is_popular' => true,
-                'features' => json_encode([
+                'features' => [
                     ['feature' => 'Alles aus Basis'],
                     ['feature' => 'Top-Platzierung in Suchergebnissen'],
                     ['feature' => 'Bis zu 10 Fotos + Bildergalerie'],
@@ -63,8 +63,8 @@ class PremiumPlansSeeder extends Seeder
                     ['feature' => 'Erweiterte Statistiken & Trends'],
                     ['feature' => 'Keine Werbung auf dem Profil'],
                     ['feature' => 'Prominente Logo-Darstellung'],
-                ]),
-                'metadata' => json_encode([
+                ],
+                'metadata' => [
                     'max_images' => 10,
                     'show_statistics' => true,
                     'priority_listing' => true,
@@ -72,7 +72,7 @@ class PremiumPlansSeeder extends Seeder
                     'hide_ads' => true,
                     'gallery_enabled' => true,
                     'cover_image' => true,
-                ]),
+                ],
             ]
         );
 
