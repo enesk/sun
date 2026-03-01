@@ -27,7 +27,7 @@ class PremiumPlansSeeder extends Seeder
         $yearInterval = Interval::where('slug', 'year')->firstOrFail();
 
         // Product 1: Basis (kostenloser Eintrag)
-        $basisProduct = Product::updateOrCreate(
+        Product::updateOrCreate(
             ['slug' => 'basis'],
             [
                 'name' => 'Basis',
@@ -136,7 +136,7 @@ class PremiumPlansSeeder extends Seeder
             ]
         );
 
-        $this->command->info('Premium-Pläne in DB erstellt.');
+        $this->command->info('✓ Premium-Pläne in DB erstellt.');
 
         // ── Stripe-Synchronisation ──────────────────────────────────────
         $this->syncWithStripe($premiumMonthly, $monthlyPrice, $premiumYearly, $yearlyPrice);
@@ -152,7 +152,6 @@ class PremiumPlansSeeder extends Seeder
 
         if (empty($stripeSecretKey)) {
             $this->command->warn('STRIPE_SECRET_KEY nicht gesetzt — Stripe-Sync übersprungen.');
-            $this->command->warn('Pläne existieren lokal, werden beim ersten Checkout automatisch in Stripe angelegt.');
             return;
         }
 
@@ -166,99 +165,124 @@ class PremiumPlansSeeder extends Seeder
         try {
             $stripe = new StripeClient($stripeSecretKey);
 
-            // Stripe-Produkt für Premium erstellen/wiederverwenden
-            $stripeProductId = $this->findOrCreateStripeProduct(
-                $stripe, $premiumMonthly, $stripeProvider
+            // Alte Mappings komplett löschen — wir bauen sie sauber neu auf
+            $planIds = [$premiumMonthly->id, $premiumYearly->id];
+            PlanPaymentProviderData::whereIn('plan_id', $planIds)
+                ->where('payment_provider_id', $stripeProvider->id)
+                ->delete();
+            PlanPricePaymentProviderData::whereIn('plan_price_id', [$monthlyPrice->id, $yearlyPrice->id])
+                ->where('payment_provider_id', $stripeProvider->id)
+                ->delete();
+
+            // Stripe-Produkt finden oder erstellen
+            $stripeProductId = $this->ensureStripeProduct($stripe);
+
+            // Stripe-Preise finden oder erstellen
+            $monthlyStripePrice = $this->ensureStripePrice(
+                $stripe, $stripeProductId, 990, 'eur', 'month', 1
+            );
+            $yearlyStripePrice = $this->ensureStripePrice(
+                $stripe, $stripeProductId, 9900, 'eur', 'year', 1
             );
 
-            // Stripe-Preise erstellen/wiederverwenden
-            $this->findOrCreateStripePrice(
-                $stripe, $stripeProvider, $stripeProductId,
-                $premiumMonthly, $monthlyPrice,
-                'month', 1, 990, 'eur'
-            );
+            // DB-Mappings sauber anlegen
+            foreach ($planIds as $planId) {
+                PlanPaymentProviderData::create([
+                    'plan_id' => $planId,
+                    'payment_provider_id' => $stripeProvider->id,
+                    'payment_provider_product_id' => $stripeProductId,
+                ]);
+            }
 
-            $this->findOrCreateStripePrice(
-                $stripe, $stripeProvider, $stripeProductId,
-                $premiumYearly, $yearlyPrice,
-                'year', 1, 9900, 'eur'
-            );
+            PlanPricePaymentProviderData::create([
+                'plan_price_id' => $monthlyPrice->id,
+                'payment_provider_id' => $stripeProvider->id,
+                'payment_provider_price_id' => $monthlyStripePrice,
+                'type' => PaymentProviderPlanPriceType::MAIN_PRICE->value,
+            ]);
 
-            $this->command->info('Stripe-Sync erfolgreich:');
-            $this->command->info("  - Stripe Product: {$stripeProductId}");
-            $this->command->info('  - Stripe Prices für Monatlich + Jährlich angelegt/verknüpft.');
+            PlanPricePaymentProviderData::create([
+                'plan_price_id' => $yearlyPrice->id,
+                'payment_provider_id' => $stripeProvider->id,
+                'payment_provider_price_id' => $yearlyStripePrice,
+                'type' => PaymentProviderPlanPriceType::MAIN_PRICE->value,
+            ]);
+
+            $this->command->info('✓ Stripe-Sync erfolgreich:');
+            $this->command->info("  Product: {$stripeProductId}");
+            $this->command->info("  Price Monatlich: {$monthlyStripePrice} (990 ct/month)");
+            $this->command->info("  Price Jährlich: {$yearlyStripePrice} (9900 ct/year)");
 
         } catch (\Exception $e) {
             $this->command->error('Stripe-Sync fehlgeschlagen: ' . $e->getMessage());
-            Log::error('PremiumPlansSeeder Stripe-Sync Fehler', [
+            Log::error('PremiumPlansSeeder Stripe-Sync', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            $this->command->warn('Pläne existieren lokal. Stripe-Objekte werden beim ersten Checkout automatisch angelegt.');
         }
     }
 
-    private function findOrCreateStripeProduct(
-        StripeClient $stripe,
-        Plan $plan,
-        PaymentProvider $stripeProvider,
-    ): string {
-        // Prüfen ob bereits ein Mapping existiert
-        $existing = PlanPaymentProviderData::where('plan_id', $plan->id)
-            ->where('payment_provider_id', $stripeProvider->id)
-            ->first();
+    /**
+     * Sucht ein aktives Stripe-Produkt "Premium Firmeneintrag" oder erstellt es.
+     */
+    private function ensureStripeProduct(StripeClient $stripe): string
+    {
+        // Zuerst in Stripe nach existierendem Produkt suchen
+        $products = $stripe->products->search([
+            'query' => "active:'true' AND name:'Premium Firmeneintrag'",
+        ]);
 
-        if ($existing) {
-            $this->command->info("  Stripe Product bereits verknüpft: {$existing->payment_provider_product_id}");
-            return $existing->payment_provider_product_id;
+        if (count($products->data) > 0) {
+            $productId = $products->data[0]->id;
+            $this->command->info("  Stripe Product gefunden: {$productId}");
+            return $productId;
         }
 
-        // Neues Stripe-Produkt erstellen
-        $stripeProduct = $stripe->products->create([
+        // Neues Produkt erstellen
+        $product = $stripe->products->create([
             'name' => 'Premium Firmeneintrag',
             'description' => 'Maximale Sichtbarkeit und erweiterte Funktionen für Ihr Unternehmen',
         ]);
 
-        // Mapping für BEIDE Pläne speichern (Monatlich + Jährlich teilen sich ein Stripe-Produkt)
-        PlanPaymentProviderData::updateOrCreate(
-            ['plan_id' => $plan->id, 'payment_provider_id' => $stripeProvider->id],
-            ['payment_provider_product_id' => $stripeProduct->id]
-        );
+        $this->command->info("  Stripe Product erstellt: {$product->id}");
 
-        return $stripeProduct->id;
+        return $product->id;
     }
 
-    private function findOrCreateStripePrice(
+    /**
+     * Sucht einen aktiven Stripe-Preis mit exakten Parametern oder erstellt ihn.
+     */
+    private function ensureStripePrice(
         StripeClient $stripe,
-        PaymentProvider $stripeProvider,
-        string $stripeProductId,
-        Plan $plan,
-        PlanPrice $planPrice,
+        string $productId,
+        int $unitAmount,
+        string $currency,
         string $interval,
         int $intervalCount,
-        int $unitAmountCent,
-        string $currency,
     ): string {
-        // Prüfen ob bereits ein Mapping existiert
-        $existing = PlanPricePaymentProviderData::where('plan_price_id', $planPrice->id)
-            ->where('payment_provider_id', $stripeProvider->id)
-            ->first();
+        // Existierende aktive Preise für das Produkt laden
+        $prices = $stripe->prices->all([
+            'product' => $productId,
+            'active' => true,
+            'currency' => $currency,
+            'type' => 'recurring',
+            'limit' => 20,
+        ]);
 
-        if ($existing) {
-            $this->command->info("  Stripe Price bereits verknüpft: {$existing->payment_provider_price_id} ({$interval})");
-            return $existing->payment_provider_price_id;
+        foreach ($prices->data as $price) {
+            if ($price->unit_amount === $unitAmount
+                && $price->recurring->interval === $interval
+                && $price->recurring->interval_count === $intervalCount
+            ) {
+                $this->command->info("  Stripe Price gefunden: {$price->id} ({$interval})");
+                return $price->id;
+            }
         }
 
-        // Plan-Product-Mapping sicherstellen (Jährlich braucht eigenes Mapping)
-        PlanPaymentProviderData::updateOrCreate(
-            ['plan_id' => $plan->id, 'payment_provider_id' => $stripeProvider->id],
-            ['payment_provider_product_id' => $stripeProductId]
-        );
-
-        // Stripe-Preis erstellen
-        $stripePrice = $stripe->prices->create([
-            'product' => $stripeProductId,
-            'unit_amount' => $unitAmountCent,
+        // Neuen Preis erstellen
+        $price = $stripe->prices->create([
+            'product' => $productId,
+            'unit_amount' => $unitAmount,
             'currency' => $currency,
             'recurring' => [
                 'interval' => $interval,
@@ -266,20 +290,8 @@ class PremiumPlansSeeder extends Seeder
             ],
         ]);
 
-        // Mapping speichern
-        PlanPricePaymentProviderData::updateOrCreate(
-            [
-                'plan_price_id' => $planPrice->id,
-                'payment_provider_id' => $stripeProvider->id,
-            ],
-            [
-                'payment_provider_price_id' => $stripePrice->id,
-                'type' => PaymentProviderPlanPriceType::MAIN_PRICE->value,
-            ]
-        );
+        $this->command->info("  Stripe Price erstellt: {$price->id} ({$interval}, {$unitAmount} ct)");
 
-        $this->command->info("  Stripe Price erstellt: {$stripePrice->id} ({$interval}, {$unitAmountCent} ct)");
-
-        return $stripePrice->id;
+        return $price->id;
     }
 }

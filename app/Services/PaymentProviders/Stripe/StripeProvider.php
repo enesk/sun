@@ -295,8 +295,10 @@ class StripeProvider implements PaymentProviderInterface
                 return $portal->id;
             });
 
+            $stripeCustomerId = $this->findOrCreateStripeCustomer($subscription->user, $subscription->tenant);
+
             $portal = $stripe->billingPortal->sessions->create([
-                'customer' => $subscription->tenant->stripeData()->firstOrFail()->stripe_customer_id,
+                'customer' => $stripeCustomerId,
                 'return_url' => SubscriptionResource::getUrl(),
                 'configuration' => $portalConfigId,
             ]);
@@ -427,25 +429,35 @@ class StripeProvider implements PaymentProviderInterface
         $stripe = $this->getClient();
 
         $stripeCustomerId = null;
-        $stripeData = $tenant->stripeData();
-        if ($stripeData->count() > 0) {
-            $stripeData = $stripeData->first();
-            $stripeCustomerId = $stripeData->stripe_customer_id;
+        $existingStripeData = $tenant->stripeData()->first();
+
+        if ($existingStripeData && $existingStripeData->stripe_customer_id) {
+            // Validate that the customer actually exists in Stripe
+            try {
+                $stripe->customers->retrieve($existingStripeData->stripe_customer_id);
+                $stripeCustomerId = $existingStripeData->stripe_customer_id;
+            } catch (ApiErrorException $e) {
+                // Customer doesn't exist in Stripe (wrong env, deleted, etc.) — reset
+                Log::warning('Stripe customer '.$existingStripeData->stripe_customer_id.' not found in Stripe for tenant '.$tenant->id.'. Creating new customer.');
+                $existingStripeData->stripe_customer_id = null;
+                $existingStripeData->save();
+            }
         }
 
         if ($stripeCustomerId === null) {
-            $customer = $stripe->customers->create(
-                [
-                    'email' => $user->email,
-                    'name' => $user->name,
-                ]
-            );
+            $customer = $stripe->customers->create([
+                'email' => $user->email,
+                'name' => $user->name,
+                'metadata' => [
+                    'tenant_id' => $tenant->id,
+                    'tenant_uuid' => $tenant->uuid,
+                ],
+            ]);
             $stripeCustomerId = $customer->id;
 
-            if ($stripeData->count() > 0) {
-                $stripeData = $stripeData->first();
-                $stripeData->stripe_customer_id = $stripeCustomerId;
-                $stripeData->save();
+            if ($existingStripeData) {
+                $existingStripeData->stripe_customer_id = $stripeCustomerId;
+                $existingStripeData->save();
             } else {
                 $tenant->stripeData()->create([
                     'stripe_customer_id' => $stripeCustomerId,
@@ -736,7 +748,7 @@ class StripeProvider implements PaymentProviderInterface
 
         $stripe = $this->getClient();
 
-        $stripeCustomerId = $subscription->user->stripeData()->firstOrFail()->stripe_customer_id;
+        $stripeCustomerId = $this->findOrCreateStripeCustomer($subscription->user, $subscription->tenant);
 
         $plan = $subscription->plan;
 
