@@ -68,7 +68,10 @@ class CheckoutService
 
         $isLocalOrder = $totalsDto->amountDue === 0; // If amount due is zero, it's a local order (no payment provider needed)
 
-        if ($shouldCreateNewTenant) {
+        // In tenant context (portal domain), always use the current tenant.
+        if (tenant()) {
+            $tenant = tenant();
+        } elseif ($shouldCreateNewTenant) {
             $tenant = $this->tenantCreationService->createTenant($user);
         } else {
             $tenant = $this->tenantCreationService->findUserTenantForNewOrderByUuid($user, $tenantUuid);
@@ -104,6 +107,12 @@ class CheckoutService
 
     public function resolveSubscriptionTenant(bool $shouldCreateNewTenant, ?string $tenantUuid): Tenant
     {
+        // In tenant context (portal domain), always use the current tenant.
+        // Never create a new tenant when a user buys a subscription within a portal.
+        if (tenant()) {
+            return tenant();
+        }
+
         if ($shouldCreateNewTenant) {
             $tenant = $this->tenantCreationService->createTenant(auth()->user());
         } else {
