@@ -45,7 +45,7 @@ class PermissionControlledMySQLDatabaseManager extends BaseManager
         $username = $databaseConfig->getUsername();
         $password = $databaseConfig->getPassword();
 
-        // User nur auf localhost erstellen
+        // Tenant-User nur auf localhost erstellen (restriktiv)
         $this->database()->statement(
             "CREATE USER IF NOT EXISTS `{$username}`@`localhost` IDENTIFIED BY '{$password}'"
         );
@@ -55,6 +55,21 @@ class PermissionControlledMySQLDatabaseManager extends BaseManager
         $this->database()->statement(
             "GRANT {$grants} ON `{$database}`.* TO `{$username}`@`localhost`"
         );
+
+        // Zentralen DB-User (z.B. 'sunny') ebenfalls auf die neue Tenant-DB berechtigen.
+        // In Dev ist das root (hat sowieso Zugriff), auf Live ist es ein eingeschränkter User
+        // der explizite Grants braucht.
+        $centralConnection = config('tenancy.database.central_connection', 'central');
+        $centralUsername = config("database.connections.{$centralConnection}.username");
+
+        if ($centralUsername && $centralUsername !== 'root') {
+            $this->database()->statement(
+                "GRANT ALL PRIVILEGES ON `{$database}`.* TO `{$centralUsername}`@`%`"
+            );
+            $this->database()->statement(
+                "GRANT ALL PRIVILEGES ON `{$database}`.* TO `{$centralUsername}`@`localhost`"
+            );
+        }
 
         $this->database()->statement('FLUSH PRIVILEGES');
 
