@@ -74,7 +74,7 @@
         </ul>
     </div>
 
-    <x-button-link.primary href="{{route('checkout.subscription', $plan->slug)}}">
+    <x-button-link.primary href="{{ tenant() ? route('tenant.checkout.subscription', $plan->slug) : route('checkout.subscription', $plan->slug) }}">
         {{ __('Buy') }} {{ $plan->product->name }}
     </x-button-link.primary>
 </div>

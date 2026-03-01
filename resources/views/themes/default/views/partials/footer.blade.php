@@ -13,22 +13,7 @@
                         Wir informieren Sie über neue Einträge und Bewertungen.
                     </p>
                 </div>
-                <form class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto" action="#" method="POST" aria-label="Newsletter-Anmeldung">
-                    @csrf
-                    <label for="footer-newsletter-email" class="sr-only">E-Mail-Adresse</label>
-                    <input
-                        type="email"
-                        id="footer-newsletter-email"
-                        name="email"
-                        required
-                        placeholder="Ihre E-Mail-Adresse"
-                        class="footer-newsletter__input w-full sm:w-[320px]"
-                        autocomplete="email"
-                    >
-                    <button type="submit" class="footer-newsletter__submit ripple">
-                        Abonnieren
-                    </button>
-                </form>
+                @livewire('portal.newsletter-subscribe-form')
             </div>
         </div>
     </section>

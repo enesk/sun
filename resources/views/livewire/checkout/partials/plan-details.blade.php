@@ -1,45 +1,37 @@
-<div class="md:sticky md:top-2">
+<div class="md:sticky md:top-20">
     @php
         $canAddDiscount = $canAddDiscount ?? true;
         $isTrialSkipped = $isTrialSkipped ?? false;
         $isTenantPickerEnabled = $isTenantPickerEnabled ?? true;
     @endphp
-    <x-heading.h2 class="text-primary-900 text-xl!">
-        {{ __('Plan details') }}
-    </x-heading.h2>
 
-    <div class="rounded-2xl border border-neutral-200 mt-4 overflow-hidden p-6">
+    <h2 class="checkout-card__title">Plandetails</h2>
 
-        <div class="flex flex-row gap-3">
-            <div class="rounded-2xl text-5xl bg-primary-50 p-2 text-center w-24 h-24 text-primary-500 min-w-20 flex items-center justify-center">
-                {{ substr($plan->name, 0, 1) }}
+    <div class="checkout-plan-card">
+
+        {{-- Plan Header --}}
+        <div class="checkout-plan-header">
+            <div class="checkout-plan-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z"/></svg>
             </div>
-            <div class="flex flex-col gap-1">
-                <span class="text-xl font-semibold flex flex-row gap-2 flex-wrap">
-                    <span class="py-1">
-                        {{ $plan->product->name }}
-                    </span>
-                    @if (!$isTrialSkipped && $plan->has_trial)
-                        <span class="text-xs rounded-full border border-primary-500 text-primary-500 px-2 md:px-4 font-semibold py-1 inline-block self-center">
-                            {{ $plan->trial_interval_count }} {{ $plan->trialInterval()->firstOrFail()->name }} {{ __(' free trial included') }}
-                        </span>
-                    @endif
-                </span>
+            <div>
+                <div class="checkout-plan-name">{{ $plan->product->name }}</div>
                 @if ($plan->interval_count > 1)
-                    <span class="text-xs">{{ $plan->interval_count }} {{ mb_convert_case($plan->interval->name, MB_CASE_TITLE, 'UTF-8') }}</span>
+                    <div class="checkout-plan-interval">{{ $plan->interval_count }} {{ mb_convert_case($plan->interval->name, MB_CASE_TITLE, 'UTF-8') }}</div>
                 @else
-                    <span class="text-xs">{{ mb_convert_case($plan->interval->adverb, MB_CASE_TITLE, 'UTF-8') }} {{ __('subscription.') }}</span>
+                    <div class="checkout-plan-interval">{{ mb_convert_case($plan->interval->adverb, MB_CASE_TITLE, 'UTF-8') }}es Abo</div>
                 @endif
-
-                <span class="text-xs">
-                    {{ __('Starts immediately.') }}
-                </span>
-
+                @if (!$isTrialSkipped && $plan->has_trial)
+                    <span class="checkout-trial-badge">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        {{ $plan->trial_interval_count }} {{ $plan->trialInterval()->firstOrFail()->name }} kostenlos testen
+                    </span>
+                @endif
             </div>
         </div>
 
+        {{-- Tenant Picker / Seats --}}
         <div class="flex gap-4">
-
             @inject('tenantCreationService', 'App\Services\TenantCreationService')
 
             @if ($isTenantPickerEnabled && $tenantCreationService->findUserTenantsForNewSubscription(auth()->user())->count() > 0)
@@ -49,22 +41,26 @@
             @if ($plan->type === \App\Constants\PlanType::SEAT_BASED->value)
                 <livewire:checkout.subscription-seats :plan="$plan" />
             @endif
-
         </div>
 
-        <div class="text-primary-900 my-4">
-            {{ __('What you get:') }}
+        {{-- Features --}}
+        <div style="font-size: 0.875rem; font-weight: 600; color: var(--portal-primary-dark, #1E3A5F); margin: 1.25rem 0 0.75rem;">
+            Das ist enthalten:
         </div>
-        <div>
-            <ul class="flex flex-col items-start gap-3">
-                @if ($plan->product->features)
-                    @foreach($plan->product->features as $feature)
-                        <x-features.li-item>{{ $feature['feature'] }}</x-features.li-item>
-                    @endforeach
-                @endif
-            </ul>
-        </div>
+        <ul class="checkout-features">
+            @if ($plan->product->features)
+                @foreach($plan->product->features as $feature)
+                    <li>
+                        <span class="checkout-check-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </span>
+                        {{ $feature['feature'] }}
+                    </li>
+                @endforeach
+            @endif
+        </ul>
 
+        {{-- Totals --}}
         <livewire:checkout.subscription-totals :totals="$totals" :plan="$plan" page="{{request()->fullUrl()}}" can-add-discount="{{$canAddDiscount}}" is-trail-skipped="{{$isTrialSkipped}}"/>
 
     </div>

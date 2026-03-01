@@ -1,43 +1,43 @@
 <div>
-    <form action="" method="post" wire:submit="checkout" class="mb-32">
+    <form action="" method="post" wire:submit="checkout">
         @csrf
 
-        <x-section.columns class="max-w-none md:max-w-6xl flex-wrap-reverse">
-            <x-section.column>
+        <div class="checkout-content__inner">
+
+            <div class="checkout-col-form">
                 @include('livewire.checkout.partials.login-or-register')
                 @include('livewire.checkout.partials.payment')
-            </x-section.column>
-
-            <x-section.column>
-                @include('livewire.checkout.partials.plan-details')
-            </x-section.column>
-        </x-section.columns>
-
-        <div class="fixed bottom-0 w-full bg-white shadow-black shadow-2xl z-50 py-4">
-            <div class="flex flex-row flex-wrap justify-center items-center gap-2 md:gap-4">
-                <p class="text-xxs text-neutral-600 text-center mx-6">
-                    {{ __('By continuing, you agree to our') }} <a target="_blank" href="{{route('terms-of-service')}}"
-                       class="text-primary-900 underline">{{ __('Terms of Service') }}</a> {{ __('and') }}
-                    <a target="_blank" href="{{route('privacy-policy')}}"
-                       class="text-primary-900 underline">{{ __('Privacy Policy') }}</a>.
-                </p>
-
-                <x-button-link.primary
-                    class="flex flex-row items-center justify-center gap-3  min-w-64! disabled:opacity-40"
-                    elementType="button"
-                    type="submit"
-                    wire:loading.attr="disabled"
-                    isDisabled="{{ !$this->isCheckoutButtonEnabled() }}"
-                >
-                    {{ __('Confirm & Pay') }}
-                    <div wire:loading class="max-w-fit max-h-fit">
-                        <span class="loading loading-ring loading-xs"></span>
-                    </div>
-                </x-button-link.primary>
             </div>
+
+            <div class="checkout-col-details">
+                @include('livewire.checkout.partials.plan-details')
+            </div>
+
+        </div>
+
+        {{-- CTA Submit Button — outside sticky column so it never disappears --}}
+        <div class="checkout-cta-wrapper">
+            <button type="submit" class="checkout-cta" wire:loading.attr="disabled">
+                <span wire:loading.remove>
+                    @if ($plan->has_trial)
+                        Kostenlos testen — {{ $plan->trial_interval_count }} {{ $plan->trialInterval()->firstOrFail()->name }} Premium
+                    @else
+                        Jetzt abonnieren
+                    @endif
+                </span>
+                <span wire:loading>
+                    <svg class="animate-spin inline-block h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    Wird verarbeitet…
+                </span>
+            </button>
+
+            <p class="checkout-cta-legal">
+                Mit dem Klick akzeptieren Sie unsere
+                <a href="{{ route('terms-of-service') }}" target="_blank">AGB</a>
+                und
+                <a href="{{ route('privacy-policy') }}" target="_blank">Datenschutzerklärung</a>.
+            </p>
         </div>
 
     </form>
-
-
 </div>

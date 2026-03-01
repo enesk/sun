@@ -469,9 +469,9 @@ class LemonSqueezyProvider implements PaymentProviderInterface
     private function getSubscriptionCheckoutSuccessUrl(Subscription $subscription)
     {
         if ($subscription->type === SubscriptionType::LOCALLY_MANAGED) {
-            return route('checkout.convert-local-subscription.success');
+            return checkout_route('checkout.convert-local-subscription.success');
         }
 
-        return route('checkout.subscription.success');
+        return checkout_route('checkout.subscription.success');
     }
 }

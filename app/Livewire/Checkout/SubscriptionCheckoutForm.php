@@ -124,7 +124,7 @@ class SubscriptionCheckoutForm extends CheckoutForm
                 $subscriptionCheckoutDto->shouldCreateNewTenant,
             );
         } catch (SubscriptionCreationNotAllowedException $e) {
-            return redirect()->route('checkout.subscription.already-subscribed');
+            return redirect(checkout_route('checkout.subscription.already-subscribed'));
         }
 
         $initData = $paymentProvider->initSubscriptionCheckout($plan, $subscription, $discount, $subscription->quantity);
@@ -147,13 +147,13 @@ class SubscriptionCheckoutForm extends CheckoutForm
             return $this->dispatch('start-overlay-checkout',
                 paymentProvider: $paymentProvider->getSlug(),
                 initData: $initData,
-                successUrl: route('checkout.subscription.success'),
+                successUrl: checkout_route('checkout.subscription.success'),
                 email: $user->email,
                 subscriptionUuid: $subscription->uuid,
             );
         }
 
-        return redirect()->route('checkout.subscription.success');
+        return redirect(checkout_route('checkout.subscription.success'));
     }
 
     protected function getPaymentProviders(PaymentService $paymentService, bool $shouldSupportSkippingTrial = false)

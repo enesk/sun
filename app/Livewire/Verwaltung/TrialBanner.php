@@ -57,7 +57,7 @@ class TrialBanner extends Component
                 'urgency' => $urgency,
                 'endsAt' => $trialEndsAt->format('d.m.Y'),
                 'planName' => $trialSubscription->plan->name ?? 'Premium',
-                'convertUrl' => route('checkout.convert-local-subscription', [
+                'convertUrl' => checkout_route('checkout.convert-local-subscription', [
                     'subscriptionUuid' => $trialSubscription->uuid,
                 ]),
             ],

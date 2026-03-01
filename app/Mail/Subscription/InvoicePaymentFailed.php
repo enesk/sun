@@ -30,7 +30,7 @@ class InvoicePaymentFailed extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('Dont\'t lose your subscription!'),
+            subject: 'Zahlungsproblem bei ' . config('app.name') . ' — Aktion erforderlich',
         );
     }
 

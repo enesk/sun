@@ -30,7 +30,7 @@ class UserInvitation extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('Invitation to join :tenant', ['tenant' => $this->invitation->tenant->name]),
+            subject: 'Einladung: Treten Sie ' . $this->invitation->tenant->name . ' bei',
         );
     }
 

@@ -1,5 +1,5 @@
-{{-- GA4 Consent Mode v2: GA lädt IMMER, aber cookieless bis User zustimmt --}}
-{{-- Meta-Tags für den Alpine cookieConsent-Component (Consent-Upgrade) --}}
+{{-- GA4: Vollständiges Tracking — lädt immer mit granted consent --}}
+{{-- Meta-Tags für den Alpine cookieConsent-Component --}}
 @if(!empty($currentTenant))
     @php
         $gaId = $currentTenant->getAttribute('settings.google_analytics_id');
@@ -8,25 +8,15 @@
 
     @if(!empty($gaId))
         <meta name="ga-id" content="{{ e($gaId) }}">
-        {{-- GA4 Consent Mode v2: Default = denied (cookieless), Script lädt sofort --}}
         <script>
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
 
-            // Consent-Default MUSS vor dem GA-Script stehen
             gtag('consent', 'default', {
-                'analytics_storage': 'denied',
-                'ad_storage': 'denied',
-                'ad_user_data': 'denied',
-                'ad_personalization': 'denied',
-                'wait_for_update': 500
-            });
-
-            // Region-spezifisch: EU/EEA = denied default (redundant, aber explizit)
-            gtag('consent', 'default', {
-                'analytics_storage': 'denied',
-                'ad_storage': 'denied',
-                'region': ['DE', 'AT', 'CH']
+                'analytics_storage': 'granted',
+                'ad_storage': 'granted',
+                'ad_user_data': 'granted',
+                'ad_personalization': 'granted'
             });
 
             gtag('js', new Date());

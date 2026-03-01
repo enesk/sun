@@ -781,18 +781,18 @@ class StripeProvider implements PaymentProviderInterface
     private function getSubscriptionCheckoutCancelUrl(Plan $plan, Subscription $subscription)
     {
         if ($subscription->type === SubscriptionType::LOCALLY_MANAGED) {
-            return route('checkout.convert-local-subscription', ['subscriptionUuid' => $subscription->uuid]);
+            return checkout_route('checkout.convert-local-subscription', ['subscriptionUuid' => $subscription->uuid]);
         }
 
-        return route('checkout.subscription', ['planSlug' => $plan->slug]);
+        return checkout_route('checkout.subscription', ['planSlug' => $plan->slug]);
     }
 
     private function getSubscriptionCheckoutSuccessUrl(Subscription $subscription)
     {
         if ($subscription->type === SubscriptionType::LOCALLY_MANAGED) {
-            return route('checkout.convert-local-subscription.success');
+            return checkout_route('checkout.convert-local-subscription.success');
         }
 
-        return route('checkout.subscription.success');
+        return checkout_route('checkout.subscription.success');
     }
 }

@@ -44,6 +44,10 @@ class Company extends Model implements HasMedia
         'is_active',
         'logo_path',
         'google_added_at',
+        'social_facebook',
+        'social_instagram',
+        'social_linkedin',
+        'social_youtube',
     ];
 
     protected $casts = [

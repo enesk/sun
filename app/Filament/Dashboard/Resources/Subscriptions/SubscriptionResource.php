@@ -100,7 +100,7 @@ class SubscriptionResource extends Resource
                     ->color('primary')
                     ->icon('heroicon-s-wallet')
                     ->visible(fn (Subscription $record, SubscriptionService $subscriptionService): bool => $subscriptionService->isIncompleteSubscription($record))
-                    ->url(fn (Subscription $record): string => route('checkout.convert-local-subscription', ['subscriptionUuid' => $record->uuid]))
+                    ->url(fn (Subscription $record): string => checkout_route('checkout.convert-local-subscription', ['subscriptionUuid' => $record->uuid]))
                     ->label(__('Complete Subscription')),
                 ViewAction::make()
                     ->label(__('View Details')),

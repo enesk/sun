@@ -232,10 +232,10 @@
                         @error('socialLinkedin') <p class="dash-input-error-msg">{{ $message }}</p> @enderror
                     </div>
                     <div>
-                        <label class="dash-label">X (Twitter)</label>
-                        <input type="url" wire:model.blur="socialTwitter" placeholder="https://x.com/..."
-                               class="dash-input {{ $errors->has('socialTwitter') ? 'dash-input-error' : '' }}">
-                        @error('socialTwitter') <p class="dash-input-error-msg">{{ $message }}</p> @enderror
+                        <label class="dash-label">YouTube</label>
+                        <input type="url" wire:model.blur="socialYoutube" placeholder="https://youtube.com/@..."
+                               class="dash-input {{ $errors->has('socialYoutube') ? 'dash-input-error' : '' }}">
+                        @error('socialYoutube') <p class="dash-input-error-msg">{{ $message }}</p> @enderror
                     </div>
                 </div>
                 <p class="dash-input-hint mt-2">Links werden auf Ihrem öffentlichen Firmenprofil angezeigt.</p>
@@ -256,7 +256,7 @@
                             <div class="dash-input" style="background: var(--dash-bg-secondary);">&nbsp;</div>
                         </div>
                         <div>
-                            <label class="dash-label">X (Twitter)</label>
+                            <label class="dash-label">YouTube</label>
                             <div class="dash-input" style="background: var(--dash-bg-secondary);">&nbsp;</div>
                         </div>
                     </div>

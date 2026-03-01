@@ -144,13 +144,13 @@ class ConvertLocalSubscriptionCheckoutForm extends CheckoutForm
             return $this->dispatch('start-overlay-checkout',
                 paymentProvider: $paymentProvider->getSlug(),
                 initData: $initData,
-                successUrl: route('checkout.subscription.success'),
+                successUrl: checkout_route('checkout.subscription.success'),
                 email: $user->email,
                 subscriptionUuid: $subscription->uuid,
             );
         }
 
-        return redirect()->route('checkout.subscription.success');
+        return redirect(checkout_route('checkout.subscription.success'));
     }
 
     protected function getPaymentProviders(PaymentService $paymentService)

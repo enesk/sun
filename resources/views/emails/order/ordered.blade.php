@@ -1,18 +1,18 @@
 <x-layouts.email>
     <x-slot name="preview">
-        {{ __('Thanks for your order') }}
+        Vielen Dank für Ihre Bestellung bei {{ config('app.name') }}!
     </x-slot>
 
     <tr>
         <td class="sm-px-6" style="border-radius: 4px; padding: 48px; font-size: 16px; color: #334155; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05)" bgcolor="#ffffff">
             <h1 class="sm-leading-8" style="margin: 0 0 24px; font-size: 24px; font-weight: 600; color: #000">
-                {{ __('Hello,') }}
+                Vielen Dank für Ihre Bestellung!
             </h1>
             <p style="margin: 0; line-height: 24px">
-                {{ __('Thank you for your order at :app!', ['app' => config('app.name')]) }}
+                Ihre Bestellung bei {{ config('app.name') }} wurde erfolgreich aufgegeben.
                 <br>
                 <br>
-                {{ __('Order number:')}} {{$order->uuid}}
+                Bestellnummer: {{$order->uuid}}
             </p>
             <div role="separator" style="line-height: 24px">&zwj;</div>
 
@@ -34,7 +34,7 @@
                                     <div style="font-size: 12px">{{$item->oneTimeProduct->description}}</div>
                                 @endif
                                 <div style="font-size: 12px; margin-top: 8px">
-                                    {{ __('Quantity:') }}  {{ $item->quantity }}
+                                    Anzahl: {{ $item->quantity }}
                                 </div>
                             </div>
                         </td>
@@ -47,7 +47,7 @@
             <table width="100%">
                 <tr style="width: 100%">
                     <td align="left">
-                        <span class="font-bold">{{ __('Total') }}</span>
+                        <span class="font-bold">Gesamt</span>
                     </td>
                     <td align="right">
                         <span class="font-bold">@money($order->total_amount, $order->currency->code)</span>
@@ -56,15 +56,15 @@
             </table>
 
             <div role="separator" style="background-color: #e2e8f0; height: 1px; line-height: 1px; margin: 32px 0;">&zwj;</div>
-            <p style="margin-top: 16px; padding-top: 12px; padding-bottom: 12px">
-                {{ __('Our support team is here to assist you with any questions or concerns. Feel free to reach out to us at ') }}
+            <p style="margin-top: 16px; padding-top: 12px; padding-bottom: 12px; font-size: 14px; color: #64748b;">
+                Sie haben Fragen? Unser Support-Team hilft Ihnen gerne:
                 <a href="mailto:{{ config('app.support_email') }}">
                     {{ config('app.support_email') }}
-                </a>.
+                </a>
             </p>
             <p style="padding-top: 12px; padding-bottom: 12px;">
-                {{ __('Sincerely,') }}<br>
-                {{ config('app.name') }} {{ __('Team') }}
+                Mit freundlichen Grüßen,<br>
+                Ihr {{ config('app.name') }}-Team
             </p>
         </td>
     </tr>

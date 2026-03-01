@@ -29,7 +29,7 @@ class SubscriptionCancelled extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('Your subscription has been cancelled'),
+            subject: 'Ihre Kündigung bei ' . config('app.name') . ' wurde bestätigt',
         );
     }
 

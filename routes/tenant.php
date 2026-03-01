@@ -196,6 +196,51 @@ Route::middleware([
         ->middleware('auth')
         ->name('companies.claim-verification');
 
+    // ==============================
+    // Checkout-Routes (gespiegelt von web.php, mit tenant. Prefix)
+    // Subscriptions nutzen CentralConnection → schreiben in Central DB
+    // Routes müssen auf Tenant-Domain verfügbar sein damit die Session funktioniert
+    // WICHTIG: Route-Namen mit tenant. Prefix um Konflikte mit web.php zu vermeiden
+    // ==============================
+    Route::get('/checkout/plan/{planSlug}', [
+        \App\Http\Controllers\SubscriptionCheckoutController::class,
+        'subscriptionCheckout',
+    ])->name('tenant.checkout.subscription');
+
+    Route::get('/checkout/convert-subscription/{subscriptionUuid}', [
+        \App\Http\Controllers\SubscriptionCheckoutController::class,
+        'convertLocalSubscriptionCheckout',
+    ])->name('tenant.checkout.convert-local-subscription');
+
+    Route::get('/already-subscribed', function () {
+        return view('checkout.already-subscribed');
+    })->name('tenant.checkout.subscription.already-subscribed');
+
+    Route::get('/checkout/subscription/success', [
+        \App\Http\Controllers\SubscriptionCheckoutController::class,
+        'subscriptionCheckoutSuccess',
+    ])->name('tenant.checkout.subscription.success')->middleware('auth');
+
+    Route::get('/checkout/convert-subscription-success', [
+        \App\Http\Controllers\SubscriptionCheckoutController::class,
+        'convertLocalSubscriptionCheckoutSuccess',
+    ])->name('tenant.checkout.convert-local-subscription.success')->middleware('auth');
+
+    Route::get('/subscription/{subscriptionUuid}/change-plan/{planSlug}/tenant/{tenantUuid}', [
+        \App\Http\Controllers\SubscriptionController::class,
+        'changePlan',
+    ])->name('tenant.subscription.change-plan')->middleware('auth');
+
+    Route::post('/subscription/{subscriptionUuid}/change-plan/{planSlug}/tenant/{tenantUuid}', [
+        \App\Http\Controllers\SubscriptionController::class,
+        'changePlan',
+    ])->name('tenant.subscription.change-plan.post')->middleware('auth');
+
+    Route::get('/subscription/change-plan-thank-you', [
+        \App\Http\Controllers\SubscriptionController::class,
+        'success',
+    ])->name('tenant.subscription.change-plan.thank-you')->middleware('auth');
+
     // Firmen-Detailseite: /{citySlug}/{id}-{slug} (konfigurierbar pro Tenant)
     Route::get('/{citySlug}/{companySlug}', [CompanyController::class, 'showWithCity'])
         ->where(['citySlug' => '[a-z0-9\-]+', 'companySlug' => '\d+-.+'])

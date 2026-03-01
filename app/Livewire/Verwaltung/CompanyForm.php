@@ -47,7 +47,7 @@ class CompanyForm extends Component
     public string $socialFacebook = '';
     public string $socialInstagram = '';
     public string $socialLinkedin = '';
-    public string $socialTwitter = '';
+    public string $socialYoutube = '';
 
     // Media
     public $logo;
@@ -96,7 +96,7 @@ class CompanyForm extends Component
             'socialFacebook' => ['nullable', 'url:http,https', 'max:255'],
             'socialInstagram' => ['nullable', 'url:http,https', 'max:255'],
             'socialLinkedin' => ['nullable', 'url:http,https', 'max:255'],
-            'socialTwitter' => ['nullable', 'url:http,https', 'max:255'],
+            'socialYoutube' => ['nullable', 'url:http,https', 'max:255'],
             'openingHours.*.opens_at' => ['nullable', 'string'],
             'openingHours.*.closes_at' => ['nullable', 'string'],
             'openingHours.*.is_closed' => ['boolean'],
@@ -145,7 +145,7 @@ class CompanyForm extends Component
             $data['social_facebook'] = $this->socialFacebook ?: null;
             $data['social_instagram'] = $this->socialInstagram ?: null;
             $data['social_linkedin'] = $this->socialLinkedin ?: null;
-            $data['social_twitter'] = $this->socialTwitter ?: null;
+            $data['social_youtube'] = $this->socialYoutube ?: null;
         }
 
         // Admin-only fields
@@ -276,7 +276,7 @@ class CompanyForm extends Component
             $this->socialFacebook = $company->social_facebook ?? '';
             $this->socialInstagram = $company->social_instagram ?? '';
             $this->socialLinkedin = $company->social_linkedin ?? '';
-            $this->socialTwitter = $company->social_twitter ?? '';
+            $this->socialYoutube = $company->social_youtube ?? '';
         }
 
         // Öffnungszeiten laden

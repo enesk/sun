@@ -30,7 +30,7 @@ class Subscribed extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('Welcome to :app_name!', ['app_name' => config('app.name')]),
+            subject: 'Willkommen bei ' . config('app.name') . ' — Ihr Abo ist aktiv',
         );
     }
 

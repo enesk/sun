@@ -29,7 +29,7 @@ class ResetPassword extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('Reset Password'),
+            subject: 'Passwort zurücksetzen',
         );
     }
 

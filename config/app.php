@@ -149,11 +149,11 @@ return [
     'datetime_format' => 'd/m/Y H:i',
     'date_format' => 'd/m/Y',
 
-    'default_currency' => 'USD',
+    'default_currency' => env('DEFAULT_CURRENCY', 'EUR'),
 
     'support_email' => 'support@saasykit.com',
 
-    'email_color_tint' => '#6f27e5',  // used to add brand color to email templates (since it's not possible to use tailwind vars in emails)
+    'email_color_tint' => env('EMAIL_COLOR_TINT', '#3B82F6'),  // Tenant-overridable via ConfigService. Default: Portal-Primary (#3B82F6)
 
     'google_tracking_id' => env('GOOGLE_TRACKING_ID'),
     'tracking_scripts' => env('TRACKING_SCRIPTS'),

@@ -23,7 +23,7 @@ class ReferralRewardEarned extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('You earned a referral reward!'),
+            subject: 'Sie haben einen Empfehlungsbonus erhalten!',
         );
     }
 

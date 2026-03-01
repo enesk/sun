@@ -109,32 +109,11 @@ document.addEventListener('alpine:init', () => {
         },
 
         _applyConsent() {
-            // GA4 Consent Mode v2: GA ist bereits geladen (analytics.blade.php)
-            // Hier nur noch Consent-Status updaten
+            // GA läuft immer mit vollem Tracking (granted default in analytics.blade.php)
+            // Cookie-Consent-UI bleibt bestehen, ändert aber den GA-Status nicht
             if (this.statistics) {
                 window.dispatchEvent(new CustomEvent('cookie-consent-statistics', { detail: { allowed: true } }));
-                this._upgradeConsent();
-            } else {
-                this._revokeConsent();
             }
-        },
-
-        _upgradeConsent() {
-            // GA4 Consent Mode v2: Upgrade von denied → granted
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){window.dataLayer.push(arguments);}
-            gtag('consent', 'update', {
-                'analytics_storage': 'granted'
-            });
-        },
-
-        _revokeConsent() {
-            // GA4 Consent Mode v2: Revoke — zurück auf denied
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){window.dataLayer.push(arguments);}
-            gtag('consent', 'update', {
-                'analytics_storage': 'denied'
-            });
         }
     }))
 

@@ -1,69 +1,63 @@
-<div class="md:sticky md:top-2">
-    <x-heading.h2 class="text-primary-900 text-xl!">
-        {{ __('Product Details') }}
-    </x-heading.h2>
+<div class="md:sticky md:top-20">
 
-    <div class="rounded-2xl border border-neutral-200 mt-4 overflow-hidden p-6">
+    <h2 class="checkout-card__title">Produktdetails</h2>
+
+    <div class="checkout-plan-card">
         @php
             $cartItem = $cartDto->items[0];
         @endphp
 
-        <div class="flex flex-row gap-3">
-            <div class="rounded-2xl text-5xl bg-primary-50 p-2 text-center w-24 h-24 text-primary-500 flex items-center justify-center min-w-20">
+        {{-- Product Header --}}
+        <div class="checkout-plan-header">
+            <div class="checkout-plan-icon">
                 {{ substr($product->name, 0, 1) }}
             </div>
-            <div class="flex flex-col gap-1">
-                            <span class="text-xl font-semibold flex flex-row md:gap-2 flex-wrap">
-                                <span class="py-1">
-                                    {{ $product->name }}
-                                </span>
-                            </span>
-
+            <div>
+                <div class="checkout-plan-name">{{ $product->name }}</div>
                 @if ($product->description)
-                    <span class="text-xs">{{ $product->description }}</span>
+                    <div class="checkout-plan-interval">{{ $product->description }}</div>
                 @endif
-
                 @if ($product->max_quantity == 1)
-                    <span class="text-xs">
-                        {{ __('Quantity:') }} {{ $cartItem->quantity }}
-                    </span>
+                    <div class="text-xs" style="color: #64748B;">Anzahl: {{ $cartItem->quantity }}</div>
                 @endif
-
             </div>
         </div>
 
-        <div class="flex gap-4">
-
-            @if ($product->max_quantity == 0 || $product->max_quantity > 1)
+        {{-- Quantity Picker --}}
+        @if ($product->max_quantity == 0 || $product->max_quantity > 1)
+            <div class="flex gap-4">
                 <livewire:checkout.product-quantity :product="$product" />
-            @endif
+            </div>
+        @endif
 
-        </div>
-
+        {{-- Tenant Picker --}}
         <div class="flex gap-4">
-
             @inject('tenantCreationService', 'App\Services\TenantCreationService')
 
             @if ($tenantCreationService->findUserTenantsForNewOrder(auth()->user())->count() > 0)
                 <livewire:checkout.product-tenant-picker />
             @endif
-
         </div>
 
-        <div class="text-primary-900 my-4">
-            {{ __('What you get:') }}
-        </div>
-        <div>
-            <ul class="flex flex-col items-start gap-3">
-                @if ($product->features)
-                    @foreach($product->features as $feature)
-                        <x-features.li-item>{{ $feature['feature'] }}</x-features.li-item>
-                    @endforeach
-                @endif
+        {{-- Features --}}
+        @if ($product->features && count($product->features) > 0)
+            <div style="font-size: 0.875rem; font-weight: 600; color: var(--portal-primary-dark, #1E3A5F); margin: 1.25rem 0 0.75rem;">
+                Das ist enthalten:
+            </div>
+            <ul class="checkout-features">
+                @foreach($product->features as $feature)
+                    <li>
+                        <span class="checkout-check-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </span>
+                        {{ $feature['feature'] }}
+                    </li>
+                @endforeach
             </ul>
-        </div>
+        @endif
 
-        <livewire:checkout.product-totals :totals="$totals" :product="$product" page="{{request()->fullUrl()}}"/>
+        {{-- Totals --}}
+        <livewire:checkout.product-totals :totals="$totals" :product="$product" page="{{ request()->fullUrl() }}"/>
 
     </div>
 </div>

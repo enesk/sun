@@ -113,14 +113,14 @@
                         </a>
 
                         @if($subscription->is_incomplete)
-                            <a href="{{ route('checkout.convert-local-subscription', ['subscriptionUuid' => $subscription->uuid]) }}"
+                            <a href="{{ route('tenant.checkout.convert-local-subscription', ['subscriptionUuid' => $subscription->uuid]) }}"
                                class="dash-btn dash-btn-primary dash-btn-sm">
                                 Abonnement abschließen
                             </a>
                         @endif
 
                         @if($subscription->can_change_plan)
-                            <a href="{{ route('checkout.subscription.change-plan', ['subscriptionUuid' => $subscription->uuid]) }}"
+                            <a href="{{ route('tenant.subscription.change-plan', ['subscriptionUuid' => $subscription->uuid]) }}"
                                class="dash-btn dash-btn-ghost dash-btn-sm">
                                 Plan ändern
                             </a>

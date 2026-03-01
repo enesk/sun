@@ -1,98 +1,102 @@
 {{-- OTP Login Flow --}}
 @if(!$showOtpForm)
-    <fieldset class="fieldset">
-        <legend class="fieldset-legend font-medium">{{ __('Email Address') }}</legend>
-        <input type="email" class="input w-full" name="email" required id="email" wire:model.live.debounce.500ms="email" value="{{ old('email') }}" />
-    </fieldset>
+    <div class="flex flex-col gap-3">
+        <div>
+            <label for="email" class="checkout-label">E-Mail-Adresse</label>
+            <input type="email" class="checkout-input @error('email') checkout-input-error @enderror" name="email" required id="email" wire:model.live.debounce.500ms="email" value="{{ old('email') }}" placeholder="ihre@email.de" />
+        </div>
 
-    @error('email')
-    <span class="text-xs text-red-500" role="alert">
-        {{ $message }}
-    </span>
-    @enderror
-
-    {{-- Show name field if user doesn't exist --}}
-    @if(!$userExists)
-        <fieldset class="fieldset">
-            <legend class="fieldset-legend font-medium">{{ __('Your Name') }}</legend>
-            <input type="text" class="input w-full" name="name" required id="name" wire:model="name" value="{{ old('name') }}" />
-        </fieldset>
-
-        @error('name')
+        @error('email')
         <span class="text-xs text-red-500" role="alert">
             {{ $message }}
         </span>
         @enderror
-    @endif
 
-    @include('livewire.auth.partials.recaptcha')
-
-    {{-- Send OTP Button --}}
-    <div class="mt-4">
-        <x-button-link.primary
-            class="flex flex-row items-center justify-center gap-3 w-full disabled:opacity-40"
-            elementType="button"
-            type="button"
-            wire:click="sendOtpCode"
-            wire:loading.attr="disabled">
-            {{ $userExists ? __('Send Login Code') : __('Create Account & Send Code') }}
-            <div wire:loading wire:target="sendOtpCode" class="max-w-fit max-h-fit">
-                <span class="loading loading-ring loading-xs"></span>
+        {{-- Name-Feld nur für neue User --}}
+        @if(!$userExists)
+            <div>
+                <label for="name" class="checkout-label">Ihr Name</label>
+                <input type="text" class="checkout-input @error('name') checkout-input-error @enderror" name="name" required id="name" wire:model="name" value="{{ old('name') }}" />
             </div>
-        </x-button-link.primary>
-    </div>
 
-    @if($userExists)
-        <div class="my-2 ms-1 text-xs text-neutral-400">{{ __('Click to receive a one-time password via email.') }}</div>
-    @else
-        <div class="my-2 ms-1 text-xs text-neutral-400">{{ __('Enter your name, then click to create your account and receive a login code.') }}</div>
-    @endif
+            @error('name')
+            <span class="text-xs text-red-500" role="alert">
+                {{ $message }}
+            </span>
+            @enderror
+        @endif
+
+        @include('livewire.auth.partials.recaptcha')
+
+        {{-- OTP senden --}}
+        <div class="mt-2">
+            <button
+                type="button"
+                class="checkout-cta"
+                wire:click="sendOtpCode"
+                wire:loading.attr="disabled"
+            >
+                {{ $userExists ? 'Login-Code senden' : 'Konto erstellen & Code senden' }}
+                <span wire:loading wire:target="sendOtpCode">
+                    <span class="loading loading-ring loading-xs"></span>
+                </span>
+            </button>
+        </div>
+
+        @if($userExists)
+            <div class="my-1 ms-1 text-xs" style="color: #94A3B8;">Klicken Sie, um ein Einmalpasswort per E-Mail zu erhalten.</div>
+        @else
+            <div class="my-1 ms-1 text-xs" style="color: #94A3B8;">Geben Sie Ihren Namen ein und klicken Sie, um Ihr Konto zu erstellen und einen Login-Code zu erhalten.</div>
+        @endif
+    </div>
 
 @elseif($showOtpForm)
-    <fieldset class="fieldset">
-        <legend class="fieldset-legend font-medium">{{ __('Email Address') }}</legend>
-        <input type="email" class="input w-full" name="email" required id="email" wire:model.live.debounce.500ms="email" value="{{ old('email') }}" />
-    </fieldset>
+    <div class="flex flex-col gap-3">
+        <div>
+            <label for="email" class="checkout-label">E-Mail-Adresse</label>
+            <input type="email" class="checkout-input @error('email') checkout-input-error @enderror" name="email" required id="email" wire:model.live.debounce.500ms="email" value="{{ old('email') }}" />
+        </div>
 
-    @error('email')
-    <span class="text-xs text-red-500" role="alert">
-        {{ $message }}
-    </span>
-    @enderror
+        @error('email')
+        <span class="text-xs text-red-500" role="alert">
+            {{ $message }}
+        </span>
+        @enderror
 
-    {{-- OTP Input Field --}}
-    <fieldset class="fieldset">
-        <legend class="fieldset-legend font-medium">{{ __('One-time Password') }}</legend>
-        <input type="text" class="input w-full" name="oneTimePassword" required id="oneTimePassword" wire:model.live="oneTimePassword" />
-    </fieldset>
+        {{-- OTP Eingabe --}}
+        <div>
+            <label for="oneTimePassword" class="checkout-label">Einmalpasswort</label>
+            <input type="text" class="checkout-input @error('oneTimePassword') checkout-input-error @enderror" name="oneTimePassword" required id="oneTimePassword" wire:model.live="oneTimePassword" placeholder="Code eingeben" />
+        </div>
 
-    @error('oneTimePassword')
-    <span class="text-xs text-red-500" role="alert">
-        {{ $message }}
-    </span>
-    @enderror
+        @error('oneTimePassword')
+        <span class="text-xs text-red-500" role="alert">
+            {{ $message }}
+        </span>
+        @enderror
 
-    <div class="my-2 ms-1 text-xs text-neutral-400">{{ __('Enter the one-time password sent to your email address.') }}</div>
+        <div class="my-1 ms-1 text-xs" style="color: #94A3B8;">Geben Sie das Einmalpasswort ein, das an Ihre E-Mail-Adresse gesendet wurde.</div>
 
-    {{-- Resend Code Button --}}
-    <div class="mt-2 text-end" x-data="{ resendText: '{{ __('Resend Code') }}', isResending: false }">
-        <button
-            type="button"
-            @click="
-                if (!isResending) {
-                    isResending = true;
-                    resendText = '{{ __('Code sent') }}';
-                    $wire.resendOtpCode();
-                    setTimeout(() => {
-                        resendText = '{{ __('Resend code') }}';
-                        isResending = false;
-                    }, 2000);
-                }
-            "
-            class="text-primary-500 text-xs cursor-pointer bg-transparent border-0 p-0 m-0 text-left underline"
-            :class="{ 'underline': !isResending }"
-            x-text="resendText"
-        ></button>
+        {{-- Code erneut senden --}}
+        <div class="mt-1 text-end" x-data="{ resendText: 'Code erneut senden', isResending: false }">
+            <button
+                type="button"
+                @click="
+                    if (!isResending) {
+                        isResending = true;
+                        resendText = 'Code gesendet';
+                        $wire.resendOtpCode();
+                        setTimeout(() => {
+                            resendText = 'Code erneut senden';
+                            isResending = false;
+                        }, 2000);
+                    }
+                "
+                class="text-xs cursor-pointer bg-transparent border-0 p-0 m-0 text-left underline"
+                style="color: var(--portal-primary, #3B82F6);"
+                :class="{ 'underline': !isResending }"
+                x-text="resendText"
+            ></button>
+        </div>
     </div>
 @endif
-

@@ -161,6 +161,9 @@ class ConfigConstants
         'app.verification.default_provider',
         'app.anonymization_enabled',
 
+        // E-Mail Branding
+        'app.email_color_tint',
+
         // Referral System
         'app.referral.enabled',
         'app.referral.trigger',

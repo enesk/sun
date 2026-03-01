@@ -1,27 +1,27 @@
-<x-layouts.focus-center>
+@extends('layouts.app')
 
-    <x-slot name="title">
-        {{ __('Thank You') }}
-    </x-slot>
+@section('title', 'Vielen Dank! — ' . ($currentTenant->name ?? config('app.name')))
 
-    <div class="mx-4">
-        <div class="card max-w-3xl bg-base-100 shadow-xl mx-auto text-center">
-            <div class="card-body">
-                @svg('party', 'w-24 h-24 mx-auto text-primary-500 stroke-primary-500')
-                <x-heading.h3 class="text-primary-900">
-                    {{ __('Thank you for your purchase!') }}
-                </x-heading.h3>
-                <p>
-                    {{ __('Your order is being processed and you will receive an email with your order details shortly.') }}
-                    {{ __('It might take a few moments for your subscription to be activated.') }}
-                </p>
+@section('content')
 
-                <x-button-link.primary href="{{ route('home') }}" class="mt-4 mx-auto">
-                    {{ __('Start Your Journey') }}
-                </x-button-link.primary>
-
+    <div class="checkout-thankyou">
+        <div class="checkout-thankyou-card">
+            <div class="checkout-thankyou-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
             </div>
+            <h1 class="checkout-thankyou-title">Vielen Dank für Ihr Abo!</h1>
+            <p class="checkout-thankyou-text">
+                Ihre Bestellung wird verarbeitet. Sie erhalten in Kürze eine Bestätigungsmail.
+                Es kann einen Moment dauern, bis Ihr Abo aktiviert ist.
+            </p>
+            <a href="{{ route('verwaltung.companies.index') }}" class="checkout-thankyou-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Zum Firmenprofil
+            </a>
         </div>
     </div>
 
-</x-layouts.focus-center>
+@endsection

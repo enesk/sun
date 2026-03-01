@@ -160,9 +160,12 @@
                     @endforeach
                 </ul>
 
-                <button type="button" class="dash-btn dash-btn-primary w-full mt-6" style="background-color: var(--portal-accent); color: white;" disabled>
-                    Bald verfügbar
-                </button>
+                <a x-show="!yearly" href="{{ route('tenant.checkout.subscription', 'premium-monthly') }}" class="dash-btn dash-btn-primary w-full mt-6 text-center" style="background-color: var(--portal-accent); color: white;">
+                    30 Tage kostenlos testen
+                </a>
+                <a x-show="yearly" x-cloak href="{{ route('tenant.checkout.subscription', 'premium-yearly') }}" class="dash-btn dash-btn-primary w-full mt-6 text-center" style="background-color: var(--portal-accent); color: white;">
+                    30 Tage kostenlos testen
+                </a>
                 <p class="text-xs text-center mt-2" style="color: var(--dash-text-muted)">Keine Bindung. Jederzeit kündbar.</p>
             </div>
         </div>

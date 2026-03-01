@@ -105,7 +105,7 @@ class DowngradeModal extends Component
 
         $convertUrl = null;
         if ($subscription) {
-            $convertUrl = route('checkout.convert-local-subscription', [
+            $convertUrl = checkout_route('checkout.convert-local-subscription', [
                 'subscriptionUuid' => $subscription->uuid,
             ]);
         }

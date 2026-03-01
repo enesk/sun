@@ -102,7 +102,7 @@ class LocalSubscriptionCheckoutForm extends CheckoutForm
                 $subscriptionCheckoutDto->shouldCreateNewTenant,
             );
         } catch (SubscriptionCreationNotAllowedException $e) {
-            return redirect()->route('checkout.subscription.already-subscribed');
+            return redirect(checkout_route('checkout.subscription.already-subscribed'));
         }
 
         $subscriptionCheckoutDto->subscriptionId = $subscription->id;
@@ -114,6 +114,6 @@ class LocalSubscriptionCheckoutForm extends CheckoutForm
             return;
         }
 
-        $this->redirect(route('checkout.subscription.success'));
+        $this->redirect(checkout_route('checkout.subscription.success'));
     }
 }

@@ -3,6 +3,9 @@
 @section('title', 'Firmen verwalten — Verwaltung')
 
 @section('content')
+    {{-- Trial Banner (nur auf der Firmen-Seite) --}}
+    @livewire('verwaltung.trial-banner')
+
     {{-- Page Header --}}
     <div class="dash-page-header">
         <div>
