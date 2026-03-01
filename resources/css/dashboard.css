@@ -18,7 +18,7 @@
         --dash-sidebar-width-collapsed: 4rem;
         --dash-header-height: 3.5rem;
         --dash-bottom-bar-height: 4rem;
-        --dash-content-max-width: 1280px;
+        --dash-content-max-width: none;
 
         /* Surfaces */
         --dash-bg: #f8fafc;
@@ -1243,6 +1243,12 @@
         justify-content: space-between;
         height: 100%;
         padding: 0 1rem;
+    }
+    @media (min-width: 640px) {
+        .dash-header-inner { padding: 0 1.5rem; }
+    }
+    @media (min-width: 1024px) {
+        .dash-header-inner { padding: 0 2rem; }
     }
 
     .dash-header-left {

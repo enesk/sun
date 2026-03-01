@@ -99,6 +99,26 @@ class OwnerDashboardController extends Controller
         return back()->with('success', 'Ihre Antwort wurde gespeichert.');
     }
 
+    public function deleteReviewResponse(int $review)
+    {
+        $company = $this->getCompany();
+
+        $review = Review::findOrFail($review);
+
+        // Verify review belongs to this company
+        abort_unless($review->company_id === $company->id, 403);
+
+        // Only delete if there's actually a response
+        abort_unless(! empty($review->owner_response), 422);
+
+        $review->update([
+            'owner_response' => null,
+            'owner_response_at' => null,
+        ]);
+
+        return back()->with('success', 'Ihre Antwort wurde gelöscht.');
+    }
+
     public function premium()
     {
         $company = $this->getCompany();

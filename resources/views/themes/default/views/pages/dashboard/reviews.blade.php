@@ -118,7 +118,7 @@
                                 @if($company->is_premium)
                                     @if(!empty($review->owner_response))
                                         {{-- Existing response --}}
-                                        <div class="mt-3 ml-4 pl-3" style="border-left: 2px solid var(--portal-primary); padding-top: 0.5rem; padding-bottom: 0.5rem;">
+                                        <div class="mt-3 ml-4 pl-3" style="border-left: 2px solid var(--portal-primary); padding-top: 0.5rem; padding-bottom: 0.5rem;" x-data="{ confirmDelete: false }">
                                             <div class="flex items-center gap-1 mb-1">
                                                 <svg class="w-3.5 h-3.5" style="color: var(--portal-primary)" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
@@ -127,8 +127,36 @@
                                                 @if($review->owner_response_at)
                                                     <span class="text-xs" style="color: var(--dash-text-muted)">· {{ $review->owner_response_at->format('d.m.Y') }}</span>
                                                 @endif
+                                                <span class="flex-1"></span>
+                                                <button type="button"
+                                                        @click="confirmDelete = true"
+                                                        x-show="!confirmDelete"
+                                                        class="text-xs transition-colors hover:opacity-80"
+                                                        style="color: var(--dash-text-muted);"
+                                                        title="Antwort löschen">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                    </svg>
+                                                </button>
                                             </div>
                                             <p class="text-sm" style="color: var(--dash-text-secondary)">{{ $review->owner_response }}</p>
+
+                                            {{-- Lösch-Bestätigung --}}
+                                            <div x-show="confirmDelete" x-cloak x-transition class="mt-2 p-2.5 rounded-lg" style="background: rgba(220, 38, 38, 0.06); border: 1px solid rgba(220, 38, 38, 0.15);">
+                                                <p class="text-xs mb-2" style="color: var(--dash-danger)">Antwort wirklich löschen? Dies kann nicht rückgängig gemacht werden.</p>
+                                                <div class="flex items-center gap-2">
+                                                    <form action="{{ route('portal.owner.reviews.delete-response', $review) }}" method="POST">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="dash-btn dash-btn-sm" style="background: var(--dash-danger); color: white; font-size: 0.75rem; padding: 0.25rem 0.75rem;">
+                                                            Ja, löschen
+                                                        </button>
+                                                    </form>
+                                                    <button type="button" @click="confirmDelete = false" class="dash-btn dash-btn-sm dash-btn-secondary" style="font-size: 0.75rem; padding: 0.25rem 0.75rem;">
+                                                        Abbrechen
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     @else
                                         {{-- Reply Form (Alpine.js toggle) --}}

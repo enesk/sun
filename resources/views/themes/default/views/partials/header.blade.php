@@ -51,6 +51,17 @@
                     @endphp
 
                     @if($ownedCompany)
+                        {{-- Premium Badge --}}
+                        @if($ownedCompany->is_premium)
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold"
+                                  style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.1)); color: #b45309; border: 1px solid rgba(245, 158, 11, 0.25);">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                                Premium
+                            </span>
+                        @endif
+
                         {{-- User besitzt eine Firma → Link zum öffentlichen Profil --}}
                         <a href="{{ $ownedCompany->portal_url }}"
                            class="header-nav-link font-medium">
@@ -172,9 +183,18 @@
 
                     @if($ownedCompany)
                         <a href="{{ $ownedCompany->portal_url }}"
-                           class="block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-black/5 touch-target"
+                           class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-black/5 touch-target"
                            @click="mobileOpen = false">
                             Mein Firmenprofil
+                            @if($ownedCompany->is_premium)
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                                      style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.1)); color: #b45309;">
+                                    <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                    </svg>
+                                    Premium
+                                </span>
+                            @endif
                         </a>
                     @endif
 
