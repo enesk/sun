@@ -3,9 +3,11 @@
 namespace App\Models\Portal;
 
 use Illuminate\Database\Eloquent\Model;
+use Stancl\Tenancy\Database\Concerns\TenantConnection;
 
 class NewsletterSubscriber extends Model
 {
+    use TenantConnection;
     protected $fillable = [
         'email',
         'subscribed_at',

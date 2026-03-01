@@ -51,8 +51,8 @@
                     @endphp
 
                     @if($ownedCompany)
-                        {{-- User besitzt eine Firma → Link zur Bearbeitungsseite --}}
-                        <a href="{{ route('portal.owner.dashboard') }}"
+                        {{-- User besitzt eine Firma → Link zum öffentlichen Profil --}}
+                        <a href="{{ $ownedCompany->portal_url }}"
                            class="header-nav-link font-medium">
                             <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
@@ -171,7 +171,7 @@
                     @endphp
 
                     @if($ownedCompany)
-                        <a href="{{ route('portal.owner.dashboard') }}"
+                        <a href="{{ $ownedCompany->portal_url }}"
                            class="block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-black/5 touch-target"
                            @click="mobileOpen = false">
                             Mein Firmenprofil

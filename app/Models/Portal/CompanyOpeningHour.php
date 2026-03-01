@@ -4,9 +4,11 @@ namespace App\Models\Portal;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Stancl\Tenancy\Database\Concerns\TenantConnection;
 
 class CompanyOpeningHour extends Model
 {
+    use TenantConnection;
     protected $fillable = [
         'company_id',
         'day_of_week',

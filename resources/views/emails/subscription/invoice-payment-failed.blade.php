@@ -16,7 +16,13 @@
             </p>
 
             <div style="text-align: center;">
-                <a href="{{ route('verwaltung.subscriptions.index') }}" style="margin-top: 24px; margin-bottom: 24px; display: inline-block; border-radius: 16px; background-color: {{config('app.email_color_tint')}}; padding: 12px 32px; font-size: 18px; color: #fff; text-decoration-line: none; font-weight: 600;">
+                @php
+                    $tenantDomain = $subscription->tenant?->domains?->first()?->domain;
+                    $billingUrl = $tenantDomain
+                        ? 'https://' . $tenantDomain . '/verwaltung/abonnements'
+                        : url('/verwaltung/abonnements');
+                @endphp
+                <a href="{{ $billingUrl }}" style="margin-top: 24px; margin-bottom: 24px; display: inline-block; border-radius: 16px; background-color: {{config('app.email_color_tint')}}; padding: 12px 32px; font-size: 18px; color: #fff; text-decoration-line: none; font-weight: 600;">
                     Zahlungsdaten aktualisieren
                 </a>
             </div>

@@ -6,10 +6,11 @@ use Database\Factories\Portal\ReviewFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Stancl\Tenancy\Database\Concerns\TenantConnection;
 
 class Review extends Model
 {
-    use HasFactory;
+    use HasFactory, TenantConnection;
 
     protected static function newFactory(): ReviewFactory
     {

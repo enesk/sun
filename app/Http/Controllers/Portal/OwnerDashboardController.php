@@ -73,9 +73,13 @@ class OwnerDashboardController extends Controller
         return view('pages.dashboard.settings', compact('company'));
     }
 
-    public function respondToReview(Request $request, Review $review)
+    public function respondToReview(Request $request, int $review)
     {
         $company = $this->getCompany();
+
+        // Manuell resolven statt Implicit Route Model Binding,
+        // weil SubstituteBindings (Teil von 'web') VOR TENANCY_INITIALIZER läuft
+        $review = Review::findOrFail($review);
 
         // Verify review belongs to this company
         abort_unless($review->company_id === $company->id, 403);

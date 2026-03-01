@@ -24,8 +24,14 @@
             </ul>
 
             <div style="text-align: center;">
-                <a href="{{ route('verwaltung.companies.index') }}" style="margin-top: 8px; margin-bottom: 24px; display: inline-block; border-radius: 16px; background-color: {{config('app.email_color_tint')}}; padding: 12px 32px; font-size: 18px; color: #fff; text-decoration-line: none; font-weight: 600;">
-                    Zum Firmenprofil
+                @php
+                    $tenantDomain = $subscription->tenant?->domains?->first()?->domain;
+                    $dashboardUrl = $tenantDomain
+                        ? 'https://' . $tenantDomain . '/firmenprofil/bearbeiten'
+                        : url('/firmenprofil/bearbeiten');
+                @endphp
+                <a href="{{ $dashboardUrl }}" style="margin-top: 8px; margin-bottom: 24px; display: inline-block; border-radius: 16px; background-color: {{config('app.email_color_tint')}}; padding: 12px 32px; font-size: 18px; color: #fff; text-decoration-line: none; font-weight: 600;">
+                    Firmenprofil bearbeiten
                 </a>
             </div>
 
