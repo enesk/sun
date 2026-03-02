@@ -388,7 +388,23 @@ class StripeProvider implements PaymentProviderInterface
         $stripeProductId = $this->planService->getPaymentProviderProductId($plan, $paymentProvider);
 
         if ($stripeProductId !== null) {
-            return $stripeProductId;
+            // Validate that the product actually exists in Stripe
+            $stripe = $this->getClient();
+            try {
+                $stripeProduct = $stripe->products->retrieve($stripeProductId);
+                if ($stripeProduct->active) {
+                    return $stripeProductId;
+                }
+                // Product is inactive/archived — delete mapping and recreate
+                \Log::warning("Stripe product {$stripeProductId} is inactive, recreating...");
+            } catch (\Stripe\Exception\InvalidRequestException $e) {
+                \Log::warning("Stripe product {$stripeProductId} not found in Stripe, recreating...");
+            }
+
+            // Remove stale DB mapping
+            $plan->paymentProviderData()
+                ->where('payment_provider_id', $paymentProvider->id)
+                ->delete();
         }
 
         $stripe = $this->getClient();
@@ -409,7 +425,20 @@ class StripeProvider implements PaymentProviderInterface
         $stripeProductId = $this->oneTimeProductService->getPaymentProviderProductId($product, $paymentProvider);
 
         if ($stripeProductId !== null) {
-            return $stripeProductId;
+            $stripe = $this->getClient();
+            try {
+                $stripeProduct = $stripe->products->retrieve($stripeProductId);
+                if ($stripeProduct->active) {
+                    return $stripeProductId;
+                }
+                \Log::warning("Stripe one-time product {$stripeProductId} is inactive, recreating...");
+            } catch (\Stripe\Exception\InvalidRequestException $e) {
+                \Log::warning("Stripe one-time product {$stripeProductId} not found in Stripe, recreating...");
+            }
+
+            $product->paymentProviderData()
+                ->where('payment_provider_id', $paymentProvider->id)
+                ->delete();
         }
 
         $stripe = $this->getClient();
