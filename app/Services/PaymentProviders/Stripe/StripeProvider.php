@@ -16,6 +16,7 @@ use App\Models\OneTimeProduct;
 use App\Models\Order;
 use App\Models\PaymentProvider;
 use App\Models\Plan;
+use App\Models\PlanPricePaymentProviderData;
 use App\Models\Subscription;
 use App\Models\Tenant;
 use App\Models\User;
@@ -523,12 +524,49 @@ class StripeProvider implements PaymentProviderInterface
         $stripeProductPrices = $this->planService->getPaymentProviderPrices($planPrice, $paymentProvider);
 
         if (count($stripeProductPrices) > 0) {
-            $result = [];
-            foreach ($stripeProductPrices as $stripeProductPriceId) {
-                $result[$stripeProductPriceId->type] = $stripeProductPriceId->payment_provider_price_id;
+            // Validate that all price IDs still exist in Stripe (self-healing for stale/deleted prices)
+            $stripe = $this->getClient();
+            $allValid = true;
+
+            foreach ($stripeProductPrices as $stripeProductPriceRecord) {
+                try {
+                    $stripePrice = $stripe->prices->retrieve($stripeProductPriceRecord->payment_provider_price_id);
+                    if (! $stripePrice->active) {
+                        $allValid = false;
+                        Log::warning('Stripe price is inactive, will recreate', [
+                            'price_id' => $stripeProductPriceRecord->payment_provider_price_id,
+                            'plan_price_id' => $planPrice->id,
+                        ]);
+                        break;
+                    }
+                } catch (\Stripe\Exception\InvalidRequestException $e) {
+                    $allValid = false;
+                    Log::warning('Stripe price not found, will recreate', [
+                        'price_id' => $stripeProductPriceRecord->payment_provider_price_id,
+                        'plan_price_id' => $planPrice->id,
+                        'stripe_error' => $e->getMessage(),
+                    ]);
+                    break;
+                }
             }
 
-            return $result;
+            if ($allValid) {
+                $result = [];
+                foreach ($stripeProductPrices as $stripeProductPriceId) {
+                    $result[$stripeProductPriceId->type] = $stripeProductPriceId->payment_provider_price_id;
+                }
+
+                return $result;
+            }
+
+            // Stale price IDs found — delete DB mappings and fall through to create new ones
+            PlanPricePaymentProviderData::where('plan_price_id', $planPrice->id)
+                ->where('payment_provider_id', $paymentProvider->id)
+                ->delete();
+
+            Log::info('Deleted stale Stripe price mappings, will recreate', [
+                'plan_price_id' => $planPrice->id,
+            ]);
         }
 
         $currencyCode = $planPrice->currency()->firstOrFail()->code;
