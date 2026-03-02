@@ -103,6 +103,16 @@ class TenantCreationService
 
     public function createTenant(User $user, ?string $tenantName = null): Tenant
     {
+        // SECURITY: Never auto-create a new tenant when already inside a tenant context.
+        // This prevents accidental tenant creation on portal domains.
+        if (tenant() !== null) {
+            \Illuminate\Support\Facades\Log::warning('TenantCreationService: Blocked tenant creation inside existing tenant context', [
+                'user_id' => $user->id,
+                'current_tenant' => tenant()->id,
+            ]);
+            throw new \RuntimeException('Cannot create a new tenant while inside an existing tenant context.');
+        }
+
         // add an enumeration to the name to avoid name conflicts
 
         $latestUserTenant = $user->tenants()->latest()->first();

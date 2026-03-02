@@ -10,7 +10,7 @@ class TenancyPermissionConstants
 
     public const ROLE_USER = 'user';
 
-    public const TENANT_CREATOR_ROLE = self::ROLE_ADMIN;
+    public const TENANT_CREATOR_ROLE = self::ROLE_USER;
 
     public const PERMISSION_CREATE_SUBSCRIPTIONS = 'tenancy: create subscriptions';
 
