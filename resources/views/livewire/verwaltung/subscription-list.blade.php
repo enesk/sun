@@ -149,7 +149,7 @@
     @if($showDiscardModal)
         <div class="dash-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="discard-cancel-title"
              x-data x-trap.noscroll="true"
-             @keydown.escape.window="$wire.cancelDiscard()"
+             @keydown.escape.window="$wire.cancelDiscard()">
             <div class="dash-modal-backdrop" wire:click="cancelDiscard"></div>
 
             <div class="dash-modal">

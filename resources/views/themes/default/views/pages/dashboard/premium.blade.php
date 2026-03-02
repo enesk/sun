@@ -42,6 +42,76 @@
                 @endforeach
             </div>
         </div>
+
+        {{-- Abo-Details & Verwaltung --}}
+        @if($subscription)
+            <div class="dash-card dash-card-padded mb-6">
+                <h3 class="text-base font-semibold mb-4" style="color: var(--dash-text-primary)">Abo-Details</h3>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                    <div>
+                        <span class="dash-stat-label">Plan</span>
+                        <p class="text-sm font-medium mt-0.5" style="color: var(--dash-text-primary)">{{ $subscription->plan->name ?? 'Premium' }}</p>
+                    </div>
+                    <div>
+                        <span class="dash-stat-label">Preis</span>
+                        <p class="text-sm font-medium mt-0.5" style="color: var(--dash-text-primary)">
+                            {{ money($subscription->price, $subscription->currency->code ?? 'EUR') }}
+                            / {{ $subscription->interval->name ?? 'Monat' }}
+                        </p>
+                    </div>
+                    @if($subscription->ends_at)
+                        <div>
+                            <span class="dash-stat-label">{{ $subscription->is_canceled_at_end_of_cycle ? 'Aktiv bis' : 'Nächste Verlängerung' }}</span>
+                            <p class="text-sm font-medium mt-0.5" style="color: {{ $subscription->is_canceled_at_end_of_cycle ? 'var(--dash-danger)' : 'var(--dash-text-primary)' }}">
+                                {{ $subscription->ends_at->format('d.m.Y') }}
+                            </p>
+                        </div>
+                    @endif
+                    <div>
+                        <span class="dash-stat-label">Status</span>
+                        <p class="text-sm font-medium mt-0.5" style="color: {{ $subscription->is_canceled_at_end_of_cycle ? 'var(--dash-danger)' : 'var(--dash-success)' }}">
+                            {{ $subscription->is_canceled_at_end_of_cycle ? 'Gekündigt' : 'Aktiv' }}
+                        </p>
+                    </div>
+                </div>
+
+                {{-- Gekündigt-Warnung --}}
+                @if($subscription->is_canceled_at_end_of_cycle)
+                    <div class="dash-flash dash-flash-warning mb-4" role="alert" style="border-radius: 0.5rem;">
+                        <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                        </svg>
+                        <div>
+                            <p class="text-sm font-medium">Ihr Abonnement wurde gekündigt.</p>
+                            <p class="text-xs mt-0.5" style="opacity: 0.85">Sie können alle Premium-Funktionen noch bis zum {{ $subscription->ends_at ? $subscription->ends_at->format('d.m.Y') : 'Ende der Laufzeit' }} nutzen. Danach wird Ihr Eintrag auf den kostenlosen Plan zurückgestuft.</p>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Aktionen --}}
+                <div class="flex flex-wrap items-center gap-2 pt-4" style="border-top: 1px solid var(--dash-border);">
+                    <a href="{{ route('verwaltung.subscriptions.show', $subscription->uuid) }}"
+                       class="dash-btn dash-btn-ghost dash-btn-sm">
+                        Abo-Details anzeigen
+                    </a>
+
+                    @if($canCancel)
+                        <a href="{{ route('verwaltung.subscriptions.cancel', $subscription->uuid) }}"
+                           class="dash-btn dash-btn-ghost dash-btn-sm" style="color: var(--dash-danger);">
+                            Premium kündigen
+                        </a>
+                    @endif
+
+                    @if($canDiscardCancellation)
+                        <a href="{{ route('verwaltung.subscriptions.index') }}"
+                           class="dash-btn dash-btn-ghost dash-btn-sm" style="color: var(--dash-success);">
+                            Kündigung widerrufen
+                        </a>
+                    @endif
+                </div>
+            </div>
+        @endif
     @else
         {{-- Upgrade CTA — Hero Banner --}}
         <div class="bg-portal-gradient rounded-2xl p-6 sm:p-8 text-white mb-8 relative overflow-hidden">

@@ -5,6 +5,10 @@ namespace App\Http\Controllers\Portal;
 use App\Http\Controllers\Controller;
 use App\Models\Portal\Company;
 use App\Models\Portal\Review;
+use App\Models\Subscription;
+use App\Services\StatisticsService;
+use App\Services\SubscriptionService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -23,12 +27,21 @@ class OwnerDashboardController extends Controller
 
         // In-Memory Collection nutzen statt 3 extra COUNT-Queries
         $reviews = $company->reviews;
+
+        // Tracking-KPIs aus StatisticsService (30d Default)
+        $statsService = app(StatisticsService::class);
+        $trackingSummary = $statsService->getCompanySummary($company->id, '30d');
+
         $stats = [
             'reviews_total' => $reviews->count(),
             'reviews_pending' => $reviews->where('moderation_status', 'pending')->count(),
             'reviews_approved' => $reviews->where('moderation_status', 'approved')->count(),
             'rating' => $company->rating,
             'rating_count' => $company->rating_count,
+            'page_views' => $trackingSummary['page_views'],
+            'page_views_change' => $trackingSummary['page_views_change'],
+            'contact_clicks' => $trackingSummary['contact_clicks'],
+            'contact_clicks_change' => $trackingSummary['contact_clicks_change'],
         ];
 
         $recentReviews = $company->reviews()
@@ -61,10 +74,77 @@ class OwnerDashboardController extends Controller
         return view('pages.dashboard.reviews', compact('company', 'reviews'));
     }
 
-    public function stats()
+    public function stats(Request $request)
     {
         $company = $this->getCompany();
-        return view('pages.dashboard.stats', compact('company'));
+
+        $statsService = app(StatisticsService::class);
+        $period = in_array($request->input('period'), ['7d', '30d', '90d', '12m'], true)
+            ? $request->input('period')
+            : '30d';
+
+        $summary = $statsService->getCompanySummary($company->id, $period);
+        $trend = $statsService->getDailyTrend($company->id, $period);
+
+        // Premium-User bekommen zusätzliche Daten
+        $referrers = collect();
+        $searchQueries = collect();
+        $weekly = collect();
+
+        if ($company->is_premium) {
+            $referrers = $statsService->getTopReferrers($company->id, $period);
+            $searchQueries = $statsService->getTopSearchQueries($company->id, $period);
+            $weekly = $statsService->getWeeklyTrend($company->id);
+        }
+
+        return view('pages.dashboard.stats', compact(
+            'company', 'summary', 'trend', 'period',
+            'referrers', 'searchQueries', 'weekly'
+        ));
+    }
+
+    /**
+     * JSON-API für Owner-Statistiken (AJAX/Livewire).
+     *
+     * GET /firmenprofil/statistiken/api
+     * Query-Params: ?period=30d
+     */
+    public function statsApi(Request $request): JsonResponse
+    {
+        $company = $this->getCompany();
+
+        $statsService = app(StatisticsService::class);
+        $period = in_array($request->input('period'), ['7d', '30d', '90d', '12m'], true)
+            ? $request->input('period')
+            : '30d';
+
+        $summary = $statsService->getCompanySummary($company->id, $period);
+        $trend = $statsService->getDailyTrend($company->id, $period);
+
+        // Premium-Gate: Free-User sehen nur Gesamtzahlen, keine Trends/Details
+        if (! $company->is_premium) {
+            return response()->json([
+                'summary' => [
+                    'page_views' => $summary['page_views'],
+                    'contact_clicks' => $summary['contact_clicks'],
+                    'search_impressions' => $summary['search_impressions'],
+                    'period' => $period,
+                    'is_premium' => false,
+                ],
+            ]);
+        }
+
+        $referrers = $statsService->getTopReferrers($company->id, $period);
+        $searchQueries = $statsService->getTopSearchQueries($company->id, $period);
+        $weekly = $statsService->getWeeklyTrend($company->id);
+
+        return response()->json([
+            'summary' => array_merge($summary, ['is_premium' => true]),
+            'trend' => $trend->values(),
+            'referrers' => $referrers->values(),
+            'search_queries' => $searchQueries->values(),
+            'weekly' => $weekly->values(),
+        ]);
     }
 
     public function settings()
@@ -122,7 +202,30 @@ class OwnerDashboardController extends Controller
     public function premium()
     {
         $company = $this->getCompany();
-        return view('pages.dashboard.premium', compact('company'));
+
+        // Aktive Subscription laden für Abo-Management
+        $subscription = null;
+        $canCancel = false;
+        $canDiscardCancellation = false;
+
+        $tenant = tenant();
+        if ($tenant) {
+            $subscription = Subscription::where('tenant_id', $tenant->id)
+                ->with(['plan', 'currency', 'interval'])
+                ->whereIn('status', ['active', 'past_due'])
+                ->orderBy('updated_at', 'desc')
+                ->first();
+
+            if ($subscription) {
+                $subscriptionService = app(SubscriptionService::class);
+                $canCancel = $subscriptionService->canCancelSubscription($subscription);
+                $canDiscardCancellation = $subscriptionService->canDiscardSubscriptionCancellation($subscription);
+            }
+        }
+
+        return view('pages.dashboard.premium', compact(
+            'company', 'subscription', 'canCancel', 'canDiscardCancellation'
+        ));
     }
 
     private function calculateProfileCompletion(Company $company): array
