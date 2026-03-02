@@ -119,12 +119,7 @@
                             </a>
                         @endif
 
-                        @if($subscription->can_change_plan)
-                            <a href="{{ route('tenant.subscription.change-plan', ['subscriptionUuid' => $subscription->uuid]) }}"
-                               class="dash-btn dash-btn-ghost dash-btn-sm">
-                                Plan ändern
-                            </a>
-                        @endif
+                        {{-- Plan ändern ausgeblendet — nur 1 Bezahl-Plan (Premium) vorhanden --}}
 
                         @if($subscription->can_cancel)
                             <a href="{{ route('verwaltung.subscriptions.cancel', $subscription->uuid) }}"
