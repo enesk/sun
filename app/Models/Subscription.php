@@ -48,6 +48,9 @@ class Subscription extends Model
     protected $casts = [
         'price_tiers' => 'array',
         'extra_payment_provider_data' => 'array',
+        'ends_at' => 'datetime',
+        'trial_ends_at' => 'datetime',
+        'cancelled_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
