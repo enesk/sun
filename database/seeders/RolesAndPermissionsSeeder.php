@@ -156,6 +156,9 @@ class RolesAndPermissionsSeeder extends Seeder
             TenancyPermissionConstants::PERMISSION_DELETE_OWN_COMPANY,
             TenancyPermissionConstants::PERMISSION_MANAGE_OWN_REVIEWS,
             TenancyPermissionConstants::PERMISSION_UPLOAD_COMPANY_IMAGES,
+            TenancyPermissionConstants::PERMISSION_VIEW_SUBSCRIPTIONS,
+            TenancyPermissionConstants::PERMISSION_UPDATE_SUBSCRIPTIONS,
+            TenancyPermissionConstants::PERMISSION_CREATE_SUBSCRIPTIONS,
         ];
 
         $companyOwnerPermissionObjects = [];
