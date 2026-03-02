@@ -111,6 +111,16 @@ class Company extends Model implements HasMedia
         return $this->hasMany(CompanyEditSuggestion::class)->where('status', CompanyEditSuggestion::STATUS_PENDING);
     }
 
+    public function trackingEvents(): HasMany
+    {
+        return $this->hasMany(TrackingEvent::class);
+    }
+
+    public function trackingDailyStats(): HasMany
+    {
+        return $this->hasMany(TrackingDailyStat::class);
+    }
+
     // ── Scopes ──
 
     public function scopeActive($query)

@@ -7,6 +7,7 @@ use App\Models\Portal\Category;
 use App\Models\Portal\City;
 use App\Models\Portal\Company;
 use App\Services\CompanyUrlService;
+use App\Services\TrackingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -14,6 +15,10 @@ use Illuminate\View\View;
 
 class CompanyController extends Controller
 {
+    public function __construct(
+        private TrackingService $trackingService
+    ) {}
+
     public function index(Request $request): View
     {
         $query = Company::active()
@@ -78,6 +83,15 @@ class CompanyController extends Controller
         $totalCompanies = Cache::remember('portal.stats.total', 900, fn () =>
             Company::active()->count()
         );
+
+        // Suchimpressionen tracken: nur bei aktiver Suche (nicht bei normalem Browsen)
+        if ($request->filled('q') && $companies->isNotEmpty()) {
+            $this->trackingService->trackSearchImpressions(
+                $companies->pluck('id')->all(),
+                $request->q,
+                $request
+            );
+        }
 
         return view('pages.companies.index', compact(
             'companies',
@@ -183,6 +197,9 @@ class CompanyController extends Controller
 
     private function renderCompanyShow(Company $company): View
     {
+        // Page View Tracking via Request-Attribute (Middleware liest das nach Response)
+        request()->attributes->set('tracked_company_id', $company->id);
+
         $company->load([
             'categories',
             'city',

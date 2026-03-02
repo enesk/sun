@@ -127,6 +127,12 @@ abstract class VerwaltungBaseController extends Controller
                         'icon' => 'map-pin',
                         'visible' => $permissions['manage_cities'] ?? false,
                     ],
+                    [
+                        'route' => 'verwaltung.statistics.index',
+                        'label' => 'Statistiken',
+                        'icon' => 'chart-bar',
+                        'visible' => $permissions['manage_companies'] ?? false,
+                    ],
                 ],
             ],
             [

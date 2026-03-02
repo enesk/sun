@@ -23,14 +23,14 @@
         {{-- Aufrufe --}}
         <div class="dash-stat-card">
             <div class="flex items-center gap-2 mb-1">
-                <svg class="w-4 h-4" style="color: var(--dash-text-muted)" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <svg class="w-4 h-4" style="color: var(--portal-primary)" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                 </svg>
                 <span class="dash-stat-label">Aufrufe</span>
             </div>
-            <span class="dash-stat-value">—</span>
-            <span class="dash-stat-sub">Bald verfügbar</span>
+            <span class="dash-stat-value">{{ number_format($stats['page_views']) }}</span>
+            @include('partials.dashboard.stat-trend', ['change' => $stats['page_views_change']])
         </div>
 
         {{-- Durchschnittliche Bewertung --}}
@@ -72,13 +72,13 @@
         {{-- Kontaktanfragen --}}
         <div class="dash-stat-card">
             <div class="flex items-center gap-2 mb-1">
-                <svg class="w-4 h-4" style="color: var(--dash-text-muted)" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <svg class="w-4 h-4" style="color: var(--portal-primary)" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                 </svg>
                 <span class="dash-stat-label">Kontakte</span>
             </div>
-            <span class="dash-stat-value">—</span>
-            <span class="dash-stat-sub">Bald verfügbar</span>
+            <span class="dash-stat-value">{{ number_format($stats['contact_clicks']) }}</span>
+            @include('partials.dashboard.stat-trend', ['change' => $stats['contact_clicks_change']])
         </div>
     </div>
 

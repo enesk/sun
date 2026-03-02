@@ -680,6 +680,48 @@
         </div>
     @endif
 
+    {{-- STAT-1: Contact Click Tracking --}}
+    @push('scripts')
+    <script>
+    (function() {
+        var companyId = {{ $company->id }};
+        var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+        var tracked = {};
+
+        document.addEventListener('click', function(e) {
+            var link = e.target.closest('a[href]');
+            if (!link) return;
+
+            var href = link.getAttribute('href') || '';
+            var type = null;
+
+            if (href.startsWith('tel:')) type = 'phone';
+            else if (href.startsWith('mailto:')) type = 'email';
+            else if (href.match(/^https?:\/\//) && link.target === '_blank') type = 'website';
+
+            if (!type) return;
+
+            var key = type + '_' + companyId;
+            if (tracked[key]) return;
+            tracked[key] = true;
+
+            var payload = { company_id: companyId, contact_type: type, _token: csrfToken };
+
+            if (navigator.sendBeacon) {
+                navigator.sendBeacon('/tracking/contact-click', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+            } else {
+                fetch('/tracking/contact-click', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                    body: JSON.stringify(payload),
+                    keepalive: true
+                });
+            }
+        });
+    })();
+    </script>
+    @endpush
+
     {{-- Schema.org Structured Data --}}
     @push('scripts')
     <script type="application/ld+json">

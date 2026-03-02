@@ -84,14 +84,16 @@ class OwnerDashboardController extends Controller
             : '30d';
 
         $summary = $statsService->getCompanySummary($company->id, $period);
-        $trend = $statsService->getDailyTrend($company->id, $period);
 
-        // Premium-User bekommen zusätzliche Daten
+        // Premium-User bekommen Trend, Referrer, Suchbegriffe, Wochen-Trend
+        // Free-User sehen nur KPIs — keine unnötigen Queries
+        $trend = collect();
         $referrers = collect();
         $searchQueries = collect();
         $weekly = collect();
 
         if ($company->is_premium) {
+            $trend = $statsService->getDailyTrend($company->id, $period);
             $referrers = $statsService->getTopReferrers($company->id, $period);
             $searchQueries = $statsService->getTopSearchQueries($company->id, $period);
             $weekly = $statsService->getWeeklyTrend($company->id);

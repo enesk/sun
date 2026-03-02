@@ -6,6 +6,8 @@ use App\Http\Controllers\Portal\CompanyRegistrationController;
 use App\Http\Controllers\Portal\OwnerDashboardController;
 use App\Http\Controllers\Portal\PortalHomeController;
 use App\Http\Controllers\Portal\StaticPageController;
+use App\Http\Controllers\Portal\TrackingController;
+use App\Http\Middleware\TrackCompanyPageView;
 use App\Http\Controllers\Verwaltung\VerwaltungCategoryController;
 use App\Http\Controllers\Verwaltung\VerwaltungCityController;
 use App\Http\Controllers\Verwaltung\VerwaltungCompanyController;
@@ -23,6 +25,7 @@ use App\Http\Controllers\Verwaltung\VerwaltungSettingsController;
 use App\Http\Controllers\Verwaltung\VerwaltungProfileController;
 use App\Http\Controllers\Verwaltung\VerwaltungClaimController;
 use App\Http\Controllers\Verwaltung\VerwaltungReferralController;
+use App\Http\Controllers\Verwaltung\VerwaltungStatisticsController;
 use App\Http\Middleware\EnsureHasCompany;
 use App\Http\Middleware\EnsureTenantDashboardAccess;
 use Illuminate\Support\Facades\Auth;
@@ -103,6 +106,7 @@ Route::middleware([
             Route::post('/bewertungen/{review}/antwort', [OwnerDashboardController::class, 'respondToReview'])->name('reviews.respond');
             Route::delete('/bewertungen/{review}/antwort', [OwnerDashboardController::class, 'deleteReviewResponse'])->name('reviews.delete-response');
             Route::get('/statistiken', [OwnerDashboardController::class, 'stats'])->name('stats');
+            Route::get('/statistiken/api', [OwnerDashboardController::class, 'statsApi'])->name('stats.api');
             Route::get('/einstellungen', [OwnerDashboardController::class, 'settings'])->name('settings');
             Route::get('/premium', [OwnerDashboardController::class, 'premium'])->name('premium');
         });
@@ -186,7 +190,19 @@ Route::middleware([
 
             // Referrals (#112)
             Route::get('/empfehlungen', [VerwaltungReferralController::class, 'index'])->name('referrals.index');
+
+            // --- Statistiken (#174) ---
+            Route::get('/statistiken', [VerwaltungStatisticsController::class, 'index'])->name('statistics.index');
+            Route::get('/statistiken/firma/{id}', [VerwaltungStatisticsController::class, 'show'])->name('statistics.show');
+            // JSON-API für Livewire/AJAX
+            Route::get('/statistiken/api/overview', [VerwaltungStatisticsController::class, 'apiOverview'])->name('statistics.api.overview');
+            Route::get('/statistiken/api/company/{id}', [VerwaltungStatisticsController::class, 'apiCompany'])->name('statistics.api.company');
+            Route::get('/statistiken/api/top-companies', [VerwaltungStatisticsController::class, 'apiTopCompanies'])->name('statistics.api.top-companies');
         });
+
+    // Tracking: Contact Click (AJAX POST aus dem Frontend)
+    Route::post('/tracking/contact-click', [TrackingController::class, 'contactClick'])
+        ->name('portal.tracking.contact-click');
 
     // PROF-1: Änderung vorschlagen — Landingpage
     Route::get('/firma/{slug}/aenderung-vorschlagen', [CompanyController::class, 'suggestEdit'])
@@ -244,11 +260,13 @@ Route::middleware([
 
     // Firmen-Detailseite: /{citySlug}/{id}-{slug} (konfigurierbar pro Tenant)
     Route::get('/{citySlug}/{companySlug}', [CompanyController::class, 'showWithCity'])
+        ->middleware(TrackCompanyPageView::class)
         ->where(['citySlug' => '[a-z0-9\-]+', 'companySlug' => '\d+-.+'])
         ->name('portal.companies.show.city');
 
     // Firmen-Detailseite: /{id}-{slug} (Default, muss LETZTE Route sein)
     Route::get('/{companySlug}', [CompanyController::class, 'show'])
+        ->middleware(TrackCompanyPageView::class)
         ->where('companySlug', '\d+-.+')
         ->name('portal.companies.show');
 });
