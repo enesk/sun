@@ -21,6 +21,14 @@ class CreateTenantIfNeeded
      */
     public function handle(Registered $event): void
     {
+        // SECURITY: Never auto-create tenants when registering on a tenant domain.
+        // Our portals (sanitaerfinden.com, firmenfreund.de etc.) are pre-existing tenants.
+        // Users register on these portals to become company owners, NOT to get their own tenant.
+        // Auto-tenant-creation is only valid for the central SaaS domain (if ever needed).
+        if (tenant() !== null) {
+            return;
+        }
+
         if ($this->sessionService->shouldCreateTenantForFreePlanUser() ||
             config('app.create_tenant_on_user_registration', false)
         ) {

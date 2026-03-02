@@ -46,8 +46,10 @@ class CreateAdminUser extends Command
                 'name' => $email,
                 'email' => $email,
                 'password' => bcrypt($password),
-                'is_admin' => true,
             ]);
+
+            // is_admin is NOT in $fillable (security) — set directly
+            $user->forceFill(['is_admin' => true])->save();
 
             $tenantCreationService->createTenant($user);
         } catch (Throwable $e) {

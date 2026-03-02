@@ -39,7 +39,6 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
         'name',
         'email',
         'password',
-        'is_admin',
         'public_name',
         'is_blocked',
         'notes',
