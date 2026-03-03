@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="google-adsense-account" content="ca-pub-2563111817853634">
 
     {{-- SEO Meta --}}
     <title>@yield('title', ($currentTenant->name ?? config('app.name')))</title>
