@@ -119,6 +119,10 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
             return false;
         }
 
+        if ($panel->getId() == 'dashboard' && ! $this->is_admin) {
+            return false;
+        }
+
         return true;
     }
 
