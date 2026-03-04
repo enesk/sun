@@ -6836,3 +6836,907 @@ details[open] > .cookie-category__summary::before {
     height: 1px;
     background: rgba(0, 0, 0, 0.08);
 }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   JOBBÖRSE — Job Cards, Employment Badges, Filter Sidebar
+   ═══════════════════════════════════════════════════════════════ */
+
+/* --- Job Card (List Layout — Indeed-Pattern) --- */
+.job-card {
+    background: white;
+    border-radius: 14px;
+    border: 1px solid #F1F5F9;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s var(--ease-spring, cubic-bezier(0.22, 1, 0.36, 1));
+    position: relative;
+}
+
+.job-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.12);
+    border-color: color-mix(in srgb, var(--portal-primary, #3B82F6) 25%, transparent);
+}
+
+.job-card:focus-within {
+    outline: 2px solid var(--portal-primary, #3B82F6);
+    outline-offset: 2px;
+}
+
+/* Premium-Firmen-Jobs: subtiler linker Akzent */
+.job-card--premium {
+    border-left: 3px solid #F59E0B;
+}
+
+.job-card--premium::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.03), transparent 40%);
+    pointer-events: none;
+}
+
+/* --- Employment Type Badges (wiederverwendbar) --- */
+.job-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    line-height: 1.4;
+    white-space: nowrap;
+    transition: opacity 200ms ease;
+}
+
+.job-badge--vollzeit {
+    background: #DBEAFE;
+    color: #1D4ED8;
+}
+
+.job-badge--teilzeit {
+    background: #CCFBF1;
+    color: #0F766E;
+}
+
+.job-badge--minijob {
+    background: #FEF3C7;
+    color: #B45309;
+}
+
+.job-badge--ausbildung {
+    background: #EDE9FE;
+    color: #6D28D9;
+}
+
+.job-badge--praktikum {
+    background: #DCFCE7;
+    color: #15803D;
+}
+
+/* --- Job Card Meta Icons --- */
+.job-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 16px;
+    font-size: 14px;
+    color: #64748B;
+}
+
+.job-card__meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.job-card__meta-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: #94A3B8;
+}
+
+/* --- Job Card Description Excerpt --- */
+.job-card__excerpt {
+    font-size: 14px;
+    color: #64748B;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* --- Job Card CTA (rechte Seite) --- */
+.job-card__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    color: white;
+    background: linear-gradient(135deg, var(--portal-primary, #3B82F6), var(--portal-primary-hover, #2563EB));
+    box-shadow: 0 2px 8px rgba(var(--portal-primary-rgb, 59, 130, 246), 0.2);
+    transition: all 250ms var(--ease-spring, cubic-bezier(0.22, 1, 0.36, 1));
+    white-space: nowrap;
+}
+
+.job-card__cta:hover {
+    color: white;
+    box-shadow: 0 4px 16px rgba(var(--portal-primary-rgb, 59, 130, 246), 0.3);
+    transform: translateY(-1px);
+}
+
+/* --- Job Card Expiry Warning --- */
+.job-card__expiry {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #FEF3C7;
+    color: #92400E;
+}
+
+/* --- Job Card Time --- */
+.job-card__time {
+    font-size: 12px;
+    color: #94A3B8;
+    white-space: nowrap;
+}
+
+/* --- Jobbörse Filter Sidebar --- */
+.job-filter__section {
+    margin-bottom: 1.5rem;
+}
+
+.job-filter__title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0F172A;
+    margin-bottom: 0.75rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.job-filter__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #475569;
+    text-decoration: none;
+    transition: all 200ms ease;
+}
+
+.job-filter__item:hover {
+    background: #F8FAFC;
+    color: #0F172A;
+}
+
+.job-filter__item--active {
+    background: color-mix(in srgb, var(--portal-primary, #3B82F6) 10%, white);
+    color: var(--portal-primary, #3B82F6);
+    font-weight: 600;
+}
+
+.job-filter__count {
+    font-size: 12px;
+    color: #94A3B8;
+    font-variant-numeric: tabular-nums;
+}
+
+.job-filter__item--active .job-filter__count {
+    color: color-mix(in srgb, var(--portal-primary, #3B82F6) 60%, transparent);
+}
+
+/* --- Jobbörse Mini Hero --- */
+.job-hero {
+    position: relative;
+    overflow: hidden;
+    padding: 2rem 0 3rem;
+    background: linear-gradient(135deg,
+        var(--portal-primary, #3B82F6),
+        var(--portal-secondary, var(--portal-primary, #3B82F6)) 50%,
+        var(--portal-primary-dark, var(--portal-primary, #3B82F6)));
+}
+
+.job-hero__counter {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* --- Jobbörse Search Bar --- */
+.job-search {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: 48rem;
+    margin: 0 auto 2rem;
+}
+
+@media (min-width: 640px) {
+    .job-search {
+        flex-direction: row;
+    }
+}
+
+.job-search__input {
+    flex: 1;
+    position: relative;
+}
+
+.job-search__input input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+    background: white;
+    font-size: 14px;
+    color: #0F172A;
+    transition: all 200ms ease;
+}
+
+.job-search__input input:focus {
+    outline: none;
+    border-color: var(--portal-primary, #3B82F6);
+    box-shadow: 0 0 0 3px rgba(var(--portal-primary-rgb, 59, 130, 246), 0.12);
+}
+
+.job-search__input input::placeholder {
+    color: #94A3B8;
+}
+
+.job-search__icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    color: #94A3B8;
+    pointer-events: none;
+}
+
+/* --- Active Filter Tags --- */
+.job-filter-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.job-filter-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    text-decoration: none;
+    background: color-mix(in srgb, var(--portal-primary, #3B82F6) 10%, white);
+    color: var(--portal-primary, #3B82F6);
+    transition: all 200ms ease;
+}
+
+.job-filter-tag:hover {
+    background: color-mix(in srgb, var(--portal-primary, #3B82F6) 18%, white);
+    color: var(--portal-primary-dark, #1E3A5F);
+}
+
+.job-filter-tag__remove {
+    width: 14px;
+    height: 14px;
+    opacity: 0.6;
+    transition: opacity 150ms ease;
+}
+
+.job-filter-tag:hover .job-filter-tag__remove {
+    opacity: 1;
+}
+
+/* --- Mobile Filter Toggle --- */
+.job-mobile-filter-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+    background: white;
+    font-size: 14px;
+    color: #475569;
+    transition: all 200ms ease;
+    cursor: pointer;
+}
+
+.job-mobile-filter-btn:hover {
+    border-color: color-mix(in srgb, var(--portal-primary, #3B82F6) 30%, transparent);
+    background: #F8FAFC;
+}
+
+/* --- Mobile: Employment-Badges als Chips --- */
+.job-filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.job-filter-chip {
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    background: #F1F5F9;
+    color: #475569;
+    transition: all 200ms ease;
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.job-filter-chip:hover {
+    background: #E2E8F0;
+    color: #0F172A;
+}
+
+.job-filter-chip--active {
+    background: var(--portal-primary, #3B82F6);
+    color: white;
+}
+
+.job-filter-chip--active:hover {
+    background: var(--portal-primary-hover, #2563EB);
+    color: white;
+}
+
+/* --- Job Detail: Sticky Sidebar Application Card --- */
+.job-apply-card {
+    border-radius: 14px;
+    border: 1px solid #E2E8F0;
+    background: white;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.job-apply-card__title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0F172A;
+    margin-bottom: 4px;
+}
+
+.job-apply-card__subtitle {
+    font-size: 12px;
+    color: #94A3B8;
+    margin-bottom: 1.25rem;
+}
+
+/* --- Job Detail: Section Headers --- */
+.job-detail__section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0F172A;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #F1F5F9;
+}
+
+/* --- Job Detail: Company Info Box --- */
+.job-company-box {
+    padding: 1.5rem;
+    border-radius: 14px;
+    background: #F8FAFC;
+    border: 1px solid #F1F5F9;
+}
+
+/* --- Job Detail: Share Buttons --- */
+.job-share-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #E2E8F0;
+    background: white;
+    color: #64748B;
+    font-size: 13px;
+    text-decoration: none;
+    transition: all 200ms ease;
+    cursor: pointer;
+}
+
+.job-share-btn:hover {
+    border-color: color-mix(in srgb, var(--portal-primary, #3B82F6) 40%, transparent);
+    color: var(--portal-primary, #3B82F6);
+    background: color-mix(in srgb, var(--portal-primary, #3B82F6) 5%, white);
+}
+
+/* --- Job Detail: Mobile Sticky CTA --- */
+.job-mobile-cta {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 30;
+    background: white;
+    border-top: 1px solid #E2E8F0;
+    padding: 0.75rem 1rem;
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+/* --- Responsive: Job Cards --- */
+@media (max-width: 639px) {
+    .job-card {
+        border-radius: 12px;
+    }
+
+    .job-badge {
+        padding: 3px 10px;
+        font-size: 11px;
+    }
+
+    .job-card__cta {
+        padding: 7px 14px;
+        font-size: 12px;
+    }
+
+    .job-hero {
+        padding: 1.5rem 0 2.5rem;
+    }
+}
+
+/* --- Reduced Motion --- */
+@media (prefers-reduced-motion: reduce) {
+    .job-card {
+        transition: box-shadow 200ms ease, border-color 200ms ease;
+    }
+
+    .job-card:hover {
+        transform: none;
+    }
+
+    .job-card__cta:hover {
+        transform: none;
+    }
+}
+
+/* =============================================================
+   FAQ COMPONENTS (#198 FAQ-4)
+   Accordion-Pattern für Startseite + eigene /faq Seite.
+   Design nach Rathanas Spec: scanbar, große Touch-Targets,
+   offener State mit Primary-Akzent.
+   ============================================================= */
+
+/* --- FAQ List Container --- */
+.faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* --- FAQ Item --- */
+.faq-item {
+    background: white;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.faq-item:has(.faq-question--open) {
+    border-color: color-mix(in srgb, var(--portal-primary, #3B82F6) 30%, #E2E8F0);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+/* --- FAQ Question (Button) --- */
+.faq-question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+    padding: 1.125rem 1.5rem;
+    min-height: 56px;
+    text-align: left;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    transition: background 150ms ease;
+}
+
+.faq-question:hover {
+    background: rgba(0, 0, 0, 0.015);
+}
+
+.faq-question:focus-visible {
+    outline: 2px solid var(--portal-primary, #3B82F6);
+    outline-offset: -2px;
+    border-radius: 16px;
+}
+
+.faq-question--open {
+    background: linear-gradient(135deg,
+        rgba(var(--portal-primary-rgb, 59, 130, 246), 0.04) 0%,
+        rgba(var(--portal-primary-rgb, 59, 130, 246), 0.02) 100%);
+    border-bottom: 1px solid rgba(var(--portal-primary-rgb, 59, 130, 246), 0.1);
+}
+
+.faq-question__text {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #0F172A;
+    line-height: 1.5;
+}
+
+.faq-question__chevron {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: #94A3B8;
+    flex-shrink: 0;
+    transition: transform 250ms ease, color 200ms ease;
+}
+
+.faq-question--open .faq-question__chevron {
+    color: var(--portal-primary, #3B82F6);
+}
+
+/* --- FAQ Answer --- */
+.faq-answer {
+    overflow: hidden;
+}
+
+.faq-answer__content {
+    padding: 0 1.5rem 1.25rem 1.5rem;
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: #475569;
+    border-left: 3px solid var(--portal-primary, #3B82F6);
+    margin-left: 1.5rem;
+    margin-right: 1.5rem;
+    padding-left: 1rem;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: 1.25rem;
+}
+
+/* --- FAQ Contact CTA --- */
+.faq-contact {
+    text-align: center;
+    padding: 2.5rem 2rem;
+    margin-top: 2.5rem;
+    background: #F8FAFC;
+    border-radius: 16px;
+    border: 1px solid #E2E8F0;
+}
+
+.faq-contact__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 12px;
+    margin-bottom: 0.75rem;
+    color: var(--portal-primary, #3B82F6);
+    background: rgba(var(--portal-primary-rgb, 59, 130, 246), 0.1);
+}
+
+/* --- FAQ Responsive --- */
+@media (max-width: 639px) {
+    .faq-question {
+        padding: 1rem 1.125rem;
+    }
+
+    .faq-question__text {
+        font-size: 0.9375rem;
+    }
+
+    .faq-answer__content {
+        margin-left: 1.125rem;
+        margin-right: 1.125rem;
+        font-size: 0.875rem;
+    }
+
+    .faq-contact {
+        padding: 2rem 1.25rem;
+    }
+}
+
+/* --- FAQ Reduced Motion --- */
+@media (prefers-reduced-motion: reduce) {
+    .faq-question__chevron {
+        transition: none;
+    }
+
+    .faq-item {
+        transition: none;
+    }
+}
+
+/* =====================================================
+   STÄDTESEITEN (#213)
+   ===================================================== */
+
+/* --- City Hero (Mini-Hero, analog zu legal-hero / job-hero) --- */
+.city-hero {
+    position: relative;
+    overflow: hidden;
+    padding: 2.5rem 0 3.5rem;
+    background: linear-gradient(
+        135deg,
+        var(--portal-primary, #3B82F6),
+        var(--portal-secondary, #1E40AF) 50%,
+        var(--portal-primary-dark, #1E3A5F)
+    );
+}
+
+.city-hero::before {
+    content: '';
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    top: -20%;
+    right: -5%;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--portal-accent, #F59E0B), transparent 70%);
+    opacity: 0.15;
+    filter: blur(60px);
+}
+
+.city-hero__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* --- City Intro Text --- */
+.city-intro {
+    position: relative;
+    padding: 2rem 2.5rem;
+    background: linear-gradient(135deg,
+        rgba(var(--portal-primary-rgb, 59, 130, 246), 0.04) 0%,
+        rgba(var(--portal-primary-rgb, 59, 130, 246), 0.015) 100%);
+    border-radius: 16px;
+    border: 1px solid rgba(var(--portal-primary-rgb, 59, 130, 246), 0.1);
+    border-left: 4px solid var(--portal-primary, #3B82F6);
+}
+
+.city-intro__text {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: #334155;
+}
+
+.city-intro__text p {
+    margin-bottom: 0.75rem;
+}
+
+.city-intro__text p:last-child {
+    margin-bottom: 0;
+}
+
+.city-intro__toggle {
+    display: none;
+    margin-top: 0.75rem;
+    padding: 0;
+    background: none;
+    border: none;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--portal-primary, #3B82F6);
+    cursor: pointer;
+}
+
+.city-intro__toggle:hover {
+    text-decoration: underline;
+}
+
+/* --- Städte-Übersicht: Grid + Cards --- */
+.cities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.75rem;
+}
+
+.city-card {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 1rem 1.25rem;
+    background: white;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    transition: all 200ms ease;
+    text-decoration: none;
+    color: inherit;
+}
+
+.city-card:hover {
+    border-color: transparent;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+
+.city-card__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 10px;
+    background: rgba(var(--portal-primary-rgb, 59, 130, 246), 0.1);
+    color: var(--portal-primary, #3B82F6);
+    flex-shrink: 0;
+}
+
+.city-card__name {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #0F172A;
+    line-height: 1.3;
+}
+
+.city-card__count {
+    font-size: 0.8125rem;
+    color: #64748B;
+    margin-top: 0.125rem;
+}
+
+/* --- Städte-Übersicht: A-Z Buchstaben-Navigation --- */
+.city-az-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    padding: 0.75rem 0;
+}
+
+.city-az-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 8px;
+    border: 1px solid #E2E8F0;
+    background: white;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    transition: all 150ms ease;
+    text-decoration: none;
+}
+
+.city-az-btn:hover,
+.city-az-btn--active {
+    background: var(--portal-primary, #3B82F6);
+    color: white;
+    border-color: var(--portal-primary, #3B82F6);
+}
+
+.city-az-btn--disabled {
+    opacity: 0.3;
+    cursor: default;
+    pointer-events: none;
+}
+
+/* --- Bundesland-Gruppe --- */
+.city-state-group {
+    margin-bottom: 2rem;
+}
+
+.city-state-group__title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #0F172A;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid rgba(var(--portal-primary-rgb, 59, 130, 246), 0.15);
+}
+
+/* --- Related Cities (Verwandte Städte) --- */
+.city-related {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.city-related__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    background: #F1F5F9;
+    color: #475569;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    transition: all 150ms ease;
+    text-decoration: none;
+}
+
+.city-related__link:hover {
+    background: rgba(var(--portal-primary-rgb, 59, 130, 246), 0.1);
+    color: var(--portal-primary, #3B82F6);
+}
+
+/* --- City Responsive --- */
+@media (max-width: 767px) {
+    .city-hero {
+        padding: 1.5rem 0 2.5rem;
+    }
+
+    .city-intro {
+        padding: 1.25rem 1.5rem;
+    }
+
+    .city-intro__toggle {
+        display: inline-block;
+    }
+
+    .cities-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 639px) {
+    .city-az-nav {
+        gap: 0.25rem;
+    }
+
+    .city-az-btn {
+        width: 2rem;
+        height: 2rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* --- City Reduced Motion --- */
+@media (prefers-reduced-motion: reduce) {
+    .city-card {
+        transition: none;
+    }
+
+    .city-card:hover {
+        transform: none;
+    }
+}

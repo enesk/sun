@@ -2,13 +2,12 @@
 {{-- Usage: @include('components.hero', ['showSearch' => true, 'popularCategories' => $popularCategories]) --}}
 @if($themeOptions['show_hero'] ?? true)
 @php
-    $categories = ($popularCategories ?? collect())->pluck('name')->toArray();
-    $categorySlugs = ($popularCategories ?? collect())->pluck('slug')->toArray();
+    $cities = ($popularCities ?? collect())->pluck('name')->toArray();
 @endphp
 
 <section class="hero-mesh relative overflow-hidden"
          x-data="{
-             words: @js($categories),
+             words: @js($cities),
              current: 0,
              animating: false,
              direction: 'up',
@@ -44,8 +43,8 @@
     <div class="container mx-auto px-4 py-12 md:py-16 lg:py-20 text-center relative z-10">
         {{-- Dynamic Title with Slide Animation --}}
         <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
-            @if(count($categories) > 0)
-                Finden Sie den besten
+            @if(count($cities) > 0)
+                Finden Sie Unternehmen in
                 <span class="hero-keyword-wrapper inline-block relative overflow-hidden align-bottom"
                       aria-live="polite">
                     <span class="hero-keyword inline-block transition-all duration-300"
@@ -54,10 +53,9 @@
                               'hero-keyword-enter': animating && direction === 'down'
                           }"
                           style="transition-timing-function: var(--ease-spring, cubic-bezier(0.22, 1, 0.36, 1))"
-                          x-text="words[current]">{{ $categories[0] ?? '' }}</span>
+                          x-text="words[current]">{{ $cities[0] ?? '' }}</span>
                     <span class="hero-keyword-highlight"></span>
                 </span>
-                <br class="hidden sm:inline">in Ihrer N&auml;he
             @else
                 {{ $title ?? ($currentTenant->name ?? config('app.name')) }}
             @endif
@@ -94,18 +92,19 @@
             </form>
         @endif
 
-        {{-- Popular Search Tags --}}
-        @if(($popularCategories ?? collect())->isNotEmpty())
-            <nav aria-label="Beliebte Kategorien" class="max-w-xl mx-auto">
-                <p class="text-sm text-white/60 mb-2">Beliebte Suchen:</p>
+        {{-- Beliebte Städte Tags --}}
+        @if(($popularCities ?? collect())->isNotEmpty())
+            <nav aria-label="Beliebte Städte" class="max-w-xl mx-auto">
+                <p class="text-sm text-white/60 mb-2">Beliebte St&auml;dte:</p>
                 <div class="flex flex-nowrap md:flex-wrap md:justify-center gap-2 overflow-x-auto pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
-                    @foreach($popularCategories as $cat)
-                        <a href="{{ route('portal.categories.show', $cat->slug) }}"
+                    @foreach($popularCities as $city)
+                        <a href="{{ route('portal.cities.show', $city->slug) }}"
                            class="hero-tag inline-flex items-center shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium text-white border border-white/20 transition-all backdrop-blur-sm">
-                            @if($cat->icon)
-                                <i data-lucide="{{ $cat->icon }}" class="w-4 h-4 mr-1 inline-block" aria-hidden="true"></i>
-                            @endif
-                            {{ $cat->name }}
+                            <svg class="w-4 h-4 mr-1 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            {{ $city->name }}
                         </a>
                     @endforeach
                 </div>

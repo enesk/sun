@@ -30,7 +30,7 @@
     @include('components.hero', [
         'showSearch' => true,
         'subtitle' => $currentTenant->getAttribute('branding.site_description') ?? 'Finden Sie lokale Unternehmen in Ihrer Nähe',
-        'popularCategories' => $popularCategories ?? collect(),
+        'popularCities' => $popularCities ?? collect(),
     ])
 
     {{-- Trust Bar: Social-Proof Statistiken --}}
@@ -144,6 +144,110 @@
             @endif
         </div>
     </section>
+
+    {{-- Aktuelle Stellenanzeigen (JOB-14, nur wenn Jobs vorhanden) --}}
+    @if(isset($latestJobs) && $latestJobs->isNotEmpty())
+        <section class="section-muted py-16" aria-labelledby="jobs-heading">
+            <div class="container mx-auto px-4">
+                <div class="flex items-end justify-between mb-10 reveal">
+                    <div>
+                        <h2 id="jobs-heading" class="text-[28px] font-extrabold text-[#0F172A]">Aktuelle Stellenanzeigen</h2>
+                        <div class="w-10 h-[3px] rounded-sm mt-3" style="background: var(--portal-primary, #3B82F6);"></div>
+                        <p class="text-base text-[#64748B] mt-2 max-w-[500px]">Finden Sie passende Jobs bei Unternehmen in Ihrer Region</p>
+                    </div>
+                    <a href="{{ route('portal.jobs.index') }}" class="group hidden md:inline-flex items-center gap-1 text-sm font-semibold text-portal-primary-dark hover:text-portal-primary transition-colors">
+                        Alle Stellenanzeigen
+                        <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </div>
+
+                {{-- Mobile: Horizontal Scroll --}}
+                <div class="md:hidden -mx-4 px-4">
+                    <div class="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 scrollbar-hide" role="list">
+                        @foreach($latestJobs as $index => $job)
+                            <div class="snap-start shrink-0 w-[85vw] max-w-[400px] reveal" data-stagger-delay="{{ ($index + 1) * 100 }}ms" role="listitem">
+                                @include('components.job-card', ['job' => $job, 'layout' => 'list'])
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Desktop: 2-Column Grid --}}
+                <div class="hidden md:grid md:grid-cols-2 gap-5">
+                    @foreach($latestJobs as $index => $job)
+                        <div class="reveal" data-stagger-delay="{{ ($index + 1) * 100 }}ms">
+                            @include('components.job-card', ['job' => $job, 'layout' => 'list'])
+                        </div>
+                    @endforeach
+                </div>
+
+                {{-- Mobile "Alle anzeigen" Link --}}
+                <div class="md:hidden text-center mt-6">
+                    <a href="{{ route('portal.jobs.index') }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-portal-primary-dark hover:text-portal-primary transition-colors">
+                        Alle Stellenanzeigen anzeigen
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+    @endif
+
+    {{-- FAQ-Sektion (FAQ-4, nur wenn FAQs vorhanden) --}}
+    @if(isset($homeFaqs) && $homeFaqs->isNotEmpty())
+        <section class="section-light py-16" aria-labelledby="faq-heading">
+            <div class="container mx-auto px-4">
+                <div class="max-w-3xl mx-auto">
+                    {{-- Section Header --}}
+                    <div class="text-center mb-10 reveal">
+                        <h2 id="faq-heading" class="text-[28px] font-extrabold text-[#0F172A]">Häufig gestellte Fragen</h2>
+                        <div class="w-10 h-[3px] rounded-sm mt-3 mx-auto" style="background: var(--portal-primary, #3B82F6);"></div>
+                        <p class="text-base text-[#64748B] mt-2">Antworten auf die wichtigsten Fragen</p>
+                    </div>
+
+                    {{-- Accordion --}}
+                    <div class="faq-list" role="list">
+                        @foreach($homeFaqs as $index => $faq)
+                            <div class="faq-item reveal" x-data="{ open: false }" data-stagger-delay="{{ ($index + 1) * 80 }}ms" role="listitem">
+                                <button
+                                    @click="open = !open"
+                                    class="faq-question"
+                                    :class="{ 'faq-question--open': open }"
+                                    :aria-expanded="open.toString()"
+                                    aria-controls="home-faq-{{ $index }}"
+                                >
+                                    <span class="faq-question__text">{{ $faq->question }}</span>
+                                    <svg class="faq-question__chevron" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                <div
+                                    id="home-faq-{{ $index }}"
+                                    x-show="open"
+                                    x-collapse
+                                    x-cloak
+                                    role="region"
+                                    :aria-hidden="(!open).toString()"
+                                    class="faq-answer"
+                                >
+                                    <div class="faq-answer__content">
+                                        {!! nl2br(e($faq->answer)) !!}
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    {{-- Link zu /faq --}}
+                    <div class="text-center mt-8 reveal">
+                        <a href="{{ route('portal.faqs.index') }}" class="group inline-flex items-center gap-1.5 text-sm font-semibold transition-colors" style="color: var(--portal-primary-dark, #1E3A5F);">
+                            Alle Fragen ansehen
+                            <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    @endif
 
     {{-- CTA-Banner: Firmeninhaber-Conversion --}}
     <section class="bg-portal-gradient py-16 md:py-20" aria-labelledby="cta-heading">

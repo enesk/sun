@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
 use App\Models\Portal\Category;
+use App\Models\Portal\City;
 use App\Models\Portal\Company;
+use App\Models\Portal\FAQ;
+use App\Models\Portal\Job;
 use App\Models\Portal\Review;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -34,9 +37,17 @@ class PortalHomeController extends Controller
         );
 
         $sortedCategories = $categories->sortByDesc('companies_count');
-        $popularCategories = $sortedCategories->take(5)->values();
         $topCategories = $sortedCategories->take(3)->values();
         $restCategories = $sortedCategories->skip(3)->values();
+
+        // Top 5 Städte nach Firmenanzahl für Hero-Animation
+        $popularCities = Cache::remember('portal.cities.hero', 3600, fn () =>
+            City::withCount(['companies' => fn ($q) => $q->where('is_active', true)])
+                ->having('companies_count', '>', 0)
+                ->orderByDesc('companies_count')
+                ->take(5)
+                ->get()
+        );
 
         // Trust Bar Stats: 4 Queries → 1 gecachter Block (15 Min)
         $stats = Cache::remember('portal.stats', 900, fn () => [
@@ -54,11 +65,24 @@ class PortalHomeController extends Controller
             'totalReviews' => Review::approved()->count(),
         ]);
 
+        // FAQs für Startseite (max 6)
+        $homeFaqs = FAQ::active()->forPage('home')->ordered()->take(6)->get();
+
+        // Aktuelle Stellenanzeigen (optional, nur wenn Jobs existieren)
+        $latestJobs = Job::active()
+            ->published()
+            ->with(['company', 'company.media', 'city'])
+            ->latest('published_at')
+            ->take(6)
+            ->get();
+
         return view('pages.home', [
             'featuredCompanies' => $featuredCompanies,
             'latestCompanies' => $latestCompanies,
+            'latestJobs' => $latestJobs,
+            'homeFaqs' => $homeFaqs,
             'categories' => $categories,
-            'popularCategories' => $popularCategories,
+            'popularCities' => $popularCities,
             'topCategories' => $topCategories,
             'restCategories' => $restCategories,
             'totalCompanies' => $stats['totalCompanies'],

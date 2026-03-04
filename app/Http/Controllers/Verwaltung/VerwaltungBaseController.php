@@ -133,6 +133,18 @@ abstract class VerwaltungBaseController extends Controller
                         'icon' => 'chart-bar',
                         'visible' => $permissions['manage_companies'] ?? false,
                     ],
+                    [
+                        'route' => 'verwaltung.jobs.index',
+                        'label' => 'Stellenanzeigen',
+                        'icon' => 'briefcase',
+                        'visible' => $permissions['manage_companies'] ?? false,
+                    ],
+                    [
+                        'route' => 'verwaltung.faqs.index',
+                        'label' => 'FAQ',
+                        'icon' => 'question-mark-circle',
+                        'visible' => $permissions['update_settings'] ?? false,
+                    ],
                 ],
             ],
             [

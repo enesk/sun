@@ -121,6 +121,16 @@ class Company extends Model implements HasMedia
         return $this->hasMany(TrackingDailyStat::class);
     }
 
+    public function jobs(): HasMany
+    {
+        return $this->hasMany(Job::class);
+    }
+
+    public function activeJobs(): HasMany
+    {
+        return $this->hasMany(Job::class)->where('is_active', true)->where('expires_at', '>', now());
+    }
+
     // ── Scopes ──
 
     public function scopeActive($query)

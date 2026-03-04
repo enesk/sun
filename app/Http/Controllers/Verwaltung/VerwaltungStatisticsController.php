@@ -38,7 +38,7 @@ class VerwaltungStatisticsController extends VerwaltungBaseController
      */
     public function index()
     {
-        $this->requirePermission(TenancyPermissionConstants::MANAGE_COMPANIES);
+        $this->requirePermission(TenancyPermissionConstants::PERMISSION_MANAGE_COMPANIES);
 
         $this->setBreadcrumbs([
             ['label' => 'Übersicht', 'url' => route('verwaltung.index')],
@@ -55,7 +55,7 @@ class VerwaltungStatisticsController extends VerwaltungBaseController
      */
     public function show(int $id)
     {
-        $this->requirePermission(TenancyPermissionConstants::MANAGE_COMPANIES);
+        $this->requirePermission(TenancyPermissionConstants::PERMISSION_MANAGE_COMPANIES);
 
         $company = \App\Models\Portal\Company::findOrFail($id);
 
@@ -86,7 +86,7 @@ class VerwaltungStatisticsController extends VerwaltungBaseController
      */
     public function apiOverview(Request $request): JsonResponse
     {
-        $this->requirePermission(TenancyPermissionConstants::MANAGE_COMPANIES);
+        $this->requirePermission(TenancyPermissionConstants::PERMISSION_MANAGE_COMPANIES);
 
         $period = $this->validatePeriod($request->input('period', '30d'));
 
@@ -115,7 +115,7 @@ class VerwaltungStatisticsController extends VerwaltungBaseController
      */
     public function apiCompany(Request $request, int $id): JsonResponse
     {
-        $this->requirePermission(TenancyPermissionConstants::MANAGE_COMPANIES);
+        $this->requirePermission(TenancyPermissionConstants::PERMISSION_MANAGE_COMPANIES);
 
         \App\Models\Portal\Company::findOrFail($id);
 
@@ -145,7 +145,7 @@ class VerwaltungStatisticsController extends VerwaltungBaseController
      */
     public function apiTopCompanies(Request $request): JsonResponse
     {
-        $this->requirePermission(TenancyPermissionConstants::MANAGE_COMPANIES);
+        $this->requirePermission(TenancyPermissionConstants::PERMISSION_MANAGE_COMPANIES);
 
         $period = $this->validatePeriod($request->input('period', '30d'));
         $limit = min((int) $request->input('limit', 20), 100);

@@ -45,11 +45,14 @@ class AggregateTrackingStats extends Command implements Isolatable
 
         $totalEvents = 0;
         $totalCompanies = 0;
+        $totalJobDays = 0;
 
         foreach ($tenants as $tenant) {
             [$events, $companies] = $this->aggregateForTenant($tenant, $fromDate, $toDate);
             $totalEvents += $events;
             $totalCompanies += $companies;
+
+            $totalJobDays += $this->aggregateJobsForTenant($tenant, $fromDate, $toDate);
 
             if ($this->option('cleanup')) {
                 $this->cleanupForTenant($tenant);
@@ -57,7 +60,7 @@ class AggregateTrackingStats extends Command implements Isolatable
         }
 
         $this->newLine();
-        $this->info("Fertig: {$totalEvents} Events aggregiert, {$totalCompanies} Company-Tage aktualisiert.");
+        $this->info("Fertig: {$totalEvents} Events aggregiert, {$totalCompanies} Company-Tage, {$totalJobDays} Job-Tage aktualisiert.");
 
         return self::SUCCESS;
     }
@@ -158,6 +161,58 @@ class AggregateTrackingStats extends Command implements Isolatable
         });
 
         return [$eventsProcessed, $companiesUpdated];
+    }
+
+    private function aggregateJobsForTenant(Tenant $tenant, string $fromDate, string $toDate): int
+    {
+        $jobDaysUpdated = 0;
+
+        $tenant->run(function () use ($fromDate, $toDate, &$jobDaysUpdated, $tenant) {
+            $rows = DB::connection('tenant')
+                ->table('tracking_events')
+                ->select(DB::raw("
+                    job_id,
+                    company_id,
+                    DATE(created_at) as event_date,
+                    SUM(CASE WHEN event_type = 'job_page_view' THEN 1 ELSE 0 END) as page_views,
+                    SUM(CASE WHEN event_type = 'job_search_impression' THEN 1 ELSE 0 END) as search_impressions
+                "))
+                ->whereNotNull('job_id')
+                ->whereIn('event_type', ['job_page_view', 'job_search_impression'])
+                ->whereRaw('DATE(created_at) BETWEEN ? AND ?', [$fromDate, $toDate])
+                ->groupBy('job_id', 'company_id', DB::raw('DATE(created_at)'))
+                ->get();
+
+            if ($rows->isEmpty()) {
+                return;
+            }
+
+            foreach ($rows as $row) {
+                DB::connection('tenant')
+                    ->table('job_tracking_daily_stats')
+                    ->updateOrInsert(
+                        [
+                            'job_id' => $row->job_id,
+                            'date' => $row->event_date,
+                        ],
+                        [
+                            'company_id' => $row->company_id,
+                            'page_views' => $row->page_views,
+                            'search_impressions' => $row->search_impressions,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]
+                    );
+
+                $jobDaysUpdated++;
+            }
+
+            if ($jobDaysUpdated > 0) {
+                $this->line("  {$tenant->name}: {$jobDaysUpdated} Job-Tageseinträge aggregiert");
+            }
+        });
+
+        return $jobDaysUpdated;
     }
 
     private function cleanupForTenant(Tenant $tenant): void

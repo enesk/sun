@@ -2986,3 +2986,161 @@
         min-height: 32px;
     }
 }
+
+/* ============================================================
+   JOB WIZARD — 3-Step Form for Job Create/Edit
+   Ticket: #188 [JOB-11]
+   ============================================================ */
+
+/* --- Step Indicator --- */
+.dash-wizard-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 1.5rem;
+    padding: 0 1rem;
+}
+
+.dash-wizard-step {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0.5rem 0;
+    transition: all 150ms ease;
+    position: relative;
+}
+
+.dash-wizard-step-circle {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border: 2px solid var(--dash-border, rgba(0, 0, 0, 0.15));
+    color: var(--dash-text-muted);
+    background: var(--dash-surface, #ffffff);
+    transition: all 200ms ease;
+    flex-shrink: 0;
+}
+
+.dash-wizard-step-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--dash-text-muted);
+    transition: color 150ms ease;
+    white-space: nowrap;
+}
+
+.dash-wizard-step-connector {
+    width: 2.5rem;
+    height: 2px;
+    background: var(--dash-border, rgba(0, 0, 0, 0.1));
+    flex-shrink: 0;
+    margin: 0 0.25rem;
+    transition: background 200ms ease;
+}
+
+/* Active Step */
+.dash-wizard-step--active .dash-wizard-step-circle {
+    border-color: var(--portal-primary, #3B82F6);
+    background: var(--portal-primary, #3B82F6);
+    color: white;
+    box-shadow: 0 0 0 4px rgba(var(--portal-primary-rgb, 59, 130, 246), 0.15);
+}
+
+.dash-wizard-step--active .dash-wizard-step-label {
+    color: var(--dash-text-primary);
+    font-weight: 600;
+}
+
+/* Completed Step */
+.dash-wizard-step--done .dash-wizard-step-circle {
+    border-color: var(--dash-success, #16a34a);
+    background: var(--dash-success, #16a34a);
+    color: white;
+}
+
+.dash-wizard-step--done .dash-wizard-step-label {
+    color: var(--dash-text-secondary);
+}
+
+.dash-wizard-step-connector--done {
+    background: var(--dash-success, #16a34a);
+}
+
+/* --- Wizard Panel (each step content) --- */
+.dash-wizard-panel {
+    animation: dash-wizard-fadein 200ms ease-out;
+}
+
+@keyframes dash-wizard-fadein {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Wizard Footer (navigation buttons) --- */
+.dash-wizard-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+}
+
+.dash-wizard-footer-hint {
+    font-size: 0.75rem;
+    color: var(--dash-text-muted);
+    text-align: center;
+    margin-top: 0.75rem;
+}
+
+/* --- Job Card Hover Enhancement --- */
+.dash-job-card {
+    transition: all 200ms ease;
+    border: 1px solid var(--dash-border, rgba(0, 0, 0, 0.08));
+}
+
+.dash-job-card:hover {
+    border-color: rgba(var(--portal-primary-rgb, 59, 130, 246), 0.2);
+    box-shadow: var(--dash-shadow-md);
+}
+
+.dash-job-card--expired {
+    opacity: 0.6;
+}
+
+.dash-job-card--expired:hover {
+    opacity: 0.8;
+}
+
+/* --- Mobile Wizard --- */
+@media (max-width: 639px) {
+    .dash-wizard-steps {
+        padding: 0;
+    }
+
+    .dash-wizard-step-label {
+        display: none;
+    }
+
+    .dash-wizard-step--active .dash-wizard-step-label {
+        display: inline;
+        font-size: 0.75rem;
+    }
+
+    .dash-wizard-step-connector {
+        width: 1.5rem;
+    }
+}
+
+/* --- Reduced Motion --- */
+@media (prefers-reduced-motion: reduce) {
+    .dash-wizard-panel {
+        animation: none;
+    }
+}

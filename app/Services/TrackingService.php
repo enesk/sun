@@ -59,6 +59,51 @@ class TrackingService
     }
 
     /**
+     * Job-Seitenaufruf tracken.
+     */
+    public function trackJobPageView(int $jobId, int $companyId, Request $request): void
+    {
+        if ($this->isBot($request)) {
+            return;
+        }
+
+        $this->insertEvent($companyId, TrackingEvent::TYPE_JOB_PAGE_VIEW, $request, [
+            'job_id' => $jobId,
+        ]);
+    }
+
+    /**
+     * Job-Suchimpressions tracken — Jobs die in der Jobbörse-Übersicht erscheinen.
+     */
+    public function trackJobSearchImpressions(array $jobCompanyPairs, ?string $searchQuery, Request $request): void
+    {
+        if ($this->isBot($request) || empty($jobCompanyPairs)) {
+            return;
+        }
+
+        $now = now();
+        $ip = $this->anonymizeIp($request->ip());
+        $userAgent = $this->truncate($request->userAgent(), 500);
+        $userId = auth()->id();
+
+        $rows = [];
+        foreach ($jobCompanyPairs as $pair) {
+            $rows[] = [
+                'company_id' => $pair['company_id'],
+                'job_id' => $pair['job_id'],
+                'event_type' => TrackingEvent::TYPE_JOB_SEARCH_IMPRESSION,
+                'search_query' => $this->truncate($searchQuery, 255),
+                'user_id' => $userId,
+                'ip_address' => $ip,
+                'user_agent' => $userAgent,
+                'created_at' => $now,
+            ];
+        }
+
+        DB::connection('tenant')->table('tracking_events')->insert($rows);
+    }
+
+    /**
      * Suchimpression tracken — eine Firma erschien in den Suchergebnissen.
      */
     public function trackSearchImpressions(array $companyIds, ?string $searchQuery, Request $request): void

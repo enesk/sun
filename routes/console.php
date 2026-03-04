@@ -25,3 +25,5 @@ Schedule::command('app:sync-seat-based-subscription-quantities')->hourly();
 
 Schedule::command('app:aggregate-tracking-stats')->dailyAt('00:30');
 Schedule::command('app:aggregate-tracking-stats --cleanup')->weeklyOn(1, '03:00');
+
+Schedule::command('app:expire-jobs')->dailyAt('01:00');

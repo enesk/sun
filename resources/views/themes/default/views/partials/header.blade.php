@@ -32,13 +32,13 @@
                    class="header-nav-link {{ request()->is('/') ? 'header-nav-active' : '' }}">
                     Startseite
                 </a>
-                <a href="{{ route('portal.companies.index') }}"
-                   class="header-nav-link {{ request()->is('firmen*') ? 'header-nav-active' : '' }}">
-                    Firmenverzeichnis
+                <a href="{{ route('portal.cities.index') }}"
+                   class="header-nav-link {{ request()->is('staedte*') ? 'header-nav-active' : '' }}">
+                    Städte
                 </a>
-                <a href="{{ route('portal.categories.index') }}"
-                   class="header-nav-link {{ request()->is('kategorien*') ? 'header-nav-active' : '' }}">
-                    Kategorien
+                <a href="{{ route('portal.jobs.index') }}"
+                   class="header-nav-link {{ request()->is('jobs*') ? 'header-nav-active' : '' }}">
+                    Stellenanzeigen
                 </a>
             </nav>
 
@@ -161,17 +161,17 @@
                @click="mobileOpen = false">
                 Startseite
             </a>
-            <a href="{{ route('portal.companies.index') }}"
+            <a href="{{ route('portal.cities.index') }}"
                class="block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-black/5 touch-target
-                      {{ request()->is('firmen*') ? 'bg-black/5 text-portal-primary-dark' : '' }}"
+                      {{ request()->is('staedte*') ? 'bg-black/5 text-portal-primary-dark' : '' }}"
                @click="mobileOpen = false">
-                Firmenverzeichnis
+                Städte
             </a>
-            <a href="{{ route('portal.categories.index') }}"
+            <a href="{{ route('portal.jobs.index') }}"
                class="block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-black/5 touch-target
-                      {{ request()->is('kategorien*') ? 'bg-black/5 text-portal-primary-dark' : '' }}"
+                      {{ request()->is('jobs*') ? 'bg-black/5 text-portal-primary-dark' : '' }}"
                @click="mobileOpen = false">
-                Kategorien
+                Stellenanzeigen
             </a>
             <div class="pt-2 border-t border-black/10 space-y-1">
                 @auth

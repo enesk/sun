@@ -4,6 +4,8 @@ namespace App\Console\Commands;
 
 use App\Models\Portal\Category;
 use App\Models\Portal\Company;
+use App\Models\Portal\FAQ;
+use App\Models\Portal\Job;
 use App\Models\Tenant;
 use Illuminate\Console\Command;
 use Spatie\Sitemap\Sitemap;
@@ -86,6 +88,16 @@ class GenerateTenantSitemap extends Command
                     ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
             );
 
+            // FAQ page (only if FAQs exist)
+            $faqCount = FAQ::active()->count();
+            if ($faqCount > 0) {
+                $sitemap->add(
+                    Url::create("{$baseUrl}/faq")
+                        ->setPriority(0.7)
+                        ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
+                );
+            }
+
             // Company pages (chunked for memory efficiency with 12.000+ entries)
             Company::active()
                 ->select(['id', 'slug', 'updated_at', 'is_premium'])
@@ -100,6 +112,29 @@ class GenerateTenantSitemap extends Command
                         );
                     }
                 });
+
+            // Jobs index page
+            $sitemap->add(
+                Url::create("{$baseUrl}/jobs")
+                    ->setPriority(0.8)
+                    ->setChangeFrequency(Url::CHANGE_FREQUENCY_DAILY)
+            );
+
+            // Individual job pages (active + published only)
+            $jobs = Job::active()
+                ->published()
+                ->select(['slug', 'published_at', 'company_id'])
+                ->with(['company:id,is_premium'])
+                ->get();
+
+            foreach ($jobs as $job) {
+                $sitemap->add(
+                    Url::create("{$baseUrl}/jobs/{$job->slug}")
+                        ->setPriority($job->company?->is_premium ? 0.7 : 0.6)
+                        ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
+                        ->setLastModificationDate($job->published_at)
+                );
+            }
 
             // Category pages
             $categories = Category::select(['slug', 'updated_at'])->get();
@@ -120,13 +155,16 @@ class GenerateTenantSitemap extends Command
             $sitemap->writeToFile("{$sitemapDir}/sitemap.xml");
 
             // Write robots.txt to tenant storage
-            $robotsContent = "User-agent: *\nAllow: /\nDisallow: /firmenprofil/dashboard\nDisallow: /login\nDisallow: /register\n\nSitemap: {$baseUrl}/sitemap.xml\n";
+            $robotsContent = "User-agent: *\nAllow: /\nDisallow: /firmenprofil/\nDisallow: /verwaltung/\nDisallow: /login\nDisallow: /register\n\nSitemap: {$baseUrl}/sitemap.xml\n";
             file_put_contents("{$sitemapDir}/robots.txt", $robotsContent);
         });
 
         $companyCount = $tenant->run(fn () => Company::active()->count());
         $categoryCount = $tenant->run(fn () => Category::count());
+        $jobCount = $tenant->run(fn () => Job::active()->published()->count());
+        $faqExists = $tenant->run(fn () => FAQ::active()->exists());
 
-        $this->info("  → {$companyCount} companies + {$categoryCount} categories + 6 static pages");
+        $staticPages = 7 + ($faqExists ? 1 : 0);
+        $this->info("  → {$companyCount} companies + {$categoryCount} categories + {$jobCount} jobs + {$staticPages} static pages");
     }
 }

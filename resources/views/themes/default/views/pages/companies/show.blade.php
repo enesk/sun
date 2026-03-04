@@ -335,6 +335,27 @@
                     </section>
                 @endif
 
+                {{-- Offene Stellen (JOB-12) --}}
+                @if($companyJobs->isNotEmpty())
+                    <section class="reveal" data-stagger-delay="150ms">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-[18px] font-bold text-[#0F172A]">
+                                Offene Stellen
+                                <span class="text-sm font-normal text-[#64748B] ml-1">({{ $companyJobs->count() }})</span>
+                            </h2>
+                            <a href="{{ route('portal.jobs.index', ['q' => $company->name]) }}" class="group inline-flex items-center gap-1 text-sm font-semibold text-portal-primary-dark hover:text-portal-primary transition-colors">
+                                Alle Stellen
+                                <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </a>
+                        </div>
+                        <div class="space-y-3">
+                            @foreach($companyJobs as $job)
+                                @include('components.job-card', ['job' => $job, 'layout' => 'compact'])
+                            @endforeach
+                        </div>
+                    </section>
+                @endif
+
                 {{-- Bewertungen --}}
                 <section class="reveal" data-stagger-delay="200ms">
                     <div class="flex items-center justify-between mb-4">

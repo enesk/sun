@@ -31,9 +31,9 @@ class TenantStyleInjector
         $secondary = $this->brandingService->get($tenant, TenantConfigConstants::SECONDARY_COLOR, '#1E40AF');
         $accent = $this->brandingService->get($tenant, TenantConfigConstants::ACCENT_COLOR, '#F59E0B');
 
-        $vars['--portal-primary'] = $primary;
-        $vars['--portal-secondary'] = $secondary;
-        $vars['--portal-accent'] = $accent;
+        $vars['--portal-primary'] = $this->sanitizeCssValue($primary);
+        $vars['--portal-secondary'] = $this->sanitizeCssValue($secondary);
+        $vars['--portal-accent'] = $this->sanitizeCssValue($accent);
 
         // Computed color variants (RGB decomposition for opacity support)
         $vars['--portal-primary-rgb'] = $this->hexToRgb($primary);
@@ -97,7 +97,7 @@ class TenantStyleInjector
      * Convert hex color to comma-separated RGB values.
      * Used for rgba() support: rgba(var(--portal-primary-rgb), 0.5)
      */
-    private function hexToRgb(string $hex): string
+    private function hexToRgb(?string $hex): string
     {
         $hex = ltrim($this->sanitizeCssValue($hex), '#');
 
@@ -120,8 +120,12 @@ class TenantStyleInjector
      * Scale a rem value by a factor.
      * e.g. scaleRem('0.5rem', 1.5) => '0.75rem'
      */
-    private function scaleRem(string $value, float $factor): string
+    private function scaleRem(?string $value, float $factor): string
     {
+        if ($value === null || $value === '') {
+            return '';
+        }
+
         if (preg_match('/^([\d.]+)rem$/', trim($value), $matches)) {
             $scaled = round((float) $matches[1] * $factor, 3);
 
@@ -135,8 +139,12 @@ class TenantStyleInjector
      * Sanitize a CSS value to prevent injection attacks.
      * Strips anything that could break out of a CSS property value.
      */
-    private function sanitizeCssValue(string $value): string
+    private function sanitizeCssValue(?string $value): string
     {
+        if ($value === null || $value === '') {
+            return '';
+        }
+
         // Allow: hex colors, rgb/hsl functions, rem/px units, font names, commas, spaces, parentheses, dots, percentages
         $sanitized = preg_replace('/[^a-zA-Z0-9\s\#\(\)\,\.\-\_\%\/]/', '', $value);
 

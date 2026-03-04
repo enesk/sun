@@ -4,7 +4,11 @@ use App\Http\Controllers\Portal\CategoryController;
 use App\Http\Controllers\Portal\CompanyController;
 use App\Http\Controllers\Portal\CompanyRegistrationController;
 use App\Http\Controllers\Portal\OwnerDashboardController;
+use App\Http\Controllers\Portal\OwnerJobController;
 use App\Http\Controllers\Portal\PortalHomeController;
+use App\Http\Controllers\Portal\PublicJobController;
+use App\Http\Controllers\Portal\PublicFaqController;
+use App\Http\Controllers\Portal\PublicCityController;
 use App\Http\Controllers\Portal\StaticPageController;
 use App\Http\Controllers\Portal\TrackingController;
 use App\Http\Middleware\TrackCompanyPageView;
@@ -25,6 +29,8 @@ use App\Http\Controllers\Verwaltung\VerwaltungSettingsController;
 use App\Http\Controllers\Verwaltung\VerwaltungProfileController;
 use App\Http\Controllers\Verwaltung\VerwaltungClaimController;
 use App\Http\Controllers\Verwaltung\VerwaltungReferralController;
+use App\Http\Controllers\Verwaltung\VerwaltungJobController;
+use App\Http\Controllers\Verwaltung\VerwaltungFaqController;
 use App\Http\Controllers\Verwaltung\VerwaltungStatisticsController;
 use App\Http\Middleware\EnsureHasCompany;
 use App\Http\Middleware\EnsureTenantDashboardAccess;
@@ -88,6 +94,18 @@ Route::middleware([
     // Firma eintragen (Multi-Step Wizard)
     Route::get('/eintragen', [CompanyRegistrationController::class, 'create'])->name('portal.companies.create');
 
+    // Jobbörse — öffentlich (#180)
+    Route::get('/jobs', [PublicJobController::class, 'index'])->name('portal.jobs.index');
+    Route::get('/jobs/{slug}', [PublicJobController::class, 'show'])->name('portal.jobs.show');
+    Route::post('/jobs/{slug}/bewerben', [PublicJobController::class, 'apply'])->name('portal.jobs.apply');
+
+    // FAQ (#198)
+    Route::get('/faq', [PublicFaqController::class, 'index'])->name('portal.faqs.index');
+
+    // Städteseiten (#213)
+    Route::get('/staedte', [PublicCityController::class, 'index'])->name('portal.cities.index');
+    Route::get('/staedte/{slug}', [PublicCityController::class, 'show'])->name('portal.cities.show');
+
     // Statische Seiten (Impressum, Datenschutz)
     Route::get('/impressum', [StaticPageController::class, 'impressum'])->name('portal.impressum');
     Route::get('/datenschutz', [StaticPageController::class, 'datenschutz'])->name('portal.datenschutz');
@@ -109,6 +127,22 @@ Route::middleware([
             Route::get('/statistiken/api', [OwnerDashboardController::class, 'statsApi'])->name('stats.api');
             Route::get('/einstellungen', [OwnerDashboardController::class, 'settings'])->name('settings');
             Route::get('/premium', [OwnerDashboardController::class, 'premium'])->name('premium');
+
+            // Stellenanzeigen (#179, #181 Premium-Gate)
+            // Index: Soft-Lock im Controller (zeigt locked-View für Free-User)
+            Route::get('/stellenanzeigen', [OwnerJobController::class, 'index'])->name('jobs.index');
+            // Delete: Kein Premium nötig (Aufräumen nach Downgrade erlaubt)
+            Route::delete('/stellenanzeigen/{id}', [OwnerJobController::class, 'destroy'])->name('jobs.destroy');
+
+            // Premium-geschützte Job-Aktionen
+            Route::middleware([\App\Http\Middleware\EnsurePremiumCompany::class])
+                ->group(function () {
+                    Route::get('/stellenanzeigen/erstellen', [OwnerJobController::class, 'create'])->name('jobs.create');
+                    Route::get('/stellenanzeigen/{id}/bearbeiten', [OwnerJobController::class, 'edit'])->name('jobs.edit');
+                    Route::post('/stellenanzeigen/{id}/toggle', [OwnerJobController::class, 'toggle'])->name('jobs.toggle');
+                    Route::get('/stellenanzeigen/{id}/bewerbungen', [OwnerJobController::class, 'applications'])->name('jobs.applications');
+                    Route::post('/stellenanzeigen/{jobId}/bewerbungen/{applicationId}/status', [OwnerJobController::class, 'updateApplicationStatus'])->name('jobs.applications.status');
+                });
         });
 
     // ========================================================================
@@ -190,6 +224,13 @@ Route::middleware([
 
             // Referrals (#112)
             Route::get('/empfehlungen', [VerwaltungReferralController::class, 'index'])->name('referrals.index');
+
+            // --- Stellenanzeigen (#182) ---
+            Route::get('/stellenanzeigen', [VerwaltungJobController::class, 'index'])->name('jobs.index');
+            Route::get('/stellenanzeigen/{id}', [VerwaltungJobController::class, 'show'])->name('jobs.show');
+
+            // --- FAQ (#196) ---
+            Route::get('/faq', [VerwaltungFaqController::class, 'index'])->name('faqs.index');
 
             // --- Statistiken (#174) ---
             Route::get('/statistiken', [VerwaltungStatisticsController::class, 'index'])->name('statistics.index');

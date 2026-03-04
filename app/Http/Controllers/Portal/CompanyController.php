@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Portal\Category;
 use App\Models\Portal\City;
 use App\Models\Portal\Company;
+use App\Models\Portal\Job;
 use App\Services\CompanyUrlService;
 use App\Services\TrackingService;
 use Illuminate\Http\RedirectResponse;
@@ -224,6 +225,15 @@ class CompanyController extends Controller
                 ->get();
         }
 
+        // Offene Stellen (max 3)
+        $companyJobs = Job::forCompany($company->id)
+            ->active()
+            ->published()
+            ->with(['city'])
+            ->latest('published_at')
+            ->take(3)
+            ->get();
+
         // Breadcrumb
         $breadcrumb = [
             ['label' => 'Home', 'url' => route('home')],
@@ -238,6 +248,7 @@ class CompanyController extends Controller
         return view('pages.companies.show', compact(
             'company',
             'relatedCompanies',
+            'companyJobs',
             'breadcrumb',
         ));
     }

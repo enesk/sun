@@ -15,6 +15,8 @@ class TrackingEvent extends Model
     const TYPE_PAGE_VIEW = 'page_view';
     const TYPE_CONTACT_CLICK = 'contact_click';
     const TYPE_SEARCH_IMPRESSION = 'search_impression';
+    const TYPE_JOB_PAGE_VIEW = 'job_page_view';
+    const TYPE_JOB_SEARCH_IMPRESSION = 'job_search_impression';
 
     const CONTACT_PHONE = 'phone';
     const CONTACT_EMAIL = 'email';
@@ -23,6 +25,7 @@ class TrackingEvent extends Model
 
     protected $fillable = [
         'company_id',
+        'job_id',
         'event_type',
         'contact_type',
         'search_query',
@@ -42,6 +45,11 @@ class TrackingEvent extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function job(): BelongsTo
+    {
+        return $this->belongsTo(Job::class);
     }
 
     // ── Scopes ──
@@ -64,6 +72,21 @@ class TrackingEvent extends Model
     public function scopeForCompany($query, int $companyId)
     {
         return $query->where('company_id', $companyId);
+    }
+
+    public function scopeForJob($query, int $jobId)
+    {
+        return $query->where('job_id', $jobId);
+    }
+
+    public function scopeJobPageViews($query)
+    {
+        return $query->where('event_type', self::TYPE_JOB_PAGE_VIEW);
+    }
+
+    public function scopeJobSearchImpressions($query)
+    {
+        return $query->where('event_type', self::TYPE_JOB_SEARCH_IMPRESSION);
     }
 
     public function scopeInPeriod($query, string $from, string $to)

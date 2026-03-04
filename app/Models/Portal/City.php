@@ -6,6 +6,7 @@ use Database\Factories\Portal\CityFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 use Stancl\Tenancy\Database\Concerns\TenantConnection;
 
@@ -47,6 +48,11 @@ class City extends Model
     public function companies(): HasMany
     {
         return $this->hasMany(Company::class);
+    }
+
+    public function cityContent(): HasOne
+    {
+        return $this->hasOne(CityContent::class);
     }
 
     public function scopeByState($query, string $state)
