@@ -2,10 +2,11 @@
 <div class="header-spacer h-20"></div>
 
 <header
-    class="header-floating glass fixed top-3 left-1/2 -translate-x-1/2 w-[calc(100%-48px)] max-w-7xl z-50 transition-all duration-300"
+    class="header-floating fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-500"
     x-data="floatingHeader()"
     x-bind="scrollBind"
-    :class="{ 'header-scrolled': scrolled }"
+    :class="scrolled ? 'header-scrolled glass w-[calc(100%-48px)] max-w-7xl top-3' : 'header-expanded w-full top-0'"
+    style="transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);"
 >
     <div class="px-4 md:px-6">
         <div class="flex items-center justify-between" :class="scrolled ? 'h-14' : 'h-16'" style="transition: height 300ms var(--ease-spring, cubic-bezier(0.22, 1, 0.36, 1))">
