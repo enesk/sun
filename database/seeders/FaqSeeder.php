@@ -2,14 +2,14 @@
 
 namespace Database\Seeders;
 
-use App\Models\Portal\Faq;
+use App\Models\Portal\FAQ;
 use Illuminate\Database\Seeder;
 
 class FaqSeeder extends Seeder
 {
     public function run(): void
     {
-        if (Faq::count() > 0) {
+        if (FAQ::count() > 0) {
             $this->command->warn('FAQs already exist — skipping.');
             return;
         }
@@ -17,7 +17,7 @@ class FaqSeeder extends Seeder
         $faqs = $this->getFaqs();
 
         foreach ($faqs as $index => $faq) {
-            Faq::create([
+            FAQ::create([
                 'question' => $faq['question'],
                 'answer' => $faq['answer'],
                 'page' => $faq['page'],
