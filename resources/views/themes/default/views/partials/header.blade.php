@@ -40,6 +40,10 @@
                    class="header-nav-link {{ request()->is('jobs*') ? 'header-nav-active' : '' }}">
                     Stellenanzeigen
                 </a>
+                <a href="{{ route('portal.blog.index') }}"
+                   class="header-nav-link {{ request()->is('ratgeber*') ? 'header-nav-active' : '' }}">
+                    Ratgeber
+                </a>
             </nav>
 
             {{-- Desktop: Auth + CTA --}}
@@ -172,6 +176,12 @@
                       {{ request()->is('jobs*') ? 'bg-black/5 text-portal-primary-dark' : '' }}"
                @click="mobileOpen = false">
                 Stellenanzeigen
+            </a>
+            <a href="{{ route('portal.blog.index') }}"
+               class="block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-black/5 touch-target
+                      {{ request()->is('ratgeber*') ? 'bg-black/5 text-portal-primary-dark' : '' }}"
+               @click="mobileOpen = false">
+                Ratgeber
             </a>
             <div class="pt-2 border-t border-black/10 space-y-1">
                 @auth

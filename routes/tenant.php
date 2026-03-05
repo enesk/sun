@@ -7,6 +7,8 @@ use App\Http\Controllers\Portal\OwnerDashboardController;
 use App\Http\Controllers\Portal\OwnerJobController;
 use App\Http\Controllers\Portal\PortalHomeController;
 use App\Http\Controllers\Portal\PublicJobController;
+use App\Http\Controllers\Portal\PublicBlogController;
+use App\Http\Controllers\Portal\BlogFeedController;
 use App\Http\Controllers\Portal\PublicFaqController;
 use App\Http\Controllers\Portal\PublicCityController;
 use App\Http\Controllers\Portal\StaticPageController;
@@ -31,6 +33,7 @@ use App\Http\Controllers\Verwaltung\VerwaltungClaimController;
 use App\Http\Controllers\Verwaltung\VerwaltungReferralController;
 use App\Http\Controllers\Verwaltung\VerwaltungJobController;
 use App\Http\Controllers\Verwaltung\VerwaltungFaqController;
+use App\Http\Controllers\Verwaltung\VerwaltungBlogController;
 use App\Http\Controllers\Verwaltung\VerwaltungStatisticsController;
 use App\Http\Middleware\EnsureHasCompany;
 use App\Http\Middleware\EnsureTenantDashboardAccess;
@@ -72,6 +75,9 @@ Route::middleware([
         }
         return response()->file($path, ['Content-Type' => 'text/plain']);
     })->name('portal.robots');
+
+    // RSS-Feed (#204)
+    Route::get('/ratgeber/feed', [BlogFeedController::class, 'rss'])->name('portal.blog.feed');
 });
 
 Route::middleware([
@@ -101,6 +107,13 @@ Route::middleware([
 
     // FAQ (#198)
     Route::get('/faq', [PublicFaqController::class, 'index'])->name('portal.faqs.index');
+
+    // Ratgeber-Blog — öffentlich (#203)
+    Route::get('/ratgeber', [PublicBlogController::class, 'index'])->name('portal.blog.index');
+    Route::get('/ratgeber/suche', [PublicBlogController::class, 'search'])->name('portal.blog.search');
+    Route::get('/ratgeber/kategorie/{slug}', [PublicBlogController::class, 'category'])->name('portal.blog.category');
+    Route::get('/ratgeber/tag/{slug}', [PublicBlogController::class, 'tag'])->name('portal.blog.tag');
+    Route::get('/ratgeber/{slug}', [PublicBlogController::class, 'show'])->name('portal.blog.show');
 
     // Städteseiten (#213)
     Route::get('/staedte', [PublicCityController::class, 'index'])->name('portal.cities.index');
@@ -231,6 +244,14 @@ Route::middleware([
 
             // --- FAQ (#196) ---
             Route::get('/faq', [VerwaltungFaqController::class, 'index'])->name('faqs.index');
+
+            // --- Ratgeber-Blog (#201, #202) ---
+            Route::get('/ratgeber', [VerwaltungBlogController::class, 'index'])->name('blog.index');
+            Route::get('/ratgeber/erstellen', [VerwaltungBlogController::class, 'create'])->name('blog.create');
+            Route::get('/ratgeber/{id}/bearbeiten', [VerwaltungBlogController::class, 'edit'])->name('blog.edit');
+            Route::delete('/ratgeber/{id}', [VerwaltungBlogController::class, 'destroy'])->name('blog.destroy');
+            Route::get('/ratgeber/kategorien', [VerwaltungBlogController::class, 'categories'])->name('blog.categories');
+            Route::get('/ratgeber/tags', [VerwaltungBlogController::class, 'tags'])->name('blog.tags');
 
             // --- Statistiken (#174) ---
             Route::get('/statistiken', [VerwaltungStatisticsController::class, 'index'])->name('statistics.index');

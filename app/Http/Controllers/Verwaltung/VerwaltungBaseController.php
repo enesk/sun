@@ -145,6 +145,12 @@ abstract class VerwaltungBaseController extends Controller
                         'icon' => 'question-mark-circle',
                         'visible' => $permissions['update_settings'] ?? false,
                     ],
+                    [
+                        'route' => 'verwaltung.blog.index',
+                        'label' => 'Ratgeber',
+                        'icon' => 'book-open',
+                        'visible' => $permissions['update_settings'] ?? false,
+                    ],
                 ],
             ],
             [

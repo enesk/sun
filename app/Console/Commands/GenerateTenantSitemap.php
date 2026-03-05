@@ -6,6 +6,7 @@ use App\Models\Portal\Category;
 use App\Models\Portal\Company;
 use App\Models\Portal\FAQ;
 use App\Models\Portal\Job;
+use App\Models\Portal\Post;
 use App\Models\Tenant;
 use Illuminate\Console\Command;
 use Spatie\Sitemap\Sitemap;
@@ -136,6 +137,31 @@ class GenerateTenantSitemap extends Command
                 );
             }
 
+            // Blog index page
+            $blogPostCount = Post::published()->count();
+            if ($blogPostCount > 0) {
+                $sitemap->add(
+                    Url::create("{$baseUrl}/ratgeber")
+                        ->setPriority(0.8)
+                        ->setChangeFrequency(Url::CHANGE_FREQUENCY_DAILY)
+                );
+
+                // Individual blog posts
+                Post::published()
+                    ->select(['slug', 'published_at', 'updated_at'])
+                    ->orderByDesc('published_at')
+                    ->chunk(200, function ($posts) use ($sitemap, $baseUrl) {
+                        foreach ($posts as $post) {
+                            $sitemap->add(
+                                Url::create("{$baseUrl}/ratgeber/{$post->slug}")
+                                    ->setPriority(0.7)
+                                    ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
+                                    ->setLastModificationDate($post->updated_at ?? $post->published_at)
+                            );
+                        }
+                    });
+            }
+
             // Category pages
             $categories = Category::select(['slug', 'updated_at'])->get();
             foreach ($categories as $category) {
@@ -162,9 +188,10 @@ class GenerateTenantSitemap extends Command
         $companyCount = $tenant->run(fn () => Company::active()->count());
         $categoryCount = $tenant->run(fn () => Category::count());
         $jobCount = $tenant->run(fn () => Job::active()->published()->count());
+        $blogPostCount = $tenant->run(fn () => Post::published()->count());
         $faqExists = $tenant->run(fn () => FAQ::active()->exists());
 
         $staticPages = 7 + ($faqExists ? 1 : 0);
-        $this->info("  → {$companyCount} companies + {$categoryCount} categories + {$jobCount} jobs + {$staticPages} static pages");
+        $this->info("  → {$companyCount} companies + {$categoryCount} categories + {$jobCount} jobs + {$blogPostCount} blog posts + {$staticPages} static pages");
     }
 }

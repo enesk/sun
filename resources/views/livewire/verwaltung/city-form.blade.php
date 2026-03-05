@@ -131,6 +131,97 @@
             @endif
         </div>
 
+        {{-- Introtext / SEO --}}
+        @if($cityId)
+        <div class="dash-card dash-card-padded">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="dash-form-section-title" style="margin-bottom: 0;">Introtext & SEO</h2>
+                    @if($is_generated && $generated_at)
+                        <p class="dash-input-hint mt-1">
+                            <svg class="w-3.5 h-3.5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+                            </svg>
+                            KI-generiert am {{ $generated_at }}
+                        </p>
+                    @endif
+                </div>
+
+                <button type="button"
+                        wire:click="generateContent"
+                        wire:loading.attr="disabled"
+                        wire:target="generateContent"
+                        class="dash-btn dash-btn-secondary"
+                        style="font-size: 0.8125rem;">
+                    <span wire:loading.remove wire:target="generateContent">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+                        </svg>
+                        {{ $intro_text ? 'Neu generieren' : 'KI-Text generieren' }}
+                    </span>
+                    <span wire:loading wire:target="generateContent" class="flex items-center gap-2">
+                        <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                        </svg>
+                        Generiere...
+                    </span>
+                </button>
+            </div>
+
+            {{-- Introtext --}}
+            <div>
+                <label for="intro_text" class="dash-label">Introtext (HTML)</label>
+                <textarea id="intro_text"
+                          wire:model="intro_text"
+                          rows="8"
+                          class="dash-input {{ $errors->has('intro_text') ? 'dash-input-error' : '' }}"
+                          placeholder="Informativer Text über die Stadt und ihre lokalen Unternehmen... (HTML mit <p>-Tags)"></textarea>
+                @error('intro_text')
+                    <p class="dash-input-error-msg">{{ $message }}</p>
+                @enderror
+                <p class="dash-input-hint">Wird auf der öffentlichen Städteseite angezeigt. HTML erlaubt (&lt;p&gt;, &lt;h3&gt;, &lt;strong&gt;).</p>
+            </div>
+
+            {{-- Meta Title --}}
+            <div class="mt-4">
+                <label for="meta_title" class="dash-label">Meta-Title</label>
+                <input type="text"
+                       id="meta_title"
+                       wire:model="meta_title"
+                       class="dash-input {{ $errors->has('meta_title') ? 'dash-input-error' : '' }}"
+                       placeholder="z.B. Unternehmen in Berlin — Firmenfreund">
+                @error('meta_title')
+                    <p class="dash-input-error-msg">{{ $message }}</p>
+                @enderror
+            </div>
+
+            {{-- Meta Description --}}
+            <div class="mt-4">
+                <label for="meta_description" class="dash-label">Meta-Beschreibung</label>
+                <textarea id="meta_description"
+                          wire:model="meta_description"
+                          rows="2"
+                          maxlength="500"
+                          class="dash-input {{ $errors->has('meta_description') ? 'dash-input-error' : '' }}"
+                          placeholder="SEO-Beschreibung für Suchmaschinen (max. 500 Zeichen)"></textarea>
+                @error('meta_description')
+                    <p class="dash-input-error-msg">{{ $message }}</p>
+                @enderror
+                <p class="dash-input-hint">{{ strlen($meta_description) }}/500 Zeichen</p>
+            </div>
+        </div>
+        @else
+        <div class="dash-card dash-card-padded">
+            <div class="dash-flash dash-flash-info" role="status" style="border-radius: 0.5rem;">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/>
+                </svg>
+                Introtext und SEO-Felder können nach dem Erstellen der Stadt bearbeitet werden.
+            </div>
+        </div>
+        @endif
+
         {{-- Actions --}}
         <div class="flex items-center justify-between">
             <a href="{{ route('verwaltung.cities.index') }}"
