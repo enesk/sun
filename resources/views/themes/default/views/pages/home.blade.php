@@ -192,6 +192,53 @@
         </section>
     @endif
 
+    {{-- Letzte Ratgeber-Artikel (nur wenn Posts vorhanden) --}}
+    @if(isset($latestPosts) && $latestPosts->isNotEmpty())
+        <section class="section-muted py-16" aria-labelledby="blog-heading">
+            <div class="container mx-auto px-4">
+                <div class="flex items-end justify-between mb-10 reveal">
+                    <div>
+                        <h2 id="blog-heading" class="text-[28px] font-extrabold text-[#0F172A]">Ratgeber & Tipps</h2>
+                        <div class="w-10 h-[3px] rounded-sm mt-3" style="background: var(--portal-primary, #3B82F6);"></div>
+                        <p class="text-base text-[#64748B] mt-2 max-w-[500px]">Aktuelle Artikel rund um Handwerk, Dienstleister und lokale Firmen</p>
+                    </div>
+                    <a href="{{ route('portal.blog.index') }}" class="group hidden md:inline-flex items-center gap-1 text-sm font-semibold text-portal-primary-dark hover:text-portal-primary transition-colors">
+                        Alle Artikel
+                        <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </div>
+
+                {{-- Desktop: 4-Spalten-Grid --}}
+                <div class="hidden md:grid md:grid-cols-4 gap-6">
+                    @foreach($latestPosts as $index => $post)
+                        <div class="reveal" data-stagger-delay="{{ ($index + 1) * 100 }}ms">
+                            @include('pages.blog._post-card', ['post' => $post, 'featured' => false])
+                        </div>
+                    @endforeach
+                </div>
+
+                {{-- Mobile: Horizontal Scroll --}}
+                <div class="md:hidden -mx-4 px-4">
+                    <div class="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 scrollbar-hide" role="list">
+                        @foreach($latestPosts as $index => $post)
+                            <div class="snap-start shrink-0 w-[80vw] max-w-[320px] reveal" data-stagger-delay="{{ ($index + 1) * 100 }}ms" role="listitem">
+                                @include('pages.blog._post-card', ['post' => $post, 'featured' => false])
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Mobile "Alle anzeigen" Link --}}
+                <div class="md:hidden text-center mt-6">
+                    <a href="{{ route('portal.blog.index') }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-portal-primary-dark hover:text-portal-primary transition-colors">
+                        Alle Artikel lesen
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+    @endif
+
     {{-- FAQ-Sektion (FAQ-4, nur wenn FAQs vorhanden) --}}
     @if(isset($homeFaqs) && $homeFaqs->isNotEmpty())
         <section class="section-light py-16" aria-labelledby="faq-heading">

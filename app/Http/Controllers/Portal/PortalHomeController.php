@@ -8,6 +8,7 @@ use App\Models\Portal\City;
 use App\Models\Portal\Company;
 use App\Models\Portal\FAQ;
 use App\Models\Portal\Job;
+use App\Models\Portal\Post;
 use App\Models\Portal\Review;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -68,6 +69,13 @@ class PortalHomeController extends Controller
         // FAQs für Startseite (max 6)
         $homeFaqs = FAQ::active()->forPage('home')->ordered()->take(6)->get();
 
+        // Letzte 4 Ratgeber-Artikel (4-Spalten-Grid)
+        $latestPosts = Post::published()
+            ->with(['category', 'media'])
+            ->latest('published_at')
+            ->take(4)
+            ->get();
+
         // Aktuelle Stellenanzeigen (optional, nur wenn Jobs existieren)
         $latestJobs = Job::active()
             ->published()
@@ -80,6 +88,7 @@ class PortalHomeController extends Controller
             'featuredCompanies' => $featuredCompanies,
             'latestCompanies' => $latestCompanies,
             'latestJobs' => $latestJobs,
+            'latestPosts' => $latestPosts,
             'homeFaqs' => $homeFaqs,
             'categories' => $categories,
             'popularCities' => $popularCities,
