@@ -23,10 +23,8 @@
                         {{-- Gradient Overlay für Lesbarkeit der Badges --}}
                         <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none"></div>
                     @else
-                        <div class="w-full h-full flex items-center justify-center text-base-content/20 bg-gradient-to-br from-base-200 to-base-300">
-                            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                            </svg>
+                        <div class="w-full h-full flex items-center justify-center company-card__placeholder">
+                            <span class="text-3xl font-bold text-white/80">{{ mb_strtoupper(mb_substr($company->name, 0, 1)) }}</span>
                         </div>
                     @endif
                 </a>
@@ -138,10 +136,8 @@
                     {{-- Gradient Overlay —  Lesbarkeit für Badges + visueller Tiefe --}}
                     <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent pointer-events-none"></div>
                 @else
-                    <div class="w-full h-full flex items-center justify-center text-base-content/20 bg-gradient-to-br from-base-200 to-base-300">
-                        <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                        </svg>
+                    <div class="w-full h-full flex items-center justify-center company-card__placeholder">
+                        <span class="text-5xl font-bold text-white/80">{{ mb_strtoupper(mb_substr($company->name, 0, 1)) }}</span>
                     </div>
                 @endif
             </a>

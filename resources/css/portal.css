@@ -1063,6 +1063,11 @@
         outline-offset: 2px;
     }
 
+    /* Placeholder (no image) — Portal-Gradient statt grauem Platzhalter */
+    .company-card__placeholder {
+        background: linear-gradient(135deg, var(--portal-primary, #3B82F6), var(--portal-secondary, #6366F1) 50%, var(--portal-primary-dark, #1E3A5F));
+    }
+
     /* Badge Overlays (on image) */
     .company-card__badge {
         display: inline-flex;
