@@ -1396,9 +1396,9 @@
     .company-hero--cover {
         position: relative;
         padding: 0;
-        background: linear-gradient(to bottom, #0F172A 0%, #1E293B 100%);
+        background: white;
         border-bottom: none;
-        overflow: hidden;
+        overflow: visible;
     }
 
     .company-hero__banner {
@@ -1418,10 +1418,10 @@
         position: absolute;
         inset: 0;
         background: linear-gradient(
-            to top,
-            rgba(0, 0, 0, 0.8) 0%,
-            rgba(0, 0, 0, 0.5) 40%,
-            rgba(0, 0, 0, 0.2) 100%
+            to bottom,
+            rgba(0, 0, 0, 0.1) 0%,
+            rgba(0, 0, 0, 0.3) 70%,
+            rgba(0, 0, 0, 0.5) 100%
         );
     }
 
@@ -1434,11 +1434,12 @@
 
     .company-hero--cover .breadcrumb,
     .company-hero--cover nav[aria-label] {
-        color: rgba(255, 255, 255, 0.8);
+        color: rgba(255, 255, 255, 0.9);
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
     }
     .company-hero--cover .breadcrumb a,
     .company-hero--cover nav[aria-label] a {
-        color: rgba(255, 255, 255, 0.8);
+        color: rgba(255, 255, 255, 0.9);
     }
     .company-hero--cover .breadcrumb a:hover,
     .company-hero--cover nav[aria-label] a:hover {
@@ -1447,13 +1448,19 @@
 
     .company-hero__inner--cover {
         display: flex;
-        align-items: flex-end;
+        align-items: flex-start;
         gap: 20px;
         margin-top: 12px;
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(0, 0, 0, 0.06);
     }
 
     .company-hero__logo-wrapper--cover {
         flex-shrink: 0;
+        margin-top: -48px;
     }
 
     .company-hero__logo-wrapper--cover .company-hero__logo {
@@ -1471,50 +1478,50 @@
     }
 
     .company-hero__name--cover {
-        color: white;
-        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6), 0 1px 3px rgba(0, 0, 0, 0.4);
+        color: #0F172A;
+        text-shadow: none;
     }
 
     .company-hero__rating-count--cover {
-        color: rgba(255, 255, 255, 0.85);
-        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+        color: #94A3B8;
+        text-shadow: none;
     }
 
     .company-hero--cover .company-hero__rating .star-rating svg {
-        filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
+        filter: none;
     }
 
     .company-hero__meta-item--cover {
-        color: rgba(255, 255, 255, 0.9);
-        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+        color: #64748B;
+        text-shadow: none;
     }
 
     .company-hero__meta-item--cover svg {
-        color: rgba(255, 255, 255, 0.75);
-        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+        color: #94A3B8;
+        filter: none;
     }
 
-    /* Cover Hero — Desktop CTA stays white for contrast */
+    /* Cover Hero — Card-on-Image: standard button styling */
     .company-hero--cover .company-hero__cta-btn--primary {
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(var(--portal-primary-rgb, 59, 130, 246), 0.3);
+        box-shadow: 0 2px 8px rgba(var(--portal-primary-rgb, 59, 130, 246), 0.3);
     }
     .company-hero--cover .company-hero__cta-btn--secondary {
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(8px);
-        border-color: rgba(255, 255, 255, 0.4);
-        color: white;
-        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        background: white;
+        backdrop-filter: none;
+        border: 1px solid #E2E8F0;
+        color: #475569;
+        text-shadow: none;
     }
     .company-hero--cover .company-hero__cta-btn--secondary:hover {
-        background: rgba(255, 255, 255, 0.35);
-        border-color: rgba(255, 255, 255, 0.6);
-        color: white;
+        background: white;
+        border-color: var(--portal-primary, #3B82F6);
+        color: var(--portal-primary, #3B82F6);
     }
 
     /* Cover Hero — Mobile */
     @media (max-width: 767px) {
         .company-hero__banner {
-            height: 180px;
+            height: 200px;
         }
 
         .company-hero--cover .container {
@@ -1522,9 +1529,15 @@
         }
 
         .company-hero__inner--cover {
-            flex-direction: row;
-            align-items: flex-end;
+            flex-direction: column;
+            align-items: flex-start;
             gap: 12px;
+            padding: 16px;
+            border-radius: 12px;
+        }
+
+        .company-hero__logo-wrapper--cover {
+            margin-top: -40px;
         }
 
         .company-hero__logo-wrapper--cover .company-hero__logo,
@@ -1536,6 +1549,18 @@
 
         .company-hero__name--cover {
             font-size: 20px;
+        }
+
+        .company-hero--cover .company-hero__cta-group {
+            display: flex;
+            width: 100%;
+            gap: 8px;
+        }
+
+        .company-hero--cover .company-hero__cta-btn--primary,
+        .company-hero--cover .company-hero__cta-btn--secondary {
+            flex: 1;
+            text-align: center;
         }
     }
 
@@ -1549,6 +1574,10 @@
             margin-top: -80px;
         }
 
+        .company-hero__inner--cover {
+            padding: 20px;
+        }
+
         .company-hero__logo-wrapper--cover .company-hero__logo,
         .company-hero__logo-wrapper--cover.company-hero__logo-placeholder {
             width: 84px;
@@ -1559,7 +1588,15 @@
     /* Cover Hero — Large Desktop */
     @media (min-width: 1280px) {
         .company-hero__banner {
-            height: 360px;
+            height: 340px;
+        }
+
+        .company-hero__inner--cover {
+            padding: 28px;
+        }
+
+        .company-hero__logo-wrapper--cover {
+            margin-top: -56px;
         }
 
         .company-hero__logo-wrapper--cover .company-hero__logo,
