@@ -4,8 +4,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="google-adsense-account" content="ca-pub-2563111817853634">
-
     {{-- SEO Meta --}}
     <title>@yield('title', ($currentTenant->name ?? config('app.name')))</title>
     <meta name="description" content="@yield('meta_description', '')">
@@ -68,6 +66,9 @@
 
     @include('partials.header')
 
+    {{-- Ad: Header Below --}}
+    <x-ad-slot position="header_below" />
+
     <main id="main-content" class="flex-1" role="main">
         {{-- Flash Messages --}}
         @if(session('success'))
@@ -89,6 +90,9 @@
         @yield('content')
     </main>
 
+    {{-- Ad: Footer Above --}}
+    <x-ad-slot position="footer_above" />
+
     @include('partials.footer')
 
     @vite(['resources/js/app.js'])
@@ -102,6 +106,11 @@
         document.addEventListener('livewire:navigated', initLucide);
         document.addEventListener('livewire:morph.updated', initLucide);
     </script>
+
+    {{-- Ad: Mobile Sticky Bottom --}}
+    <div class="fixed bottom-0 inset-x-0 z-40 lg:hidden">
+        <x-ad-slot position="mobile_sticky_bottom" />
+    </div>
 
     {{-- LEGAL-3: DSGVO Cookie-Consent --}}
     @include('partials.cookie-consent')

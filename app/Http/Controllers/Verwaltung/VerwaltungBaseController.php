@@ -151,6 +151,12 @@ abstract class VerwaltungBaseController extends Controller
                         'icon' => 'book-open',
                         'visible' => $permissions['update_settings'] ?? false,
                     ],
+                    [
+                        'route' => 'verwaltung.ads.index',
+                        'label' => 'Werbung',
+                        'icon' => 'megaphone',
+                        'visible' => $permissions['manage_ads'] ?? false,
+                    ],
                 ],
             ],
             [

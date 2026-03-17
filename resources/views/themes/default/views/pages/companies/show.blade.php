@@ -108,8 +108,7 @@
         {{-- Hero WITHOUT Cover Image (Original Gradient) --}}
         <section class="company-hero reveal">
             <div class="container mx-auto px-4">
-                @include('components.breadcrumb', ['items' => $breadcrumb])
-
+                <x-ad-slot position="after_breadcrumb" />
                 <div class="company-hero__inner">
                     @if($company->logo_url)
                         <div class="company-hero__logo-wrapper">
@@ -180,6 +179,7 @@
                         @endif
                     </div>
                 </div>
+                <x-ad-slot position="after_company_card" />
             </div>
         </section>
     @endif
@@ -191,6 +191,9 @@
             {{-- Hauptbereich --}}
             <div class="flex-1 min-w-0 space-y-8">
 
+                {{-- Ad: Before Intro --}}
+                <x-ad-slot position="content_before_intro" />
+
                 {{-- Beschreibung --}}
                 @if($company->description)
                     <section class="reveal">
@@ -199,6 +202,9 @@
                             {!! nl2br(e($company->description)) !!}
                         </div>
                     </section>
+
+                    {{-- Ad: After Intro --}}
+                    <x-ad-slot position="content_after_intro" />
                 @endif
 
                 {{-- PROF-1: Inline-CTA "Stimmt etwas nicht?" — nur bei ungeclaimten Firmen --}}
@@ -216,7 +222,7 @@
                     </a>
                 </div>
                 @endif
-
+                <x-ad-slot position="after_change_request" />
                 {{-- Bildergalerie --}}
                 @php
                     $galleryMedia = $company->relationLoaded('media')
@@ -316,7 +322,7 @@
                         </template>
                     </section>
                 @endif
-
+                <x-ad-slot position="after_photos" />
                 {{-- Kategorien --}}
                 @if($company->categories->isNotEmpty())
                     <section class="reveal" data-stagger-delay="100ms">
@@ -333,6 +339,7 @@
                             @endforeach
                         </div>
                     </section>
+                    <x-ad-slot position="after_categories" />
                 @endif
 
                 {{-- Offene Stellen (JOB-12) --}}
@@ -391,7 +398,7 @@
                             <livewire:portal.submit-review-form :company="$company" />
                         </div>
                     @endif
-
+                    <x-ad-slot position="after_review_summary" />
                     @if($company->approvedReviews->isNotEmpty())
                         <div class="space-y-4">
                             @foreach($company->approvedReviews as $review)
@@ -448,6 +455,8 @@
             <aside class="lg:w-80 shrink-0 space-y-6">
               <div class="lg:sticky lg:top-28">
 
+                  <x-ad-slot position="sidebar_top" />
+
                 {{-- PROF-1: Claim-CTA für ungeclaimte Firmen --}}
                 @if(!$company->user_id)
                     <div class="company-sidebar claim-cta-sidebar reveal border-2 !border-portal-primary/20 mb-5" style="background: linear-gradient(135deg, rgba(var(--portal-primary-rgb), 0.04), rgba(var(--portal-primary-rgb), 0.08));">
@@ -472,7 +481,7 @@
                         </div>
                     </div>
                 @endif
-
+                  <x-ad-slot position="sidebar_after_claim" />
                 {{-- Kontaktdaten --}}
                 <div class="company-sidebar reveal mb-5" data-stagger-delay="100ms">
                     <h3 class="font-semibold text-base-content text-lg mb-1">Kontakt</h3>
@@ -544,7 +553,7 @@
                         </div>
                     @endif
                 </div>
-
+                  <x-ad-slot position="sidebar_after_contact" />
                 {{-- Social Links (Premium-only) --}}
                 @if($company->is_premium)
                     @php
@@ -648,7 +657,7 @@
                         </div>
                     </div>
                 @endif
-
+                  <x-ad-slot position="sidebar_opening_hours" />
                 {{-- Google Maps Embed (falls Adresse vorhanden) --}}
                 @if($company->full_address)
                     <div class="rounded-xl overflow-hidden border border-base-200 aspect-[4/3] reveal" data-stagger-delay="200ms">
@@ -666,7 +675,7 @@
               </div>{{-- /lg:sticky --}}
             </aside>
         </div>
-
+        <x-ad-slot position="after_review_summary" />
         {{-- Ähnliche Firmen --}}
         @if($relatedCompanies->isNotEmpty())
             <section class="mt-12 pt-8 border-t border-base-200 reveal">

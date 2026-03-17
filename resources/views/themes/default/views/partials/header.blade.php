@@ -1,5 +1,5 @@
 {{-- Default Theme: Floating Glasmorphism Header (VR-2) --}}
-<div class="header-spacer h-20"></div>
+<div class="header-spacer h-16"></div>
 
 <header
     class="header-floating fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-500"

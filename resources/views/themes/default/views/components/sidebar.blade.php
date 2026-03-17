@@ -11,6 +11,9 @@
 @if($showSidebar)
 <aside class="space-y-8" aria-label="Seitenleiste">
 
+    {{-- Ad: Sidebar Top --}}
+    <x-ad-slot position="sidebar_top" />
+
     {{-- ═══ Kategorien ═══ --}}
     @if($categories->isNotEmpty())
         <div>
@@ -98,6 +101,11 @@
            class="inline-block w-full px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors hover:opacity-90 btn-portal-accent">
             Jetzt eintragen
         </a>
+    </div>
+
+    {{-- Ad: Sidebar Sticky --}}
+    <div class="sticky top-4">
+        <x-ad-slot position="sidebar_sticky" />
     </div>
 
 </aside>

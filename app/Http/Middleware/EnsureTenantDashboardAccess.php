@@ -81,6 +81,7 @@ class EnsureTenantDashboardAccess
             'manage_roles' => $user->isAdmin() || $this->permissionService->tenantUserHasPermissionTo($tenant, $user, TenancyPermissionConstants::PERMISSION_VIEW_ROLES),
             'update_settings' => $user->isAdmin() || $this->permissionService->tenantUserHasPermissionTo($tenant, $user, TenancyPermissionConstants::PERMISSION_UPDATE_TENANT_SETTINGS),
             'manage_claims' => $user->isAdmin() || $this->permissionService->tenantUserHasPermissionTo($tenant, $user, TenancyPermissionConstants::PERMISSION_MANAGE_CLAIMS),
+            'manage_ads' => $user->isAdmin() || $this->permissionService->tenantUserHasPermissionTo($tenant, $user, TenancyPermissionConstants::PERMISSION_MANAGE_ADS),
             'is_admin' => $user->isAdmin(),
         ];
     }

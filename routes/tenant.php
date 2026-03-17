@@ -34,6 +34,7 @@ use App\Http\Controllers\Verwaltung\VerwaltungReferralController;
 use App\Http\Controllers\Verwaltung\VerwaltungJobController;
 use App\Http\Controllers\Verwaltung\VerwaltungFaqController;
 use App\Http\Controllers\Verwaltung\VerwaltungBlogController;
+use App\Http\Controllers\Verwaltung\VerwaltungAdController;
 use App\Http\Controllers\Verwaltung\VerwaltungStatisticsController;
 use App\Http\Middleware\EnsureHasCompany;
 use App\Http\Middleware\EnsureTenantDashboardAccess;
@@ -252,6 +253,14 @@ Route::middleware([
             Route::delete('/ratgeber/{id}', [VerwaltungBlogController::class, 'destroy'])->name('blog.destroy');
             Route::get('/ratgeber/kategorien', [VerwaltungBlogController::class, 'categories'])->name('blog.categories');
             Route::get('/ratgeber/tags', [VerwaltungBlogController::class, 'tags'])->name('blog.tags');
+
+            // --- Werbung (Ad-Slots) ---
+            Route::get('/werbung', [VerwaltungAdController::class, 'index'])->name('ads.index');
+            Route::get('/werbung/erstellen', [VerwaltungAdController::class, 'create'])->name('ads.create');
+            Route::post('/werbung', [VerwaltungAdController::class, 'store'])->name('ads.store');
+            Route::get('/werbung/{id}/bearbeiten', [VerwaltungAdController::class, 'edit'])->name('ads.edit');
+            Route::put('/werbung/{id}', [VerwaltungAdController::class, 'update'])->name('ads.update');
+            Route::delete('/werbung/{id}', [VerwaltungAdController::class, 'destroy'])->name('ads.destroy');
 
             // --- Statistiken (#174) ---
             Route::get('/statistiken', [VerwaltungStatisticsController::class, 'index'])->name('statistics.index');

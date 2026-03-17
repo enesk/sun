@@ -62,4 +62,6 @@ class TenancyPermissionConstants
     public const PERMISSION_MANAGE_COMPANIES = 'tenancy: manage companies';
 
     public const PERMISSION_MANAGE_CLAIMS = 'tenancy: manage claims';
+
+    public const PERMISSION_MANAGE_ADS = 'tenancy: manage ads';
 }

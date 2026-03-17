@@ -112,8 +112,15 @@
             <div class="flex-1 min-w-0">
                 @if($companies->isNotEmpty())
                     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                        @foreach($companies as $company)
+                        @foreach($companies as $index => $company)
                             @include('components.company-card', ['company' => $company, 'layout' => $themeOptions['listing_layout'] ?? 'grid'])
+
+                            {{-- Ad: Between Results (nach jedem 5. Eintrag) --}}
+                            @if(($index + 1) % 5 === 0)
+                                <div class="col-span-full">
+                                    <x-ad-slot position="listing_between_results" />
+                                </div>
+                            @endif
                         @endforeach
                     </div>
 
