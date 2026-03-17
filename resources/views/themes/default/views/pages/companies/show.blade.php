@@ -108,7 +108,9 @@
         {{-- Hero WITHOUT Cover Image (Original Gradient) --}}
         <section class="company-hero reveal">
             <div class="container mx-auto px-4">
-                <x-ad-slot position="after_breadcrumb" />
+                <div class="flex justify-center">
+                    <x-ad-slot position="after_breadcrumb" />
+                </div>
                 <div class="company-hero__inner">
                     @if($company->logo_url)
                         <div class="company-hero__logo-wrapper">
@@ -455,7 +457,9 @@
             <aside class="lg:w-80 shrink-0 space-y-6">
               <div class="lg:sticky lg:top-28">
 
-                  <x-ad-slot position="sidebar_top" />
+                  <div class="mb-5">
+                      <x-ad-slot position="sidebar_top" />
+                  </div>
 
                 {{-- PROF-1: Claim-CTA für ungeclaimte Firmen --}}
                 @if(!$company->user_id)
