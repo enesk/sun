@@ -108,7 +108,7 @@
         {{-- Hero WITHOUT Cover Image (Original Gradient) --}}
         <section class="company-hero reveal">
             <div class="container mx-auto px-4">
-                <div class="flex justify-center">
+                <div class="text-center">
                     <x-ad-slot position="after_breadcrumb" />
                 </div>
                 <div class="company-hero__inner">
@@ -485,7 +485,9 @@
                         </div>
                     </div>
                 @endif
-                  <x-ad-slot position="sidebar_after_claim" />
+                  <div class="mb-5">
+                      <x-ad-slot position="sidebar_after_claim" />
+                  </div>
                 {{-- Kontaktdaten --}}
                 <div class="company-sidebar reveal mb-5" data-stagger-delay="100ms">
                     <h3 class="font-semibold text-base-content text-lg mb-1">Kontakt</h3>

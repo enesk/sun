@@ -38,6 +38,7 @@
         "spatie/laravel-flash": "^1.9",
         "spatie/laravel-one-time-passwords": "^1.0",
         "spatie/laravel-permission": "^6.0",
+        "spatie/laravel-settings": "^3.7",
         "spatie/laravel-sitemap": "^7.0",
         "stechstudio/filament-impersonate": "^4.0",
         "stripe/stripe-php": "^17.0",
