@@ -55,6 +55,9 @@
     <script src="https://unpkg.com/lucide@0.574.0/dist/umd/lucide.min.js" defer></script>
 
     @include('partials.analytics')
+
+    {{-- Auto Ads --}}
+    <x-ad-slot position="auto_ads" />
 </head>
 <body class="min-h-screen flex flex-col bg-base-100 text-base-content antialiased">
 

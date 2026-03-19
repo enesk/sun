@@ -110,7 +110,7 @@ class AdSlotDistribution extends Component
         }
 
         $this->validate([
-            'importFile' => ['file', 'max:5120'],
+            'importFile' => ['file', 'max:5120', 'extensions:json'],
         ]);
 
         try {

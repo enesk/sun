@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'auto_ads' => 'Auto Ads (Head-Bereich)',
     'header_below' => 'Header – unter Navigation',
     'sidebar_sticky' => 'Sidebar sticky',
     'after_breadcrumb' => 'Detailsseite - unter Breadcrumb',

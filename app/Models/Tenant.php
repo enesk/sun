@@ -28,6 +28,21 @@ class Tenant extends Model implements TenantWithDatabase
 
     protected $guarded = [];
 
+    protected static function booted(): void
+    {
+        static::deleting(function (Tenant $tenant) {
+            $tenant->subscriptions()->delete();
+            $tenant->transactions()->delete();
+            $tenant->orders()->delete();
+            $tenant->invitations()->delete();
+            $tenant->roles()->delete();
+            $tenant->teams()->delete();
+            $tenant->stripeData()->delete();
+            $tenant->address()->delete();
+            $tenant->users()->detach();
+        });
+    }
+
     public static function getCustomColumns(): array
     {
         return [
@@ -124,5 +139,10 @@ class Tenant extends Model implements TenantWithDatabase
     public function teams(): HasMany
     {
         return $this->hasMany(Team::class);
+    }
+
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class);
     }
 }

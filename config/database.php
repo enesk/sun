@@ -17,6 +17,9 @@ return [
 
     'default' => env('DB_CONNECTION', 'mysql'),
 
+    // Pfad zum mysql CLI-Binary (für SQL-Dump-Import)
+    'mysql_binary_path' => env('MYSQL_BINARY_PATH'),
+
     /*
     |--------------------------------------------------------------------------
     | Database Connections

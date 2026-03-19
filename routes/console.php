@@ -27,3 +27,5 @@ Schedule::command('app:aggregate-tracking-stats')->dailyAt('00:30');
 Schedule::command('app:aggregate-tracking-stats --cleanup')->weeklyOn(1, '03:00');
 
 Schedule::command('app:expire-jobs')->dailyAt('01:00');
+
+Schedule::command('import:cleanup')->dailyAt('02:00');

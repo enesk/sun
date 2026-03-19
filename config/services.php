@@ -106,4 +106,8 @@ return [
         'from' => env('TWILIO_FROM'),
     ],
 
+    'legacy' => [
+        'photos_path' => env('LEGACY_PHOTOS_PATH'),
+    ],
+
 ];
