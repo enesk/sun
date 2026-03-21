@@ -14,15 +14,19 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\File;
 use Spatie\Sitemap\Sitemap;
+use Spatie\Sitemap\SitemapIndex;
 use Spatie\Sitemap\Tags\Url;
 
 class GenerateTenantSitemapJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $timeout = 300;
+    public int $timeout = 600;
     public int $tries = 1;
+
+    private const MAX_URLS_PER_SITEMAP = 45000;
 
     public function __construct(
         public string $tenantId,
@@ -54,75 +58,68 @@ class GenerateTenantSitemapJob implements ShouldQueue
         $baseUrl = "{$scheme}://{$domain}";
 
         $tenant->run(function () use ($baseUrl, $cacheKey) {
-            $sitemap = Sitemap::create();
+            $sitemapDir = storage_path('app/public');
+            if (!is_dir($sitemapDir)) {
+                mkdir($sitemapDir, 0755, true);
+            }
 
-            // Step 1: Static pages (10%)
-            $this->updateProgress($cacheKey, 5, 'Statische Seiten...');
-            $this->addStaticPages($sitemap, $baseUrl);
-            $this->updateProgress($cacheKey, 10, 'Statische Seiten fertig');
+            // Remove old sitemap files
+            foreach (glob("{$sitemapDir}/sitemap*.xml") as $oldFile) {
+                unlink($oldFile);
+            }
 
-            // Step 2: Companies (10% → 60%)
-            $this->updateProgress($cacheKey, 10, 'Firmen werden geladen...');
-            $companyCount = Company::active()->count();
-            $processed = 0;
+            $sitemapFiles = [];
 
-            Company::active()
-                ->select(['id', 'slug', 'updated_at', 'is_premium'])
-                ->orderBy('id')
-                ->chunk(500, function ($companies) use ($sitemap, $baseUrl, $cacheKey, $companyCount, &$processed) {
-                    foreach ($companies as $company) {
-                        $sitemap->add(
-                            Url::create("{$baseUrl}/{$company->url_slug}")
-                                ->setPriority($company->is_premium ? 0.8 : 0.7)
-                                ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
-                                ->setLastModificationDate($company->updated_at)
-                        );
-                    }
-                    $processed += $companies->count();
-                    $companyPercent = $companyCount > 0 ? (int) (($processed / $companyCount) * 50) : 50;
-                    $this->updateProgress($cacheKey, 10 + $companyPercent, "Firmen: {$processed}/{$companyCount}");
-                });
+            // Step 1: Static pages + categories + jobs + blog (10%)
+            $this->updateProgress($cacheKey, 5, 'Statische Seiten & Kategorien...');
+            $miscSitemap = Sitemap::create();
+            $this->addStaticPages($miscSitemap, $baseUrl);
 
-            // Step 3: Jobs (60% → 70%)
-            $this->updateProgress($cacheKey, 65, 'Stellenanzeigen...');
-            $sitemap->add(
+            // Categories
+            $categories = Category::select(['slug', 'updated_at'])->get();
+            foreach ($categories as $category) {
+                $miscSitemap->add(
+                    Url::create("{$baseUrl}/kategorien/{$category->slug}")
+                        ->setPriority(0.7)
+                        ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
+                        ->setLastModificationDate($category->updated_at)
+                );
+            }
+
+            // Jobs
+            $miscSitemap->add(
                 Url::create("{$baseUrl}/jobs")
                     ->setPriority(0.8)
                     ->setChangeFrequency(Url::CHANGE_FREQUENCY_DAILY)
             );
-
             $jobs = PortalJob::active()
                 ->published()
                 ->select(['slug', 'published_at', 'company_id'])
                 ->with(['company:id,is_premium'])
                 ->get();
-
             foreach ($jobs as $job) {
-                $sitemap->add(
+                $miscSitemap->add(
                     Url::create("{$baseUrl}/jobs/{$job->slug}")
                         ->setPriority($job->company?->is_premium ? 0.7 : 0.6)
                         ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
                         ->setLastModificationDate($job->published_at)
                 );
             }
-            $this->updateProgress($cacheKey, 70, 'Stellenanzeigen fertig');
 
-            // Step 4: Blog posts (70% → 80%)
-            $this->updateProgress($cacheKey, 70, 'Blog-Beiträge...');
+            // Blog posts
             $blogPostCount = Post::published()->count();
             if ($blogPostCount > 0) {
-                $sitemap->add(
+                $miscSitemap->add(
                     Url::create("{$baseUrl}/ratgeber")
                         ->setPriority(0.8)
                         ->setChangeFrequency(Url::CHANGE_FREQUENCY_DAILY)
                 );
-
                 Post::published()
                     ->select(['slug', 'published_at', 'updated_at'])
                     ->orderByDesc('published_at')
-                    ->chunk(200, function ($posts) use ($sitemap, $baseUrl) {
+                    ->chunk(200, function ($posts) use ($miscSitemap, $baseUrl) {
                         foreach ($posts as $post) {
-                            $sitemap->add(
+                            $miscSitemap->add(
                                 Url::create("{$baseUrl}/ratgeber/{$post->slug}")
                                     ->setPriority(0.7)
                                     ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
@@ -131,30 +128,70 @@ class GenerateTenantSitemapJob implements ShouldQueue
                         }
                     });
             }
-            $this->updateProgress($cacheKey, 80, 'Blog-Beiträge fertig');
 
-            // Step 5: Categories (80% → 90%)
-            $this->updateProgress($cacheKey, 80, 'Kategorien...');
-            $categories = Category::select(['slug', 'updated_at'])->get();
-            foreach ($categories as $category) {
-                $sitemap->add(
-                    Url::create("{$baseUrl}/kategorien/{$category->slug}")
-                        ->setPriority(0.7)
-                        ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
-                        ->setLastModificationDate($category->updated_at)
-                );
+            $miscSitemap->writeToFile("{$sitemapDir}/sitemap-misc.xml");
+            $sitemapFiles[] = 'sitemap-misc.xml';
+            $this->updateProgress($cacheKey, 15, 'Statische Seiten, Kategorien, Jobs & Blog fertig');
+
+            // Step 2: Companies in chunks of MAX_URLS_PER_SITEMAP (15% → 90%)
+            $this->updateProgress($cacheKey, 15, 'Firmen werden geladen...');
+            $companyCount = Company::active()->count();
+            $processed = 0;
+            $currentSitemap = Sitemap::create();
+            $currentSitemapUrlCount = 0;
+            $companySitemapIndex = 1;
+
+            Company::active()
+                ->select(['id', 'slug', 'updated_at', 'is_premium'])
+                ->orderBy('id')
+                ->chunk(500, function ($companies) use (
+                    $sitemapDir, $baseUrl, $cacheKey, $companyCount,
+                    &$processed, &$currentSitemap, &$currentSitemapUrlCount,
+                    &$companySitemapIndex, &$sitemapFiles
+                ) {
+                    foreach ($companies as $company) {
+                        if ($currentSitemapUrlCount >= self::MAX_URLS_PER_SITEMAP) {
+                            $filename = "sitemap-companies-{$companySitemapIndex}.xml";
+                            $currentSitemap->writeToFile("{$sitemapDir}/{$filename}");
+                            $sitemapFiles[] = $filename;
+                            $companySitemapIndex++;
+                            $currentSitemap = Sitemap::create();
+                            $currentSitemapUrlCount = 0;
+                        }
+
+                        $currentSitemap->add(
+                            Url::create("{$baseUrl}/{$company->url_slug}")
+                                ->setPriority($company->is_premium ? 0.8 : 0.7)
+                                ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
+                                ->setLastModificationDate($company->updated_at)
+                        );
+                        $currentSitemapUrlCount++;
+                    }
+
+                    $processed += $companies->count();
+                    $companyPercent = $companyCount > 0 ? (int) (($processed / $companyCount) * 75) : 75;
+                    $this->updateProgress($cacheKey, 15 + $companyPercent, "Firmen: {$processed}/{$companyCount}");
+                });
+
+            // Write remaining companies
+            if ($currentSitemapUrlCount > 0) {
+                $filename = "sitemap-companies-{$companySitemapIndex}.xml";
+                $currentSitemap->writeToFile("{$sitemapDir}/{$filename}");
+                $sitemapFiles[] = $filename;
             }
-            $this->updateProgress($cacheKey, 90, 'Kategorien fertig');
 
-            // Step 6: Write files (90% → 100%)
-            $this->updateProgress($cacheKey, 90, 'Dateien werden geschrieben...');
+            $this->updateProgress($cacheKey, 92, 'Sitemap-Index wird erstellt...');
 
-            $sitemapDir = storage_path('app/public');
-            if (!is_dir($sitemapDir)) {
-                mkdir($sitemapDir, 0755, true);
+            // Step 3: Write sitemap index
+            $sitemapIndex = SitemapIndex::create();
+            foreach ($sitemapFiles as $file) {
+                $sitemapIndex->add("{$baseUrl}/{$file}");
             }
-            $sitemap->writeToFile("{$sitemapDir}/sitemap.xml");
+            $sitemapIndex->writeToFile("{$sitemapDir}/sitemap.xml");
 
+            $this->updateProgress($cacheKey, 95, 'robots.txt wird geschrieben...');
+
+            // Write robots.txt
             $robotsContent = "User-agent: *\nAllow: /\nDisallow: /firmenprofil/\nDisallow: /verwaltung/\nDisallow: /login\nDisallow: /register\n\nSitemap: {$baseUrl}/sitemap.xml\n";
             file_put_contents("{$sitemapDir}/robots.txt", $robotsContent);
         });
@@ -162,11 +199,12 @@ class GenerateTenantSitemapJob implements ShouldQueue
         // Count totals for summary
         $companyCount = $tenant->run(fn () => Company::active()->count());
         $categoryCount = $tenant->run(fn () => Category::count());
+        $sitemapFileCount = count(glob(storage_path('app/public/sitemap*.xml')));
 
         Cache::put($cacheKey, [
             'status' => 'completed',
             'percent' => 100,
-            'message' => "Fertig! {$companyCount} Firmen, {$categoryCount} Kategorien.",
+            'message' => "Fertig! {$companyCount} Firmen, {$categoryCount} Kategorien in {$sitemapFileCount} Sitemap-Dateien.",
         ], now()->addMinutes(5));
     }
 

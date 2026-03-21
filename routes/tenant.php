@@ -66,6 +66,15 @@ Route::middleware([
         return response()->file($path, ['Content-Type' => 'application/xml']);
     })->name('portal.sitemap');
 
+    Route::get('/sitemap-{name}.xml', function (string $name) {
+        $name = preg_replace('/[^a-z0-9\-]/', '', $name);
+        $path = storage_path("app/public/sitemap-{$name}.xml");
+        if (!file_exists($path)) {
+            abort(404);
+        }
+        return response()->file($path, ['Content-Type' => 'application/xml']);
+    })->where('name', '[a-z0-9\-]+')->name('portal.sitemap.part');
+
     Route::get('/robots.txt', function () {
         $path = storage_path('app/public/robots.txt');
         if (!file_exists($path)) {
