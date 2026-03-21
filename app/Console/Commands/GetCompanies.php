@@ -77,24 +77,37 @@ class GetCompanies extends Command
         ignore_user_abort(true);
         set_time_limit(0);
 
-        // ── Tenant-Kontext setzen (wenn --tenant angegeben) ──
-        if ($tenantId = $this->option('tenant')) {
+        // ── Tenant-Kontext setzen ──
+        if (! tenancy()->initialized) {
+            $tenantId = $this->option('tenant');
+
+            if (! $tenantId) {
+                // Interaktive Auswahl
+                $tenants = Tenant::all();
+                if ($tenants->isEmpty()) {
+                    $this->error('Keine Tenants vorhanden.');
+                    return self::FAILURE;
+                }
+
+                $choices = $tenants->mapWithKeys(fn ($t) => [
+                    $t->id => "{$t->name} (ID {$t->id})",
+                ])->toArray();
+
+                $selected = $this->choice('Welchen Tenant möchtest du verwenden?', $choices);
+
+                // choice() gibt den Wert zurück — wir brauchen den Key
+                $tenantId = array_search($selected, $choices);
+            }
+
             $tenant = Tenant::find($tenantId);
             if (! $tenant) {
                 $this->error("Tenant mit ID {$tenantId} nicht gefunden.");
-                $this->line('Verfügbare Tenants:');
-                Tenant::all()->each(fn ($t) => $this->line("  ID {$t->id} — {$t->name} (UUID: {$t->uuid})"));
                 return self::FAILURE;
             }
 
             tenancy()->initialize($tenant);
-            $this->info("Tenant: {$tenant->name} (ID {$tenant->id}, UUID {$tenant->uuid})");
+            $this->info("Tenant: {$tenant->name} (ID {$tenant->id})");
             $this->newLine();
-        } elseif (! tenancy()->initialized) {
-            $this->error('Kein Tenant-Kontext aktiv. Nutze eine der folgenden Varianten:');
-            $this->line('  1) php artisan tenants:import-google --tenant=3 --query="Sanitär"');
-            $this->line('  2) php artisan tenants:run "tenants:import-google --query=Sanitär"');
-            return self::FAILURE;
         }
 
         // ── API Key prüfen ──
@@ -109,9 +122,12 @@ class GetCompanies extends Command
         // ── Optionen ──
         $queries = $this->option('query');
         if (empty($queries)) {
-            $this->error('Mindestens ein --query Parameter erforderlich.');
-            $this->line('Beispiel: php artisan tenants:import-google --query="Sanitär"');
-            return self::FAILURE;
+            $input = $this->ask('Suchbegriff(e) eingeben (mehrere mit Komma trennen, z.B. "Sanitär, Heizung")');
+            if (empty($input)) {
+                $this->error('Mindestens ein Suchbegriff erforderlich.');
+                return self::FAILURE;
+            }
+            $queries = array_map('trim', explode(',', $input));
         }
 
         $this->limit = (int) $this->option('limit');

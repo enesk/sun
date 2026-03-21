@@ -43,11 +43,11 @@ class CompanyImporter
                 return $result;
             }
 
-            // Duplikaterkennung über google_places_id
+            // Duplikaterkennung über ID und google_places_id
             $googlePlacesId = $place->g_places_id ?? $place->google_places_id ?? null;
-            $existingCompany = null;
+            $existingCompany = Company::find($place->id);
 
-            if ($googlePlacesId) {
+            if (!$existingCompany && $googlePlacesId) {
                 $existingCompany = Company::where('google_places_id', $googlePlacesId)->first();
             }
 
@@ -94,7 +94,9 @@ class CompanyImporter
                 $this->lastCompanyId = $existingCompany->id;
                 $result->companiesImported++;
             } else {
-                $company = Company::create($companyData);
+                $company = new Company($companyData);
+                $company->id = $place->id;
+                $company->save();
                 $this->lastCompanyId = $company->id;
                 $result->companiesImported++;
             }
