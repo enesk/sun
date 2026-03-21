@@ -216,20 +216,9 @@ class GeneralSettingsForm extends Component
             return;
         }
 
-        try {
-            Artisan::call('tenants:generate-sitemap', ['--tenant' => $tenant->id]);
+        Artisan::queue('tenants:generate-sitemap', ['--tenant' => $tenant->id]);
 
-            $sitemapPath = storage_path('app/public/sitemap.xml');
-            if (file_exists($sitemapPath)) {
-                $companyCount = Company::active()->count();
-                $categoryCount = Category::count();
-                $this->dispatch('toast', type: 'success', message: "Sitemap generiert: {$companyCount} Firmen + {$categoryCount} Kategorien. Abrufbar unter {$domain}/sitemap.xml");
-            } else {
-                $this->dispatch('toast', type: 'error', message: 'Sitemap-Generierung fehlgeschlagen — Datei nicht erstellt.');
-            }
-        } catch (\Exception $e) {
-            $this->dispatch('toast', type: 'error', message: 'Fehler: ' . $e->getMessage());
-        }
+        $this->dispatch('toast', type: 'success', message: "Sitemap-Generierung wurde gestartet und läuft im Hintergrund. Die Sitemap ist in Kürze unter {$domain}/sitemap.xml verfügbar.");
     }
 
     public function getSitemapInfo(): array
