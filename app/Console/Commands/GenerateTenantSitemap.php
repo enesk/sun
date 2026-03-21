@@ -20,6 +20,8 @@ class GenerateTenantSitemap extends Command
 
     public function handle(): void
     {
+        set_time_limit(300);
+
         $tenantId = $this->option('tenant');
 
         $tenants = $tenantId

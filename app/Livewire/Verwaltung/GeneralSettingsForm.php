@@ -3,12 +3,13 @@
 namespace App\Livewire\Verwaltung;
 
 use App\Constants\TenantConfigConstants;
+use App\Jobs\GenerateTenantSitemapJob;
 use App\Models\Portal\Category;
 use App\Models\Portal\Company;
 use App\Services\CompanyUrlService;
 use App\Services\TenantBrandingService;
 use App\Services\TenantService;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
 
 class GeneralSettingsForm extends Component
@@ -59,6 +60,9 @@ class GeneralSettingsForm extends Component
     public bool $saved = false;
     public string $activeTab = 'workspace';
 
+    // Sitemap Progress
+    public ?array $sitemapProgress = null;
+
     public function mount(): void
     {
         $tenant = tenant();
@@ -108,6 +112,12 @@ class GeneralSettingsForm extends Component
 
         // Footer
         $this->footerText = $branding->get($tenant, TenantConfigConstants::FOOTER_TEXT) ?? '';
+
+        // Check for running sitemap generation
+        $progress = Cache::get(GenerateTenantSitemapJob::cacheKey($tenant->id));
+        if ($progress && $progress['status'] === 'running') {
+            $this->sitemapProgress = $progress;
+        }
     }
 
     protected function rules(): array
@@ -199,7 +209,7 @@ class GeneralSettingsForm extends Component
 
         // Sitemap regenerieren bei URL-Pattern-Wechsel
         if ($patternChanged && app()->environment('production')) {
-            Artisan::queue('app:generate-sitemap');
+            GenerateTenantSitemapJob::dispatch($tenant->id);
         }
 
         $this->saved = true;
@@ -216,9 +226,40 @@ class GeneralSettingsForm extends Component
             return;
         }
 
-        Artisan::queue('tenants:generate-sitemap', ['--tenant' => $tenant->id]);
+        // Reset previous progress
+        $cacheKey = GenerateTenantSitemapJob::cacheKey($tenant->id);
+        Cache::put($cacheKey, [
+            'status' => 'running',
+            'percent' => 0,
+            'message' => 'Job wird gestartet...',
+        ], now()->addMinutes(10));
 
-        $this->dispatch('toast', type: 'success', message: "Sitemap-Generierung wurde gestartet und läuft im Hintergrund. Die Sitemap ist in Kürze unter {$domain}/sitemap.xml verfügbar.");
+        GenerateTenantSitemapJob::dispatch($tenant->id);
+
+        $this->sitemapProgress = Cache::get($cacheKey);
+    }
+
+    public function pollSitemapProgress(): void
+    {
+        $tenant = tenant();
+        $cacheKey = GenerateTenantSitemapJob::cacheKey($tenant->id);
+        $progress = Cache::get($cacheKey);
+
+        if (!$progress) {
+            $this->sitemapProgress = null;
+            return;
+        }
+
+        $this->sitemapProgress = $progress;
+
+        if ($progress['status'] === 'completed') {
+            Cache::forget($cacheKey);
+            $this->dispatch('toast', type: 'success', message: $progress['message']);
+            // Keep progress visible briefly, then clear on next poll
+        } elseif ($progress['status'] === 'failed') {
+            Cache::forget($cacheKey);
+            $this->dispatch('toast', type: 'error', message: $progress['message']);
+        }
     }
 
     public function getSitemapInfo(): array

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Schedule;
 |
 */
 
-Schedule::command('app:generate-sitemap')->everyOddHour();
+Schedule::command('tenants:generate-sitemap')->everyOddHour();
 
 Schedule::command('app:metrics-beat')->dailyAt('00:01');
 

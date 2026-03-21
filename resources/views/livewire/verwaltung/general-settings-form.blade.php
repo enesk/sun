@@ -206,24 +206,43 @@
                         </div>
                     @endif
 
-                    <button type="button"
-                            wire:click="generateSitemap"
-                            wire:loading.attr="disabled"
-                            wire:target="generateSitemap"
-                            class="dash-btn dash-btn-secondary relative overflow-hidden"
-                            style="min-width: 180px;">
-                        <span wire:loading.class="opacity-0" wire:target="generateSitemap" class="inline-flex items-center gap-2 transition-opacity duration-200">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                            Sitemap generieren
-                        </span>
-                        <span wire:loading wire:target="generateSitemap" class="absolute inset-0 flex items-center justify-center gap-2">
-                            <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                            </svg>
-                            Wird generiert...
-                        </span>
-                    </button>
+                    @if($sitemapProgress && in_array($sitemapProgress['status'], ['running', 'completed']))
+                        <div wire:poll.1s="pollSitemapProgress" class="space-y-2">
+                            <div class="flex items-center justify-between text-sm">
+                                <span style="color: var(--dash-text-secondary);">{{ $sitemapProgress['message'] }}</span>
+                                <span class="font-semibold" style="color: var(--portal-primary, #3b82f6);">{{ $sitemapProgress['percent'] }}%</span>
+                            </div>
+                            <div class="w-full rounded-full h-2.5" style="background: var(--dash-border-color, #e5e7eb);">
+                                <div class="h-2.5 rounded-full transition-all duration-500 ease-out {{ $sitemapProgress['status'] === 'completed' ? 'bg-green-500' : '' }}"
+                                     style="{{ $sitemapProgress['status'] !== 'completed' ? 'background: var(--portal-primary, #3b82f6);' : '' }} width: {{ $sitemapProgress['percent'] }}%"></div>
+                            </div>
+                            @if($sitemapProgress['status'] === 'completed')
+                                <div class="flex items-center gap-2 text-sm text-green-600">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    {{ $sitemapProgress['message'] }}
+                                </div>
+                            @endif
+                        </div>
+                    @else
+                        <button type="button"
+                                wire:click="generateSitemap"
+                                wire:loading.attr="disabled"
+                                wire:target="generateSitemap"
+                                class="dash-btn dash-btn-secondary relative overflow-hidden"
+                                style="min-width: 180px;">
+                            <span wire:loading.class="opacity-0" wire:target="generateSitemap" class="inline-flex items-center gap-2 transition-opacity duration-200">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                Sitemap generieren
+                            </span>
+                            <span wire:loading wire:target="generateSitemap" class="absolute inset-0 flex items-center justify-center gap-2">
+                                <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                </svg>
+                                Wird gestartet...
+                            </span>
+                        </button>
+                    @endif
 
                     <p class="dash-input-hint">
                         Generiert sitemap.xml + robots.txt mit allen aktiven Firmen und Kategorien.
