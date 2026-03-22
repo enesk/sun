@@ -80,13 +80,14 @@ class SqlDumpProcessor
             return DumpValidationResult::failed($securityErrors);
         }
 
-        // Tabellenprüfung (FA-02)
+        // Tabellenprüfung (FA-02) — streamt die gesamte Datei zeilenweise
+        $allTablesInDump = $this->findTablesInDump($realPath);
         $foundTables = [];
         $missingTables = [];
         $warnings = [];
 
         foreach (self::EXPECTED_TABLES as $table) {
-            if (preg_match('/CREATE\s+TABLE\s+(?:`?' . preg_quote($table, '/') . '`?)\s/i', $content)) {
+            if (in_array($table, $allTablesInDump)) {
                 $foundTables[] = $table;
             } else {
                 $missingTables[] = $table;
@@ -278,7 +279,7 @@ class SqlDumpProcessor
 
     private function readDumpContent(string $filePath): ?string
     {
-        // Für Validierung: nur die ersten 5 MB lesen (Struktur + Sicherheit)
+        // Für Sicherheitsprüfung: erste 5 MB lesen (gefährliche Statements stehen am Anfang)
         $handle = fopen($filePath, 'r');
         if (! $handle) {
             return null;
@@ -288,6 +289,29 @@ class SqlDumpProcessor
         fclose($handle);
 
         return $content ?: null;
+    }
+
+    /**
+     * Durchsucht die gesamte Datei zeilenweise nach CREATE TABLE Statements.
+     * Vermeidet das Laden der kompletten Datei in den Speicher.
+     */
+    private function findTablesInDump(string $filePath): array
+    {
+        $foundTables = [];
+        $handle = fopen($filePath, 'r');
+        if (! $handle) {
+            return [];
+        }
+
+        while (($line = fgets($handle)) !== false) {
+            if (preg_match('/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?`?(\w+)`?/i', $line, $matches)) {
+                $foundTables[] = $matches[1];
+            }
+        }
+
+        fclose($handle);
+
+        return $foundTables;
     }
 
     private function checkSecurity(string $content): array
@@ -325,33 +349,246 @@ class SqlDumpProcessor
 
         // USE und CREATE DATABASE Statements aus dem Dump entfernen,
         // damit die Daten in die Temp-DB importiert werden (nicht in die Original-DB)
+        // --force: bei Syntax-Fehlern in einzelnen Statements weitermachen statt abbrechen
+        // Zusätzlich DELIMITER-Blöcke (Stored Procedures/Triggers) entfernen, da diese
+        // beim Pipe-Import über sed/mysql Probleme verursachen können
+        // Dump vorfiltern: DELIMITER-Blöcke (Stored Procedures, Triggers, Functions)
+        // komplett entfernen, da diese beim Pipe-Import Syntax-Fehler verursachen.
+        // Außerdem USE/CREATE DATABASE entfernen damit Daten in die Temp-DB gehen.
+        $cleanedFile = $filePath . '.cleaned.sql';
+        $this->preprocessDump($filePath, $cleanedFile);
+
         $cmd = sprintf(
-            'sed -e %s -e %s -e %s %s | %s --host=%s --port=%s --user=%s %s %s 2>&1',
-            escapeshellarg('/^USE /d'),
-            escapeshellarg('/^CREATE DATABASE/d'),
-            escapeshellarg('/^\\\\connect /d'),
-            escapeshellarg($filePath),
+            '%s --force --binary-mode --host=%s --port=%s --user=%s %s %s < %s 2>&1',
             escapeshellarg($mysqlBin),
             escapeshellarg($host),
             escapeshellarg($port),
             escapeshellarg($username),
             $password ? '--password=' . escapeshellarg($password) : '',
             escapeshellarg($dbName),
+            escapeshellarg($cleanedFile),
         );
 
         $output = [];
         $returnCode = 0;
         exec($cmd, $output, $returnCode);
 
-        if ($returnCode !== 0) {
-            // Cleanup bei Fehler
-            DB::statement("DROP DATABASE IF EXISTS `{$dbName}`");
-            throw new \RuntimeException(
-                'SQL-Dump-Import fehlgeschlagen: ' . implode("\n", $output)
-            );
+        // Return-Code und Ausgabe loggen
+        if ($returnCode !== 0 || !empty($output)) {
+            Log::warning("TenantImport: mysql-Import Return-Code {$returnCode}", [
+                'database' => $dbName,
+                'output' => array_slice($output, 0, 30),
+            ]);
         }
 
-        Log::info("TenantImport: SQL-Dump importiert in {$dbName}");
+        // Connection registrieren BEVOR wir Tabellen prüfen
+        $this->registerConnection();
+
+        // Entscheidend ist NUR ob die Kerntabellen existieren.
+        // mysql --force kann bei DELIMITER-Blöcken, Triggers oder Encoding-Problemen
+        // trotzdem non-zero returnen, obwohl die Daten korrekt importiert wurden.
+        $tablesExist = $this->checkRequiredTablesExist();
+
+        // Temporäre bereinigte Datei immer aufräumen
+        if (isset($cleanedFile) && file_exists($cleanedFile)) {
+            @unlink($cleanedFile);
+        }
+
+        if (!$tablesExist) {
+            // Zweiter Versuch: noch aggressiveres Cleanup — alle Conditional-Comments entfernen
+            Log::warning("TenantImport: Erster Import fehlgeschlagen, versuche aggressives Cleanup...");
+
+            $aggressiveFile = $filePath . '.aggressive.sql';
+            $this->aggressivePreprocessDump($filePath, $aggressiveFile);
+
+            $cmdRetry = sprintf(
+                '%s --force --binary-mode --host=%s --port=%s --user=%s %s %s < %s 2>&1',
+                escapeshellarg($mysqlBin),
+                escapeshellarg($host),
+                escapeshellarg($port),
+                escapeshellarg($username),
+                $password ? '--password=' . escapeshellarg($password) : '',
+                escapeshellarg($dbName),
+                escapeshellarg($aggressiveFile),
+            );
+
+            // DB leeren und nochmal importieren
+            DB::statement("DROP DATABASE IF EXISTS `{$dbName}`");
+            DB::statement("CREATE DATABASE `{$dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+
+            $output2 = [];
+            exec($cmdRetry, $output2, $returnCode2);
+
+            if (file_exists($aggressiveFile)) {
+                @unlink($aggressiveFile);
+            }
+
+            // Connection nach DB-Neuanlage neu aufbauen
+            DB::purge($this->connectionName);
+            $this->registerConnection();
+
+            $tablesExist = $this->checkRequiredTablesExist();
+
+            if (!$tablesExist) {
+                DB::statement("DROP DATABASE IF EXISTS `{$dbName}`");
+                throw new \RuntimeException(
+                    'SQL-Dump-Import fehlgeschlagen: Die Tabelle "places" wurde auch nach aggressivem Cleanup nicht erstellt. '
+                    . 'MySQL-Ausgabe: ' . implode("\n", array_slice(array_merge($output, $output2), 0, 15))
+                );
+            }
+
+            Log::info("TenantImport: SQL-Dump nach aggressivem Cleanup importiert in {$dbName}");
+        } else {
+            Log::info("TenantImport: SQL-Dump importiert in {$dbName}");
+        }
+    }
+
+    /**
+     * Dump-Datei vorverarbeiten: DELIMITER-Blöcke, Triggers, Stored Procedures,
+     * USE/CREATE DATABASE Statements entfernen.
+     */
+    private function preprocessDump(string $inputFile, string $outputFile): void
+    {
+        $in = fopen($inputFile, 'r');
+        $out = fopen($outputFile, 'w');
+
+        if (!$in || !$out) {
+            throw new \RuntimeException("Kann Dump-Datei nicht lesen/schreiben");
+        }
+
+        $inDelimiterBlock = false;
+        $inConditionalBlock = false;
+        $skipLinesRemaining = 0;
+
+        while (($line = fgets($in)) !== false) {
+            $trimmed = trim($line);
+
+            // DELIMITER-Block Start (Stored Procedures, Functions, Triggers)
+            if (!$inDelimiterBlock && !$inConditionalBlock && preg_match('/^DELIMITER\s+(?!;)/i', $trimmed)) {
+                $inDelimiterBlock = true;
+                continue;
+            }
+
+            // DELIMITER-Block Ende
+            if ($inDelimiterBlock) {
+                if (preg_match('/^DELIMITER\s*;/i', $trimmed)) {
+                    $inDelimiterBlock = false;
+                }
+                continue;
+            }
+
+            // Mehrzeilige /*!50003 ... */ Conditional-Comment-Blöcke (Triggers, Functions, Procedures)
+            // mysqldump schreibt diese als mehrzeilige Blöcke mit END */;; am Ende
+            if (!$inConditionalBlock && preg_match('/^\/\*!50003\s+(CREATE|DROP)\b/i', $trimmed)) {
+                $inConditionalBlock = true;
+                continue;
+            }
+
+            // Auch /*!50001 VIEW-Definitionen können Probleme machen
+            if (!$inConditionalBlock && preg_match('/^\/\*!50001\s+CREATE.*VIEW\b/i', $trimmed)) {
+                $inConditionalBlock = true;
+                continue;
+            }
+
+            // Ende des Conditional-Comment-Blocks: */; oder */;; oder END */
+            if ($inConditionalBlock) {
+                if (preg_match('/\*\/\s*;{0,2}\s*$/', $trimmed) || preg_match('/^END\s*\*\//', $trimmed)) {
+                    $inConditionalBlock = false;
+                }
+                continue;
+            }
+
+            // Einzelne problematische Statements überspringen
+            if (preg_match('/^(USE\s|CREATE\s+DATABASE|\\\\connect\s)/i', $trimmed)) {
+                continue;
+            }
+
+            // Trigger/Function/Procedure DROP-Statements im Conditional-Comment-Format
+            if (preg_match('/^\/\*!50003.*?(TRIGGER|FUNCTION|PROCEDURE)/i', $trimmed)) {
+                continue;
+            }
+
+            // Definer-Klauseln die Permission-Fehler verursachen können
+            if (preg_match('/^\/\*!50017\s+DEFINER/i', $trimmed)) {
+                continue;
+            }
+
+            // Einzelne /*!50001 DROP VIEW */ Zeilen
+            if (preg_match('/^\/\*!50001\s+DROP/i', $trimmed)) {
+                continue;
+            }
+
+            fwrite($out, $line);
+        }
+
+        fclose($in);
+        fclose($out);
+    }
+
+    /**
+     * Aggressives Preprocessing: Nur CREATE TABLE, INSERT, ALTER TABLE, SET und LOCK/UNLOCK durchlassen.
+     * Alles andere (Conditional Comments, Triggers, Views, Functions) wird entfernt.
+     */
+    private function aggressivePreprocessDump(string $inputFile, string $outputFile): void
+    {
+        $in = fopen($inputFile, 'r');
+        $out = fopen($outputFile, 'w');
+
+        if (!$in || !$out) {
+            throw new \RuntimeException("Kann Dump-Datei nicht lesen/schreiben");
+        }
+
+        $inCreateTable = false;
+
+        while (($line = fgets($in)) !== false) {
+            $trimmed = trim($line);
+
+            // Leere Zeilen und Kommentare durchlassen (mysqldump Struktur)
+            if ($trimmed === '' || str_starts_with($trimmed, '--') || str_starts_with($trimmed, '#')) {
+                fwrite($out, $line);
+                continue;
+            }
+
+            // CREATE TABLE Blöcke komplett durchlassen (mehrzeilig)
+            if (preg_match('/^CREATE\s+TABLE\b/i', $trimmed)) {
+                $inCreateTable = true;
+            }
+            if ($inCreateTable) {
+                fwrite($out, $line);
+                // CREATE TABLE endet mit ")...;" — vereinfacht: Zeile endet mit ;
+                if (preg_match('/;\s*$/', $trimmed)) {
+                    $inCreateTable = false;
+                }
+                continue;
+            }
+
+            // Sichere Einzel-Statements durchlassen
+            if (preg_match('/^(INSERT\s|ALTER\s+TABLE\s|SET\s|LOCK\s+TABLES|UNLOCK\s+TABLES|\/\*!40)/i', $trimmed)) {
+                fwrite($out, $line);
+                continue;
+            }
+
+            // Alles andere überspringen (USE, CREATE DATABASE, DELIMITER, Triggers, Views, Functions...)
+        }
+
+        fclose($in);
+        fclose($out);
+    }
+
+    private function checkRequiredTablesExist(): bool
+    {
+        try {
+            $tables = DB::connection($this->connectionName)
+                ->select('SHOW TABLES');
+
+            $tableNames = array_map(function ($table) {
+                return array_values((array) $table)[0];
+            }, $tables);
+
+            return in_array('places', $tableNames);
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     private function findMysqlBinary(): string

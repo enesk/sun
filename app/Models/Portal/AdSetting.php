@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Portal;
 
-use App\Traits\TenantConnection;
+use Stancl\Tenancy\Database\Concerns\TenantConnection;
 use Illuminate\Database\Eloquent\Model;
 
 class AdSetting extends Model

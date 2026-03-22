@@ -130,7 +130,7 @@ return [
 
     'temporary_file_upload' => [
         'disk' => env('LIVEWIRE_TEMPORARY_FILE_UPLOAD_DISK', 'livewire-tmp'), // Eigener Disk, nicht vom Tenant-Bootstrapper beeinflusst
-        'rules' => ['file', 'max:12288'],                       // JSON-Uploads erlauben (kein MIME-Type-Check, da .json auf manchen Servern als text/plain erkannt wird)
+        'rules' => ['file', 'max:262144'],                      // 256 MB — komponentenspezifische Validierung begrenzt individuell
         'directory' => null,                                  // Example: 'tmp'                     | Default: 'livewire-tmp'
         'middleware' => null,                                 // Example: 'throttle:5,1'            | Default: 'throttle:60,1'
         'preview_mimes' => [                                  // Supported file types for temporary pre-signed file URLs...
