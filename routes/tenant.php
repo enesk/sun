@@ -86,6 +86,15 @@ Route::middleware([
         return response()->file($path, ['Content-Type' => 'text/plain']);
     })->name('portal.robots');
 
+    // ads.txt (dynamisch pro Tenant)
+    Route::get('/ads.txt', function () {
+        $content = \App\Models\Portal\AdSetting::query()->value('ads_txt_content');
+        if (empty($content)) {
+            abort(404);
+        }
+        return response($content, 200)->header('Content-Type', 'text/plain');
+    })->name('portal.ads-txt');
+
     // RSS-Feed (#204)
     Route::get('/ratgeber/feed', [BlogFeedController::class, 'rss'])->name('portal.blog.feed');
 });
@@ -267,6 +276,7 @@ Route::middleware([
             Route::get('/werbung', [VerwaltungAdController::class, 'index'])->name('ads.index');
             Route::get('/werbung/erstellen', [VerwaltungAdController::class, 'create'])->name('ads.create');
             Route::post('/werbung', [VerwaltungAdController::class, 'store'])->name('ads.store');
+            Route::put('/werbung/ads-txt', [VerwaltungAdController::class, 'updateAdsTxt'])->name('ads.update-ads-txt');
             Route::get('/werbung/{id}/bearbeiten', [VerwaltungAdController::class, 'edit'])->name('ads.edit');
             Route::put('/werbung/{id}', [VerwaltungAdController::class, 'update'])->name('ads.update');
             Route::delete('/werbung/{id}', [VerwaltungAdController::class, 'destroy'])->name('ads.destroy');

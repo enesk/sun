@@ -18,16 +18,19 @@ class PortalHomeController extends Controller
 {
     public function index(): View
     {
-        $featuredCompanies = Company::active()
-            ->with(['categories', 'city', 'media'])
-            ->premium()
-            ->whereHas('media', fn ($q) => $q->where('collection_name', 'gallery'))
-            ->latest()
-            ->take(6)
-            ->get();
+        $featuredCompanies = Cache::remember('portal.featured_companies', 300, fn () =>
+            Company::active()
+                ->with(['categories', 'city', 'media'])
+                ->premium()
+                ->whereHas('media', fn ($q) => $q->where('collection_name', 'gallery'))
+                ->latest()
+                ->take(6)
+                ->get()
+        );
 
-        // Random-Offset statt ORDER BY RAND() — O(1) statt O(n)
-        $latestCompanies = $this->getRandomCompanies(6);
+        $latestCompanies = Cache::remember('portal.random_companies', 300, fn () =>
+            $this->getRandomCompanies(6)
+        );
 
         $categories = Cache::remember('portal.categories.home', 3600, fn () =>
             Category::roots()
@@ -41,7 +44,6 @@ class PortalHomeController extends Controller
         $topCategories = $sortedCategories->take(3)->values();
         $restCategories = $sortedCategories->skip(3)->values();
 
-        // Top 5 Städte nach Firmenanzahl für Hero-Animation
         $popularCities = Cache::remember('portal.cities.hero', 3600, fn () =>
             City::withCount(['companies' => fn ($q) => $q->where('is_active', true)])
                 ->having('companies_count', '>', 0)
@@ -50,7 +52,6 @@ class PortalHomeController extends Controller
                 ->get()
         );
 
-        // Trust Bar Stats: 4 Queries → 1 gecachter Block (15 Min)
         $stats = Cache::remember('portal.stats', 900, fn () => [
             'totalCompanies' => Company::active()->count(),
             'totalCities' => Company::active()
@@ -66,23 +67,26 @@ class PortalHomeController extends Controller
             'totalReviews' => Review::approved()->count(),
         ]);
 
-        // FAQs für Startseite (max 6)
-        $homeFaqs = FAQ::active()->forPage('home')->ordered()->take(6)->get();
+        $homeFaqs = Cache::remember('portal.home_faqs', 3600, fn () =>
+            FAQ::active()->forPage('home')->ordered()->take(6)->get()
+        );
 
-        // Letzte 4 Ratgeber-Artikel (4-Spalten-Grid)
-        $latestPosts = Post::published()
-            ->with(['category', 'media'])
-            ->latest('published_at')
-            ->take(4)
-            ->get();
+        $latestPosts = Cache::remember('portal.latest_posts', 600, fn () =>
+            Post::published()
+                ->with(['category', 'media'])
+                ->latest('published_at')
+                ->take(4)
+                ->get()
+        );
 
-        // Aktuelle Stellenanzeigen (optional, nur wenn Jobs existieren)
-        $latestJobs = Job::active()
-            ->published()
-            ->with(['company', 'company.media', 'city'])
-            ->latest('published_at')
-            ->take(6)
-            ->get();
+        $latestJobs = Cache::remember('portal.latest_jobs', 600, fn () =>
+            Job::active()
+                ->published()
+                ->with(['company', 'company.media', 'city'])
+                ->latest('published_at')
+                ->take(6)
+                ->get()
+        );
 
         return view('pages.home', [
             'featuredCompanies' => $featuredCompanies,
@@ -102,38 +106,16 @@ class PortalHomeController extends Controller
     }
 
     /**
-     * Random Companies per Offset statt ORDER BY RAND().
-     * ORDER BY RAND() sortiert ALLE Zeilen (O(n log n)) — bei 12k+ Rows ~50ms+.
-     * Offset-Methode: 1x COUNT + 6x SELECT mit OFFSET = O(6).
+     * Random Companies: 1 Query mit inRandomOrder() statt 18 Offset-Queries.
+     * Gecacht für 5 Min — danach neue Zufallsauswahl.
      */
     private function getRandomCompanies(int $count): \Illuminate\Database\Eloquent\Collection
     {
-        $baseQuery = Company::active()->whereHas('media', fn ($q) => $q->where('collection_name', 'gallery'));
-        $total = $baseQuery->count();
-
-        if ($total === 0) {
-            return new \Illuminate\Database\Eloquent\Collection();
-        }
-
-        $ids = collect();
-        $maxAttempts = $count * 3;
-        $attempts = 0;
-
-        while ($ids->count() < $count && $attempts < $maxAttempts) {
-            $offset = random_int(0, max(0, $total - 1));
-            $id = (clone $baseQuery)->select('companies.id')->skip($offset)->first()?->id;
-            if ($id && !$ids->contains($id)) {
-                $ids->push($id);
-            }
-            $attempts++;
-        }
-
-        if ($ids->isEmpty()) {
-            return new \Illuminate\Database\Eloquent\Collection();
-        }
-
-        return Company::whereIn('id', $ids->all())
+        return Company::active()
+            ->whereHas('media', fn ($q) => $q->where('collection_name', 'gallery'))
             ->with(['categories', 'city', 'media'])
+            ->inRandomOrder()
+            ->take($count)
             ->get();
     }
 }

@@ -102,4 +102,43 @@
             @endif
         @endforeach
     @endif
+
+    {{-- ads.txt --}}
+    <div class="dash-card" style="margin-top: 2rem;">
+        <div class="dash-card-header">
+            <h2 class="dash-card-header-title">ads.txt</h2>
+            @if(!empty($adSettings->ads_txt_content))
+                <a href="{{ route('portal.ads-txt') }}" target="_blank" class="dash-badge dash-badge-success" style="text-decoration: none;">
+                    Aktiv
+                </a>
+            @else
+                <span class="dash-badge dash-badge-neutral">Nicht konfiguriert</span>
+            @endif
+        </div>
+        <div class="dash-card-padded">
+            <p class="text-sm" style="color: var(--dash-text-muted); margin-bottom: 1rem;">
+                Die ads.txt-Datei wird unter <code>{{ request()->getSchemeAndHttpHost() }}/ads.txt</code> bereitgestellt.
+                Kopieren Sie den Inhalt aus Ihrem Google AdSense-Konto (Einstellungen &rarr; ads.txt).
+            </p>
+            <form method="POST" action="{{ route('verwaltung.ads.update-ads-txt') }}">
+                @csrf
+                @method('PUT')
+                <div class="dash-form-group" style="margin-bottom: 1rem;">
+                    <textarea
+                        name="ads_txt_content"
+                        rows="5"
+                        class="dash-input"
+                        placeholder="google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0"
+                        style="font-family: monospace; font-size: 0.85rem;"
+                    >{{ old('ads_txt_content', $adSettings->ads_txt_content) }}</textarea>
+                    @error('ads_txt_content')
+                        <p class="dash-form-error">{{ $message }}</p>
+                    @enderror
+                </div>
+                <button type="submit" class="dash-btn dash-btn-primary dash-btn-sm">
+                    ads.txt speichern
+                </button>
+            </form>
+        </div>
+    </div>
 @endsection

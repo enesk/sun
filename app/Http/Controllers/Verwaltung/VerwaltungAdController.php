@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Verwaltung;
 
 use App\Constants\TenancyPermissionConstants;
+use App\Models\Portal\AdSetting;
 use App\Models\Portal\AdSlot;
 use App\Services\TenantPermissionService;
 use Illuminate\Http\RedirectResponse;
@@ -29,8 +30,9 @@ class VerwaltungAdController extends VerwaltungBaseController
 
         $slots = AdSlot::sorted()->get()->groupBy('position');
         $positions = config('ad-positions', []);
+        $adSettings = AdSetting::instance();
 
-        return view('pages.verwaltung.ads.index', compact('navigationItems', 'slots', 'positions'));
+        return view('pages.verwaltung.ads.index', compact('navigationItems', 'slots', 'positions', 'adSettings'));
     }
 
     public function create()
@@ -111,6 +113,21 @@ class VerwaltungAdController extends VerwaltungBaseController
 
         return redirect()->route('verwaltung.ads.index')
             ->with('success', 'Ad-Slot wurde aktualisiert.');
+    }
+
+    public function updateAdsTxt(Request $request): RedirectResponse
+    {
+        $this->requirePermission(TenancyPermissionConstants::PERMISSION_MANAGE_ADS);
+
+        $validated = $request->validate([
+            'ads_txt_content' => 'nullable|string|max:10000',
+        ]);
+
+        $adSettings = AdSetting::instance();
+        $adSettings->update($validated);
+
+        return redirect()->route('verwaltung.ads.index')
+            ->with('success', 'ads.txt wurde aktualisiert.');
     }
 
     public function destroy(string $id): RedirectResponse
