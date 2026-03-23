@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', ($currentTenant->name ?? config('app.name')) . ' — Branchenportal')
+@section('title', ($currentTenant->name ?? config('app.name')) . '')
 @section('meta_description', $currentTenant->getAttribute('branding.site_description') ?? 'Finden Sie lokale Unternehmen in Ihrer Nähe')
 
 @section('content')

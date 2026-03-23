@@ -1,5 +1,7 @@
 User-agent: *
-Disallow: /firmenprofil/
-Disallow: /eintragen
+Allow: /
+Disallow: /firmenprofil/dashboard
+Disallow: /login
+Disallow: /register
 
 Sitemap: http://sanitaer.test/sitemap.xml
