@@ -10,9 +10,6 @@
         @endphp
         <div class="{{ collect([$deviceClasses, $clsClasses, 'bg-base-200/30'])->filter()->implode(' ') }}"
             @if($isLazy && $hasCode) data-lazy-ad @endif>
-            @if($hasCode)
-                <span class="block text-[10px] uppercase tracking-wider text-base-content/40">Anzeige</span>
-            @endif
             @if($isLazy && $hasCode)
                 <template data-ad-code>
                     {!! $slot->code !!}
