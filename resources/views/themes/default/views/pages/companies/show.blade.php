@@ -718,23 +718,10 @@
         @endif
     </div>
 
-    {{-- VR-6: Sticky Contact-Bar (Mobile only) --}}
-    @if($company->tel || $company->website)
-        <div class="sticky-contact" role="complementary" aria-label="Kontaktmöglichkeiten">
-            @if($company->tel)
-                <a href="tel:{{ $company->tel }}" class="sticky-contact__call ripple">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                    Jetzt anrufen
-                </a>
-            @endif
-            @if($company->website)
-                <a href="{{ $company->website }}" target="_blank" rel="noopener noreferrer" class="sticky-contact__website ripple">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
-                    Website
-                </a>
-            @endif
-        </div>
-    @endif
+    {{-- Mobile: Ad-Slot statt Sticky Contact-Bar --}}
+    <div class="block lg:hidden">
+        <x-ad-slot position="sidebar_after_claim" />
+    </div>
 
     {{-- STAT-1: Contact Click Tracking --}}
     @push('scripts')

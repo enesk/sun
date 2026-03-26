@@ -1851,66 +1851,7 @@
     /* ============================================================
        Visual Redesign (VR-6) — Sticky Contact Bar (Mobile)
        ============================================================ */
-    .sticky-contact {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        z-index: 40;
-        background: white;
-        border-top: 1px solid #E2E8F0;
-        padding: 12px 16px;
-        display: flex;
-        gap: 10px;
-        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
-    }
-
-    /* Hide on desktop — sidebar handles contact there */
-    @media (min-width: 1024px) {
-        .sticky-contact {
-            display: none;
-        }
-    }
-
-    .sticky-contact__call {
-        flex: 1;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        background: var(--portal-primary, #3B82F6);
-        color: white;
-        padding: 14px;
-        border-radius: 12px;
-        font-weight: 700;
-        font-size: 15px;
-        text-align: center;
-        text-decoration: none;
-        transition: background 200ms ease;
-    }
-
-    .sticky-contact__call:hover {
-        background: var(--portal-primary-hover, #2563EB);
-    }
-
-    .sticky-contact__website {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        padding: 14px 20px;
-        background: #F1F5F9;
-        border-radius: 12px;
-        font-weight: 600;
-        font-size: 15px;
-        color: #334155;
-        text-decoration: none;
-        transition: background 200ms ease;
-    }
-
-    .sticky-contact__website:hover {
-        background: #E2E8F0;
-    }
+    /* Sticky Contact-Bar entfernt — ersetzt durch Ad-Slot sidebar_after_claim */
 
     /* Mobile Hero adjustments */
     @media (max-width: 767px) {
@@ -1944,10 +1885,7 @@
             padding: 12px 0 24px;
         }
 
-        /* Add bottom padding so sticky bar doesn't overlap content */
-        body:has(.sticky-contact) {
-            padding-bottom: 72px;
-        }
+        /* Sticky contact bar removed — ad slot replaces it */
     }
 
     /* Tablet: hero inline but smaller */
