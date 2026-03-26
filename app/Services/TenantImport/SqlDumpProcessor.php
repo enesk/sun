@@ -21,7 +21,8 @@ class SqlDumpProcessor
     ];
 
     private const DANGEROUS_PATTERNS = [
-        '/\bDROP\s+(TABLE|DATABASE|INDEX|VIEW)\b/i',
+        '/\bDROP\s+(DATABASE|INDEX|VIEW)\b/i',
+        '/\bDROP\s+TABLE\b(?!\s+IF\s+EXISTS\b)/i',
         '/\bGRANT\b/i',
         '/\bCREATE\s+USER\b/i',
         '/\bALTER\s+USER\b/i',
