@@ -8,12 +8,13 @@
 #
 # Schritte:
 #   1. DB-Dump von widimedia.com ziehen (mysqldump via SSH)
-#   2. Fotos synchronisieren (rsync via SSH)
-#   3. TenantImporter ausführen (erstellt Tenant + importiert Daten)
-#   4. Tenant-DB beim MySQL-User registrieren (register-tenant)
-#   5. Domain in vHost-Datei eintragen (add-domain)
-#   6. Berechtigungen setzen
-#   7. Cleanup
+#   2. TenantImporter ausführen (erstellt Tenant + importiert Daten)
+#   3. Tenant-UUID auslesen und Storage-Pfade setzen (tenant{neueUUID})
+#   4. Fotos synchronisieren (rsync via SSH → tenant{UUID}/app/public)
+#   5. Tenant-DB beim MySQL-User registrieren (register-tenant)
+#   6. Domain in vHost-Datei eintragen (add-domain)
+#   7. Berechtigungen setzen
+#   8. Cleanup
 #
 # Beispiel:
 #   ./migrate-tenant.sh klempner-mueller.de abc123-def456 3 klempner-mueller
@@ -92,10 +93,13 @@ PHOTO_SLUG="${4:-${DOMAIN}}"
 
 # Abgeleitete Werte
 REMOTE_DB_NAME="tenants_${TENANT_UUID}"
-LOCAL_TENANT_STORAGE="tenant${TENANT_UUID}"
 REMOTE_PHOTO_PATH="${REMOTE_WEBROOT}/storage/app/public/${PHOTO_SLUG}/photos"
-LOCAL_PHOTO_PATH="${LOCAL_WEBROOT}/storage/${LOCAL_TENANT_STORAGE}/app/public"
 DUMP_FILE="${DUMP_DIR}/${REMOTE_DB_NAME}_$(date +%Y%m%d_%H%M%S).sql.gz"
+
+# LOCAL_TENANT_STORAGE und LOCAL_PHOTO_PATH werden NACH dem Import gesetzt,
+# weil die UUID des neu erstellten Tenants erst dann bekannt ist.
+LOCAL_TENANT_STORAGE=""
+LOCAL_PHOTO_PATH=""
 
 # ─── Übersicht ───────────────────────────────────────────────────────
 echo ""
@@ -104,15 +108,15 @@ echo "  Tenant Migration: ${DOMAIN}"
 echo "═══════════════════════════════════════════════════════════════"
 echo ""
 echo "  Domain:                ${DOMAIN}"
-echo "  Tenant UUID:           ${TENANT_UUID}"
+echo "  Tenant UUID (remote):  ${TENANT_UUID}"
 echo "  Source Tenant ID:      ${SOURCE_TENANT_ID}"
 echo "  Foto-Ordner:           ${PHOTO_SLUG}"
 echo ""
 echo "  Remote DB:             ${REMOTE_DB_NAME}"
-echo "  Local Storage:         ${LOCAL_TENANT_STORAGE}"
-echo ""
 echo "  Quell-Fotos:           ${REMOTE_PHOTO_PATH}"
-echo "  Ziel-Fotos:            ${LOCAL_PHOTO_PATH}"
+echo ""
+echo "  Hinweis: Local Storage wird nach Tenant-Erstellung aus neuer UUID gebaut"
+echo "           Format: tenant{neueUUID}"
 echo ""
 echo "  Log:                   ${LOG_FILE}"
 echo ""
@@ -161,7 +165,7 @@ fi
 log "Vorprüfungen abgeschlossen"
 
 # ═════════════════════════════════════════════════════════════════════
-step "1/7: DB-Dump von widimedia.com ziehen"
+step "1/8: DB-Dump von widimedia.com ziehen"
 # ═════════════════════════════════════════════════════════════════════
 log "  Quelle: ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DB_NAME}"
 log "  Ziel: ${DUMP_FILE}"
@@ -184,7 +188,75 @@ log "  Dump-Dauer: ${DUMP_DURATION}s"
 ok "DB-Dump erstellt: ${DUMP_FILE} (${DUMP_SIZE})"
 
 # ═════════════════════════════════════════════════════════════════════
-step "2/7: Fotos synchronisieren"
+step "2/8: TenantImporter ausführen"
+# ═════════════════════════════════════════════════════════════════════
+log "  Starte Import: ${DUMP_FILE} → Tenant ${DOMAIN}"
+
+IMPORT_ARGS=(--tenant="${DOMAIN}" --source-tenant-id="${SOURCE_TENANT_ID}" --create-tenant)
+
+# Queue-Modus: Import als Queue-Job mit Live-Watch
+if [ "${USE_QUEUE:-0}" = "1" ]; then
+    IMPORT_ARGS+=(--queue)
+    log "  Queue-Modus: --queue hinzugefügt (Import läuft asynchron)"
+fi
+
+# Im nicht-interaktiven Modus: ohne Vorschau, mit Force
+if [ "${INTERACTIVE:-1}" = "0" ]; then
+    IMPORT_ARGS+=(--no-preview --force)
+    log "  Nicht-interaktiver Modus: --no-preview --force hinzugefügt"
+fi
+
+log "  Führe aus: php artisan tenant:import-dump ${DUMP_FILE} ${IMPORT_ARGS[*]}"
+
+IMPORT_START=$(date +%s)
+
+# set -e deaktivieren, damit wir den Exit-Code manuell prüfen können
+# Output in Variable UND auf Bildschirm/Log — damit wir die neue UUID parsen können
+set +e
+IMPORT_OUTPUT=$(${ARTISAN} tenant:import-dump "${DUMP_FILE}" "${IMPORT_ARGS[@]}" 2>&1 | tee -a "$LOG_FILE")
+IMPORT_EXIT=${PIPESTATUS[0]}
+set -e
+
+IMPORT_END=$(date +%s)
+IMPORT_DURATION=$((IMPORT_END - IMPORT_START))
+
+if [ $IMPORT_EXIT -ne 0 ]; then
+    fail "TenantImporter fehlgeschlagen! (Exit-Code: ${IMPORT_EXIT}, Dauer: ${IMPORT_DURATION}s)"
+fi
+
+log "  Import-Dauer: ${IMPORT_DURATION}s"
+ok "TenantImporter erfolgreich (${IMPORT_DURATION}s)"
+
+# ═════════════════════════════════════════════════════════════════════
+step "3/8: Tenant-UUID auslesen und Storage-Pfade setzen"
+# ═════════════════════════════════════════════════════════════════════
+
+# Neue UUID aus dem Artisan-Output parsen (TENANT_CREATED_UUID=xxx)
+NEW_TENANT_UUID=$(echo "${IMPORT_OUTPUT}" | grep -oP 'TENANT_CREATED_UUID=\K\S+' || true)
+
+if [ -n "${NEW_TENANT_UUID}" ]; then
+    log "  Neu erstellter Tenant — UUID aus Output: ${NEW_TENANT_UUID}"
+else
+    # Tenant existierte bereits — UUID per Tinker abfragen
+    log "  Tenant existierte bereits — frage UUID per Tinker ab..."
+    NEW_TENANT_UUID=$(${ARTISAN} tinker --execute="echo App\Models\Tenant::where('domain', '${DOMAIN}')->first()?->id;" 2>/dev/null | tr -d '[:space:]')
+    log "  UUID aus DB: ${NEW_TENANT_UUID}"
+fi
+
+if [ -z "${NEW_TENANT_UUID}" ]; then
+    fail "Konnte Tenant-UUID nicht ermitteln für Domain: ${DOMAIN}"
+fi
+
+# Pfade mit der echten Tenant-UUID aufbauen
+LOCAL_TENANT_STORAGE="tenant${NEW_TENANT_UUID}"
+LOCAL_PHOTO_PATH="${LOCAL_WEBROOT}/storage/${LOCAL_TENANT_STORAGE}/app/public"
+
+log "  Local Tenant Storage: ${LOCAL_TENANT_STORAGE}"
+log "  Local Photo Path:     ${LOCAL_PHOTO_PATH}"
+ok "Tenant-UUID ermittelt: ${NEW_TENANT_UUID}"
+
+# ═════════════════════════════════════════════════════════════════════
+step "4/8: Fotos synchronisieren"
 # ═════════════════════════════════════════════════════════════════════
 log "  Erstelle lokalen Foto-Ordner: ${LOCAL_PHOTO_PATH}"
 mkdir -p "${LOCAL_PHOTO_PATH}"
@@ -213,46 +285,7 @@ else
 fi
 
 # ═════════════════════════════════════════════════════════════════════
-step "3/7: TenantImporter ausführen"
-# ═════════════════════════════════════════════════════════════════════
-log "  Starte Import: ${DUMP_FILE} → Tenant ${DOMAIN}"
-
-IMPORT_ARGS=(--tenant="${DOMAIN}" --source-tenant-id="${SOURCE_TENANT_ID}" --create-tenant)
-
-# Queue-Modus: Import als Queue-Job mit Live-Watch
-if [ "${USE_QUEUE:-0}" = "1" ]; then
-    IMPORT_ARGS+=(--queue)
-    log "  Queue-Modus: --queue hinzugefügt (Import läuft asynchron)"
-fi
-
-# Im nicht-interaktiven Modus: ohne Vorschau, mit Force
-if [ "${INTERACTIVE:-1}" = "0" ]; then
-    IMPORT_ARGS+=(--no-preview --force)
-    log "  Nicht-interaktiver Modus: --no-preview --force hinzugefügt"
-fi
-
-log "  Führe aus: php artisan tenant:import-dump ${DUMP_FILE} ${IMPORT_ARGS[*]}"
-
-IMPORT_START=$(date +%s)
-
-# set -e deaktivieren, damit wir den Exit-Code manuell prüfen können
-set +e
-${ARTISAN} tenant:import-dump "${DUMP_FILE}" "${IMPORT_ARGS[@]}" 2>&1 | tee -a "$LOG_FILE"
-IMPORT_EXIT=${PIPESTATUS[0]}
-set -e
-
-IMPORT_END=$(date +%s)
-IMPORT_DURATION=$((IMPORT_END - IMPORT_START))
-
-if [ $IMPORT_EXIT -ne 0 ]; then
-    fail "TenantImporter fehlgeschlagen! (Exit-Code: ${IMPORT_EXIT}, Dauer: ${IMPORT_DURATION}s)"
-fi
-
-log "  Import-Dauer: ${IMPORT_DURATION}s"
-ok "TenantImporter erfolgreich (${IMPORT_DURATION}s)"
-
-# ═════════════════════════════════════════════════════════════════════
-step "4/7: Tenant-DB beim MySQL-User registrieren"
+step "5/8: Tenant-DB beim MySQL-User registrieren"
 # ═════════════════════════════════════════════════════════════════════
 log "  Registriere Tenant-DB beim MySQL-User..."
 log "  Führe aus: register-tenant ${DOMAIN}"
@@ -269,7 +302,7 @@ else
 fi
 
 # ═════════════════════════════════════════════════════════════════════
-step "5/7: Domain in vHost-Datei eintragen"
+step "6/8: Domain in vHost-Datei eintragen"
 # ═════════════════════════════════════════════════════════════════════
 log "  Erstelle vHost-Eintrag für ${DOMAIN}..."
 log "  Führe aus: add-domain ${DOMAIN}"
@@ -286,7 +319,7 @@ else
 fi
 
 # ═════════════════════════════════════════════════════════════════════
-step "6/7: Berechtigungen setzen"
+step "7/8: Berechtigungen setzen"
 # ═════════════════════════════════════════════════════════════════════
 # Tenant-Storage
 if [ -d "${LOCAL_WEBROOT}/storage/${LOCAL_TENANT_STORAGE}" ]; then
@@ -316,7 +349,7 @@ ok "Bootstrap/Cache-Berechtigungen gesetzt"
 ok "Alle Berechtigungen gesetzt auf ${LOCAL_OWNER}"
 
 # ═════════════════════════════════════════════════════════════════════
-step "7/7: Cleanup und Abschluss"
+step "8/8: Cleanup und Abschluss"
 # ═════════════════════════════════════════════════════════════════════
 SCRIPT_END=$(date +%s)
 TOTAL_DURATION=$((SCRIPT_END - SCRIPT_START))
@@ -326,6 +359,8 @@ TOTAL_SEC=$((TOTAL_DURATION % 60))
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
 echo -e "  ${GREEN}✅ Migration abgeschlossen: ${DOMAIN}${NC}"
+echo -e "  Tenant-UUID (lokal):  ${NEW_TENANT_UUID}"
+echo -e "  Tenant-Storage:       ${LOCAL_TENANT_STORAGE}"
 echo -e "  Gesamtdauer: ${TOTAL_MIN}m ${TOTAL_SEC}s"
 echo "═══════════════════════════════════════════════════════════════"
 echo ""

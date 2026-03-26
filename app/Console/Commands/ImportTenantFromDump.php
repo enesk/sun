@@ -362,6 +362,9 @@ class ImportTenantFromDump extends Command
             $this->callSilently('tenants:storage', ['--tenants' => [$tenant->id]]);
             $this->detail('Storage-Verzeichnisse erstellt');
 
+            // UUID für Shell-Script ausgeben (maschinenlesbar)
+            $this->line("TENANT_CREATED_UUID={$tenant->id}");
+
             $this->ok("Tenant erstellt: {$tenantName} (ID: {$tenant->id})");
 
             return $tenant;
