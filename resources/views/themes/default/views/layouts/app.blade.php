@@ -59,7 +59,7 @@
     {{-- Auto Ads --}}
     <x-ad-slot position="auto_ads" />
 </head>
-<body class="min-h-screen flex flex-col bg-base-100 text-base-content antialiased">
+<body class="min-h-screen flex flex-col bg-base-100 text-base-content antialiased @if(\App\View\Components\AdSlot::hasSlotsForPosition('mobile_sticky_bottom')) pb-[60px] lg:pb-0 @endif">
 
     {{-- Skip to Content (Accessibility) --}}
     <a href="#main-content"
@@ -110,8 +110,8 @@
         document.addEventListener('livewire:morph.updated', initLucide);
     </script>
 
-    {{-- Ad: Mobile Sticky Bottom --}}
-    <div class="fixed bottom-0 inset-x-0 z-40 lg:hidden">
+    {{-- Ad: Mobile Sticky Bottom (Anchor-Ad 320×50) --}}
+    <div id="mobile-sticky-ad" class="fixed bottom-0 inset-x-0 z-40 lg:hidden bg-base-100/90 backdrop-blur-sm safe-area-bottom">
         <x-ad-slot position="mobile_sticky_bottom" />
     </div>
 

@@ -16,6 +16,8 @@ return [
     'after_photos' => 'Detaillseite - Nach Fotos',
     'after_categories' => 'Detaillseite - Nach Kategorien',
     'after_review_summary' => 'Detaillseite - Nach Bewertungszusammenfassung',
+    'listing_detail_after_description' => 'Nach Detailbeschreibung',
+    'listing_detail_sidebar' => 'Detailseite Sidebar',
     'listing_between_results' => 'Zwischen Suchergebnissen',
     'footer_above' => 'Über Footer',
     'mobile_sticky_bottom' => 'Mobile Sticky-Banner',

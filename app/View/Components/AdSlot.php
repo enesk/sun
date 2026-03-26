@@ -15,6 +15,50 @@ class AdSlot extends Component
 
     public Collection $slots;
 
+    /**
+     * Positions that should be lazy-loaded (below-the-fold).
+     * Above-the-fold positions (header_below, sidebar_top) are NOT lazy-loaded.
+     */
+    private const LAZY_POSITIONS = [
+        'listing_detail_after_description',
+        'footer_above',
+    ];
+
+    /**
+     * CLS container dimensions per position.
+     * Format: [desktop => [min-width, min-height], mobile => [min-width, min-height] | 'hidden']
+     */
+    private const CLS_DIMENSIONS = [
+        'header_below' => [
+            'desktop' => ['min-w-[728px]', 'min-h-[90px]'],
+            'mobile' => ['min-w-[320px]', 'min-h-[100px]'],
+        ],
+        'sidebar_top' => [
+            'desktop' => ['min-w-[300px]', 'min-h-[250px]'],
+            'mobile' => ['min-w-[300px]', 'min-h-[250px]'],
+        ],
+        'sidebar_sticky' => [
+            'desktop' => ['min-w-[300px]', 'min-h-[250px]'],
+            'mobile' => 'hidden',
+        ],
+        'content_after_intro' => [
+            'desktop' => ['', 'min-h-[90px]'],
+            'mobile' => ['min-w-[300px]', 'min-h-[250px]'],
+        ],
+        'listing_detail_after_description' => [
+            'desktop' => ['', 'min-h-[90px]'],
+            'mobile' => ['min-w-[300px]', 'min-h-[250px]'],
+        ],
+        'footer_above' => [
+            'desktop' => ['min-w-[728px]', 'min-h-[90px]'],
+            'mobile' => ['min-w-[320px]', 'min-h-[100px]'],
+        ],
+        'mobile_sticky_bottom' => [
+            'desktop' => 'hidden',
+            'mobile' => ['min-w-[320px]', 'min-h-[50px]'],
+        ],
+    ];
+
     public function __construct(string $position)
     {
         $this->position = $position;
@@ -32,6 +76,47 @@ class AdSlot extends Component
     public function render(): View
     {
         return view('components.ad-slot');
+    }
+
+    /**
+     * Get CLS container CSS classes for a position (dimensions only, no visibility).
+     */
+    public static function clsContainerClasses(string $position): string
+    {
+        $dims = self::CLS_DIMENSIONS[$position] ?? null;
+
+        if (! $dims) {
+            return '';
+        }
+
+        $classes = [];
+
+        // Mobile dimensions (base breakpoint)
+        if ($dims['mobile'] !== 'hidden') {
+            if ($dims['mobile'][0]) {
+                $classes[] = $dims['mobile'][0];
+            }
+            if ($dims['mobile'][1]) {
+                $classes[] = $dims['mobile'][1];
+            }
+        }
+
+        // Desktop dimension overrides (lg breakpoint)
+        if ($dims['desktop'] !== 'hidden') {
+            $desktopW = $dims['desktop'][0] ?? '';
+            $desktopH = $dims['desktop'][1] ?? '';
+            $mobileW = is_array($dims['mobile']) ? ($dims['mobile'][0] ?? '') : '';
+            $mobileH = is_array($dims['mobile']) ? ($dims['mobile'][1] ?? '') : '';
+
+            if ($desktopW && $desktopW !== $mobileW) {
+                $classes[] = 'lg:' . $desktopW;
+            }
+            if ($desktopH && $desktopH !== $mobileH) {
+                $classes[] = 'lg:' . $desktopH;
+            }
+        }
+
+        return implode(' ', array_filter($classes));
     }
 
     /**
@@ -56,6 +141,26 @@ class AdSlot extends Component
         }
 
         return app($key);
+    }
+
+    /**
+     * Check if active ad slots exist for a given position (usable outside component context).
+     */
+    public static function hasSlotsForPosition(string $position): bool
+    {
+        try {
+            return AdSlotModel::active()->forPosition($position)->exists();
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * Check if a position should be lazy-loaded.
+     */
+    public static function isLazy(string $position): bool
+    {
+        return in_array($position, self::LAZY_POSITIONS, true);
     }
 
     /**

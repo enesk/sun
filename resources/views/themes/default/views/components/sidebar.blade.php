@@ -103,8 +103,8 @@
         </a>
     </div>
 
-    {{-- Ad: Sidebar Sticky --}}
-    <div class="sticky top-4">
+    {{-- Ad: Sidebar Sticky (FA-06: scrollt mit, top-Offset berücksichtigt fixierte Nav) --}}
+    <div class="sticky top-[80px]">
         <x-ad-slot position="sidebar_sticky" />
     </div>
 

@@ -7359,6 +7359,11 @@ details[open] > .cookie-category__summary::before {
     padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
 }
 
+/* --- Safe Area Utilities --- */
+.safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 /* --- Responsive: Job Cards --- */
 @media (max-width: 639px) {
     .job-card {

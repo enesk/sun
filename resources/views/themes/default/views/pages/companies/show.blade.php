@@ -365,6 +365,14 @@
                     </section>
                 @endif
 
+                {{-- Ad: After Detail Info (FA-04) --}}
+                <x-ad-slot position="listing_detail_after_description" />
+
+                {{-- Mobile-only: Sidebar-Top vor Bewertungen (FA-05) --}}
+                <div class="block lg:hidden">
+                    <x-ad-slot position="sidebar_top" />
+                </div>
+
                 {{-- Bewertungen --}}
                 <section class="reveal" data-stagger-delay="200ms">
                     <div class="flex items-center justify-between mb-4">
@@ -453,11 +461,12 @@
                 </section>
             </div>
 
-            {{-- Sidebar: Kontakt-Box (Sticky on Desktop) --}}
-            <aside class="lg:w-80 shrink-0 space-y-6">
-              <div class="lg:sticky lg:top-28">
+            {{-- Sidebar --}}
+            <aside class="lg:w-80 shrink-0 lg:flex lg:flex-col">
+              <div class="space-y-6">
 
-                  <div class="mb-5">
+                  {{-- sidebar_top: Desktop-only, auf Mobile im Content-Bereich (FA-05, FA-07) --}}
+                  <div class="mb-5 hidden lg:block">
                       <x-ad-slot position="sidebar_top" />
                   </div>
 
@@ -560,6 +569,7 @@
                     @endif
                 </div>
                   <x-ad-slot position="sidebar_after_contact" />
+
                 {{-- Social Links (Premium-only) --}}
                 @if($company->is_premium)
                     @php
@@ -678,7 +688,17 @@
                     </div>
                 @endif
                 {{-- Claim-CTA wurde nach oben verschoben (vor Kontaktdaten, PROF-1) --}}
-              </div>{{-- /lg:sticky --}}
+              </div>
+
+              {{-- sidebar_sticky: Desktop-only, scrollt mit dem User (FA-06, R-05)
+                   flex-1 füllt den restlichen Platz der Aside aus (= Höhe des Hauptinhalts),
+                   damit sticky über den gesamten Scrollbereich funktioniert.
+                   Stoppt automatisch vor dem Footer, da aside dort endet. --}}
+              <div class="hidden lg:block lg:flex-1 mt-6">
+                  <div class="lg:sticky lg:top-[80px]">
+                      <x-ad-slot position="sidebar_sticky" />
+                  </div>
+              </div>
             </aside>
         </div>
         <x-ad-slot position="after_review_summary" />
