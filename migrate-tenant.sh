@@ -4,16 +4,19 @@
 # Migriert einen Tenant von widimedia.com → sanitaerfinden.dev
 # inkl. DB-Import über den Laravel TenantImporter
 #
-# Usage: ./migrate-tenant.sh <domain> <tenant_uuid> <tenant_slug> [source_tenant_id]
+# Usage: ./migrate-tenant.sh <domain> <tenant_uuid> [source_tenant_id]
 #
 # Beispiel:
-#   ./migrate-tenant.sh klempner-mueller.de abc123-def456 klempner-mueller 3
+#   ./migrate-tenant.sh klempner-mueller.de abc123-def456 3
 #
 # Mit Queue (asynchron, Live-Watch):
-#   USE_QUEUE=1 ./migrate-tenant.sh klempner-mueller.de abc123 klempner-mueller 3
+#   USE_QUEUE=1 ./migrate-tenant.sh klempner-mueller.de abc123-def456 3
 #
 # Nicht-interaktiv (z.B. in Schleife):
-#   INTERACTIVE=0 ./migrate-tenant.sh klempner-mueller.de abc123 klempner-mueller 3
+#   INTERACTIVE=0 ./migrate-tenant.sh klempner-mueller.de abc123-def456 3
+#
+# Foto-Ordner auf widimedia überschreiben (falls abweichend von Domain):
+#   PHOTO_FOLDER=klempner-mueller ./migrate-tenant.sh klempner-mueller.de abc123-def456 3
 #======================================================================
 
 set -euo pipefail
@@ -50,38 +53,43 @@ confirm() {
 }
 
 # ─── Parameter prüfen ───────────────────────────────────────────────
-if [ $# -lt 3 ]; then
+if [ $# -lt 2 ]; then
     echo ""
-    echo "Usage: $0 <domain> <tenant_uuid> <tenant_slug> [source_tenant_id]"
+    echo "Usage: $0 <domain> <tenant_uuid> [source_tenant_id]"
     echo ""
     echo "  domain            – Die Domain des Tenants (z.B. klempner-mueller.de)"
     echo "  tenant_uuid       – UUID des Tenants auf widimedia.com"
-    echo "  tenant_slug       – Manueller Slug für Foto-Ordner auf widimedia.com"
     echo "  source_tenant_id  – (Optional) Source-Tenant-ID im Dump, default: 0 (alle)"
     echo ""
-    echo "Beispiel:"
-    echo "  $0 klempner-mueller.de abc12345-def6-7890-ghij-klmnop klempner-mueller 3"
+    echo "Umgebungsvariablen:"
+    echo "  PHOTO_FOLDER      – Foto-Ordner auf widimedia (default: Domain)"
+    echo "  INTERACTIVE=0     – Nicht-interaktiver Modus"
+    echo "  USE_QUEUE=1       – Import als Queue-Job mit Live-Watch"
     echo ""
-    echo "Nicht-interaktiv:"
-    echo "  INTERACTIVE=0 $0 klempner-mueller.de abc12345 klempner-mueller 3"
+    echo "Beispiel:"
+    echo "  $0 klempner-mueller.de abc12345-def6-7890-ghij-klmnop 3"
+    echo ""
+    echo "Mit abweichendem Foto-Ordner:"
+    echo "  PHOTO_FOLDER=klempner $0 klempner-mueller.de abc12345 3"
     echo ""
     exit 1
 fi
 
 DOMAIN="$1"
 TENANT_UUID="$2"
-TENANT_SLUG="$3"
-SOURCE_TENANT_ID="${4:-0}"
+SOURCE_TENANT_ID="${3:-0}"
+
+# Foto-Ordner: PHOTO_FOLDER env-var oder Domain als Default
+PHOTO_FOLDER="${PHOTO_FOLDER:-${DOMAIN}}"
 
 # ─── Input-Validierung ─────────────────────────────────────────────
 [[ "$TENANT_UUID" =~ ^[a-zA-Z0-9_-]+$ ]] || fail "Ungültige Tenant UUID: '${TENANT_UUID}' — nur alphanumerische Zeichen, Bindestriche und Unterstriche erlaubt."
 [[ "$DOMAIN" =~ ^[a-zA-Z0-9._-]+$ ]] || fail "Ungültige Domain: '${DOMAIN}'"
-[[ "$TENANT_SLUG" =~ ^[a-zA-Z0-9_-]+$ ]] || fail "Ungültiger Tenant-Slug: '${TENANT_SLUG}'"
 
 # Abgeleitete Werte
 REMOTE_DB_NAME="tenants_${TENANT_UUID}"
 LOCAL_TENANT_STORAGE="tenant${TENANT_UUID}"
-REMOTE_PHOTO_PATH="${REMOTE_WEBROOT}/storage/app/public/${TENANT_SLUG}/photos"
+REMOTE_PHOTO_PATH="${REMOTE_WEBROOT}/storage/app/public/${PHOTO_FOLDER}/photos"
 LOCAL_PHOTO_PATH="${LOCAL_WEBROOT}/storage/${LOCAL_TENANT_STORAGE}/app/public"
 DUMP_FILE="${DUMP_DIR}/${REMOTE_DB_NAME}_$(date +%Y%m%d_%H%M%S).sql.gz"
 
@@ -93,8 +101,8 @@ echo "════════════════════════�
 echo ""
 echo "  Domain:                ${DOMAIN}"
 echo "  Tenant UUID:           ${TENANT_UUID}"
-echo "  Tenant Slug (Fotos):   ${TENANT_SLUG}"
 echo "  Source Tenant ID:      ${SOURCE_TENANT_ID}"
+echo "  Foto-Ordner:           ${PHOTO_FOLDER}"
 echo ""
 echo "  Remote DB:             ${REMOTE_DB_NAME}"
 echo "  Local Storage:         ${LOCAL_TENANT_STORAGE}"
