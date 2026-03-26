@@ -10,8 +10,10 @@
 #   1. DB-Dump von widimedia.com ziehen (mysqldump via SSH)
 #   2. Fotos synchronisieren (rsync via SSH)
 #   3. TenantImporter ausführen (erstellt Tenant + importiert Daten)
-#   4. Berechtigungen setzen
-#   5. Cleanup
+#   4. Tenant-DB beim MySQL-User registrieren (register-tenant)
+#   5. Domain in vHost-Datei eintragen (add-domain)
+#   6. Berechtigungen setzen
+#   7. Cleanup
 #
 # Beispiel:
 #   ./migrate-tenant.sh klempner-mueller.de abc123-def456 3 klempner-mueller
@@ -159,7 +161,7 @@ fi
 log "Vorprüfungen abgeschlossen"
 
 # ═════════════════════════════════════════════════════════════════════
-step "1/5: DB-Dump von widimedia.com ziehen"
+step "1/7: DB-Dump von widimedia.com ziehen"
 # ═════════════════════════════════════════════════════════════════════
 log "  Quelle: ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DB_NAME}"
 log "  Ziel: ${DUMP_FILE}"
@@ -182,7 +184,7 @@ log "  Dump-Dauer: ${DUMP_DURATION}s"
 ok "DB-Dump erstellt: ${DUMP_FILE} (${DUMP_SIZE})"
 
 # ═════════════════════════════════════════════════════════════════════
-step "2/5: Fotos synchronisieren"
+step "2/7: Fotos synchronisieren"
 # ═════════════════════════════════════════════════════════════════════
 log "  Erstelle lokalen Foto-Ordner: ${LOCAL_PHOTO_PATH}"
 mkdir -p "${LOCAL_PHOTO_PATH}"
@@ -211,7 +213,7 @@ else
 fi
 
 # ═════════════════════════════════════════════════════════════════════
-step "3/5: TenantImporter ausführen"
+step "3/7: TenantImporter ausführen"
 # ═════════════════════════════════════════════════════════════════════
 log "  Starte Import: ${DUMP_FILE} → Tenant ${DOMAIN}"
 
@@ -250,7 +252,41 @@ log "  Import-Dauer: ${IMPORT_DURATION}s"
 ok "TenantImporter erfolgreich (${IMPORT_DURATION}s)"
 
 # ═════════════════════════════════════════════════════════════════════
-step "4/5: Berechtigungen setzen"
+step "4/7: Tenant-DB beim MySQL-User registrieren"
+# ═════════════════════════════════════════════════════════════════════
+log "  Registriere Tenant-DB beim MySQL-User..."
+log "  Führe aus: register-tenant ${DOMAIN}"
+
+set +e
+register-tenant "${DOMAIN}" 2>&1 | tee -a "$LOG_FILE"
+RT_EXIT=${PIPESTATUS[0]}
+set -e
+
+if [ $RT_EXIT -ne 0 ]; then
+    warn "register-tenant fehlgeschlagen (Exit-Code: ${RT_EXIT}) — ggf. bereits registriert?"
+else
+    ok "Tenant-DB registriert"
+fi
+
+# ═════════════════════════════════════════════════════════════════════
+step "5/7: Domain in vHost-Datei eintragen"
+# ═════════════════════════════════════════════════════════════════════
+log "  Erstelle vHost-Eintrag für ${DOMAIN}..."
+log "  Führe aus: add-domain ${DOMAIN}"
+
+set +e
+add-domain "${DOMAIN}" 2>&1 | tee -a "$LOG_FILE"
+AD_EXIT=${PIPESTATUS[0]}
+set -e
+
+if [ $AD_EXIT -ne 0 ]; then
+    warn "add-domain fehlgeschlagen (Exit-Code: ${AD_EXIT}) — ggf. bereits vorhanden?"
+else
+    ok "vHost-Eintrag erstellt für ${DOMAIN}"
+fi
+
+# ═════════════════════════════════════════════════════════════════════
+step "6/7: Berechtigungen setzen"
 # ═════════════════════════════════════════════════════════════════════
 # Tenant-Storage
 if [ -d "${LOCAL_WEBROOT}/storage/${LOCAL_TENANT_STORAGE}" ]; then
@@ -280,7 +316,7 @@ ok "Bootstrap/Cache-Berechtigungen gesetzt"
 ok "Alle Berechtigungen gesetzt auf ${LOCAL_OWNER}"
 
 # ═════════════════════════════════════════════════════════════════════
-step "5/5: Cleanup und Abschluss"
+step "7/7: Cleanup und Abschluss"
 # ═════════════════════════════════════════════════════════════════════
 SCRIPT_END=$(date +%s)
 TOTAL_DURATION=$((SCRIPT_END - SCRIPT_START))
@@ -294,9 +330,10 @@ echo -e "  Gesamtdauer: ${TOTAL_MIN}m ${TOTAL_SEC}s"
 echo "═══════════════════════════════════════════════════════════════"
 echo ""
 echo "  Nächste Schritte:"
-echo "    1. DNS A-Record: ${DOMAIN} → IP von sanitaerfinden.dev"
+echo "    1. DNS A-Record: ${DOMAIN} → IP von sanitaerfinden.dev (falls noch nicht gesetzt)"
 echo "    2. SSL: certbot --nginx -d ${DOMAIN}"
-echo "    3. Testen: https://${DOMAIN}"
+echo "    3. Nginx reload: systemctl reload nginx"
+echo "    4. Testen: https://${DOMAIN}"
 echo ""
 echo "  Log: ${LOG_FILE}"
 echo ""

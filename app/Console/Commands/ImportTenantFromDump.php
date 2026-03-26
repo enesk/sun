@@ -356,7 +356,12 @@ class ImportTenantFromDump extends Command
             $this->detail("UUID: {$tenant->uuid}");
             $this->detail('Datenbank erstellt: tenant_' . $tenant->uuid);
             $this->detail('Migrationen ausgeführt');
+
+            // Storage-Verzeichnisse erstellen
+            $this->detail('Erstelle Tenant-Storage-Verzeichnisse...');
+            $this->callSilently('tenants:storage', ['--tenants' => [$tenant->id]]);
             $this->detail('Storage-Verzeichnisse erstellt');
+
             $this->ok("Tenant erstellt: {$tenantName} (ID: {$tenant->id})");
 
             return $tenant;
