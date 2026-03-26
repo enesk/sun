@@ -58,6 +58,26 @@ class ImportTenantFromDump extends Command
         $this->detail("Tenant-ID: {$tenant->id}");
         $this->ok("Ziel-Tenant: {$tenant->name}");
 
+        // ── gzip dekomprimieren (einmalig, vor Validierung + Import) ──
+        if (str_ends_with($filePath, '.gz')) {
+            $this->detail('Dekomprimiere gzip-Datei...');
+            $decompressedPath = preg_replace('/\.gz$/', '', $filePath);
+            $gz = gzopen($filePath, 'rb');
+            $out = fopen($decompressedPath, 'wb');
+            if (! $gz || ! $out) {
+                $this->error('gzip-Dekompression fehlgeschlagen.');
+                return self::FAILURE;
+            }
+            while (! gzeof($gz)) {
+                fwrite($out, gzread($gz, 1024 * 512));
+            }
+            gzclose($gz);
+            fclose($out);
+            @unlink($filePath); // .gz löschen
+            $filePath = $decompressedPath;
+            $this->ok('Dekomprimiert: ' . $this->humanFileSize(filesize($filePath)));
+        }
+
         // ── Validierung ──
         $this->step('Schritt 1/4: SQL-Dump validieren');
         $this->detail('Prüfe Dump-Struktur auf erwartete Tabellen...');
@@ -90,7 +110,12 @@ class ImportTenantFromDump extends Command
         $this->step('Schritt 2/4: SQL-Dump in Temp-DB importieren');
         $this->detail('Erstelle temporäre Datenbank...');
 
-        $tempDbInfo = $processor->process($filePath);
+        try {
+            $tempDbInfo = $processor->process($filePath);
+        } catch (\Throwable $e) {
+            $this->error("Dump-Import fehlgeschlagen: {$e->getMessage()}");
+            return self::FAILURE;
+        }
 
         $this->detail("DB-Name: {$tempDbInfo->databaseName}");
         $this->detail("Connection: {$tempDbInfo->connectionName}");

@@ -241,8 +241,13 @@ class SqlDumpProcessor
     private function getReadablePath(string $filePath): ?string
     {
         // .sql.gz entpacken
-        if (str_ends_with($filePath, '.gz') && file_exists($filePath)) {
-            return $this->decompressGzip($filePath);
+        if (str_ends_with($filePath, '.gz')) {
+            if (file_exists($filePath)) {
+                return $this->decompressGzip($filePath);
+            }
+            // .gz wurde bereits dekomprimiert — prüfe ob .sql existiert
+            $sqlPath = preg_replace('/\.gz$/', '', $filePath);
+            return file_exists($sqlPath) ? $sqlPath : null;
         }
 
         return file_exists($filePath) ? $filePath : null;
