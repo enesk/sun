@@ -2,9 +2,16 @@
 #======================================================================
 # Tenant Migration Script (Full Pipeline)
 # Migriert einen Tenant von widimedia.com → sanitaerfinden.dev
-# inkl. DB-Import über den Laravel TenantImporter
+# Erstellt den Tenant automatisch, falls er noch nicht existiert.
 #
 # Usage: ./migrate-tenant.sh <domain> <tenant_uuid> [source_tenant_id] [photo_slug]
+#
+# Schritte:
+#   1. DB-Dump von widimedia.com ziehen (mysqldump via SSH)
+#   2. Fotos synchronisieren (rsync via SSH)
+#   3. TenantImporter ausführen (erstellt Tenant + importiert Daten)
+#   4. Berechtigungen setzen
+#   5. Cleanup
 #
 # Beispiel:
 #   ./migrate-tenant.sh klempner-mueller.de abc123-def456 3 klempner-mueller
@@ -121,6 +128,10 @@ cleanup_on_exit() {
 }
 trap cleanup_on_exit EXIT
 
+# ─── In Webroot wechseln ──────────────────────────────────────────────
+cd "${LOCAL_WEBROOT}"
+log "Arbeitsverzeichnis: ${LOCAL_WEBROOT}"
+
 # ─── Vorprüfungen ────────────────────────────────────────────────────
 log "Vorprüfungen starten..."
 
@@ -148,30 +159,7 @@ fi
 log "Vorprüfungen abgeschlossen"
 
 # ═════════════════════════════════════════════════════════════════════
-step "1/7: Tenant registrieren"
-# ═════════════════════════════════════════════════════════════════════
-cd "${LOCAL_WEBROOT}"
-log "  Wechsle in: ${LOCAL_WEBROOT}"
-log "  Führe aus: php artisan register-tenant ${DOMAIN}"
-${ARTISAN} register-tenant "${DOMAIN}" 2>&1 | tee -a "$LOG_FILE"
-ok "Tenant registriert: ${DOMAIN}"
-
-# ═════════════════════════════════════════════════════════════════════
-step "2/7: Tenant Storage anlegen"
-# ═════════════════════════════════════════════════════════════════════
-log "  Führe aus: php artisan tenants:storage"
-${ARTISAN} tenants:storage 2>&1 | tee -a "$LOG_FILE"
-ok "Tenant Storage erstellt"
-
-# ═════════════════════════════════════════════════════════════════════
-step "3/7: Domain/VHost hinzufügen"
-# ═════════════════════════════════════════════════════════════════════
-log "  Führe aus: php artisan add-domain ${DOMAIN}"
-${ARTISAN} add-domain "${DOMAIN}" 2>&1 | tee -a "$LOG_FILE"
-ok "Domain hinzugefügt: ${DOMAIN}"
-
-# ═════════════════════════════════════════════════════════════════════
-step "4/7: DB-Dump von widimedia.com ziehen"
+step "1/5: DB-Dump von widimedia.com ziehen"
 # ═════════════════════════════════════════════════════════════════════
 log "  Quelle: ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DB_NAME}"
 log "  Ziel: ${DUMP_FILE}"
@@ -194,7 +182,7 @@ log "  Dump-Dauer: ${DUMP_DURATION}s"
 ok "DB-Dump erstellt: ${DUMP_FILE} (${DUMP_SIZE})"
 
 # ═════════════════════════════════════════════════════════════════════
-step "5/7: Fotos synchronisieren"
+step "2/5: Fotos synchronisieren"
 # ═════════════════════════════════════════════════════════════════════
 log "  Erstelle lokalen Foto-Ordner: ${LOCAL_PHOTO_PATH}"
 mkdir -p "${LOCAL_PHOTO_PATH}"
@@ -223,11 +211,11 @@ else
 fi
 
 # ═════════════════════════════════════════════════════════════════════
-step "6/7: TenantImporter ausführen"
+step "3/5: TenantImporter ausführen"
 # ═════════════════════════════════════════════════════════════════════
 log "  Starte Import: ${DUMP_FILE} → Tenant ${DOMAIN}"
 
-IMPORT_ARGS=(--tenant="${DOMAIN}" --source-tenant-id="${SOURCE_TENANT_ID}")
+IMPORT_ARGS=(--tenant="${DOMAIN}" --source-tenant-id="${SOURCE_TENANT_ID}" --create-tenant)
 
 # Queue-Modus: Import als Queue-Job mit Live-Watch
 if [ "${USE_QUEUE:-0}" = "1" ]; then
@@ -242,8 +230,6 @@ if [ "${INTERACTIVE:-1}" = "0" ]; then
 fi
 
 log "  Führe aus: php artisan tenant:import-dump ${DUMP_FILE} ${IMPORT_ARGS[*]}"
-
-cd "${LOCAL_WEBROOT}"
 
 IMPORT_START=$(date +%s)
 
@@ -264,7 +250,7 @@ log "  Import-Dauer: ${IMPORT_DURATION}s"
 ok "TenantImporter erfolgreich (${IMPORT_DURATION}s)"
 
 # ═════════════════════════════════════════════════════════════════════
-step "7/7: Berechtigungen setzen"
+step "4/5: Berechtigungen setzen"
 # ═════════════════════════════════════════════════════════════════════
 # Tenant-Storage
 if [ -d "${LOCAL_WEBROOT}/storage/${LOCAL_TENANT_STORAGE}" ]; then
@@ -294,7 +280,7 @@ ok "Bootstrap/Cache-Berechtigungen gesetzt"
 ok "Alle Berechtigungen gesetzt auf ${LOCAL_OWNER}"
 
 # ═════════════════════════════════════════════════════════════════════
-# Abschluss
+step "5/5: Cleanup und Abschluss"
 # ═════════════════════════════════════════════════════════════════════
 SCRIPT_END=$(date +%s)
 TOTAL_DURATION=$((SCRIPT_END - SCRIPT_START))

@@ -10,6 +10,7 @@ use App\Services\TenantImport\SqlDumpProcessor;
 use App\Services\TenantImport\TenantImportService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class ImportTenantFromDump extends Command
 {
@@ -21,7 +22,8 @@ class ImportTenantFromDump extends Command
         {--skip-photos : Fotos nicht importieren}
         {--force : Bestehende Einträge überschreiben}
         {--no-preview : Vorschau überspringen und direkt importieren}
-        {--queue : Import als Queue-Job ausführen statt synchron}';
+        {--queue : Import als Queue-Job ausführen statt synchron}
+        {--create-tenant : Tenant automatisch erstellen falls er nicht existiert}';
 
     protected $description = 'Importiert Tenant-Daten aus einem SQL-Dump (CLI-Wrapper für TenantImportService)';
 
@@ -297,13 +299,17 @@ class ImportTenantFromDump extends Command
             $tenant = Tenant::find($tenantOption);
             if (! $tenant) {
                 $this->detail('Nicht per ID gefunden, suche per Domain...');
-                $tenant = Tenant::whereHas('domains', function ($q) use ($tenantOption) {
-                    $q->where('domain', $tenantOption);
-                })->first();
+                $tenant = Tenant::where('domain', $tenantOption)->first();
+            }
+
+            if (! $tenant && $this->option('create-tenant')) {
+                $this->detail('Tenant nicht gefunden — erstelle neuen Tenant...');
+                $tenant = $this->createTenantFromDomain($tenantOption);
             }
 
             if (! $tenant) {
                 $this->error("Tenant nicht gefunden: {$tenantOption}");
+                $this->error('Tipp: Verwende --create-tenant um den Tenant automatisch zu erstellen.');
                 return null;
             }
 
@@ -315,7 +321,7 @@ class ImportTenantFromDump extends Command
         $tenants = Tenant::orderBy('name')->get(['id', 'name']);
 
         if ($tenants->isEmpty()) {
-            $this->error('Keine Tenants vorhanden. Bitte zuerst einen Tenant anlegen.');
+            $this->error('Keine Tenants vorhanden. Bitte zuerst einen Tenant anlegen oder --create-tenant verwenden.');
             return null;
         }
 
@@ -325,6 +331,39 @@ class ImportTenantFromDump extends Command
         $selectedId = $this->choice('Ziel-Tenant wählen:', $choices);
 
         return Tenant::find($selectedId);
+    }
+
+    private function createTenantFromDomain(string $domain): ?Tenant
+    {
+        // Tenant-Name aus Domain ableiten: "klempner-mueller.de" → "Klempner Mueller"
+        $namePart = explode('.', $domain)[0]; // "klempner-mueller"
+        $tenantName = str_replace(['-', '_'], ' ', $namePart);
+        $tenantName = mb_convert_case($tenantName, MB_CASE_TITLE, 'UTF-8');
+
+        $this->detail("Tenant-Name: {$tenantName}");
+        $this->detail("Domain: {$domain}");
+        $this->detail("UUID wird automatisch generiert...");
+
+        try {
+            // Tenant::create() feuert TenantCreated Event → CreateDatabase → MigrateDatabase → CreateTenantStorage
+            $tenant = Tenant::create([
+                'name' => $tenantName,
+                'uuid' => (string) Str::uuid(),
+                'domain' => $domain,
+                'is_name_auto_generated' => false,
+            ]);
+
+            $this->detail("UUID: {$tenant->uuid}");
+            $this->detail('Datenbank erstellt: tenant_' . $tenant->uuid);
+            $this->detail('Migrationen ausgeführt');
+            $this->detail('Storage-Verzeichnisse erstellt');
+            $this->ok("Tenant erstellt: {$tenantName} (ID: {$tenant->id})");
+
+            return $tenant;
+        } catch (\Throwable $e) {
+            $this->error("Tenant-Erstellung fehlgeschlagen: {$e->getMessage()}");
+            return null;
+        }
     }
 
     // ── Live-Output Hilfsmethoden ────────────────────────────────────
