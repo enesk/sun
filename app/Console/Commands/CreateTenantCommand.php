@@ -406,6 +406,11 @@ class CreateTenantCommand extends Command
             $remotePath = "root@widimedia.com:/var/www/vhosts/widimedia.com/httpdocs/storage/app/public/{$remoteSlug}/photos";
 
             try {
+                // Zielverzeichnis erstellen falls nicht vorhanden
+                if (! is_dir($tenantStoragePath)) {
+                    mkdir($tenantStoragePath, 0755, true);
+                }
+
                 $this->output->write("  Fotos übertragen ({$remoteSlug})... ");
 
                 $rsyncCommand = "rsync -avz --stats root@widimedia.com:/var/www/vhosts/widimedia.com/httpdocs/storage/app/public/{$remoteSlug}/photos {$tenantStoragePath}/";
