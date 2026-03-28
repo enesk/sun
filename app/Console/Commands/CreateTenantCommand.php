@@ -411,31 +411,47 @@ class CreateTenantCommand extends Command
                     mkdir($tenantStoragePath, 0755, true);
                 }
 
-                $this->output->write("  Fotos übertragen ({$remoteSlug})... ");
+                $this->info("  Fotos übertragen ({$remoteSlug}):");
 
-                $rsyncCommand = "rsync -avz --stats root@widimedia.com:/var/www/vhosts/widimedia.com/httpdocs/storage/app/public/{$remoteSlug}/photos {$tenantStoragePath}/";
+                $rsyncCommand = "rsync -avz --progress --stats root@widimedia.com:/var/www/vhosts/widimedia.com/httpdocs/storage/app/public/{$remoteSlug}/photos {$tenantStoragePath}/";
 
-                $result = Process::forever()->run($rsyncCommand);
+                $fullOutput = '';
+                $result = Process::forever()->run($rsyncCommand, function (string $type, string $output) use (&$fullOutput) {
+                    $fullOutput .= $output;
+                    // Echtzeit-Ausgabe: jede Zeile direkt anzeigen
+                    foreach (explode("\n", $output) as $line) {
+                        $line = trim($line);
+                        if ($line === '') {
+                            continue;
+                        }
+                        // Fortschrittszeilen (z.B. "  1,234,567 100%  12.34MB/s") mit \r überschreiben
+                        if (preg_match('/\d+%/', $line)) {
+                            $this->output->write("\r    {$line}");
+                        } else {
+                            $this->line("    {$line}");
+                        }
+                    }
+                });
+
+                // Neue Zeile nach letzter \r-Zeile
+                $this->newLine();
 
                 if ($result->successful()) {
-                    $this->info('✓');
-
                     // rsync --stats Output parsen
-                    $output = $result->output();
                     $filesTransferred = 0;
                     $totalSize = '';
 
-                    if (preg_match('/Number of regular files transferred:\s*([\d,]+)/', $output, $m)) {
+                    if (preg_match('/Number of regular files transferred:\s*([\d,]+)/', $fullOutput, $m)) {
                         $filesTransferred = (int) str_replace(',', '', $m[1]);
-                    } elseif (preg_match('/Number of files transferred:\s*([\d,]+)/', $output, $m)) {
+                    } elseif (preg_match('/Number of files transferred:\s*([\d,]+)/', $fullOutput, $m)) {
                         $filesTransferred = (int) str_replace(',', '', $m[1]);
                     }
 
-                    if (preg_match('/Total transferred file size:\s*([\d,.]+\s*\w*)/', $output, $m)) {
+                    if (preg_match('/Total transferred file size:\s*([\d,.]+\s*\w*)/', $fullOutput, $m)) {
                         $totalSize = trim($m[1]);
                     }
 
-                    $this->line("    → {$filesTransferred} Dateien übertragen" . ($totalSize ? " ({$totalSize})" : ''));
+                    $this->info("  ✓ {$filesTransferred} Dateien übertragen" . ($totalSize ? " ({$totalSize})" : ''));
 
                     // chown setzen
                     $this->output->write('  Berechtigungen setzen... ');
