@@ -52,10 +52,7 @@ class CreateTenantCommand extends Command
         $tenantInfo = null;
 
         // ─── Validierung ───────────────────────────────────────────
-        if ($domain && Tenant::where('domain', $domain)->exists()) {
-            $this->error("Domain '{$domain}' ist bereits einem Tenant zugewiesen.");
-            return self::FAILURE;
-        }
+        $existingTenant = $domain ? Tenant::where('domain', $domain)->first() : null;
 
         if (Tenant::where('name', $name)->exists()) {
             $this->warn("Ein Tenant mit dem Namen '{$name}' existiert bereits.");
@@ -283,32 +280,38 @@ class CreateTenantCommand extends Command
             return self::SUCCESS;
         }
 
-        // ─── Tenant erstellen ──────────────────────────────────────
+        // ─── Tenant erstellen oder bestehenden verwenden ───────────
         $this->newLine();
 
-        try {
-            $this->output->write('  Tenant anlegen... ');
+        if ($existingTenant) {
+            $tenant = $existingTenant;
+            $uuid = $tenant->uuid;
+            $this->warn("  Tenant mit Domain '{$domain}' existiert bereits (UUID: {$uuid}) — überspringe Anlage, fahre mit nächsten Steps fort.");
+        } else {
+            try {
+                $this->output->write('  Tenant anlegen... ');
 
-            $tenantData = [
-                'name' => $name,
-                'uuid' => $uuid,
-                'is_name_auto_generated' => false,
-            ];
+                $tenantData = [
+                    'name' => $name,
+                    'uuid' => $uuid,
+                    'is_name_auto_generated' => false,
+                ];
 
-            if ($domain) {
-                $tenantData['domain'] = $domain;
+                if ($domain) {
+                    $tenantData['domain'] = $domain;
+                }
+
+                // Tenant::create() dispatcht Events\TenantCreated,
+                // was die Pipeline auslöst: CreateDatabase → MigrateDatabase → CreateTenantStorage
+                $tenant = Tenant::create($tenantData);
+
+                $this->info('✓');
+
+            } catch (\Exception $e) {
+                $this->error('✗');
+                $this->error("Fehler beim Erstellen: {$e->getMessage()}");
+                return self::FAILURE;
             }
-
-            // Tenant::create() dispatcht Events\TenantCreated,
-            // was die Pipeline auslöst: CreateDatabase → MigrateDatabase → CreateTenantStorage
-            $tenant = Tenant::create($tenantData);
-
-            $this->info('✓');
-
-        } catch (\Exception $e) {
-            $this->error('✗');
-            $this->error("Fehler beim Erstellen: {$e->getMessage()}");
-            return self::FAILURE;
         }
 
         // ─── link-db-to-dbuser ─────────────────────────────────────

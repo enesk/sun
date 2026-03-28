@@ -19,8 +19,16 @@ use Stancl\Tenancy\Contracts\Tenant;
  */
 class CreateTenantStorage
 {
-    public function handle(Tenant $tenant): void
+    protected Tenant $tenant;
+
+    public function __construct(Tenant $tenant)
     {
+        $this->tenant = $tenant;
+    }
+
+    public function handle(): void
+    {
+        $tenant = $this->tenant;
         $tenantKey = $tenant->getTenantKey();
         $suffixBase = config('tenancy.filesystem.suffix_base', 'tenant');
         $basePath = storage_path() . '/' . $suffixBase . $tenantKey;
