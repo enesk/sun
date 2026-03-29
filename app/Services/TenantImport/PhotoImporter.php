@@ -11,8 +11,6 @@ use Illuminate\Support\Facades\Storage;
 
 class PhotoImporter
 {
-    private bool $columnsLogged = false;
-
     /**
      * Importiert Fotos eines Places in die Company.
      *
@@ -35,13 +33,6 @@ class PhotoImporter
             return 0;
         }
 
-        // Einmalig die Spalten loggen für Debugging
-        if (!$this->columnsLogged && $rows->isNotEmpty()) {
-            $columns = array_keys((array) $rows->first());
-            Log::info("TenantImport Photo: place_photos Spalten", ['columns' => $columns]);
-            $this->columnsLogged = true;
-        }
-
         $imported = 0;
         $isFirst = true;
 
@@ -49,18 +40,11 @@ class PhotoImporter
         $photosBasePath = Storage::disk('public')->path('photos');
 
         foreach ($rows as $row) {
-            // Flexibel: name, path, filename — je nach Dump-Schema
-            $fileName = $row->name ?? $row->path ?? $row->filename ?? null;
+            $fileName = $row->name ?? null;
 
             if (!$fileName) {
-                Log::info("TenantImport Photo: Kein Dateiname für Place #{$oldPlaceId}", [
-                    'row' => (array) $row,
-                ]);
                 continue;
             }
-
-            // Falls path einen Verzeichnispfad enthält, nur den Dateinamen extrahieren
-            $fileName = basename($fileName);
 
             $filePath = $photosBasePath . '/' . $fileName;
 
