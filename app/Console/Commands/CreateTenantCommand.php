@@ -523,6 +523,20 @@ class CreateTenantCommand extends Command
                     $this->newLine();
                     $this->info('  ── Datenimport starten ──');
 
+                    // Diagnose: place_photos Tabelle prüfen
+                    try {
+                        $photoCount = DB::connection($tempDbInfo->connectionName)->table('place_photos')->count();
+                        $this->line("    → place_photos: {$photoCount} Einträge in Temp-DB");
+
+                        if ($photoCount > 0) {
+                            $sampleRow = DB::connection($tempDbInfo->connectionName)->table('place_photos')->first();
+                            $columns = array_keys((array) $sampleRow);
+                            $this->line("    → Spalten: " . implode(', ', $columns));
+                        }
+                    } catch (\Exception $e) {
+                        $this->warn("    ⚠ place_photos Tabelle nicht gefunden: {$e->getMessage()}");
+                    }
+
                     $importService = app(TenantImportService::class);
 
                     $tenant->run(function () use ($importService, $tenant, $tempDbInfo, $sourceTenantId) {
