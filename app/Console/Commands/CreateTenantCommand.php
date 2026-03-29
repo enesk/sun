@@ -114,7 +114,7 @@ class CreateTenantCommand extends Command
                     $this->newLine();
                     $this->output->write("  Tenant-Info abrufen ({$domain})... ");
 
-                    $url = "https://widimedia.com/tenant-info/{$domain}?token=SecretX1FC";
+                    $url = "https://widimedia.com/tenant-info?domain={$domain}&token=SecretX1FC";
                     $response = Http::timeout(15)->get($url);
 
                     if ($response->successful()) {
@@ -132,7 +132,7 @@ class CreateTenantCommand extends Command
                     if ($response->successful()) {
                         try {
                             $this->output->write("  DB-Dump prüfen ({$domain})... ");
-                            $dumpUrl = "https://widimedia.com/tenant-dump/{$domain}?token=SecretX1FC";
+                            $dumpUrl = "https://widimedia.com/tenant-dump?domain={$domain}&token=SecretX1FC";
                             $headResponse = Http::timeout(15)->head($dumpUrl);
 
                             if ($headResponse->successful()) {
@@ -192,7 +192,7 @@ class CreateTenantCommand extends Command
                         try {
                             $this->output->write("  Import-Vorschau erstellen... ");
 
-                            $dumpUrl = "https://widimedia.com/tenant-dump/{$domain}?token=SecretX1FC";
+                            $dumpUrl = "https://widimedia.com/tenant-dump?domain={$domain}&token=SecretX1FC";
                             $dumpFileName = "tenant-dump-dryrun-" . Str::slug($domain) . "-" . now()->format('Y-m-d_His') . ".sql.gz";
                             $dumpPath = sys_get_temp_dir() . "/{$dumpFileName}";
 
@@ -319,7 +319,8 @@ class CreateTenantCommand extends Command
         try {
             $this->output->write('  link-db-to-dbuser... ');
 
-            $result = Process::run('link-db-to-dbuser');
+            $dbName = $tenant->database()->getName();
+            $result = Process::run("link-db-to-dbuser {$dbName}");
 
             if ($result->successful()) {
                 $this->info('✓');
@@ -354,7 +355,7 @@ class CreateTenantCommand extends Command
             try {
                 $this->output->write("  Tenant-Info abrufen ({$domain})... ");
 
-                $url = "https://widimedia.com/tenant-info/{$domain}?token=SecretX1FC";
+                $url = "https://widimedia.com/tenant-info?domain={$domain}&token=SecretX1FC";
                 $response = Http::timeout(15)->get($url);
 
                 if ($response->successful()) {
@@ -378,7 +379,7 @@ class CreateTenantCommand extends Command
             try {
                 $this->output->write("  DB-Dump herunterladen ({$domain})... ");
 
-                $dumpUrl = "https://widimedia.com/tenant-dump/{$domain}?token=SecretX1FC";
+                $dumpUrl = "https://widimedia.com/tenant-dump?domain={$domain}&token=SecretX1FC";
                 $dumpFileName = "tenant-dump-" . Str::slug($domain) . "-" . now()->format('Y-m-d_His') . ".sql.gz";
                 $dumpPath = "/home/sanitaerfinden/htdocs/{$dumpFileName}";
 
