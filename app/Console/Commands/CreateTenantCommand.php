@@ -456,7 +456,7 @@ class CreateTenantCommand extends Command
 
                     // chown setzen
                     $this->output->write('  Berechtigungen setzen... ');
-                    $chownResult = Process::run('chown -R sanitaerfinden:sanitaerfinden /home/sanitaerfinden/htdocs/sanitaerfinden.dev');
+                    $chownResult = Process::timeout(600)->run('chown -R sanitaerfinden:sanitaerfinden /home/sanitaerfinden/htdocs/sanitaerfinden.dev');
 
                     if ($chownResult->successful()) {
                         $this->info('✓');
