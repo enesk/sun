@@ -205,7 +205,7 @@ class CreateTenantCommand extends Command
                                 if ($validation->valid) {
                                     $tempDbInfo = $sqlDumpProcessor->process($dumpPath);
                                     $tenantIds = $sqlDumpProcessor->getAvailableTenantIds();
-                                    $sourceTenantId = count($tenantIds) === 1 ? $tenantIds[0] : 0;
+                                    $sourceTenantId = 0; // Alle Tenant-IDs importieren
 
                                     // Vorschau ohne Tenant-Context (Dry-Run hat keinen echten Tenant)
                                     $importService = app(TenantImportService::class);
@@ -504,21 +504,10 @@ class CreateTenantCommand extends Command
                     $this->info('✓');
                     $this->line("    → Temp-DB: {$tempDbInfo->databaseName}");
 
-                    // Tenant-IDs ermitteln
-                    $tenantIds = $sqlDumpProcessor->getAvailableTenantIds();
+                    // Alle Daten importieren (kein Tenant-ID-Filter)
                     $sourceTenantId = 0;
-
-                    if (count($tenantIds) === 1) {
-                        $sourceTenantId = $tenantIds[0];
-                        $this->line("    → Quell-Tenant-ID: {$sourceTenantId}");
-                    } elseif (count($tenantIds) > 1) {
-                        $this->line("    → Gefundene Tenant-IDs: " . implode(', ', $tenantIds));
-                        $sourceTenantId = (int) $this->choice(
-                            'Welche Tenant-ID soll importiert werden?',
-                            array_map('strval', $tenantIds),
-                            (string) $tenantIds[0],
-                        );
-                    }
+                    $tenantIds = $sqlDumpProcessor->getAvailableTenantIds();
+                    $this->line("    → Gefundene Tenant-IDs: " . implode(', ', $tenantIds) . " (alle werden importiert)");
 
                     // Import im Tenant-Context ausführen
                     $this->newLine();
