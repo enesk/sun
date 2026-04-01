@@ -257,8 +257,6 @@
             {{-- Downgrade-Modal (nach Trial-Ende) --}}
             @livewire('verwaltung.downgrade-modal')
 
-            {{-- Onboarding-Overlay (nach Claim) --}}
-            @livewire('verwaltung.onboarding-overlay')
 
             {{-- Page content --}}
             <div class="dash-content">
