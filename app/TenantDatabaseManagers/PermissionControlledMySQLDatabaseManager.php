@@ -110,10 +110,17 @@ class PermissionControlledMySQLDatabaseManager extends BaseManager
     public function makeConnectionConfig(array $baseConfig, string $databaseName): array
     {
         $centralConnection = config('tenancy.database.central_connection', 'central');
+        $centralHost = config("database.connections.{$centralConnection}.host");
 
         $baseConfig['database'] = $databaseName;
-        $baseConfig['username'] = config("database.connections.{$centralConnection}.username");
-        $baseConfig['password'] = config("database.connections.{$centralConnection}.password");
+
+        $tenantHost = $baseConfig['host'] ?? $centralHost;
+        $isRemote = $tenantHost !== $centralHost && $tenantHost !== '127.0.0.1' && $tenantHost !== 'localhost';
+
+        if (! $isRemote) {
+            $baseConfig['username'] = config("database.connections.{$centralConnection}.username");
+            $baseConfig['password'] = config("database.connections.{$centralConnection}.password");
+        }
 
         return $baseConfig;
     }
