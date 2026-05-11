@@ -1,0 +1,27 @@
+{
+    "name": "Starter Portal",
+    "slug": "starter",
+    "version": "1.0.0",
+    "author": "Team",
+    "description": "Starter-Theme basierend auf dem Default-Theme. Für individuelle Anpassungen.",
+    "screenshot": "screenshot.png",
+    "supports": ["companies", "categories", "reviews", "search"],
+    "options": {
+        "listing_layout": {
+            "type": "select",
+            "label": "Firmen-Ansicht",
+            "choices": ["list", "grid-2", "grid-3"],
+            "default": "list"
+        },
+        "show_sidebar": {
+            "type": "boolean",
+            "label": "Sidebar anzeigen",
+            "default": true
+        },
+        "show_hero": {
+            "type": "boolean",
+            "label": "Hero-Bereich anzeigen",
+            "default": true
+        }
+    }
+}
