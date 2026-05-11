@@ -3,12 +3,14 @@
 namespace App\Console\Commands;
 
 use App\Models\Portal\Category;
+use App\Models\Portal\ChCity;
 use App\Models\Portal\City;
 use App\Models\Portal\Company;
 use App\Models\Portal\CompanyOpeningHour;
 use App\Models\Portal\Review;
 use App\Models\Tenant;
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -39,7 +41,8 @@ class GetCompanies extends Command
         {--tenant= : Tenant-ID (numerisch) — läuft direkt für diesen Tenant}
         {--query=* : Suchbegriffe (z.B. "Sanitär", "Rechtsanwalt", "Restaurant")}
         {--city= : Nur eine bestimmte Stadt (Name oder PLZ)}
-        {--state= : Nur Städte in einem Bundesland (z.B. "Bayern")}
+        {--state= : Nur Städte in einem Bundesland/Kanton (z.B. "Bayern", "ZH")}
+        {--country=de : Länderquelle für Städte (de = City, ch = ChCity)}
         {--limit=0 : Max. neue Firmen pro Stadt+Query (0 = unbegrenzt)}
         {--skip-photos : Fotos NICHT herunterladen (Standard: Fotos AN)}
         {--skip-reviews : Reviews nicht importieren}
@@ -71,6 +74,7 @@ class GetCompanies extends Command
     private int $apiCalls = 0;
     private int $limit;
     private bool $isDryRun;
+    private bool $useChCities = false;
 
     public function handle(): int
     {
@@ -78,6 +82,15 @@ class GetCompanies extends Command
         set_time_limit(0);
 
         // ── Tenant-Kontext setzen ──
+        // ── API Key prüfen (vor Tenant-Init, da env() danach nicht mehr greift) ──
+        $this->apiKey = env('GOOGLE_PLACES_API_KEY', 'AIzaSyAal_5hethF7mzOKT-_CvhC7x1ju5KcchU');
+        if (empty($this->apiKey)) {
+            $this->error('GOOGLE_PLACES_API_KEY ist nicht in .env gesetzt.');
+            $this->line('Füge folgende Zeile zu .env hinzu:');
+            $this->line('GOOGLE_PLACES_API_KEY=dein_api_key');
+            return self::FAILURE;
+        }
+
         if (! tenancy()->initialized) {
             $tenantId = $this->option('tenant');
 
@@ -110,15 +123,6 @@ class GetCompanies extends Command
             $this->newLine();
         }
 
-        // ── API Key prüfen ──
-        $this->apiKey = env('GOOGLE_PLACES_API_KEY', '');
-        if (empty($this->apiKey)) {
-            $this->error('GOOGLE_PLACES_API_KEY ist nicht in .env gesetzt.');
-            $this->line('Füge folgende Zeile zu .env hinzu:');
-            $this->line('GOOGLE_PLACES_API_KEY=dein_api_key');
-            return self::FAILURE;
-        }
-
         // ── Optionen ──
         $queries = $this->option('query');
         if (empty($queries)) {
@@ -132,6 +136,7 @@ class GetCompanies extends Command
 
         $this->limit = (int) $this->option('limit');
         $this->isDryRun = (bool) $this->option('dry-run');
+        $this->useChCities = strtolower($this->option('country') ?? 'de') === 'ch';
 
         // ── Kategorie-Map aufbauen ──
         $this->buildCategoryMap();
@@ -144,6 +149,7 @@ class GetCompanies extends Command
 
         $this->info('═══ Google Places Import ═══');
         $this->info('Suchbegriffe: ' . implode(', ', $queries));
+        $this->info('Städte-Quelle: ' . ($this->useChCities ? 'Schweiz (ch_cities)' : 'Deutschland (cities)'));
         $this->newLine();
 
         // ── Cities laden ──
@@ -196,9 +202,13 @@ class GetCompanies extends Command
             foreach ($cities as $city) {
                 $cityIndex++;
                 $elapsed = round(microtime(true) - $startTime);
-                $this->line("[{$cityIndex}/{$cityCount}] {$city->name} ({$city->zipcode}) — {$elapsed}s elapsed, {$this->apiCalls} API-Calls, ~{$this->estimateCost()}");
+                $cityName = $this->getCityName($city);
+                $cityZip = $this->getCityZipcode($city);
+                $this->line("[{$cityIndex}/{$cityCount}] {$cityName} ({$cityZip}) — {$elapsed}s elapsed, {$this->apiCalls} API-Calls, ~{$this->estimateCost()}");
 
-                $searchTerm = "{$query} in {$city->zipcode} {$city->name}";
+                $searchTerm = $this->useChCities
+                    ? "{$query} in {$cityZip} {$cityName}, Schweiz"
+                    : "{$query} in {$cityZip} {$cityName}";
 
                 try {
                     $results = $this->textSearch($searchTerm);
@@ -429,7 +439,7 @@ class GetCompanies extends Command
     /**
      * Speichert eine Firma mit allen Relationen.
      */
-    private function saveCompany(array $details, City $searchCity): ?Company
+    private function saveCompany(array $details, Model $searchCity): ?Company
     {
         $address = $this->parseAddress($details['address_components'] ?? []);
 
@@ -555,7 +565,7 @@ class GetCompanies extends Command
         foreach ($reviews as $review) {
             $createdAt = now();
             if (isset($review['time']) && is_numeric($review['time'])) {
-                $createdAt = gmdate('Y-m-d H:i:s', (int) $review['time']);
+                $createdAt = DB::raw('FROM_UNIXTIME(' . (int) $review['time'] . ')');
             }
 
             $batch[] = [
@@ -566,7 +576,7 @@ class GetCompanies extends Command
                 'title' => null,
                 'body' => $review['text'] ?? null,
                 'is_approved' => true,
-                'approved_at' => $createdAt,
+                'approved_at' => now(),
                 'moderation_status' => Review::STATUS_APPROVED,
                 'moderation_note' => null,
                 'moderated_by' => 'Google Import',
@@ -672,7 +682,7 @@ class GetCompanies extends Command
             match ($type) {
                 'route' => $data['street'] = $component['long_name'],
                 'street_number' => $data['house_no'] = $component['long_name'],
-                'postal_code' => $data['zipcode'] = $component['long_name'],
+                'zipcode' => $data['zipcode'] = $component['long_name'],
                 'locality' => $data['city'] = $component['long_name'],
                 'administrative_area_level_1' => $data['state'] = $component['long_name'],
                 'administrative_area_level_2' => $data['district'] = $component['long_name'],
@@ -688,17 +698,20 @@ class GetCompanies extends Command
      * Findet oder erstellt die City basierend auf Google-Adressdaten.
      * Fallback: Die Stadt die für die Suche verwendet wurde.
      */
-    private function resolveCity(array $address, City $searchCity): int
+    private function resolveCity(array $address, Model $searchCity): int
     {
         $cityName = $address['city'] ?? null;
         $state = $address['state'] ?? null;
         $zipcode = $address['zipcode'] ?? null;
 
         if (! $cityName) {
+            if ($searchCity instanceof ChCity) {
+                return $this->resolveChCityFallback($searchCity);
+            }
             return $searchCity->id;
         }
 
-        // Exakter Match: Name + Bundesland
+        // Exakter Match: Name + Bundesland/Kanton
         if ($state) {
             $city = City::where('name', $cityName)
                 ->where('administrative_area_level_1', $state)
@@ -731,7 +744,7 @@ class GetCompanies extends Command
             return $city->id;
         }
 
-        // Stadt existiert nicht → erstellen
+        // Stadt existiert nicht → in cities-Tabelle erstellen
         $city = City::create([
             'name' => $cityName,
             'zipcode' => $zipcode,
@@ -740,6 +753,23 @@ class GetCompanies extends Command
         ]);
 
         return $city->id;
+    }
+
+    private function resolveChCityFallback(ChCity $chCity): int
+    {
+        $city = City::where('name', $chCity->name)
+            ->where('zipcode', $chCity->zipcode)
+            ->first();
+
+        if ($city) {
+            return $city->id;
+        }
+
+        return City::create([
+            'name' => $chCity->name,
+            'zipcode' => $chCity->zipcode,
+            'administrative_area_level_1' => $chCity->canton,
+        ])->id;
     }
 
     // ════════════════════════════════════════════════════════════════════
@@ -831,6 +861,10 @@ class GetCompanies extends Command
      */
     private function loadCities(): \Illuminate\Database\Eloquent\Collection
     {
+        if ($this->useChCities) {
+            return $this->loadChCities();
+        }
+
         $query = City::query()->orderBy('name');
 
         if ($cityFilter = $this->option('city')) {
@@ -846,5 +880,37 @@ class GetCompanies extends Command
         }
 
         return $query->get();
+    }
+
+    private function loadChCities(): \Illuminate\Database\Eloquent\Collection
+    {
+        $query = ChCity::query()->orderBy('name');
+
+        if ($cityFilter = $this->option('city')) {
+            $query->where(function ($q) use ($cityFilter) {
+                $q->where('name', 'like', "%{$cityFilter}%")
+                    ->orWhere('zipcode', $cityFilter)
+                    ->orWhere('municipality_name', 'like', "%{$cityFilter}%")
+                    ->orWhere('id', $cityFilter);
+            });
+        }
+
+        if ($stateFilter = $this->option('state')) {
+            $query->where('canton', $stateFilter);
+        }
+
+        return $query->get();
+    }
+
+    private function getCityName(Model $city): string
+    {
+        return $city instanceof ChCity ? $city->name : $city->name;
+    }
+
+    private function getCityZipcode(Model $city): string
+    {
+        $zipcode = $city instanceof ChCity ? $city->postal_code : $city->zipcode;
+
+        return $zipcode ?? '';
     }
 }
