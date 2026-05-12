@@ -128,8 +128,8 @@
         ];
         $ctaText = $ctaTexts[$ctaDomain] ?? 'Angebote einholen & bis 30% sparen';
     @endphp
-    <div class="fixed bottom-0 left-0 right-0 z-50 p-3 bg-base-100/95 backdrop-blur-sm border-t border-base-200 shadow-lg lg:hidden safe-area-bottom">
-        <a href="{{ url('/anfragen') }}" class="btn-portal w-full flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold ripple">
+    <div class="fixed bottom-[20px] left-0 right-0 z-50 px-3 lg:hidden safe-area-bottom">
+        <a href="{{ url('/anfragen') }}" class="btn-portal btn-portal-glow w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold ripple">
             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
             {{ $ctaText }}
         </a>

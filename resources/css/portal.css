@@ -130,6 +130,12 @@
         transition: background-color 150ms ease;
     }
 
+    .btn-portal-glow {
+        box-shadow: 0 0 24px rgba(var(--portal-primary-rgb, 59, 130, 246), 0.55),
+                    0 0 48px rgba(var(--portal-primary-rgb, 59, 130, 246), 0.3),
+                    0 0 8px rgba(var(--portal-primary-rgb, 59, 130, 246), 0.4);
+    }
+
     .btn-portal:hover {
         background-color: var(--portal-primary-hover);
     }
