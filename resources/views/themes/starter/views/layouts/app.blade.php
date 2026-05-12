@@ -37,6 +37,16 @@
     {{-- Favicon --}}
     @if(!empty($currentTenant) && $currentTenant->getAttribute('branding.favicon_path'))
         <link rel="icon" href="{{ asset($currentTenant->getAttribute('branding.favicon_path')) }}">
+    @else
+        @php
+            $faviconDomain = request()->getHost();
+            $domainFavicon = match(true) {
+                str_contains($faviconDomain, 'solar-finden') => asset('images/favicon-s.svg'),
+                str_contains($faviconDomain, 'makler-finden') => asset('images/favicon-m.svg'),
+                default => asset('images/favicon.ico'),
+            };
+        @endphp
+        <link rel="icon" href="{{ $domainFavicon }}" type="{{ str_ends_with($domainFavicon, '.svg') ? 'image/svg+xml' : 'image/x-icon' }}">
     @endif
 
     {{-- Canonical --}}
