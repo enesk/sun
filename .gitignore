@@ -6,6 +6,7 @@
 /public/sitemap.xml
 /public/fonts/filament
 /public/robots.txt
+/storage/tenant*
 /storage/*.key
 /vendor
 .env
@@ -22,3 +23,4 @@ yarn-error.log
 .idea
 /.vscode
 .DS_Store
+/storage/
