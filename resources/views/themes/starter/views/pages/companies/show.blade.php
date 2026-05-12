@@ -6,6 +6,14 @@
 @section('og_type', 'business.business')
 {{-- Starter Theme: Keine echten Firmenbilder als OG-Image --}}
 
+@php
+    $ctaDomain = request()->getHost();
+    $ctaTexts = [
+        'makler-finden.com' => 'Kostenlose Vermittlung an passende Makler in Ihrer Region',
+    ];
+    $ctaText = $ctaTexts[$ctaDomain] ?? 'Angebote einholen & bis 30% sparen';
+@endphp
+
 @section('content')
 
     {{-- Starter Theme: Immer Hero ohne Cover, mit Platzhalter-Initial --}}
@@ -61,12 +69,10 @@
                     </div>
 
                     <div class="company-hero__cta">
-                        @if($company->tel)
-                            <a href="tel:{{ $company->tel }}" class="company-hero__cta-btn company-hero__cta-btn--primary ripple">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                                Angebote einholen & bis 30% sparen
-                            </a>
-                        @endif
+                        <a href="{{ url('/anfragen') }}" class="company-hero__cta-btn company-hero__cta-btn--primary ripple">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                            {{ $ctaText }}
+                        </a>
                         @if($company->email)
                             <a href="mailto:{{ $company->email }}" class="company-hero__cta-btn company-hero__cta-btn--secondary ripple">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
@@ -270,9 +276,15 @@
                                 </svg>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <h3 class="font-bold text-base-content text-base leading-tight">Kostenlose Vermittlung an passende Fachbetriebe in Ihrer Region</h3>
+                                <h3 class="font-bold text-base-content text-base leading-tight">Kostenlose Vermittlung an passende {{ str_contains(request()->getHost(), 'makler') ? 'Makler' : 'Fachbetriebe' }} in Ihrer Region</h3>
                             </div>
                         </div>
+                        <a href="/anfragen"
+                           class="mt-3 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]"
+                           style="background: var(--portal-primary);">
+                            {{ str_contains(request()->getHost(), 'makler') ? 'Top-Makler der Region finden & bis zu 15% mehr Erlös erzielen' : 'Angebote einholen & bis 30% sparen' }}
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </a>
                     </div>
                 @endif
                   <div class="mb-5">
@@ -332,20 +344,12 @@
                     @endif
 
                     {{-- CTA Buttons --}}
-                    @if($company->tel || $company->email)
-                        <div class="pt-3 border-t border-base-200 space-y-2">
-                            @if($company->tel)
-                                <a href="tel:{{ $company->tel }}" class="btn-portal w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium ripple">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                                    Angebote einholen & bis 30% sparen
-                                </a>
-                            @endif
-                            @if($company->email)
-                                <a href="mailto:{{ $company->email }}" class="btn-portal-outline w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium ripple">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                                    E-Mail schreiben
-                                </a>
-                            @endif
+                    @if($company->email)
+                        <div class="pt-3 border-t border-base-200">
+                            <a href="mailto:{{ $company->email }}" class="btn-portal-outline w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium ripple">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                E-Mail schreiben
+                            </a>
                         </div>
                     @endif
                 </div>
@@ -584,15 +588,5 @@
     ]), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
     </script>
     @endpush
-
-    {{-- Mobile Sticky CTA --}}
-    @if($company->tel)
-        <div class="fixed bottom-0 left-0 right-0 z-50 p-3 bg-base-100/95 backdrop-blur-sm border-t border-base-200 shadow-lg lg:hidden">
-            <a href="tel:{{ $company->tel }}" class="btn-portal w-full flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold ripple">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                Angebote einholen & bis 30% sparen
-            </a>
-        </div>
-    @endif
 
 @endsection

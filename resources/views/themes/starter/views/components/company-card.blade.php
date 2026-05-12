@@ -16,7 +16,7 @@
             <div class="sm:w-44 md:w-52 shrink-0 relative overflow-hidden">
                 <a href="{{ $company->portal_url }}" class="block aspect-[4/3] sm:aspect-square bg-base-200 overflow-hidden" tabindex="-1" aria-hidden="true">
                     <div class="w-full h-full flex items-center justify-center company-card__placeholder">
-                        <span class="text-3xl font-bold text-white/80">{{ mb_strtoupper(mb_substr($company->name, 0, 1)) }}</span>
+                        <span class="text-base md:text-xl font-semibold text-white/70 tracking-wide">{{ request()->getHost() }}</span>
                     </div>
                 </a>
 
@@ -120,7 +120,7 @@
         <div class="relative overflow-hidden">
             <a href="{{ $company->portal_url }}" class="block aspect-[16/10] bg-base-200 overflow-hidden" tabindex="-1" aria-hidden="true">
                 <div class="w-full h-full flex items-center justify-center company-card__placeholder">
-                    <span class="text-5xl font-bold text-white/80">{{ mb_strtoupper(mb_substr($company->name, 0, 1)) }}</span>
+                    <span class="text-base md:text-xl font-semibold text-white/70 tracking-wide">{{ request()->getHost() }}</span>
                 </div>
             </a>
 
