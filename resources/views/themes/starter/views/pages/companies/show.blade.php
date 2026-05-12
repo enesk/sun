@@ -9,7 +9,7 @@
 @php
     $ctaDomain = request()->getHost();
     $ctaTexts = [
-        'makler-finden.com' => 'Kostenlose Vermittlung an passende Makler in Ihrer Region',
+        'makler-finden.com' => 'Top-Makler der Region finden & bis zu 15% mehr Erlös erzielen',
     ];
     $ctaText = $ctaTexts[$ctaDomain] ?? 'Angebote einholen & bis 30% sparen';
 @endphp
