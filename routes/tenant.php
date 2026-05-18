@@ -109,6 +109,9 @@ Route::middleware([
     // Portal Homepage
     Route::get('/', [PortalHomeController::class, 'index'])->name('home');
 
+    // Funnel
+    Route::get('/funnel', fn () => view('pages.funnel'))->name('funnel');
+
     // Firmenverzeichnis
     Route::get('/firmen', [CompanyController::class, 'index'])->name('portal.companies.index');
 

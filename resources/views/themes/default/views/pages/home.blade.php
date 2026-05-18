@@ -86,6 +86,9 @@
             </div>
         </section>
     @endif
+    <div data-funnel="ZeoeF43ZkPD70zUerVmlEaDLVlxQYdtg"></div>
+    <script src="https://funnels.widimedia.com/embed/funnel.js" async></script>
+
 
     {{-- Zufällige Einträge --}}
     <section class="section-light py-16" aria-labelledby="latest-heading">

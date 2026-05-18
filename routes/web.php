@@ -156,6 +156,7 @@ Route::get('/privacy-policy', function () {
     return view('pages.privacy-policy');
 })->name('privacy-policy')->middleware('sitemapped');
 
+
 // Product checkout routes
 
 Route::get('/buy/product/{productSlug}/{quantity?}', [
