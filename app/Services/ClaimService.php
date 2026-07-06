@@ -3,12 +3,14 @@
 namespace App\Services;
 
 use App\Constants\TenancyPermissionConstants;
+use App\Mail\ClaimRequestNotification;
 use App\Models\Portal\ClaimRequest;
 use App\Models\Portal\Company;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class ClaimService
 {
@@ -98,6 +100,15 @@ class ClaimService
                 'user_id' => $user->id,
                 'company_id' => $company->id,
             ]);
+
+            try {
+                Mail::to('hello@eneskul.com')->send(new ClaimRequestNotification($claimRequest));
+            } catch (\Exception $e) {
+                Log::warning('ClaimService: Failed to send claim notification email', [
+                    'claim_request_id' => $claimRequest->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
 
             return $claimRequest;
         } catch (\Exception $e) {

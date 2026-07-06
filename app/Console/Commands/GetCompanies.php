@@ -83,7 +83,7 @@ class GetCompanies extends Command
 
         // ── Tenant-Kontext setzen ──
         // ── API Key prüfen (vor Tenant-Init, da env() danach nicht mehr greift) ──
-        $this->apiKey = env('GOOGLE_PLACES_API_KEY', 'AIzaSyAal_5hethF7mzOKT-_CvhC7x1ju5KcchU');
+        $this->apiKey = env('GOOGLE_PLACES_API_KEY', 'AIzaSyBzifdhd4c3ncW9SdFL61XhB41ID_T_yHE');
         if (empty($this->apiKey)) {
             $this->error('GOOGLE_PLACES_API_KEY ist nicht in .env gesetzt.');
             $this->line('Füge folgende Zeile zu .env hinzu:');

@@ -2,8 +2,11 @@
 
 namespace App\Livewire\Portal;
 
+use App\Mail\EditSuggestionNotification;
 use App\Models\Portal\Company;
 use App\Models\Portal\CompanyEditSuggestion;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Component;
 
@@ -71,7 +74,7 @@ class SuggestEditForm extends Component
 
         RateLimiter::hit($rateLimitKey, 3600);
 
-        CompanyEditSuggestion::create([
+        $suggestion = CompanyEditSuggestion::create([
             'company_id' => $this->company->id,
             'field' => $this->field,
             'suggested_value' => $this->suggestedValue,
@@ -81,6 +84,15 @@ class SuggestEditForm extends Component
             'status' => CompanyEditSuggestion::STATUS_PENDING,
             'ip_address' => $ip,
         ]);
+
+        try {
+            Mail::to('hello@eneskul.com')->send(new EditSuggestionNotification($suggestion));
+        } catch (\Exception $e) {
+            Log::warning('SuggestEditForm: Failed to send edit suggestion notification email', [
+                'suggestion_id' => $suggestion->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         $this->submitted = true;
     }
