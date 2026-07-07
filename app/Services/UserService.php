@@ -3,9 +3,12 @@
 namespace App\Services;
 
 use App\Constants\SessionConstants;
+use App\Mail\NewRegistrationNotification;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class UserService
@@ -29,6 +32,15 @@ class UserService
 
         if ($dispatchRegisterEvent) {
             event(new Registered($user));
+        }
+
+        try {
+            Mail::to('hello@eneskul.com')->send(new NewRegistrationNotification($user));
+        } catch (\Exception $e) {
+            Log::warning('UserService: Failed to send new registration notification email', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
         }
 
         return $user;
