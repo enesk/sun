@@ -52,8 +52,8 @@
             <tr>
                 <td style="width: 552px; max-width: 100%">
                     <div class="sm-my-8" style="margin-top: 48px; margin-bottom: 48px; text-align: center">
-                        <a href="{{route('home')}}">
-                            <img src="{{asset(config('app.logo.dark') )}}" style="max-width: 100%; vertical-align: middle; height: 1.6rem;" alt="Logo" />
+                        <a href="{{route('home')}}" style="text-decoration: none;">
+                            <span style="font-size: 24px; font-weight: 700; color: #1a202c; letter-spacing: -0.5px;">widimedia</span>
                         </a>
                     </div>
 

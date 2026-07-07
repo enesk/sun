@@ -2,8 +2,11 @@
 
 namespace App\Livewire\Portal;
 
+use App\Mail\NewReviewNotification;
 use App\Models\Portal\Company;
 use App\Models\Portal\Review;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
 
 class SubmitReviewForm extends Component
@@ -63,7 +66,7 @@ class SubmitReviewForm extends Component
             return;
         }
 
-        Review::create([
+        $review = Review::create([
             'company_id' => $this->company->id,
             'user_id' => auth()->id(),
             'author_name' => $this->authorName ?: null,
@@ -73,6 +76,15 @@ class SubmitReviewForm extends Component
             'is_approved' => false,
             'moderation_status' => Review::STATUS_PENDING,
         ]);
+
+        try {
+            Mail::to('hello@eneskul.com')->send(new NewReviewNotification($review));
+        } catch (\Exception $e) {
+            Log::warning('SubmitReviewForm: Failed to send new review notification email', [
+                'review_id' => $review->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         session()->put($sessionKey, true);
 
