@@ -483,7 +483,7 @@
                             <div class="flex-1 min-w-0">
                                 <h3 class="font-bold text-base-content text-base leading-tight">Ist das Ihr Unternehmen?</h3>
                                 <p class="text-sm text-base-content/60 mt-1">Übernehmen Sie Ihren Eintrag — kostenlos. Aktualisieren Sie Ihre Daten und antworten Sie auf Bewertungen.</p>
-                                <a href="{{ route('register') }}"
+                                <a href="{{ route('companies.suggest-edit', $company->slug) }}"
                                    class="btn-portal w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium ripple mt-3">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
