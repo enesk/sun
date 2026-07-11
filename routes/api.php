@@ -25,6 +25,7 @@ Route::middleware([
     Route::post('/{id}/complete', [CompanyProcessingController::class, 'markComplete'])->whereNumber('id');
     Route::post('/{id}/failed', [CompanyProcessingController::class, 'markFailed'])->whereNumber('id');
     Route::post('/batch-complete', [CompanyProcessingController::class, 'markBatchComplete']);
+    Route::post('/{id}/reviewed', [CompanyProcessingController::class, 'markReviewed'])->whereNumber('id');
     Route::get('/stats', [CompanyProcessingController::class, 'getStats']);
 });
 

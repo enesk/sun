@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
 use App\Models\Portal\Company;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -15,11 +16,12 @@ class CompanyProcessingController extends Controller
      * Performance: Statt ORDER BY RAND() (Full Table Scan + Filesort)
      * nutzen wir COUNT + random OFFSET. Zwei Queries, aber beide nutzen
      * den idx_companies_bot_queue Index.
+     *
+     * ?mode=review → bereits verarbeitete Unternehmen zur Überprüfung
      */
-    public function getNext(): JsonResponse
+    public function getNext(Request $request): JsonResponse
     {
-        $baseQuery = Company::whereNull('google_added_at')
-            ->whereNull('website');
+        $baseQuery = $this->baseQuery($request);
 
         $count = $baseQuery->count();
 
@@ -57,13 +59,14 @@ class CompanyProcessingController extends Controller
     /**
      * Batch: Mehrere Unternehmen auf einmal holen.
      * Für Bots die einen Vorrat brauchen (z.B. 10 Stück vorladen).
+     *
+     * ?mode=review → bereits verarbeitete Unternehmen zur Überprüfung
      */
     public function getBatch(Request $request): JsonResponse
     {
         $limit = min((int) $request->query('limit', 10), 50);
 
-        $companies = Company::whereNull('google_added_at')
-            ->whereNull('website')
+        $companies = $this->baseQuery($request)
             ->select(['id', 'name', 'slug', 'city_id'])
             ->with('city:id,name')
             ->inRandomOrder()
@@ -78,9 +81,7 @@ class CompanyProcessingController extends Controller
             ], 404);
         }
 
-        $remaining = Company::whereNull('google_added_at')
-            ->whereNull('website')
-            ->count() - $companies->count();
+        $remaining = $this->baseQuery($request)->count() - $companies->count();
 
         return response()->json([
             'success' => true,
@@ -150,7 +151,6 @@ class CompanyProcessingController extends Controller
             ->whereNull('google_added_at')
             ->update([
                 'google_added_at' => now(),
-                // website bleibt NULL → erkennbar als "verarbeitet aber kein Ergebnis"
             ]);
 
         if ($affected === 0) {
@@ -167,17 +167,44 @@ class CompanyProcessingController extends Controller
     }
 
     /**
+     * Überprüftes Unternehmen als reviewed markieren.
+     */
+    public function markReviewed(int $id): JsonResponse
+    {
+        $affected = Company::where('id', $id)
+            ->whereNotNull('google_added_at')
+            ->whereNull('google_reviewed_at')
+            ->update([
+                'google_reviewed_at' => now(),
+                'google_added_at' => null,
+            ]);
+
+        if ($affected === 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unternehmen nicht gefunden oder bereits reviewed',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Als reviewed markiert, google_added_at zurückgesetzt',
+        ]);
+    }
+
+    /**
      * Statistiken zur Verarbeitung.
      */
     public function getStats(): JsonResponse
     {
-        // Ein einziger Query mit conditional aggregation statt 3 separate Queries
         $stats = Company::selectRaw("
             COUNT(*) as total,
             SUM(CASE WHEN google_added_at IS NOT NULL THEN 1 ELSE 0 END) as processed,
             SUM(CASE WHEN google_added_at IS NULL AND website IS NULL THEN 1 ELSE 0 END) as pending,
             SUM(CASE WHEN google_added_at IS NOT NULL AND website IS NOT NULL THEN 1 ELSE 0 END) as with_website,
-            SUM(CASE WHEN google_added_at IS NOT NULL AND website IS NULL THEN 1 ELSE 0 END) as failed
+            SUM(CASE WHEN google_added_at IS NOT NULL AND website IS NULL THEN 1 ELSE 0 END) as failed,
+            SUM(CASE WHEN google_added_at IS NOT NULL AND google_reviewed_at IS NULL THEN 1 ELSE 0 END) as pending_review,
+            SUM(CASE WHEN google_reviewed_at IS NOT NULL THEN 1 ELSE 0 END) as reviewed
         ")->first();
 
         $total = (int) $stats->total;
@@ -191,10 +218,23 @@ class CompanyProcessingController extends Controller
                 'pending' => (int) $stats->pending,
                 'with_website' => (int) $stats->with_website,
                 'failed' => (int) $stats->failed,
+                'pending_review' => (int) $stats->pending_review,
+                'reviewed' => (int) $stats->reviewed,
                 'progress_percent' => $total > 0
                     ? round(($processed / $total) * 100, 1)
                     : 0,
             ],
         ]);
+    }
+
+    private function baseQuery(Request $request): Builder
+    {
+        if ($request->query('mode') === 'review') {
+            return Company::whereNotNull('google_added_at')
+                ->whereNull('google_reviewed_at');
+        }
+
+        return Company::whereNull('google_added_at')
+            ->whereNull('website');
     }
 }

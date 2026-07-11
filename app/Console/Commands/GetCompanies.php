@@ -83,7 +83,7 @@ class GetCompanies extends Command
 
         // ── Tenant-Kontext setzen ──
         // ── API Key prüfen (vor Tenant-Init, da env() danach nicht mehr greift) ──
-        $this->apiKey = env('GOOGLE_PLACES_API_KEY', 'AIzaSyBzifdhd4c3ncW9SdFL61XhB41ID_T_yHE');
+        $this->apiKey = env('GOOGLE_PLACES_API_KEY', 'AIzaSyDzqxLVqXoFYhdtJCxjHTd5epcxo4A19Xc');
         if (empty($this->apiKey)) {
             $this->error('GOOGLE_PLACES_API_KEY ist nicht in .env gesetzt.');
             $this->line('Füge folgende Zeile zu .env hinzu:');
@@ -267,10 +267,10 @@ class GetCompanies extends Command
                         continue;
                     }
 
-                    // Domain-Blacklist: Spam/Konkurrenz-Domains überspringen
-                    if (! empty($details['website']) && Str::contains($details['website'], 'fliesenleger.io', true)) {
-                        $placeName = $details['displayName']['text'] ?? $details['name'] ?? '?';
-                        $this->line("    ⊘ Übersprungen (Domain-Blacklist): {$placeName} — {$details['website']}");
+                    // Nur Places OHNE Website importieren
+                    if (! empty($details['website'])) {
+                        $placeName = $details['name'] ?? '?';
+                        $this->line("    ⊘ Übersprungen (hat Website): {$placeName}");
                         $skippedInCity++;
                         continue;
                     }
