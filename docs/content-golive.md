@@ -56,6 +56,20 @@ Artikel dient der Weg über `Publisher::unpublish()` im Panel.
 
 ## 1. Zugänge und Schlüssel
 
+Stand 09.09.2026: die drei Schlüssel dieses Abschnitts sind auf der Produktion
+**noch nicht eingetragen** — sie müssen erst in den Konten von Anthropic,
+Voyage und Google ausgestellt werden. Alles Maschinelle dazu ist fertig: der
+Ablauf steht in `docs/messungen/produktionsschluessel-anleitung.md`, das
+Eintragen samt Proben erledigt
+
+```bash
+scripts/produktionsschluessel-eintragen.sh --dienstkonto ~/Downloads/search-console.json
+```
+
+Das ist der einzige Punkt dieser Checkliste, der ohne Kontozugang gar nicht
+vorbereitbar ist. Solange er offen ist, meldet `content:golive:check` genau
+einen Fehler („Anthropic-Zugang") und Woche 1 kann nicht starten.
+
 - [ ] `CONTENT_PIPELINE_ENABLED=true` in der Produktions-`.env`.
 - [ ] `ANTHROPIC_API_KEY` gesetzt, Schlüssel auf ein eigenes Projekt mit
       eigenem Ausgabenlimit ausgestellt.

@@ -7,32 +7,66 @@ Stand der Erhebung: **09.09.2026**, per Lesezugriff auf `88.198.64.145`
 `/home/sanitaerfinden/htdocs/sanitaerfinden.dev` geprüft.
 
 Das Ausstellen der drei Schlüssel geht nur im jeweiligen Konto und kann von
-keinem Agentenlauf erledigt werden. Alles, was ohne Kontozugang vorbereitbar
-war, ist vorbereitet (Abschnitt 1). Abschnitte 2 bis 5 sind Handarbeit.
+keinem Agentenlauf erledigt werden. Alles andere ist vorbereitet: Ablageort,
+`.env`-Zeilen, Proben und Neustart erledigt ein Befehl (Abschnitt 8a). Damit
+bleibt als Handarbeit genau der Browser-Teil aus den Abschnitten 2 bis 4 —
+Projekt anlegen, Limit setzen, Schlüssel ausstellen, Search Console API
+aktivieren, `client_email` in einer Property als Leser eintragen.
 
-## 0. Befund auf dem Server
+## 0. Stand der Produktion am 09.09.2026, 16:20 Uhr
 
-| Sache | Stand am 09.09.2026 |
+Fünfter und letzter Lesezugriff auf `sun`
+(`/home/sanitaerfinden/htdocs/sanitaerfinden.dev`). Diese Tabelle ersetzt die
+früheren Einzelbefunde 0/1b/1c/1d — sie fasst zusammen, was heute dort gilt.
+
+| Prüfpunkt | Stand |
 | --- | --- |
-| `ANTHROPIC_API_KEY` | fehlt in der `.env` **ganz** (nicht leer, gar keine Zeile) |
-| `VOYAGE_API_KEY` | fehlt ganz |
-| `GOOGLE_SERVICE_ACCOUNT_JSON` | fehlt ganz |
-| Schalter und Budgets | gesetzt (`CONTENT_PIPELINE_ENABLED=true`, vier `CONTENT_BUDGET_*`) |
-| `bootstrap/cache/config.php` | damals vom **12.05.2026** — inzwischen durch #117 neu gebaut, siehe Abschnitt 1c |
+| Codestand | `59ce93e`, `app/Content` und `config/content.php` liegen auf dem Server (#125) |
+| `content:golive:check` / `content:metrics:preflight` / `content:llm:ping` | vorhanden und lauffähig |
+| `ANTHROPIC_API_KEY` / `VOYAGE_API_KEY` / `GOOGLE_SERVICE_ACCOUNT_JSON` | **keine Zeile** in der `.env` — nichts ausgestellt |
+| `storage/app/private/google/` | vorhanden, `drwx------ sanitaerfinden`, **leer** |
+| Queue | `redis`, alle sechs `content-*`-Queues in einem Horizon-Supervisor (#117) |
+| `bootstrap/cache/config.php` | seit #117/#125 aktuell; die alte Fassung vom 12.05.2026 ist weg |
 | Eigentümer der Installation | `sanitaerfinden:sanitaerfinden` |
-| PHP der Webseite | PHP-FPM **8.5**, Pool `/etc/php/8.5/fpm/pool.d/sanitaerfinden.dev.conf`, `user = sanitaerfinden` |
-| PHP des Schedulers | `/usr/bin/php8.4`, Minutentakt per `crontab -u sanitaerfinden` |
-| Codestand dort | `fc06dd3` — `app/Content` existiert auf dem Server noch nicht (#109) |
+| PHP der Webseite / des Schedulers | FPM 8.5 (Pool `sanitaerfinden.dev.conf`), CLI `/usr/bin/php8.4` im Minutentakt |
 
-Zwei Folgerungen daraus:
+Zwei Folgerungen, die beim Ausstellen gelten:
 
-- Eigentümer der Schlüsseldatei ist **`sanitaerfinden`**, nicht `www-data`. Die
-  ältere Angabe in `docs/messungen/metrik-abnahme-zugaenge.md` Abschnitt 2 gilt
-  für einen Standard-Deployer-Host, nicht für diesen CloudPanel-Server. Eine
-  Datei, die `www-data` gehört, ist für FPM und Scheduler nicht lesbar.
-- Solange `app/Content` nicht auf dem Server liegt, gibt es dort kein
-  `content:golive:check`. Die Abnahme dieses Tickets läuft deshalb **nach** dem
-  Deploy aus #109/#117, nicht davor.
+- Eigentümer der Schlüsseldatei ist **`sanitaerfinden`**, nicht `www-data`.
+  Die ältere Angabe in `docs/messungen/metrik-abnahme-zugaenge.md` Abschnitt 2
+  gilt für einen Standard-Deployer-Host, nicht für diesen CloudPanel-Server.
+- Die Vorbedingung des Tickets ist seit #125 **erfüllt**: die Abnahme ist
+  durchführbar, sobald die Schlüssel da sind.
+
+Ausgangsstand der drei Proben (als Benutzer `sanitaerfinden` mit
+`/usr/bin/php8.4`, so wie der Scheduler sie fährt):
+
+```
+content:golive:check        143 Prüfpunkte, 1 Fehler, 73 Warnungen
+  ✗ Anthropic-Zugang               ANTHROPIC_API_KEY fehlt
+  ! Voyage-Zugang (Embeddings)     VOYAGE_API_KEY fehlt
+  ! Search-Console-Dienstkonto     GOOGLE_SERVICE_ACCOUNT_JSON nicht gesetzt
+content:metrics:preflight   28 Prüfpunkte, 2 Fehler, 25 Warnungen
+  ✗ Dienstkonto                    GOOGLE_SERVICE_ACCOUNT_JSON fehlt oder die Datei ist nicht lesbar
+  ✗ Gap-Connector registriert      CONTENT_SOURCES_GSC_ENABLED=true setzen
+content:llm:ping            ANTHROPIC_API_KEY ist nicht gesetzt.
+```
+
+Der eine Fehler des Go-Live-Checks ist genau der fehlende Anthropic-Schlüssel.
+Die Zeile „Sichtbare Properties" taucht im Preflight erst auf, wenn das
+Dienstkonto lesbar ist — vorher bricht die Prüfung bei „Dienstkonto" ab.
+
+Zwei Punkte hängen **nicht** an einem Schlüssel und bleiben auch nach dem
+Ausstellen offen:
+
+- `CONTENT_SOURCES_GSC_ENABLED` fehlt in der Produktions-`.env` (#132). Ohne
+  den Schalter kennt `content:sources:run` den Connector `gsc_gap` nicht.
+- `gsc_property` ist bei allen Portalen leer (#107) und `ADSENSE_ACCOUNT_ID`
+  fehlt. Das betrifft die **Portal-Zeilen** des Preflights, nicht die Zeile
+  „Sichtbare Properties": die zählt allein, was `sites.list` zurückgibt, und
+  steht auf ✓, sobald die `client_email` in mindestens einer Property als
+  Nutzer eingetragen ist (`ContentMetricsPreflight.php`, Zeile 176-186). Für
+  das Fertig-Kriterium dieses Tickets ist `gsc_property` also nicht nötig.
 
 ## 1. Bereits vorbereitet (ohne Kontozugang erledigt)
 
@@ -48,89 +82,14 @@ Die `.env` wurde **nicht** angefasst: leere Platzhalterzeilen wirken wie ein
 fehlender Wert, sehen aber wie ein gepflegter aus. Der vorhandene
 Kommentarblock in der `.env` erklärt bereits, warum die drei Zeilen fehlen.
 
-## 1b. Nachprüfung vom 09.09.2026 (Stand vor dem Ausstellen)
+Das Eintragen selbst ist ebenfalls vorbereitet und braucht keinen Handgriff
+auf dem Server mehr — ein Befehl, siehe Abschnitt 8a:
 
-Erneut per Lesezugriff auf `sun` geprüft, damit beim Ausstellen niemand raten
-muss, was schon dasteht:
-
-| Prüfpunkt | Befund |
-| --- | --- |
-| `ANTHROPIC_API_KEY` in der Produktions-`.env` | keine Zeile |
-| `VOYAGE_API_KEY` | keine Zeile |
-| `GOOGLE_SERVICE_ACCOUNT_JSON` | keine Zeile |
-| `storage/app/private/google/` | vorhanden, `drwx------ sanitaerfinden`, **leer** |
-| Codestand | `fc06dd3`, `app/Content` fehlt weiter |
-
-Damit sind Abschnitt 2 bis 4 unverändert offen und Abschnitt 5 erst nach dem
-Deploy aus #109/#117 ausführbar: ohne `app/Content` gibt es auf dem Server
-weder `content:golive:check` noch `content:metrics:preflight`, die Abnahme
-dieses Tickets ist vorher nicht durchführbar.
-
-## 1c. Nachprüfung vom 09.09.2026, 15:16 Uhr (nach #117)
-
-Dritter Lesezugriff auf `sun`, nach der Horizon-Umstellung aus #117:
-
-| Prüfpunkt | Befund |
-| --- | --- |
-| `ANTHROPIC_API_KEY` / `VOYAGE_API_KEY` / `GOOGLE_SERVICE_ACCOUNT_JSON` | weiterhin keine Zeile in der `.env` |
-| `storage/app/private/google/` | vorhanden, `drwx------ sanitaerfinden`, weiterhin leer |
-| `QUEUE_CONNECTION` | `redis` (aus #117) |
-| `bootstrap/cache/config.php` | neu gebaut am 09.09.2026, `queue.default = redis` |
-| `config('content')` im Cache | **fehlt** — `config/content.php` liegt auf dem Server nicht vor |
-| Codestand | unverändert `fc06dd3`, `app/Content` fehlt |
-
-Damit bleibt die Abnahme dieses Tickets gesperrt: ohne `app/Content` gibt es
-auf dem Server weder `content:golive:check` noch `content:metrics:preflight`
-noch `content:llm:ping`. Die Schritte 2 bis 4 (Konten, Schlüssel, Datei) sind
-davon unabhängig und können jederzeit erledigt werden; nur Abschnitt 5 und das
-Protokoll in Abschnitt 7 warten auf den Deploy des Codestands.
-
-## 1d. Nachprüfung vom 09.09.2026, nach dem Deploy (#125)
-
-Vierter Lesezugriff auf `sun`, nachdem der Codestand nachgezogen wurde. Die
-Vorbedingung dieses Tickets ist damit **erfüllt** — die Abnahme ist jetzt
-durchführbar, sobald die Schlüssel da sind.
-
-| Prüfpunkt | Befund |
-| --- | --- |
-| Codestand | `59ce93e`, `app/Content` und `config/content.php` liegen auf dem Server |
-| `content:golive:check` / `content:metrics:preflight` / `content:llm:ping` | vorhanden und lauffähig |
-| `ANTHROPIC_API_KEY` / `VOYAGE_API_KEY` / `GOOGLE_SERVICE_ACCOUNT_JSON` | weiterhin keine Zeile in der `.env` |
-| `storage/app/private/google/` | vorhanden, `drwx------ sanitaerfinden`, weiterhin leer |
-| Queue | `redis`, alle sechs `content-*`-Queues in einem Horizon-Supervisor |
-
-Ausgangsstand der drei Proben (Befehle als Benutzer `sanitaerfinden` mit
-`/usr/bin/php8.4`, so wie der Scheduler sie fährt):
-
-```
-content:golive:check        143 Prüfpunkte, 1 Fehler, 73 Warnungen
-  ✗ Anthropic-Zugang               ANTHROPIC_API_KEY fehlt
-  ! Voyage-Zugang (Embeddings)     VOYAGE_API_KEY fehlt
-  ! Search-Console-Dienstkonto     GOOGLE_SERVICE_ACCOUNT_JSON nicht gesetzt
-content:metrics:preflight   28 Prüfpunkte, 2 Fehler, 25 Warnungen
-  ✗ Dienstkonto                    GOOGLE_SERVICE_ACCOUNT_JSON fehlt oder die Datei ist nicht lesbar
-  ✗ Gap-Connector registriert      CONTENT_SOURCES_GSC_ENABLED=true setzen
-content:llm:ping            ANTHROPIC_API_KEY ist nicht gesetzt.
+```bash
+scripts/produktionsschluessel-eintragen.sh --dienstkonto ~/Downloads/search-console.json
 ```
 
-Der eine Fehler des Go-Live-Checks ist genau der fehlende Anthropic-Schlüssel;
-alles andere an dieser Stelle sind Warnungen. Die Zeile „Sichtbare Properties"
-taucht in `content:metrics:preflight` erst auf, wenn das Dienstkonto lesbar
-ist — vorher bricht die Prüfung bei „Dienstkonto" ab.
-
-Zwei Punkte fallen dabei an, die **nicht** an einem Schlüssel hängen und
-deshalb auch nach dem Ausstellen offen bleiben:
-
-- `CONTENT_SOURCES_GSC_ENABLED` fehlt in der Produktions-`.env`. Ohne den
-  Schalter kennt `content:sources:run` den Connector `gsc_gap` nicht.
-- `gsc_property` ist bei allen Portalen leer (#107) und `ADSENSE_ACCOUNT_ID`
-  fehlt. Das betrifft die **Portal-Zeilen** des Preflights, nicht die Zeile
-  „Sichtbare Properties": die zählt allein, was `sites.list` zurückgibt, und
-  steht auf ✓, sobald die `client_email` in mindestens einer Property als
-  Nutzer eingetragen ist (`ContentMetricsPreflight.php`, Zeile 176-186). Für
-  das Fertig-Kriterium dieses Tickets ist `gsc_property` also nicht nötig.
-
-## 1e. Befund 09.09.2026: die Portale haben öffentliche Domains
+## 1b. Befund 09.09.2026: die Portale haben öffentliche Domains
 
 Beim Aufnehmen des Ausgangsstands auf `sun` gegengeprüft. Die Produktion führt
 **23 Mandanten**, alle mit öffentlicher Domain — keine einzige `.test`-Adresse.
@@ -249,7 +208,7 @@ eingetragen wurde (Abschnitt 6).
 `.test`, es gibt keine verifizierbare Property" gilt nur für die
 Arbeitsmaschine. Auf der Produktion tragen alle 23 Mandanten öffentliche
 Domains (`firmenfreund.de`, `sanitaerfinden.com`, `tierarztportal.com`,
-`apotheke.firmenfreund.de` und weitere — vollständige Liste in Abschnitt 1e).
+`apotheke.firmenfreund.de` und weitere — vollständige Liste in Abschnitt 1b).
 Schritt 5 ist damit **jetzt** ausführbar und muss nicht auf eine
 Domain-Umstellung warten.
 
@@ -412,7 +371,7 @@ su -s /bin/bash sanitaerfinden -c 'HOME=/home/sanitaerfinden \
   CONTENT_PIPELINE_ENABLED=true /usr/bin/php8.4 artisan content:llm:ping'
 ```
 
-Erwartet gegen den Ausgangsstand aus Abschnitt 1d:
+Erwartet gegen den Ausgangsstand aus Abschnitt 0:
 
 | Zeile | vorher | nachher |
 | --- | --- | --- |
