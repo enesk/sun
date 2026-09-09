@@ -1,0 +1,19 @@
+#!/bin/sh
+#
+# Secret-Scan vor jedem Commit. Prüft nur die vorgemerkten Änderungen.
+# Aktivieren:  composer run hooks:install   (oder git config core.hooksPath .githooks)
+# Umgehen:     git commit --no-verify       (nur mit gutem Grund)
+
+PHP_BIN="${PHP_BINARY:-php}"
+
+if ! command -v "$PHP_BIN" >/dev/null 2>&1; then
+    echo "pre-commit: php nicht gefunden, Secret-Scan übersprungen." >&2
+    exit 0
+fi
+
+"$PHP_BIN" scripts/secret-scan.php --staged --quiet || {
+    echo "pre-commit: Commit abgelehnt — siehe Fundstellen oben." >&2
+    exit 1
+}
+
+exit 0
