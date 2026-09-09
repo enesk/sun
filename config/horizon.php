@@ -193,6 +193,55 @@ return [
             'timeout' => 60,
             'nice' => 0,
         ],
+
+        // Quell-Connectoren der Content-Pipeline (#7). Eigenes Programm, damit
+        // langsame externe Abrufe die uebrigen Queues nicht ausbremsen.
+        'supervisor-content-sources' => [
+            'connection' => 'redis',
+            'queue' => ['content-sources'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 1,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 256,
+            'tries' => 1,
+            'timeout' => 300,
+            'nice' => 5,
+        ],
+
+        // Erzeugung (#22): Themenfindung, Texterstellung, Qualitaetsgate und
+        // Assets. Die Jobs warten fast nur auf externe Antworten, deshalb
+        // mehr Prozesse als Rechenkerne und ein langer Timeout.
+        'supervisor-content-generate' => [
+            'connection' => 'redis',
+            'queue' => ['content-discovery', 'content-llm', 'content-assets'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 1,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 512,
+            'tries' => 1,
+            'timeout' => 1800,
+            'nice' => 0,
+        ],
+
+        // Veroeffentlichung und Metriken (#21, #22). Bewusst ein einzelner
+        // Worker: die gestaffelten Zeitpunkte sollen der Reihe nach laufen.
+        'supervisor-content-publish' => [
+            'connection' => 'redis',
+            'queue' => ['content-publish', 'content-metrics'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 1,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 256,
+            'tries' => 1,
+            'timeout' => 300,
+            'nice' => 5,
+        ],
     ],
 
     'environments' => [
@@ -202,11 +251,68 @@ return [
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
+
+            // Worker-Zahlen wie in deploy/supervisor/content-*.conf.
+            'supervisor-content-sources' => [
+                'maxProcesses' => 2,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+
+            'supervisor-content-generate' => [
+                'maxProcesses' => 4,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+
+            'supervisor-content-publish' => [
+                'maxProcesses' => 1,
+            ],
+        ],
+
+        // Staging faehrt dieselben Worker-Zahlen wie die Produktion (#22),
+        // sonst startet Horizon dort ueberhaupt keinen Supervisor: fehlt der
+        // Eintrag fuer die aktuelle APP_ENV, laesst ProvisioningPlan::deploy()
+        // die Programme kommentarlos aus.
+        'staging' => [
+            'supervisor-1' => [
+                'maxProcesses' => 10,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+
+            'supervisor-content-sources' => [
+                'maxProcesses' => 2,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+
+            'supervisor-content-generate' => [
+                'maxProcesses' => 4,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+
+            'supervisor-content-publish' => [
+                'maxProcesses' => 1,
+            ],
         ],
 
         'local' => [
             'supervisor-1' => [
                 'maxProcesses' => 3,
+            ],
+
+            'supervisor-content-sources' => [
+                'maxProcesses' => 1,
+            ],
+
+            'supervisor-content-generate' => [
+                'maxProcesses' => 1,
+            ],
+
+            'supervisor-content-publish' => [
+                'maxProcesses' => 1,
             ],
         ],
     ],

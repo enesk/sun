@@ -6,19 +6,38 @@ require 'recipe/laravel.php';
 require 'contrib/crontab.php';
 
 // Configs  (You need to configure these)
+//
+// Produktionsziel (#106, Stand 09.09.2026). Der Server traegt bereits eine
+// laufende Installation dieses Repositories unter
+// /home/sanitaerfinden/htdocs/sanitaerfinden.dev — sie ist von Hand
+// eingerichtet (CloudPanel, nginx, PHP-FPM 8.4) und **nicht** von Deployer
+// verwaltet. Deshalb gilt:
+//
+//   * Die Provisionierungs-Tasks (`dep provision`, provision:supervisor,
+//     provision:php-extra, provision:fix-aws-ssh) duerfen auf diesem Server
+//     NICHT laufen: er hostet weitere fremde Projekte (widimedia.com,
+//     kasernencheck.de, pickyourpic.de, ...), die eine Neuprovisionierung
+//     von nginx/PHP mitnehmen wuerde.
+//   * `dep deploy` legt eine release-basierte Struktur unter $deployPath an.
+//     Solange der vhost sanitaerfinden.dev.conf noch auf das handgepflegte
+//     Verzeichnis zeigt, aendert ein Deploy nichts an der ausgelieferten
+//     Seite — der Wechsel des vhost-Roots auf {{deploy_path}}/current/public
+//     ist ein bewusster Handgriff.
+//
+// Ablauf und Proben: docs/messungen/produktionsumgebung-anleitung.md
 
-$remoteUser = 'deployer';   // the user that will be used to connect to remote server and deploy the app
+$remoteUser = 'sanitaerfinden';   // the user that will be used to connect to remote server and deploy the app
 $sudoPassword = '';  // the sudo password of the remote user (leave empty if using ssh key)
 
 $deployPath = '~/app';      // the path where the app will be deployed on the remote server
 
-$host = '1.2.3.4';    // the host of the remote server (can be an IP or domain)
-$domain = 'yourdomain.com';   // the domain of the app
+$host = '88.198.64.145';    // the host of the remote server (can be an IP or domain)
+$domain = 'sanitaerfinden.com';   // the domain of the app
 
-$repository = 'git@github.com:username/saasykit.git';      // has to be in the SSH format
+$repository = 'git@github.com:enesk/sun.git';      // has to be in the SSH format
 $subDirectory = '';    // the subdirectory of the repository where the app is located (this is the directory that contains the composer.json file). Leave empty if the app is in the root of the repository (by default)
 
-$phpVersion = '8.2'; // the version of PHP to be installed on the server
+$phpVersion = '8.4'; // the version of PHP to be installed on the server
 
 // End of configs
 // ///////////////////////////////////
@@ -27,7 +46,7 @@ $phpVersion = '8.2'; // the version of PHP to be installed on the server
 set('repository', $repository);
 set('sub_directory', $subDirectory);
 
-set('nodejs_version', 'node_18.x');
+set('nodejs_version', 'node_22.x');
 
 add('shared_files', []);
 add('shared_dirs', []);
@@ -105,6 +124,25 @@ task('provision:fix-aws-ssh', function () {
 })->verbose()
     ->limit(1);
 
+desc('Install supervisor programs for the content pipeline queues');
+task('deploy:supervisor-content', function () use ($remoteUser, $deployPath) {
+    // Nur fuer Server, die die Queues ohne Horizon fahren. Laeuft Horizon,
+    // stehen dieselben Worker-Zahlen in config/horizon.php und dieser Task
+    // wird nicht aufgerufen — sonst zieht jede Queue zwei Konsumenten.
+    $deployPathAbsolute = str_replace('~', '/home/'.$remoteUser, $deployPath);
+
+    foreach (['content-sources', 'content-generate', 'content-publish'] as $program) {
+        $config = file_get_contents(__DIR__.'/deploy/supervisor/'.$program.'.conf');
+        $config = str_replace(['{{deploy_path}}', '{{user}}'], [$deployPathAbsolute, $remoteUser], $config);
+
+        run("cat > /etc/supervisor/conf.d/$program.conf <<'EOF'\n$config\nEOF");
+    }
+
+    run('supervisorctl reread');
+    run('supervisorctl update');
+})->verbose()
+    ->limit(1);
+
 desc('Generate sitemap');
 task('deploy:sitemap', artisan('app:generate-sitemap', ['skipIfNoEnv']));
 
@@ -123,6 +161,7 @@ after('provision:verify', 'provision:supervisor');
 after('provision:deployer', 'provision:fix-aws-ssh');
 
 after('deploy:success', 'artisan:horizon:terminate'); // to restart horizon after deploy
+after('deploy:success', 'artisan:queue:restart'); // Worker der Content-Queues auf den neuen Release ziehen (#22)
 after('deploy:success', 'crontab:sync');
 after('deploy:success', 'deploy:sitemap');
 after('deploy:success', 'deploy:export-configs');
