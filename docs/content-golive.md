@@ -67,8 +67,15 @@ Artikel dient der Weg über `Publisher::unpublish()` im Panel.
       Property als Nutzer mit Leserecht eingetragen. Ohne diesen Eintrag
       liefert die API leere Antworten statt eines Fehlers.
 - [ ] Je Portal `tenant_content_settings.gsc_property` gepflegt, Form
-      `sc-domain:example.de`. Prüfung: `content:golive:check` meldet die Zeile
-      „Search-Console-Property" je Portal.
+      `sc-domain:example.de`. Pflege in einem Durchgang:
+      `php artisan content:gsc:property --fill` (mit `--dry-run` erst zeigen,
+      mit `--force` auch abweichende Werte nachziehen). Prüfung:
+      `content:golive:check` meldet die Zeile „Search-Console-Property" je
+      Portal.
+- [ ] Ein gepflegter Wert heißt noch nicht, dass Daten fließen. Den
+      Zugriffsstand je Portal zeigen `php artisan content:gsc:property --check`
+      und die Spalte *Search Console* in `content:rollout`; „Kein Zugriff"
+      bedeutet, dass das Dienstkonto in der Property fehlt.
 - [ ] **(manuell)** Dienstkonto, Property und AdSense Schritt für Schritt:
       `docs/messungen/metrik-abnahme-zugaenge.md` (Ticket #90).
 - [ ] AdSense-Ertragsdaten: entweder `CONTENT_ADSENSE_ENABLED=false` (dann

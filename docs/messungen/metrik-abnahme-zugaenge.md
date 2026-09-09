@@ -77,6 +77,11 @@ install -m 0600 -o www-data -g www-data search-console.json \
 GOOGLE_SERVICE_ACCOUNT_JSON=/home/deployer/app/current/storage/app/private/google/search-console.json
 ```
 
+Die Benutzer `www-data` oben gelten fuer einen Standard-Deployer-Host. Auf dem
+CloudPanel-Produktionsserver laeuft PHP-FPM als `sanitaerfinden`; dort ist
+`sanitaerfinden` der Eigentuemer und der Pfad ein anderer — siehe
+`docs/messungen/produktionsschluessel-anleitung.md` (#115).
+
 Drei Regeln, die der Code selbst durchsetzt:
 
 - Der Pfad darf **nicht** unter `public/` liegen. `SearchConsoleClient` und
@@ -98,9 +103,26 @@ wird in Abschnitt 3 und 4 als Nutzer eingetragen.
 
 ## 3. Echte Property pflegen
 
-In dieser Umgebung hat genau ein Mandant eine `tenant_content_settings.gsc_property`,
-und die zeigt auf die Testdomain `sc-domain:sanitaer.test`. Fuer die Abnahme
-braucht mindestens ein Mandant auf Staging eine echte Property.
+Auf der Produktion (Stand 09.09.2026, #107) traegt jedes der 22 Portale eine
+Domain-Property auf seiner eigenen Produktionsdomain, Form
+`sc-domain:<domain>`. In der lokalen Entwicklungsumgebung laufen die Portale
+weiter auf `.test`; solche Werte lehnt die Formpruefung ab, weil sie sich in
+der Search Console nie verifizieren lassen.
+
+Die Werte pflegt man nicht mehr Portal fuer Portal im Panel, sondern mit
+`php artisan content:gsc:property`:
+
+```
+php artisan content:gsc:property                  Zustand aller Portale
+php artisan content:gsc:property --fill --dry-run zeigen, was aus den Domains folgt
+php artisan content:gsc:property --fill           leere Felder aus der Domain fuellen
+php artisan content:gsc:property --fill --force   auch abweichende Werte nachziehen
+php artisan content:gsc:property --tenant=43 --set=sc-domain:beispiel.de
+php artisan content:gsc:property --check          Zugriffstest bei Google
+```
+
+Der Befehl schreibt nur, was die Formpruefung besteht, und verwirft bei einer
+Aenderung den gespeicherten Zugriffsstand — der gehoert zur alten Property.
 
 1. In der Search Console die Property der Staging-Domain anlegen und
    verifizieren (Domain-Property bevorzugt).
@@ -109,8 +131,9 @@ braucht mindestens ein Mandant auf Staging eine echte Property.
    **Ohne diesen Eintrag liefert die API leere Antworten statt eines Fehlers** —
    der haeufigste Grund fuer „laeuft durch, schreibt nichts".
 3. Property je Portal eintragen, Form `sc-domain:example.de` oder
-   `https://example.de/`. Weg wahlweise Content-Panel → *Einstellungen* oder
-   direkt in `tenant_content_settings.gsc_property`.
+   `https://example.de/`. Weg wahlweise `php artisan content:gsc:property
+   --fill`, Content-Panel → *Einstellungen* oder direkt in
+   `tenant_content_settings.gsc_property`.
 
 **Probe:** `php artisan content:metrics:preflight` meldet „Sichtbare
 Properties" und je Portal die eigene Property mit Berechtigungsstufe. Steht
