@@ -16,6 +16,7 @@
         "guzzlehttp/guzzle": "^7.2",
         "intervention/image": "^3.4",
         "jeffgreco13/filament-breezy": "^3.0",
+        "jfcherng/php-diff": "^7.0",
         "laragear/two-factor": "^3.0",
         "laravel/framework": "^12.0",
         "laravel/horizon": "^5.21",
@@ -23,6 +24,7 @@
         "laravel/socialite": "^5.6",
         "laravel/tinker": "^2.8",
         "laravel/ui": "^4.2",
+        "league/html-to-markdown": "^5.1",
         "livewire/livewire": "^4.0",
         "mews/purifier": "^3.4",
         "mpociot/versionable": "^4.4",
@@ -40,8 +42,10 @@
         "spatie/laravel-permission": "^6.0",
         "spatie/laravel-settings": "^3.7",
         "spatie/laravel-sitemap": "^7.0",
+        "spatie/robots-txt": "^2.5",
         "stechstudio/filament-impersonate": "^4.0",
         "stripe/stripe-php": "^17.0",
+        "symfony/dom-crawler": "^7.0",
         "symfony/http-client": "^7.0",
         "symfony/mailgun-mailer": "^7.0",
         "symfony/postmark-mailer": "^7.0",
@@ -92,6 +96,15 @@
         ],
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi"
+        ],
+        "post-install-cmd": [
+            "@php scripts/install-git-hooks.php"
+        ],
+        "hooks:install": [
+            "@php scripts/install-git-hooks.php"
+        ],
+        "secrets:scan": [
+            "@php scripts/secret-scan.php"
         ]
     },
     "extra": {

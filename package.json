@@ -3,18 +3,25 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "vite build"
+        "build": "vite build",
+        "build:content-assets": "esbuild resources/js/content/prompt-code-editor.js --bundle --format=esm --minify --outfile=resources/js/dist/content/prompt-code-editor.js"
     },
     "devDependencies": {
         "@alpinejs/focus": "^3.15.8",
+        "@codemirror/commands": "^6.11.0",
+        "@codemirror/lang-json": "^6.0.2",
+        "@codemirror/state": "^6.7.4",
+        "@codemirror/view": "^6.43.11",
         "@popperjs/core": "^2.11.6",
         "@tailwindcss/forms": "^0.5.7",
         "@tailwindcss/typography": "^0.5.10",
         "@tailwindcss/vite": "^4.1.11",
         "autoprefixer": "^10.4.16",
         "axios": "^1.1.2",
+        "codemirror": "^6.0.2",
         "concurrently": "^9.0.1",
         "daisyui": "^5.0.50",
+        "esbuild": "^0.28.2",
         "laravel-vite-plugin": "^2.0.0",
         "tailwindcss": "^4.1.11",
         "vite": "^7.1.2"
