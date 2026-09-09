@@ -124,8 +124,35 @@ deshalb auch nach dem Ausstellen offen bleiben:
 - `CONTENT_SOURCES_GSC_ENABLED` fehlt in der Produktions-`.env`. Ohne den
   Schalter kennt `content:sources:run` den Connector `gsc_gap` nicht.
 - `gsc_property` ist bei allen Portalen leer (#107) und `ADSENSE_ACCOUNT_ID`
-  fehlt. „Sichtbare Properties" kann deshalb erst ✓ zeigen, wenn zusätzlich zu
-  Abschnitt 4 Schritt 5 mindestens eine Property gepflegt ist.
+  fehlt. Das betrifft die **Portal-Zeilen** des Preflights, nicht die Zeile
+  „Sichtbare Properties": die zählt allein, was `sites.list` zurückgibt, und
+  steht auf ✓, sobald die `client_email` in mindestens einer Property als
+  Nutzer eingetragen ist (`ContentMetricsPreflight.php`, Zeile 176-186). Für
+  das Fertig-Kriterium dieses Tickets ist `gsc_property` also nicht nötig.
+
+## 1e. Befund 09.09.2026: die Portale haben öffentliche Domains
+
+Beim Aufnehmen des Ausgangsstands auf `sun` gegengeprüft. Die Produktion führt
+**23 Mandanten**, alle mit öffentlicher Domain — keine einzige `.test`-Adresse.
+Damit ist jede dieser Adressen in der Search Console als Property anlegbar und
+verifizierbar; die frühere Sperre aus #106/#107 gilt nur lokal.
+
+```
+firmenfreund.de              bodenlegerfinden.com      sanitaerfinden.com
+fahrschulefinder.de          elektrikerportal.com      malerfinder.de
+geruestbauer.gmbh            metallbauer.io            tierarztportal.com
+kfzwerkstatt.io              findegutachter.de         fliesenleger.io
+mjet.net                     sanitaerfinder.com        apotheke.firmenfreund.de
+firmenfreund.net             unfallarzt.firmenfreund.de
+zahnarzt.firmenfreund.de     klempner.firmenfreund.de  energieberaterportal.net
+arztfinder.firmenfreund.de   speditionportal.com       schluesseldienstportal.com
+```
+
+Für das Fertig-Kriterium dieses Tickets genügt **eine** Property. Empfehlung:
+mit `firmenfreund.de` anfangen, weil dort die Subdomains der übrigen Portale
+hängen und eine Domain-Property (DNS-TXT) sie mit abdeckt. Die Portale auf
+eigenen Domains brauchen je eine eigene Property; das ist Arbeit aus #107 und
+hält dieses Ticket nicht auf.
 
 ## 2. Anthropic-Schlüssel
 
@@ -218,9 +245,13 @@ ausführenden Benutzer. Was er weiterhin nicht sieht: ob die Search Console API
 im Cloud-Projekt aktiviert ist und ob die `client_email` in den Properties
 eingetragen wurde (Abschnitt 6).
 
-Solange alle Portale auf `.test`-Domains laufen, gibt es keine verifizierbare
-Property (#106, #107). Schritt 5 ist dann erst nach der Domain-Umstellung
-abschließbar; Schritte 1 bis 4 sind davon unabhängig.
+**Korrektur vom 09.09.2026:** die ältere Aussage „alle Portale laufen auf
+`.test`, es gibt keine verifizierbare Property" gilt nur für die
+Arbeitsmaschine. Auf der Produktion tragen alle 23 Mandanten öffentliche
+Domains (`firmenfreund.de`, `sanitaerfinden.com`, `tierarztportal.com`,
+`apotheke.firmenfreund.de` und weitere — vollständige Liste in Abschnitt 1e).
+Schritt 5 ist damit **jetzt** ausführbar und muss nicht auf eine
+Domain-Umstellung warten.
 
 ## 5. Scharfschalten
 
@@ -286,3 +317,90 @@ den Pfad. Sichtbar wird er allein in `content:metrics:preflight` in der Zeile
 | `content:golive:check`: „Anthropic-Zugang" ✓ | | | |
 | `content:golive:check`: „Search-Console-Dienstkonto" ✓ | | | |
 | `content:metrics:preflight`: „Sichtbare Properties" ✓ | | | |
+
+## 8. Ein Durchgang zum Kopieren
+
+Reihenfolge für den Tag, an dem die Schlüssel da sind. Alle Artisan-Aufrufe als
+Benutzer `sanitaerfinden`, nie als `root` — ein von `root` geschriebener
+Config-Cache sperrt PHP-FPM aus.
+
+**Vorher im Browser erledigt** (Abschnitte 2 bis 4): Anthropic-Projekt mit
+Ausgabenlimit und Guthaben, Voyage-Konto, Google-Dienstkonto mit aktivierter
+Search Console API, `client_email` als Leser in mindestens einer Property.
+
+Schritt 1 — Schlüsseldatei ablegen (von der Arbeitsmaschine):
+
+```bash
+scp search-console.json sun:/tmp/search-console.json
+ssh sun 'install -m 0600 -o sanitaerfinden -g sanitaerfinden \
+  /tmp/search-console.json \
+  /home/sanitaerfinden/htdocs/sanitaerfinden.dev/storage/app/private/google/search-console.json \
+  && rm -f /tmp/search-console.json'
+```
+
+Schritt 2 — die vier Zeilen in die `.env` (auf `sun`, als `root`, die Datei
+gehört `sanitaerfinden`):
+
+```bash
+cd /home/sanitaerfinden/htdocs/sanitaerfinden.dev
+cp .env .env.bak-$(date +%F)
+cat >> .env <<'EOF'
+
+ANTHROPIC_API_KEY=sk-ant-…
+VOYAGE_API_KEY=pa-…
+GOOGLE_SERVICE_ACCOUNT_JSON=storage/app/private/google/search-console.json
+CONTENT_SOURCES_GSC_ENABLED=true
+EOF
+```
+
+Die vierte Zeile gehört fachlich zu #132, nicht zu diesem Ticket. Sie ist hier
+mit aufgeführt, weil sie sonst einen zweiten `config:cache` erzwingt und im
+Preflight als zweiter Fehler stehen bleibt.
+
+Schritt 3 — scharfschalten:
+
+```bash
+su -s /bin/bash sanitaerfinden -c 'HOME=/home/sanitaerfinden \
+  cd /home/sanitaerfinden/htdocs/sanitaerfinden.dev && \
+  /usr/bin/php8.4 artisan config:clear && \
+  /usr/bin/php8.4 artisan config:cache && \
+  /usr/bin/php8.4 artisan horizon:terminate'
+```
+
+Schritt 4 — die drei Proben, in dieser Reihenfolge:
+
+```bash
+su -s /bin/bash sanitaerfinden -c 'HOME=/home/sanitaerfinden \
+  cd /home/sanitaerfinden/htdocs/sanitaerfinden.dev && \
+  /usr/bin/php8.4 artisan content:golive:check; \
+  /usr/bin/php8.4 artisan content:metrics:preflight; \
+  CONTENT_PIPELINE_ENABLED=true /usr/bin/php8.4 artisan content:llm:ping'
+```
+
+Erwartet gegen den Ausgangsstand aus Abschnitt 1d:
+
+| Zeile | vorher | nachher |
+| --- | --- | --- |
+| `golive:check` „Anthropic-Zugang" | ✗ | ✓ |
+| `golive:check` „Voyage-Zugang" | ! | ✓ |
+| `golive:check` „Search-Console-Dienstkonto" | ! | ✓ „lesbar, außerhalb von public/" |
+| `golive:check` Gesamtzahl Fehler | 1 | 0 |
+| `preflight` „Dienstkonto" | ✗ | ✓ |
+| `preflight` „Gap-Connector registriert" | ✗ | ✓ |
+| `preflight` „Sichtbare Properties" | fehlt (Abbruch davor) | ✓ mit Anzahl und Namen |
+| `llm:ping` | „ANTHROPIC_API_KEY ist nicht gesetzt." | Antwort plus Kostenzeile |
+
+Bleibt eine Zeile rot, greift genau eine der drei bekannten Ursachen:
+
+- „Search-Console-Dienstkonto" ✗ trotz vorhandener Datei → Eigentümer oder
+  Modus falsch. Der Check nennt seit #119 Eigentümer, Modus und ausführenden
+  Benutzer; `chown sanitaerfinden:sanitaerfinden` und `chmod 0600` reichen.
+- „Sichtbare Properties" ✗ mit 403 `accessNotConfigured` → Search Console API
+  im Cloud-Projekt nicht aktiviert (Abschnitt 4 Schritt 2).
+- „Sichtbare Properties" ✗ mit „sieht keine einzige Property" → `client_email`
+  in keiner Property eingetragen (Abschnitt 4 Schritt 5). Schlüssel und API
+  sind dann in Ordnung.
+
+Portal-Zeilen des Preflights bleiben nach diesem Durchgang gelb, weil
+`gsc_property` bei allen Portalen leer ist. Das ist #107 und kein Mangel dieses
+Tickets.
