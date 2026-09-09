@@ -1,0 +1,247 @@
+{
+  "ticket": 91,
+  "datum": "2026-09-09",
+  "url": "http://sanitaer.test/ratgeber/heizungstausch-forderung-in-bayern-was-gilt-2026",
+  "lighthouse": "13.4.1",
+  "laeufe": {
+    "desktop_ohne_auto_ads": [
+      {
+        "datei": "dnoauto_1",
+        "formfaktor": "desktop",
+        "performance": 100,
+        "cls": 0.0167,
+        "lcp": "0.5 s",
+        "fcp": "0.5 s",
+        "tbt": "0 ms",
+        "shifts": [
+          {
+            "score": 0.01669,
+            "selector": "header.header-floating > div.px-4 > div.flex > nav.hidden"
+          },
+          {
+            "score": 0,
+            "selector": "div.ratgeber-sidebar__sticky > details.ratgeber-toc > summary.ratgeber-toc__summary > svg.ratgeber-toc__chevron"
+          }
+        ]
+      },
+      {
+        "datei": "dnoauto_2",
+        "formfaktor": "desktop",
+        "performance": 100,
+        "cls": 0.0167,
+        "lcp": "0.5 s",
+        "fcp": "0.5 s",
+        "tbt": "0 ms",
+        "shifts": [
+          {
+            "score": 0.01669,
+            "selector": "header.header-floating > div.px-4 > div.flex > nav.hidden"
+          },
+          {
+            "score": 0,
+            "selector": "div.ratgeber-sidebar__sticky > details.ratgeber-toc > summary.ratgeber-toc__summary > svg.ratgeber-toc__chevron"
+          }
+        ]
+      },
+      {
+        "datei": "dnoauto_3",
+        "formfaktor": "desktop",
+        "performance": 99,
+        "cls": 0.0167,
+        "lcp": "0.7 s",
+        "fcp": "0.6 s",
+        "tbt": "0 ms",
+        "shifts": [
+          {
+            "score": 0.01669,
+            "selector": "header.header-floating > div.px-4 > div.flex > nav.hidden"
+          },
+          {
+            "score": 0,
+            "selector": "div.ratgeber-sidebar__sticky > details.ratgeber-toc > summary.ratgeber-toc__summary > svg.ratgeber-toc__chevron"
+          }
+        ]
+      }
+    ],
+    "mobil_ohne_auto_ads": [
+      {
+        "datei": "mnoauto_1",
+        "formfaktor": "mobile",
+        "performance": 90,
+        "cls": 0.0062,
+        "lcp": "2.9 s",
+        "fcp": "2.9 s",
+        "tbt": "10 ms",
+        "shifts": [
+          {
+            "score": 0.00618,
+            "selector": "header.header-floating > div.px-4 > div.flex > button.md:hidden"
+          }
+        ]
+      },
+      {
+        "datei": "mnoauto_2",
+        "formfaktor": "mobile",
+        "performance": 99,
+        "cls": 0.0062,
+        "lcp": "1.6 s",
+        "fcp": "1.6 s",
+        "tbt": "10 ms",
+        "shifts": [
+          {
+            "score": 0.00618,
+            "selector": "header.header-floating > div.px-4 > div.flex > button.md:hidden"
+          }
+        ]
+      },
+      {
+        "datei": "mnoauto_3",
+        "formfaktor": "mobile",
+        "performance": 99,
+        "cls": 0.0062,
+        "lcp": "1.6 s",
+        "fcp": "1.6 s",
+        "tbt": "0 ms",
+        "shifts": [
+          {
+            "score": 0.00618,
+            "selector": "header.header-floating > div.px-4 > div.flex > button.md:hidden"
+          }
+        ]
+      }
+    ],
+    "desktop_mit_auto_ads": [
+      {
+        "datei": "desktop_1",
+        "formfaktor": "desktop",
+        "performance": 66,
+        "cls": 1.0167,
+        "lcp": "1.7 s",
+        "fcp": "1.2 s",
+        "tbt": "0 ms",
+        "shifts": [
+          {
+            "score": 1,
+            "selector": "body.min-h-screen"
+          },
+          {
+            "score": 0.01669,
+            "selector": "header.header-floating > div.px-4 > div.flex > nav.hidden"
+          },
+          {
+            "score": 0,
+            "selector": "div.ratgeber-sidebar__sticky > details.ratgeber-toc > summary.ratgeber-toc__summary > svg.ratgeber-toc__chevron"
+          }
+        ]
+      },
+      {
+        "datei": "desktop_2",
+        "formfaktor": "desktop",
+        "performance": 100,
+        "cls": 0.0167,
+        "lcp": "0.6 s",
+        "fcp": "0.5 s",
+        "tbt": "0 ms",
+        "shifts": [
+          {
+            "score": 0.01669,
+            "selector": "header.header-floating > div.px-4 > div.flex > nav.hidden"
+          },
+          {
+            "score": 0,
+            "selector": "div.ratgeber-sidebar__sticky > details.ratgeber-toc > summary.ratgeber-toc__summary > svg.ratgeber-toc__chevron"
+          }
+        ]
+      },
+      {
+        "datei": "desktop_3",
+        "formfaktor": "desktop",
+        "performance": 73,
+        "cls": 1.0167,
+        "lcp": "1.0 s",
+        "fcp": "0.9 s",
+        "tbt": "0 ms",
+        "shifts": [
+          {
+            "score": 1,
+            "selector": "body.min-h-screen"
+          },
+          {
+            "score": 0.01669,
+            "selector": "header.header-floating > div.px-4 > div.flex > nav.hidden"
+          },
+          {
+            "score": 0,
+            "selector": "div.ratgeber-sidebar__sticky > details.ratgeber-toc > summary.ratgeber-toc__summary > svg.ratgeber-toc__chevron"
+          }
+        ]
+      }
+    ],
+    "mobil_mit_auto_ads": [
+      {
+        "datei": "mobile_1",
+        "formfaktor": "mobile",
+        "performance": 75,
+        "cls": 0.0062,
+        "lcp": "4.8 s",
+        "fcp": "3.6 s",
+        "tbt": "20 ms",
+        "shifts": [
+          {
+            "score": 0.00618,
+            "selector": "header.header-floating > div.px-4 > div.flex > button.md:hidden"
+          }
+        ]
+      },
+      {
+        "datei": "mauto_1",
+        "formfaktor": "mobile",
+        "performance": 88,
+        "cls": 0.0062,
+        "lcp": "3.4 s",
+        "fcp": "2.4 s",
+        "tbt": "10 ms",
+        "shifts": [
+          {
+            "score": 0.00618,
+            "selector": "header.header-floating > div.px-4 > div.flex > button.md:hidden"
+          }
+        ]
+      },
+      {
+        "datei": "mauto_2",
+        "formfaktor": "mobile",
+        "performance": 76,
+        "cls": 0.0062,
+        "lcp": "4.3 s",
+        "fcp": "3.9 s",
+        "tbt": "0 ms",
+        "shifts": [
+          {
+            "score": 0.00618,
+            "selector": "header.header-floating > div.px-4 > div.flex > button.md:hidden"
+          }
+        ]
+      },
+      {
+        "datei": "mauto_3",
+        "formfaktor": "mobile",
+        "performance": 54,
+        "cls": 0.5432,
+        "lcp": "4.4 s",
+        "fcp": "3.9 s",
+        "tbt": "10 ms",
+        "shifts": [
+          {
+            "score": 0.53706,
+            "selector": "body.min-h-screen"
+          },
+          {
+            "score": 0.00618,
+            "selector": "header.header-floating > div.px-4 > div.flex > button.md:hidden"
+          }
+        ]
+      }
+    ]
+  }
+}

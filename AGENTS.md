@@ -42,6 +42,7 @@ SaaSykit Tenancy is built with the TALL stack (Tailwind CSS, Alpine.js, Laravel,
 ### Frontend Development
 - `npm run dev` - Start Vite development server for asset compilation
 - `npm run build` - Build assets for production
+- `public/build/` is not versioned (see `.gitignore`). Run `npm run build` once after cloning, and again before any frontend measurement or before using the content panel. Deployments build the assets via the Deployer task `npm:build`.
 
 ### Backend Development
 - `php artisan serve` - Start Laravel development server
@@ -55,6 +56,15 @@ SaaSykit Tenancy is built with the TALL stack (Tailwind CSS, Alpine.js, Laravel,
 - `vendor/bin/phpunit --filter=TestName` - Run specific test
 - `vendor/bin/phpstan analyse` - Run static analysis (level 3)
 - `vendor/bin/pint` - Run Laravel Pint code formatter
+- `php scripts/secret-scan.php` - Secret-Scan über alle versionierten Dateien
+  (auch als `composer run secrets:scan`; läuft zusätzlich im Pre-Commit-Hook und
+  in der CI, siehe `docs/secret-scan.md`)
+
+### Credentials
+Zugangsschlüssel gehören ausschließlich in die lokale `.env`. Im Code werden sie
+nur über `env('NAME')` **ohne Vorgabewert** gelesen — ein Literal als zweiter
+Parameter ist ein eingecheckter Schlüssel und wird vom Secret-Scan abgelehnt.
+Jede neue Variable gehört ohne Wert in `.env.example`.
 
 ### Deployment
 - `php dep deploy` - Deploy using Deployer (configured in deploy.php)

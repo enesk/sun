@@ -1,0 +1,139 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "@id": "http://sanitaer.test/ratgeber/heizungstausch-forderung-in-bayern-was-gilt-2026#article",
+      "headline": "Heizungstausch-Förderung in Bayern: Was gilt 2026?",
+      "description": "Bis zu 15 % Extra-Zuschuss zur Bundesförderung: Voraussetzungen, Fristen und Ablauf für den Heizungstausch in Bayern verständlich erklärt.",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "http://sanitaer.test/ratgeber/heizungstausch-forderung-in-bayern-was-gilt-2026"
+      },
+      "url": "http://sanitaer.test/ratgeber/heizungstausch-forderung-in-bayern-was-gilt-2026",
+      "datePublished": "2026-09-09T06:38:37+00:00",
+      "dateModified": "2026-09-09T06:45:31+00:00",
+      "image": "/t34/hero-1440.webp",
+      "inLanguage": "de-DE",
+      "wordCount": 1466,
+      "author": {
+        "@id": "http://sanitaer.test#organization"
+      },
+      "publisher": {
+        "@id": "http://sanitaer.test#organization"
+      },
+      "publishingPrinciples": "http://sanitaer.test/ratgeber/redaktion",
+      "isPartOf": {
+        "@type": "WebSite",
+        "name": "Sanitär",
+        "url": "http://sanitaer.test"
+      },
+      "speakable": {
+        "@type": "SpeakableSpecification",
+        "cssSelector": [
+          ".ratgeber-short-answer"
+        ]
+      },
+      "citation": [
+        {
+          "@type": "CreativeWork",
+          "name": "Bayerisches Wirtschaftsministerium",
+          "url": "https://www.bayern.de/foerderung",
+          "publisher": {
+            "@type": "Organization",
+            "name": "Bayerisches Wirtschaftsministerium"
+          },
+          "datePublished": "2026-09-09"
+        },
+        {
+          "@type": "CreativeWork",
+          "name": "Bayerisches Wirtschaftsministerium",
+          "url": "https://www.bayern.de/fristen",
+          "publisher": {
+            "@type": "Organization",
+            "name": "Bayerisches Wirtschaftsministerium"
+          },
+          "datePublished": "2026-09-09"
+        }
+      ]
+    },
+    {
+      "@type": "Organization",
+      "@id": "http://sanitaer.test#organization",
+      "name": "Sanitär - Das Branchenportal",
+      "url": "http://sanitaer.test",
+      "description": "Sanitär - Das Branchenportal ist ein Branchenportal fuer Betriebe aus dem Bereich Sanitär/Heizung in Bayern mit Firmenverzeichnis, Ratgeber und Jobangeboten.",
+      "publishingPrinciples": "http://sanitaer.test/ratgeber/redaktion",
+      "email": "test@example.com"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "http://sanitaer.test"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Ratgeber",
+          "item": "http://sanitaer.test/ratgeber"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Heizungstausch-Förderung in Bayern: Was gilt 2026?",
+          "item": "http://sanitaer.test/ratgeber/heizungstausch-forderung-in-bayern-was-gilt-2026"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "http://sanitaer.test/ratgeber/heizungstausch-forderung-in-bayern-was-gilt-2026#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Wie viel Förderung gibt es zusätzlich für den Heizungstausch in Bayern?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Bayern gewährt einen Zuschuss von bis zu 15 Prozent zusätzlich zur Bundesförderung (Quelle: Bayerisches Wirtschaftsministerium, Stand 2026). Dieser Landeszuschuss kommt zur bundesweiten Förderung für den Heizungstausch hinzu. Lassen Sie sich zur konkreten Höhe in Ihrem Fall von einem Fachbetrieb oder einer Energieberatung informieren."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Bis wann muss der Förderantrag in Bayern gestellt werden?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Der Antrag muss vor Beginn der Arbeiten gestellt werden, die Frist endet am 31.10.2026 (Quelle: Bayerisches Wirtschaftsministerium, Stand 2026). Reichen Sie den Antrag also ein, bevor der Fachbetrieb mit dem Heizungstausch beginnt. Planen Sie ausreichend Vorlauf ein, damit die Bewilligung rechtzeitig vor Baustart vorliegt."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Was passiert, wenn die Arbeiten schon vor der Antragstellung beginnen?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "In Bayern gilt: Der Antrag muss vor Beginn der Arbeiten gestellt werden, sonst entfällt der zusätzliche Landeszuschuss von bis zu 15 Prozent (Quelle: Bayerisches Wirtschaftsministerium, Stand 2026). Klären Sie diesen Ablauf frühzeitig mit Ihrem Fachbetrieb, um die Frist bis zum 31.10.2026 nicht zu gefährden. Bei Unsicherheiten zur rechtlichen Einordnung des Antragsverfahrens empfiehlt sich eine Rückfrage bei der zuständigen Förderstelle."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Wie oft muss die Heizung gewartet werden?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Ein regelmäßiger Heizungscheck gehört zum sicheren und effizienten Betrieb einer Heizungsanlage, unabhängig davon, ob es sich um eine Wärmepumpe oder eine Gas-Brennwerttherme handelt. Fachbetriebe in Bayern führen dabei unter anderem den hydraulischen Abgleich und die Kalibrierung der Heizkörperthermostate durch. Konkrete Wartungsintervalle legt der Fachbetrieb je nach Anlagentyp und Herstellervorgabe fest."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Wärmepumpe oder Gasheizung: Was lohnt sich noch?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Die Förderlage in Bayern begünstigt mit dem zusätzlichen Landeszuschuss von bis zu 15 Prozent vor allem den Umstieg auf klimafreundliche Heizsysteme wie die Wärmepumpe. Ob Luft-Wasser- oder Sole-Wasser-Wärmepumpe zum Gebäude passt, hängt von Dämmstandard und Heizlastberechnung ab. Ein Fachbetrieb kann anhand dieser Faktoren einschätzen, welches System für Ihr Haus sinnvoll ist."
+          }
+        }
+      ]
+    }
+  ]
+}
