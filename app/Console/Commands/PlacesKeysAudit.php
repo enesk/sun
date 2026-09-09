@@ -45,7 +45,11 @@ class PlacesKeysAudit extends Command
     /** Datei, die den Schluessel im Verlauf getragen hat. */
     private const HISTORY_FILE = 'app/Console/Commands/GetCompanies.php';
 
+    /** Alte Places API — nur fuer die Verlaufsschluessel: ein geloeschter Schluessel antwortet hier zuverlaessig mit "API key is invalid". */
     private const ENDPOINT = 'https://maps.googleapis.com/maps/api/place/textsearch/json';
+
+    /** Places API (New) — der Dienst, den der Import seit #108 nutzt. */
+    private const ENDPOINT_NEW = 'https://places.googleapis.com/v1/places:searchText';
 
     protected $signature = 'places:keys:audit
         {--json : Ergebnis als JSON statt als Tabelle}
@@ -66,13 +70,13 @@ class PlacesKeysAudit extends Command
         $rows = [];
 
         foreach ($keys as $commit => $key) {
-            $rows[] = $this->probe($key, $commit) + ['commit' => $commit];
+            $rows[] = $this->probe($key) + ['commit' => $commit];
         }
 
         $envKey = (string) config('services.google.places_api_key', '');
         $envRow = $envKey === ''
             ? ['commit' => '.env', 'key' => '(leer)', 'verdikt' => self::UNKLAR, 'status' => '-', 'meldung' => 'GOOGLE_PLACES_API_KEY ist nicht gesetzt']
-            : $this->probe($envKey, '.env') + ['commit' => '.env'];
+            : $this->probeNew($envKey) + ['commit' => '.env'];
 
         $offen = array_values(array_filter($rows, fn (array $row): bool => $row['verdikt'] !== self::OK));
 
@@ -154,7 +158,7 @@ class PlacesKeysAudit extends Command
     /**
      * @return array{key: string, verdikt: string, status: string, meldung: string}
      */
-    private function probe(string $key, string $label): array
+    private function probe(string $key): array
     {
         try {
             $antwort = Http::timeout(20)->get(self::ENDPOINT, ['query' => 'Test', 'key' => $key])->json();
@@ -172,28 +176,57 @@ class PlacesKeysAudit extends Command
 
         return [
             'key' => $this->maskiert($key),
-            'verdikt' => $this->verdikt($status, $meldung, $label),
+            'verdikt' => $this->verdikt($status, $meldung),
             'status' => $status,
             'meldung' => $meldung !== '' ? $meldung : $status,
         ];
     }
 
     /**
-     * Fuer die .env-Zeile ist die Frage umgekehrt: dort ist ein lebender
-     * Schluessel das Ziel, im Verlauf ein geloeschter.
+     * Der Schluessel aus .env wird gegen die Places API (New) geprueft — das ist
+     * der Dienst, den tenants:import-google seit #108 aufruft. Die alte API
+     * sagt darueber nichts mehr aus: in einem neu angelegten Cloud-Projekt ist
+     * sie gar nicht mehr freischaltbar.
+     *
+     * @return array{key: string, verdikt: string, status: string, meldung: string}
      */
-    private function verdikt(string $status, string $meldung, string $label): string
+    private function probeNew(string $key): array
+    {
+        try {
+            $antwort = Http::timeout(20)
+                ->withHeaders([
+                    'X-Goog-Api-Key' => $key,
+                    'X-Goog-FieldMask' => 'places.id',
+                ])
+                ->post(self::ENDPOINT_NEW, ['textQuery' => 'Test', 'languageCode' => 'de']);
+        } catch (Throwable $e) {
+            return [
+                'key' => $this->maskiert($key),
+                'verdikt' => self::UNKLAR,
+                'status' => '-',
+                'meldung' => 'Aufruf fehlgeschlagen: '.$e->getMessage(),
+            ];
+        }
+
+        $json = $antwort->json();
+        $meldung = (string) ($json['error']['message'] ?? ($antwort->successful() ? 'OK' : $antwort->body()));
+
+        return [
+            'key' => $this->maskiert($key),
+            'verdikt' => $antwort->successful() ? 'nutzbar' : 'nicht nutzbar',
+            'status' => (string) $antwort->status(),
+            'meldung' => Str::limit($meldung, 120),
+        ];
+    }
+
+    /**
+     * Verdikt fuer einen Verlaufsschluessel: Ziel ist "geloescht".
+     */
+    private function verdikt(string $status, string $meldung): string
     {
         $geloescht = Str::contains($meldung, ['API key is invalid', 'API key not valid', 'API key is expired'], true);
         $lebt = in_array($status, ['OK', 'ZERO_RESULTS', 'INVALID_REQUEST', 'OVER_QUERY_LIMIT'], true)
             || Str::contains($meldung, ['enable Billing', 'Google has disabled the use of APIs'], true);
-
-        if ($label === '.env') {
-            return match (true) {
-                in_array($status, ['OK', 'ZERO_RESULTS'], true) => 'nutzbar',
-                default => 'nicht nutzbar',
-            };
-        }
 
         return match (true) {
             $geloescht => self::OK,
