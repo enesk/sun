@@ -328,6 +328,41 @@ Config-Cache sperrt PHP-FPM aus.
 Ausgabenlimit und Guthaben, Voyage-Konto, Google-Dienstkonto mit aktivierter
 Search Console API, `client_email` als Leser in mindestens einer Property.
 
+## 8a. Ein Befehl statt vier Blöcke
+
+Alles nach der Kontoarbeit erledigt `scripts/produktionsschluessel-eintragen.sh`
+von der Arbeitsmaschine aus: Schlüsseldatei ablegen (0600, `sanitaerfinden`),
+die vier `.env`-Zeilen setzen, `config:clear` + `config:cache` +
+`horizon:terminate` als `sanitaerfinden`, danach die drei Proben in der
+Reihenfolge aus Abschnitt 6.
+
+```bash
+scripts/produktionsschluessel-eintragen.sh --dienstkonto ~/Downloads/search-console.json
+```
+
+Die beiden Schlüssel fragt das Skript verdeckt ab; sie stehen dadurch weder in
+der Shell-Historie noch in der Prozessliste des Servers. Ein leer gelassener
+Wert lässt die Zeile in der `.env` unangetastet, vorhandene Zeilen werden
+ersetzt statt verdoppelt, und vor jeder Änderung entsteht eine Sicherung
+`.env.bak-120-<Zeitstempel>`. Ohne `--dienstkonto` bleiben Datei und
+`GOOGLE_SERVICE_ACCOUNT_JSON` unberührt — brauchbar, wenn Anthropic und Voyage
+früher fertig sind als das Google-Projekt.
+
+Nur die drei Proben wiederholen, ohne irgendetwas zu ändern:
+
+```bash
+scripts/produktionsschluessel-eintragen.sh --pruefen
+```
+
+Das Skript prüft die Dienstkonto-Datei vorab lokal auf `client_email` und
+`private_key` und bricht bei einem Schlüssel ohne `sk-ant-`-Präfix ab, bevor
+etwas auf den Server geht.
+
+Die Blöcke darunter sind derselbe Ablauf von Hand, für den Fall, dass einzelne
+Schritte getrennt laufen sollen.
+
+## 8b. Derselbe Durchgang von Hand
+
 Schritt 1 — Schlüsseldatei ablegen (von der Arbeitsmaschine):
 
 ```bash
