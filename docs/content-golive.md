@@ -105,11 +105,23 @@ Erschöpftes Budget setzt den Provider in `provider_states` auf `paused` mit
 
 ## 3. Betrieb
 
-- [ ] `QUEUE_CONNECTION` ist nicht `sync`.
-- [ ] Supervisor auf Produktion aktiv, drei Programme aus `deploy/supervisor/`:
-      `content-sources.conf`, `content-generate.conf`, `content-publish.conf`.
-      Sie decken die sechs Queues aus `content.pipeline.queues`.
-- [ ] `php artisan horizon:status` meldet `running`.
+- [ ] `QUEUE_CONNECTION` steht auf `redis`. Nicht `sync`, und auch nicht
+      `database`: die Queues der Pipeline werden ausschließlich über Redis
+      gefahren (Entscheidung #110).
+- [ ] `php artisan horizon:status` meldet `running`, und `supervisorctl status`
+      zeigt genau **ein** Programm `horizon` (angelegt von `dep
+      provision:supervisor`). Horizon bedient alle sechs Queues aus
+      `content.pipeline.queues` über die Supervisoren
+      `supervisor-content-sources`, `supervisor-content-generate` und
+      `supervisor-content-publish` in `config/horizon.php`.
+- [ ] Die Programme aus `deploy/supervisor/` laufen **nicht** und
+      `dep deploy:supervisor-content` wurde **nicht** ausgeführt. Sie sind der
+      Ausweichweg für Server ohne Horizon; parallel zu Horizon zieht jede Queue
+      zwei Konsumenten. `content:golive:check` kennt nur den Horizon-Weg und
+      meldet für diesen Ausweichweg drei Fehler bei den Queue-Zeilen.
+- [ ] Es läuft kein weiterer `queue:work`-Supervisor auf der Queue `default`
+      (alte Programme wie `<projekt>-worker` gehören entfernt, sobald Horizon
+      steht — `supervisor-1` in `config/horizon.php` bedient `default` bereits).
 - [ ] Cron ruft `schedule:run` jede Minute auf. Die Einträge der Pipeline
       stehen in `routes/console.php`, Zeitzone `Europe/Berlin`.
 - [ ] Deploy setzt `php artisan queue:restart` **nach** dem Wechsel des
