@@ -7,6 +7,7 @@ use App\Models\Portal\City;
 use App\Models\Portal\Job;
 use App\Models\Portal\JobApplication;
 use App\Services\TrackingService;
+use App\Support\TenantCache;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -73,7 +74,7 @@ class PublicJobController extends Controller
         // ── Sidebar-Daten (gecacht) ──
         $employmentTypes = $this->getEmploymentTypeCounts();
 
-        $cities = Cache::remember('portal.jobs.cities.sidebar', 3600, fn () =>
+        $cities = Cache::remember(TenantCache::key('portal.jobs.cities.sidebar'), 3600, fn () =>
             City::select('cities.id', 'cities.name', 'cities.slug')
                 ->join('jobs', function ($join) {
                     $join->on('cities.id', '=', 'jobs.city_id')
@@ -88,7 +89,7 @@ class PublicJobController extends Controller
         );
 
         // Auch Städte über Company-Beziehung zählen
-        $companyCities = Cache::remember('portal.jobs.company_cities.sidebar', 3600, fn () =>
+        $companyCities = Cache::remember(TenantCache::key('portal.jobs.company_cities.sidebar'), 3600, fn () =>
             City::select('cities.id', 'cities.name', 'cities.slug')
                 ->join('companies', 'cities.id', '=', 'companies.city_id')
                 ->join('jobs', function ($join) {
@@ -116,7 +117,7 @@ class PublicJobController extends Controller
             ->values()
             ->take(30);
 
-        $totalJobs = Cache::remember('portal.jobs.total', 900, fn () =>
+        $totalJobs = Cache::remember(TenantCache::key('portal.jobs.total'), 900, fn () =>
             Job::active()->published()->count()
         );
 
@@ -290,7 +291,7 @@ class PublicJobController extends Controller
      */
     private function getEmploymentTypeCounts(): array
     {
-        return Cache::remember('portal.jobs.types.counts', 900, function () {
+        return Cache::remember(TenantCache::key('portal.jobs.types.counts'), 900, function () {
             $counts = Job::active()
                 ->published()
                 ->select('employment_type', DB::raw('COUNT(*) as count'))

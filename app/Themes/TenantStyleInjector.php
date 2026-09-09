@@ -51,9 +51,15 @@ class TenantStyleInjector
         $vars['--portal-accent-light'] = "color-mix(in srgb, {$this->sanitizeCssValue($accent)} 15%, white)";
         $vars['--portal-accent-dark'] = "color-mix(in srgb, {$this->sanitizeCssValue($accent)} 80%, black)";
 
+        // Barrierefreie Ableitung der Markenfarbe (#82): dieselbe Farbe so weit
+        // abgedunkelt, dass sie gegen Weiss 4,5:1 erreicht. Symmetrisch nutzbar —
+        // als Textfarbe auf Weiss und als Flaeche unter weisser Schrift.
+        $vars['--portal-primary-text'] = $this->accessibleOnWhite($primary);
+        $vars['--portal-primary-text-strong'] = $this->accessibleOnWhite($primary, 6.0);
+
         // Typography
         $fontFamily = $this->brandingService->get($tenant, TenantConfigConstants::FONT_FAMILY, 'Inter');
-        $vars['--portal-font-family'] = $this->sanitizeCssValue($fontFamily) . ', ui-sans-serif, system-ui, sans-serif';
+        $vars['--portal-font-family'] = $this->sanitizeCssValue($fontFamily).', ui-sans-serif, system-ui, sans-serif';
 
         // Border Radius
         $borderRadius = $this->brandingService->get($tenant, TenantConfigConstants::BORDER_RADIUS, '0.5rem');
@@ -64,7 +70,7 @@ class TenantStyleInjector
         // Spacing (8px grid — always injected for consistency)
         $baseSpace = 0.5; // 8px = 0.5rem
         foreach ([1 => 0.5, 2 => 1, 3 => 1.5, 4 => 2, 5 => 2.5, 6 => 3, 8 => 4, 10 => 5, 12 => 6, 16 => 8] as $step => $multiplier) {
-            $vars["--portal-space-{$step}"] = ($baseSpace * $multiplier) . 'rem';
+            $vars["--portal-space-{$step}"] = ($baseSpace * $multiplier).'rem';
         }
 
         // Shadows (elevation system)
@@ -94,26 +100,85 @@ class TenantStyleInjector
     }
 
     /**
+     * Dunkelt eine Farbe so weit ab, bis sie gegen Weiss das geforderte
+     * WCAG-Kontrastverhaeltnis erreicht (#82).
+     *
+     * Der Farbton bleibt erhalten, weil alle drei Kanaele mit demselben Faktor
+     * skaliert werden. Weil Kontrast symmetrisch ist, taugt das Ergebnis
+     * gleichermassen als Textfarbe auf Weiss und als Flaeche unter weisser
+     * Schrift.
+     */
+    private function accessibleOnWhite(?string $hex, float $target = 4.5): string
+    {
+        [$r, $g, $b] = $this->rgbChannels($hex);
+
+        for ($factor = 100; $factor >= 0; $factor--) {
+            $scaled = [
+                (int) round($r * $factor / 100),
+                (int) round($g * $factor / 100),
+                (int) round($b * $factor / 100),
+            ];
+
+            if ($this->contrastWithWhite($scaled) >= $target) {
+                return sprintf('#%02X%02X%02X', $scaled[0], $scaled[1], $scaled[2]);
+            }
+        }
+
+        return '#000000';
+    }
+
+    /**
+     * Kontrastverhaeltnis einer Farbe gegen Weiss nach WCAG 2.1.
+     *
+     * @param  array{int, int, int}  $rgb
+     */
+    private function contrastWithWhite(array $rgb): float
+    {
+        $channels = [];
+
+        foreach ($rgb as $value) {
+            $channel = $value / 255;
+            $channels[] = $channel <= 0.03928
+                ? $channel / 12.92
+                : (($channel + 0.055) / 1.055) ** 2.4;
+        }
+
+        $luminance = 0.2126 * $channels[0] + 0.7152 * $channels[1] + 0.0722 * $channels[2];
+
+        return 1.05 / ($luminance + 0.05);
+    }
+
+    /**
+     * Zerlegt einen Hex-Wert in seine drei Kanaele.
+     *
+     * @return array{int, int, int}
+     */
+    private function rgbChannels(?string $hex): array
+    {
+        $hex = ltrim($this->sanitizeCssValue($hex), '#');
+
+        if (strlen($hex) === 3) {
+            $hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
+        }
+
+        if (strlen($hex) !== 6 || ! ctype_xdigit($hex)) {
+            return [59, 130, 246]; // Fallback: #3B82F6
+        }
+
+        return [
+            (int) hexdec(substr($hex, 0, 2)),
+            (int) hexdec(substr($hex, 2, 2)),
+            (int) hexdec(substr($hex, 4, 2)),
+        ];
+    }
+
+    /**
      * Convert hex color to comma-separated RGB values.
      * Used for rgba() support: rgba(var(--portal-primary-rgb), 0.5)
      */
     private function hexToRgb(?string $hex): string
     {
-        $hex = ltrim($this->sanitizeCssValue($hex), '#');
-
-        if (strlen($hex) === 3) {
-            $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
-        }
-
-        if (strlen($hex) !== 6 || ! ctype_xdigit($hex)) {
-            return '59, 130, 246'; // Fallback: #3B82F6
-        }
-
-        $r = hexdec(substr($hex, 0, 2));
-        $g = hexdec(substr($hex, 2, 2));
-        $b = hexdec(substr($hex, 4, 2));
-
-        return "{$r}, {$g}, {$b}";
+        return implode(', ', $this->rgbChannels($hex));
     }
 
     /**
@@ -129,7 +194,7 @@ class TenantStyleInjector
         if (preg_match('/^([\d.]+)rem$/', trim($value), $matches)) {
             $scaled = round((float) $matches[1] * $factor, 3);
 
-            return $scaled . 'rem';
+            return $scaled.'rem';
         }
 
         return $value;

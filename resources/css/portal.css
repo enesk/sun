@@ -8,6 +8,11 @@
  *   --portal-primary, --portal-secondary, --portal-accent (hex)
  *   --portal-primary-rgb, --portal-secondary-rgb, --portal-accent-rgb (r, g, b)
  *   --portal-primary-light/dark/hover, --portal-secondary-light/dark, --portal-accent-light/dark
+ *   --portal-primary-text (abgedunkelte Markenfarbe, erreicht gegen Weiss 4,5:1 —
+ *       fuer Text, Rahmen und Flaechen unter weisser Schrift)
+ *   --portal-primary-text-strong (dasselbe mit 6:1 — fuer Hover-Flaechen und fuer
+ *       Text auf leicht getoenten oder durchscheinenden Flaechen)
+ *   --portal-primary bleibt der reinen Flaeche ohne Text darauf vorbehalten
  *   --portal-font-family, --portal-radius, --portal-radius-sm, --portal-radius-lg
  */
 
@@ -22,6 +27,8 @@
     --color-portal-primary-light: var(--portal-primary-light, #EFF6FF);
     --color-portal-primary-dark: var(--portal-primary-dark, #1E3A5F);
     --color-portal-primary-hover: var(--portal-primary-hover, #2563EB);
+    --color-portal-primary-text: var(--portal-primary-text, #3472D8);
+    --color-portal-primary-text-strong: var(--portal-primary-text-strong, #2C60B6);
 
     --color-portal-secondary: var(--portal-secondary, #1E40AF);
     --color-portal-secondary-light: var(--portal-secondary-light, #DBEAFE);
@@ -122,7 +129,7 @@
 
     /* --- Buttons --- */
     .btn-portal {
-        background-color: var(--portal-primary);
+        background-color: var(--portal-primary-text, #3472D8);
         color: white;
         border-radius: var(--portal-radius, 0.5rem);
         padding: 0.5rem 1rem;
@@ -137,11 +144,11 @@
     }
 
     .btn-portal:hover {
-        background-color: var(--portal-primary-hover);
+        background-color: var(--portal-primary-text-strong, #2C60B6);
     }
 
     .btn-portal:focus-visible {
-        outline: 2px solid var(--portal-primary);
+        outline: 2px solid var(--portal-primary-text, #3472D8);
         outline-offset: 2px;
     }
 
@@ -161,7 +168,7 @@
     .btn-portal-outline {
         background-color: transparent;
         color: var(--portal-primary-dark);
-        border: 2px solid var(--portal-primary);
+        border: 2px solid var(--portal-primary-text, #3472D8);
         border-radius: var(--portal-radius, 0.5rem);
         padding: 0.5rem 1rem;
         font-weight: 500;
@@ -169,7 +176,7 @@
     }
 
     .btn-portal-outline:hover {
-        background-color: var(--portal-primary);
+        background-color: var(--portal-primary-text, #3472D8);
         color: white;
     }
 
@@ -194,7 +201,7 @@
         border-radius: 0.25rem;
         font-size: 0.75rem;
         font-weight: 500;
-        background-color: var(--portal-primary);
+        background-color: var(--portal-primary-text, #3472D8);
         color: white;
     }
 
@@ -2319,7 +2326,8 @@
 }
 
 .cookie-banner__link {
-    color: var(--portal-primary, #3B82F6);
+    /* Die Bannerflaeche ist durchscheinend (~#F3F3F3), deshalb die 6:1-Ableitung. */
+    color: var(--portal-primary-text-strong, #2C60B6);
     text-decoration: underline;
     text-underline-offset: 2px;
 }
@@ -2365,12 +2373,12 @@
 }
 
 .cookie-btn--accept {
-    background: var(--portal-primary, #3B82F6);
+    background: var(--portal-primary-text, #3472D8);
     color: white;
 }
 
 .cookie-btn--accept:hover {
-    background: var(--portal-primary-hover, #2563EB);
+    background: var(--portal-primary-text-strong, #2C60B6);
 }
 
 .cookie-btn--reject {
@@ -2386,22 +2394,22 @@
 
 .cookie-btn--settings {
     background: transparent;
-    color: var(--portal-primary, #3B82F6);
+    color: var(--portal-primary-text-strong, #2C60B6);
     border: 1px solid rgba(var(--portal-primary-rgb, 59, 130, 246), 0.3);
 }
 
 .cookie-btn--settings:hover {
     background: rgba(var(--portal-primary-rgb, 59, 130, 246), 0.05);
-    border-color: var(--portal-primary, #3B82F6);
+    border-color: var(--portal-primary-text, #3472D8);
 }
 
 .cookie-btn--save {
-    background: var(--portal-primary, #3B82F6);
+    background: var(--portal-primary-text, #3472D8);
     color: white;
 }
 
 .cookie-btn--save:hover {
-    background: var(--portal-primary-hover, #2563EB);
+    background: var(--portal-primary-text-strong, #2C60B6);
 }
 
 /* --- Modal Backdrop (Stufe 2) --- */
@@ -8188,6 +8196,23 @@ details[open] > .cookie-category__summary::before {
     margin-bottom: 1rem;
 }
 
+/* Bildnachweis unter dem Titelbild (#71). Auf der abgedunkelten Flaeche des
+   Heros steht er hell genug fuer 4,5:1 und bleibt sichtbar — bei Unsplash ist
+   die Attribution Pflicht. */
+.blog-detail-hero__credit {
+    margin-top: 0.75rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.85);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.blog-detail-hero__credit a {
+    color: #FFFFFF;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
 .blog-detail-hero__author {
     display: flex;
     align-items: center;
@@ -8301,7 +8326,7 @@ details[open] > .cookie-category__summary::before {
 }
 
 .blog-detail-prose a {
-    color: var(--portal-primary, #3B82F6);
+    color: var(--portal-primary-text, #3472D8);
     text-decoration: underline;
     text-underline-offset: 2px;
 }
@@ -8584,7 +8609,7 @@ details[open] > .cookie-category__summary::before {
 .blog-detail-pager__label {
     display: block;
     font-size: 0.75rem;
-    color: #94A3B8;
+    color: #64748B;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-bottom: 0.375rem;
@@ -8630,6 +8655,15 @@ details[open] > .cookie-category__summary::before {
     background: var(--portal-primary, #3B82F6);
     z-index: 100;
     transition: width 50ms linear;
+}
+
+/* Fortschritt ueber transform statt width — kein Layout-Reflow je Scroll-Tick. */
+.blog-reading-progress--active {
+    width: 100%;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 50ms linear;
+    will-change: transform;
 }
 
 /* --- Blog Detail Responsive --- */
@@ -8704,6 +8738,699 @@ details[open] > .cookie-category__summary::before {
     }
 
     .blog-reading-progress {
+        transition: none;
+    }
+}
+
+/* ==========================================================================
+   Ratgeber-Artikel — Bloecke aus dem article_blueprint (#17, Design SUN-RC-004)
+   Farben ausschliesslich ueber --portal-*; keine festen Hex-Werte ausser den
+   Fallbacks, die bereits im Rest dieser Datei etabliert sind.
+   ========================================================================== */
+
+/* --- Breadcrumb im Hero --- */
+.ratgeber-breadcrumb {
+    margin-bottom: 0.75rem;
+}
+
+.ratgeber-breadcrumb ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.ratgeber-breadcrumb a {
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.ratgeber-breadcrumb a:hover {
+    color: #fff;
+}
+
+/* --- Block 2: Kurzantwort --- */
+.ratgeber-short-answer {
+    min-height: 120px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-radius: var(--portal-radius-lg, 16px);
+    border-left: 4px solid var(--portal-primary, #3B82F6);
+    background: var(--portal-primary-light, #EFF6FF);
+}
+
+.ratgeber-short-answer__kicker {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--portal-primary-dark, #1E40AF);
+    margin-bottom: 0.5rem;
+}
+
+.ratgeber-short-answer__text {
+    font-size: 1.1875rem;
+    line-height: 1.6;
+    font-weight: 500;
+    color: #1E293B;
+}
+
+/* --- Block 3: Transparenzzeile --- */
+.ratgeber-transparency {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: #64748B;
+    margin-bottom: 1.5rem;
+}
+
+.ratgeber-transparency a {
+    color: var(--portal-primary-dark, #1E40AF);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+/* --- Block 4: Inhaltsverzeichnis (details/summary, ohne JavaScript) --- */
+.ratgeber-toc {
+    border: 1px solid #E2E8F0;
+    border-radius: var(--portal-radius-lg, 16px);
+    background: #fff;
+    margin-bottom: 1.5rem;
+}
+
+.ratgeber-toc__summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-height: 48px;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    color: #1E293B;
+    cursor: pointer;
+    list-style: none;
+}
+
+.ratgeber-toc__summary::-webkit-details-marker {
+    display: none;
+}
+
+.ratgeber-toc__chevron {
+    flex-shrink: 0;
+    color: #94A3B8;
+    transition: transform 150ms ease;
+}
+
+.ratgeber-toc[open] .ratgeber-toc__chevron {
+    transform: rotate(90deg);
+}
+
+.ratgeber-toc__list {
+    padding: 0 1rem 1rem;
+    counter-reset: toc;
+}
+
+.ratgeber-toc__item {
+    padding: 0.25rem 0;
+}
+
+.ratgeber-toc__item--h3 {
+    padding-left: 1rem;
+}
+
+.ratgeber-toc__link {
+    color: #475569;
+    text-decoration: none;
+    line-height: 1.5;
+}
+
+.ratgeber-toc__link:hover,
+.ratgeber-toc__link.is-active {
+    color: var(--portal-primary-dark, #1E40AF);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+/* --- Block 5: Key-Facts-Tabelle --- */
+.ratgeber-facts {
+    border: 1px solid #E2E8F0;
+    border-radius: var(--portal-radius-lg, 16px);
+    overflow: hidden;
+    margin-bottom: 1.75rem;
+}
+
+.ratgeber-facts__table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.ratgeber-facts__caption {
+    caption-side: top;
+    text-align: left;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    background: var(--portal-primary-light, #EFF6FF);
+    color: var(--portal-primary-dark, #1E40AF);
+}
+
+.ratgeber-facts__table tr + tr {
+    border-top: 1px solid #E2E8F0;
+}
+
+.ratgeber-facts__label,
+.ratgeber-facts__value {
+    padding: 0.75rem 1rem;
+    min-height: 48px;
+    text-align: left;
+    vertical-align: top;
+}
+
+.ratgeber-facts__label {
+    width: 40%;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #1E293B;
+}
+
+.ratgeber-facts__value {
+    width: 60%;
+    font-size: 1rem;
+    color: #334155;
+}
+
+.ratgeber-facts__value--numeric {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.ratgeber-facts__source {
+    font-size: 0.8125rem;
+    color: #64748B;
+    padding: 0.5rem 1rem 0.75rem;
+}
+
+/* --- Infografik aus den Key-Facts (#16/#71) --- */
+.ratgeber-infographic {
+    margin: 0 0 1.75rem;
+    border: 1px solid #E2E8F0;
+    border-radius: var(--portal-radius-lg, 16px);
+    overflow: hidden;
+    background: #FFFFFF;
+}
+
+.ratgeber-infographic__image {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+}
+
+/* --- Block 7: Regionalblock --- */
+.ratgeber-region {
+    padding: 1.5rem;
+    margin: 2rem 0;
+    border-radius: var(--portal-radius-lg, 16px);
+    background: var(--portal-secondary-light, #DBEAFE);
+}
+
+.ratgeber-region__heading {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: #1E293B;
+    margin-bottom: 0.75rem;
+}
+
+.ratgeber-region__intro,
+.ratgeber-region__outro {
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: #334155;
+}
+
+.ratgeber-region__facts {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.5rem 1rem;
+    margin: 1rem 0;
+}
+
+.ratgeber-region__facts dt {
+    font-weight: 600;
+    color: #1E293B;
+}
+
+.ratgeber-region__facts dd {
+    color: #334155;
+}
+
+.ratgeber-region__action {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+}
+
+.ratgeber-region__btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 0 1.25rem;
+    border-radius: var(--portal-radius, 0.5rem);
+    background: var(--portal-primary-text, #3472D8);
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.ratgeber-region__btn:hover {
+    background: var(--portal-primary-text-strong, #2C60B6);
+}
+
+.ratgeber-region__count {
+    font-size: 0.875rem;
+    color: #475569;
+}
+
+/* --- Block 8: FAQ-Akkordeon --- */
+.ratgeber-faq {
+    margin: 2rem 0;
+}
+
+.ratgeber-faq__heading {
+    font-size: 1.625rem;
+    font-weight: 700;
+    color: #1E293B;
+    margin-bottom: 0.75rem;
+}
+
+.ratgeber-faq__item {
+    border: 1px solid #E2E8F0;
+    border-radius: var(--portal-radius, 0.5rem);
+    background: #fff;
+}
+
+.ratgeber-faq__item + .ratgeber-faq__item {
+    margin-top: 0.5rem;
+}
+
+.ratgeber-faq__question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 56px;
+    padding: 1rem;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    color: #1E293B;
+    cursor: pointer;
+    list-style: none;
+}
+
+.ratgeber-faq__question::-webkit-details-marker {
+    display: none;
+}
+
+.ratgeber-faq__question:hover {
+    background: var(--portal-primary-light, #EFF6FF);
+}
+
+.ratgeber-faq__chevron {
+    flex-shrink: 0;
+    color: #94A3B8;
+    transition: transform 150ms ease;
+}
+
+.ratgeber-faq__item[open] .ratgeber-faq__chevron {
+    transform: rotate(90deg);
+}
+
+.ratgeber-faq__answer {
+    padding: 0 1rem 1rem;
+    font-size: 1rem;
+    line-height: 1.7;
+    color: #334155;
+}
+
+/* --- Block 9: Quellen und Aktualitaet --- */
+.ratgeber-sources {
+    border-top: 1px solid #E2E8F0;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+}
+
+.ratgeber-sources__dates {
+    font-size: 0.875rem;
+    color: #64748B;
+}
+
+.ratgeber-sources__heading {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #1E293B;
+    margin: 1rem 0 0.5rem;
+}
+
+.ratgeber-sources__list {
+    list-style: decimal;
+    padding-left: 1.25rem;
+}
+
+.ratgeber-sources__item {
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: #475569;
+}
+
+.ratgeber-sources__publisher {
+    font-weight: 600;
+    color: #1E293B;
+}
+
+.ratgeber-sources__item a {
+    color: var(--portal-primary-dark, #1E40AF);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.ratgeber-sources__external {
+    display: inline-block;
+    vertical-align: -1px;
+}
+
+.ratgeber-sources__stand {
+    color: #64748B;
+}
+
+.ratgeber-sources__more > summary {
+    margin-top: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--portal-primary-dark, #1E40AF);
+    cursor: pointer;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+}
+
+/* --- Block 10: CTA-Box --- */
+.ratgeber-cta {
+    margin: 2rem 0;
+    padding: 2rem;
+    border-radius: var(--portal-radius-lg, 16px);
+    background: var(--portal-primary-text, #3472D8);
+    color: #fff;
+}
+
+.ratgeber-cta__title {
+    font-size: 1.375rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.ratgeber-cta__text {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: #fff;
+}
+
+.ratgeber-cta__btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 48px;
+    margin-top: 1.25rem;
+    padding: 0 1.5rem;
+    border-radius: var(--portal-radius, 0.5rem);
+    background: #fff;
+    color: var(--portal-primary-dark, #1E40AF);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+/* --- Block 11: Autorenbox --- */
+.ratgeber-author {
+    display: flex;
+    gap: 1rem;
+    margin: 2rem 0;
+    padding: 1.25rem;
+    border: 1px solid #E2E8F0;
+    border-radius: var(--portal-radius-lg, 16px);
+    background: #F8FAFC;
+}
+
+.ratgeber-author__mark {
+    flex: 0 0 56px;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--portal-radius, 0.5rem);
+    background: var(--portal-primary-light, #EFF6FF);
+    color: var(--portal-primary-dark, #1E40AF);
+    overflow: hidden;
+}
+
+.ratgeber-author__mark img {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+}
+
+.ratgeber-author__kicker {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748B;
+}
+
+.ratgeber-author__name {
+    font-weight: 600;
+    color: #1E293B;
+}
+
+.ratgeber-author__text {
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: #64748B;
+    margin-top: 0.25rem;
+}
+
+.ratgeber-author__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: 0.875rem;
+    color: var(--portal-primary-dark, #1E40AF);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+/* --- Block 11b: Aenderungshinweise (#24) --- */
+.ratgeber-changelog {
+    margin: 1.5rem 0 2rem;
+    padding: 1.25rem;
+    border-left: 3px solid var(--portal-primary, #3B82F6);
+    border-radius: var(--portal-radius, 0.5rem);
+    background: #F8FAFC;
+}
+
+.ratgeber-changelog__title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #475569;
+    margin: 0;
+}
+
+.ratgeber-changelog__list {
+    list-style: none;
+    margin: 0.75rem 0 0;
+    padding: 0;
+}
+
+.ratgeber-changelog__item + .ratgeber-changelog__item {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #E2E8F0;
+}
+
+.ratgeber-changelog__date {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #1E293B;
+}
+
+.ratgeber-changelog__text {
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: #475569;
+    margin-top: 0.125rem;
+}
+
+.ratgeber-changelog__reason {
+    font-size: 0.8125rem;
+    color: #64748B;
+    margin-top: 0.125rem;
+}
+
+/* --- Seitenspalte der Ratgeber-Detailseite (#83) ---
+   Reihenfolge nach design/ratgeber-template.md, Abschnitt 4. Unter 1024 px
+   entfaellt die Spalte; die Inhalte wandern nicht unter den Artikel. */
+.ratgeber-sidebar {
+    display: none;
+}
+
+/* Das Inhaltsverzeichnis steht entweder im Artikel oder in der Spalte,
+   nie zweimal sichtbar. */
+.ratgeber-toc--sidebar {
+    display: none;
+    margin-bottom: 0;
+}
+
+@media (min-width: 1024px) {
+    .ratgeber-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        width: 20rem;
+        flex-shrink: 0;
+    }
+
+    .ratgeber-toc--inline {
+        display: none;
+    }
+
+    .ratgeber-toc--sidebar {
+        display: block;
+    }
+}
+
+/* Inhaltsverzeichnis, Firmensuche und die klebende Anzeige bleiben als Block
+   zusammen. Zwei getrennte klebende Elemente mit demselben Versatz wuerden
+   einander ueberdecken. */
+.ratgeber-sidebar__sticky {
+    position: sticky;
+    top: 88px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-height: calc(100vh - 6.5rem);
+    overflow-y: auto;
+}
+
+/* Lange Artikel: die Liste scrollt in sich, damit der Block in die
+   Bildschirmhoehe passt und die Anzeige darunter sichtbar bleibt. */
+.ratgeber-toc--sidebar .ratgeber-toc__list {
+    max-height: 40vh;
+    overflow-y: auto;
+}
+
+.ratgeber-sidebar__search {
+    border: 1px solid #E2E8F0;
+    border-radius: var(--portal-radius-lg, 16px);
+    background: #fff;
+    padding: 1rem;
+}
+
+.ratgeber-sidebar__search-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #0F172A;
+    margin: 0;
+}
+
+.ratgeber-sidebar__search-text {
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: #475569;
+    margin-top: 0.25rem;
+}
+
+.ratgeber-sidebar__search-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    margin-top: 0.75rem;
+    padding: 0 1rem;
+    border-radius: var(--portal-radius, 12px);
+    background: var(--portal-primary-text, #3472D8);
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    transition: background 200ms;
+}
+
+.ratgeber-sidebar__search-btn:hover {
+    background: var(--portal-primary-text-strong, #2C60B6);
+}
+
+/* --- Fokus: Bedienelemente ohne JavaScript brauchen einen sichtbaren Ring --- */
+.ratgeber-toc__summary:focus-visible,
+.ratgeber-faq__question:focus-visible,
+.ratgeber-sources__more > summary:focus-visible,
+.ratgeber-region__btn:focus-visible,
+.ratgeber-cta__btn:focus-visible,
+.ratgeber-sidebar__search-btn:focus-visible {
+    outline: 2px solid var(--portal-primary, #3B82F6);
+    outline-offset: 2px;
+}
+
+/* --- Mobil --- */
+@media (max-width: 767px) {
+    .ratgeber-short-answer {
+        padding: 1.25rem;
+    }
+
+    .ratgeber-short-answer__text {
+        font-size: 1.125rem;
+    }
+
+    .ratgeber-facts__label {
+        width: 45%;
+        font-size: 0.9375rem;
+    }
+
+    .ratgeber-facts__value {
+        width: 55%;
+        font-size: 0.9375rem;
+    }
+
+    .ratgeber-region {
+        padding: 1.25rem;
+    }
+
+    .ratgeber-region__facts {
+        grid-template-columns: 1fr;
+        gap: 0.25rem;
+    }
+
+    .ratgeber-region__facts dd {
+        margin-bottom: 0.5rem;
+    }
+
+    .ratgeber-cta {
+        padding: 1.5rem;
+    }
+
+    .ratgeber-author {
+        flex-direction: column;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ratgeber-toc__chevron,
+    .ratgeber-faq__chevron {
         transition: none;
     }
 }

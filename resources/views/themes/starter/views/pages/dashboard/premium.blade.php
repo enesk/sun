@@ -78,13 +78,13 @@
 
                 {{-- Gekündigt-Warnung --}}
                 @if($subscription->is_canceled_at_end_of_cycle)
-                    <div class="dash-flash dash-flash-warning mb-4" role="alert" style="border-radius: 0.5rem;">
+                    <div class="dash-flash dash-flash-warning dash-flash-block mb-4" role="alert" style="border-radius: 0.5rem;">
                         <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                         </svg>
                         <div>
-                            <p class="text-sm font-medium">Ihr Abonnement wurde gekündigt.</p>
-                            <p class="text-xs mt-0.5" style="opacity: 0.85">Sie können alle Premium-Funktionen noch bis zum {{ $subscription->ends_at ? $subscription->ends_at->format('d.m.Y') : 'Ende der Laufzeit' }} nutzen. Danach wird Ihr Eintrag auf den kostenlosen Plan zurückgestuft.</p>
+                            <p class="text-sm font-semibold">Ihr Abonnement wurde gekündigt.</p>
+                            <p class="text-xs mt-0.5 dash-flash-body">Sie können alle Premium-Funktionen noch bis zum {{ $subscription->ends_at ? $subscription->ends_at->format('d.m.Y') : 'Ende der Laufzeit' }} nutzen. Danach wird Ihr Eintrag auf den kostenlosen Plan zurückgestuft.</p>
                         </div>
                     </div>
                 @endif

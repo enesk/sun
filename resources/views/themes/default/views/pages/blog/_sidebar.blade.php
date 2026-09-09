@@ -27,7 +27,7 @@
                 @foreach($recentPosts as $recent)
                     <li>
                         <a href="{{ route('portal.blog.show', $recent->slug) }}" class="block group">
-                            <span class="text-sm font-medium text-[#334155] group-hover:text-[var(--portal-primary,#3B82F6)] transition-colors line-clamp-2">{{ $recent->title }}</span>
+                            <span class="text-sm font-medium text-[#334155] group-hover:text-[var(--portal-primary-text,#3472D8)] transition-colors line-clamp-2">{{ $recent->title }}</span>
                             <span class="text-xs text-[#94A3B8] mt-0.5 block">{{ $recent->formatted_date }}</span>
                         </a>
                     </li>

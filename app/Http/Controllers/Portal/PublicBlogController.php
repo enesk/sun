@@ -2,16 +2,29 @@
 
 namespace App\Http\Controllers\Portal;
 
+use App\Content\Models\ArticleDraft;
+use App\Content\Services\ArticleBlockPresenter;
+use App\Content\Services\ArticleSeoService;
+use App\Content\Services\PortalProfileService;
+use App\Content\Services\TocBuilder;
 use App\Http\Controllers\Controller;
 use App\Models\Portal\Post;
 use App\Models\Portal\PostCategory;
 use App\Models\Portal\PostTag;
+use App\Support\TenantCache;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class PublicBlogController extends Controller
 {
+    public function __construct(
+        private readonly PortalProfileService $profile,
+    ) {}
+
     /**
      * GET /ratgeber — Blog-Übersichtsseite mit Paginierung
      */
@@ -33,45 +46,63 @@ class PublicBlogController extends Controller
 
         $sidebar = $this->getSidebarData();
 
+        $breadcrumb = [
+            ['label' => 'Home', 'url' => route('home')],
+            ['label' => 'Ratgeber'],
+        ];
+
         return view('pages.blog.index', [
             'posts' => $posts,
+            'organization' => $this->profile->organizationJsonLd(),
             'categories' => $sidebar['categories'],
             'popularTags' => $sidebar['popularTags'],
             'recentPosts' => $sidebar['recentPosts'],
-            'breadcrumb' => [
-                ['label' => 'Home', 'url' => route('home')],
-                ['label' => 'Ratgeber'],
-            ],
+            'breadcrumb' => $breadcrumb,
         ]);
     }
 
     /**
      * GET /ratgeber/{slug} — Artikel-Detailseite
      */
-    public function show(string $slug): View
-    {
+    public function show(
+        string $slug,
+        TocBuilder $tocBuilder,
+        ArticleBlockPresenter $blocks,
+        ArticleSeoService $seo,
+    ): View {
         $post = Post::published()
             ->where('slug', $slug)
             ->with(['category', 'tags', 'media'])
             ->firstOrFail();
 
         // View-Count (einmal pro Session)
-        $sessionKey = 'blog_viewed_' . $post->id;
+        $sessionKey = 'blog_viewed_'.$post->id;
         if (! session()->has($sessionKey)) {
             $post->incrementViewCount();
             session()->put($sessionKey, true);
         }
 
-        // Related Posts (gleiche Kategorie)
-        $relatedPosts = collect();
-        if ($post->category_id) {
-            $relatedPosts = Post::published()
-                ->where('id', '!=', $post->id)
-                ->byCategory($post->category_id)
-                ->with(['category', 'media'])
-                ->latest('published_at')
-                ->limit(3)
-                ->get();
+        // Zusatzfelder des Ratgeber-Entwurfs (#3). Redaktionell von Hand
+        // gepflegte Beitraege haben keinen Entwurf — dann entfallen die
+        // zusaetzlichen Bloecke, der Artikel bleibt vollstaendig lesbar.
+        $draft = $this->draftFor($post);
+
+        // Related Posts: zuerst die Artikel, die beim Veroeffentlichen auf
+        // diesen hier verlinkt haben (Backlinks, #21), danach die gleiche
+        // Kategorie.
+        $relatedPosts = $this->backlinkPosts($draft);
+
+        if ($relatedPosts->count() < 3 && $post->category_id) {
+            $relatedPosts = $relatedPosts->merge(
+                Post::published()
+                    ->where('id', '!=', $post->id)
+                    ->whereNotIn('id', $relatedPosts->pluck('id')->all())
+                    ->byCategory($post->category_id)
+                    ->with(['category', 'media'])
+                    ->latest('published_at')
+                    ->limit(3 - $relatedPosts->count())
+                    ->get()
+            );
         }
 
         // Falls weniger als 3 Related: mit neuesten auffüllen
@@ -101,20 +132,111 @@ class PublicBlogController extends Controller
 
         $sidebar = $this->getSidebarData();
 
+        $breadcrumb = array_values(array_filter([
+            ['label' => 'Home', 'url' => route('home')],
+            ['label' => 'Ratgeber', 'url' => route('portal.blog.index')],
+            $post->category ? ['label' => $post->category->name, 'url' => route('portal.blog.category', $post->category->slug)] : null,
+            ['label' => $post->title],
+        ]));
+
+        $toc = $tocBuilder->build($this->bodyHtml($post, $draft));
+        [$bodyBefore, $bodyAfter] = $tocBuilder->splitForRegionalBlock($toc['html'], $toc['headings']);
+
+        $siteName = $this->siteName();
+        $organization = $this->profile->organizationJsonLd();
+        $faq = $blocks->faq($draft);
+        $sources = $blocks->sources($draft);
+        $howTo = $blocks->howTo($draft);
+        $shortAnswer = $blocks->shortAnswer($draft);
+
         return view('pages.blog.show', [
             'post' => $post,
+            'draft' => $draft,
             'relatedPosts' => $relatedPosts,
             'previousPost' => $previousPost,
             'nextPost' => $nextPost,
             'categories' => $sidebar['categories'],
             'popularTags' => $sidebar['popularTags'],
-            'breadcrumb' => [
-                ['label' => 'Home', 'url' => route('home')],
-                ['label' => 'Ratgeber', 'url' => route('portal.blog.index')],
-                $post->category ? ['label' => $post->category->name, 'url' => route('portal.blog.category', $post->category->slug)] : null,
-                ['label' => $post->title],
-            ],
+            'breadcrumb' => $breadcrumb,
+            'seo' => $seo->meta($post, $draft, $siteName),
+            'jsonLd' => $seo->graph($post, $draft, $siteName, $breadcrumb, $faq, $howTo, $sources, $shortAnswer, $toc['html'], $organization),
+            'organization' => $organization,
+            'headings' => $toc['headings'],
+            'bodyBefore' => $bodyBefore,
+            'bodyAfter' => $bodyAfter,
+            'shortAnswer' => $shortAnswer,
+            'keyFacts' => $blocks->keyFacts($draft),
+            'faq' => $faq,
+            'sources' => $sources,
+            'region' => $blocks->region($draft),
+            'heroImage' => $blocks->heroImage($post, $draft),
+            'infographic' => $blocks->infographic($draft),
+            'authorName' => $this->profile->authorName(),
+            'authorUrl' => $this->profile->authorUrl(),
+            'changelog' => $blocks->changelog($draft),
         ]);
+    }
+
+    /**
+     * Artikel, die beim Veroeffentlichen auf diesen Ratgeber verlinkt haben
+     * (#21). Sie stehen im Protokoll des Entwurfs und sind die verlaesslichere
+     * Empfehlung als „gleiche Kategorie": jemand hat den Verweis im Text
+     * tatsaechlich gesetzt.
+     *
+     * @return \Illuminate\Support\Collection<int, Post>
+     */
+    private function backlinkPosts(?ArticleDraft $draft): Collection
+    {
+        $ids = $draft?->backlinkArticleIds() ?? [];
+
+        if ($ids === []) {
+            return collect();
+        }
+
+        return Post::published()
+            ->whereIn('id', array_slice($ids, -3))
+            ->with(['category', 'media'])
+            ->latest('published_at')
+            ->limit(3)
+            ->get();
+    }
+
+    /**
+     * Ratgeber-Entwurf zum veroeffentlichten Beitrag. Portale ohne
+     * Content-Pipeline haben die Tabelle nicht — dort bleibt es beim Bestand.
+     */
+    private function draftFor(Post $post): ?ArticleDraft
+    {
+        if (! Schema::connection((new ArticleDraft)->getConnectionName())->hasTable('article_drafts')) {
+            return null;
+        }
+
+        // Nur live stehende Fassungen. Eine Aktualisierung (#24) traegt vom
+        // Anlegen an dieselbe article_id wie die Fassung, die sie ersetzt —
+        // ohne diese Einschraenkung stuende der unfertige Entwurf ab dem
+        // ersten Ueberarbeitungsschritt auf der oeffentlichen Seite, noch vor
+        // Qualitaetsgate und Pruefung. Die juengste veroeffentlichte Fassung
+        // ist die richtige: nach einem Refresh ist das die neue.
+        return ArticleDraft::query()
+            ->where('article_id', $post->id)
+            ->published()
+            ->latest('id')
+            ->first();
+    }
+
+    /**
+     * Der Entwurf liefert fertiges HTML, der Bestand Markdown.
+     */
+    private function bodyHtml(Post $post, ?ArticleDraft $draft): string
+    {
+        $html = trim((string) $draft?->body_html);
+
+        return $html !== '' ? $html : (string) Str::markdown((string) $post->body);
+    }
+
+    private function siteName(): string
+    {
+        return view()->shared('currentTenant')?->name ?? config('app.name');
     }
 
     /**
@@ -135,6 +257,7 @@ class PublicBlogController extends Controller
 
         return view('pages.blog.category', [
             'category' => $category,
+            'organization' => $this->profile->organizationJsonLd(),
             'posts' => $posts,
             'categories' => $sidebar['categories'],
             'popularTags' => $sidebar['popularTags'],
@@ -165,6 +288,7 @@ class PublicBlogController extends Controller
 
         return view('pages.blog.tag', [
             'tag' => $tag,
+            'organization' => $this->profile->organizationJsonLd(),
             'posts' => $posts,
             'categories' => $sidebar['categories'],
             'popularTags' => $sidebar['popularTags'],
@@ -172,7 +296,7 @@ class PublicBlogController extends Controller
             'breadcrumb' => [
                 ['label' => 'Home', 'url' => route('home')],
                 ['label' => 'Ratgeber', 'url' => route('portal.blog.index')],
-                ['label' => '#' . $tag->name],
+                ['label' => '#'.$tag->name],
             ],
         ]);
     }
@@ -201,7 +325,7 @@ class PublicBlogController extends Controller
             'breadcrumb' => [
                 ['label' => 'Home', 'url' => route('home')],
                 ['label' => 'Ratgeber', 'url' => route('portal.blog.index')],
-                ['label' => 'Suche: ' . $term],
+                ['label' => 'Suche: '.$term],
             ],
         ]);
     }
@@ -211,7 +335,7 @@ class PublicBlogController extends Controller
      */
     private function getSidebarData(): array
     {
-        return Cache::remember('portal.blog.sidebar', 3600, function () {
+        return Cache::remember(TenantCache::key('portal.blog.sidebar'), 3600, function () {
             $categories = PostCategory::topLevel()
                 ->ordered()
                 ->withCount(['posts' => fn ($q) => $q->published()])

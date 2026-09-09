@@ -9,6 +9,11 @@
 
 @section('content')
 
+    {{-- Organization-JSON-LD des Portals (#18) --}}
+    @push('scripts')
+        @include('ratgeber.partials.organization-jsonld', ['organization' => $organization ?? []])
+    @endpush
+
     {{-- Schema.org: CollectionPage --}}
     @push('scripts')
     <script type="application/ld+json">
@@ -22,6 +27,12 @@
             '@type' => 'WebSite',
             'name' => $currentTenant->name ?? config('app.name'),
             'url' => url('/'),
+        ],
+        'publisher' => [
+            '@type' => 'Organization',
+            'name' => $currentTenant->name ?? config('app.name'),
+            'url' => url('/'),
+            'publishingPrinciples' => route('portal.blog.editorial'),
         ],
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
     </script>
@@ -40,6 +51,15 @@
             </div>
             <h1 class="blog-hero__title">Ratgeber</h1>
             <p class="blog-hero__subtitle">Tipps, Anleitungen und Wissenswertes rund um lokale Dienstleister</p>
+            <p class="mt-3">
+                <a href="{{ route('portal.blog.editorial') }}"
+                   class="inline-flex items-center gap-1.5 text-sm text-white/80 hover:text-white underline underline-offset-4">
+                    So arbeitet unsere Redaktion
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            </p>
         </div>
     </div>
 

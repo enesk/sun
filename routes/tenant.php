@@ -1,43 +1,48 @@
 <?php
 
+use App\Content\Http\Middleware\EnsureContentPreviewAccess;
+use App\Http\Controllers\IndexNowKeyController;
+use App\Http\Controllers\Portal\AuthorController;
+use App\Http\Controllers\Portal\BlogFeedController;
 use App\Http\Controllers\Portal\CategoryController;
 use App\Http\Controllers\Portal\CompanyController;
 use App\Http\Controllers\Portal\CompanyRegistrationController;
+use App\Http\Controllers\Portal\LlmsTxtController;
 use App\Http\Controllers\Portal\OwnerDashboardController;
 use App\Http\Controllers\Portal\OwnerJobController;
 use App\Http\Controllers\Portal\PortalHomeController;
-use App\Http\Controllers\Portal\PublicJobController;
 use App\Http\Controllers\Portal\PublicBlogController;
-use App\Http\Controllers\Portal\BlogFeedController;
-use App\Http\Controllers\Portal\PublicFaqController;
 use App\Http\Controllers\Portal\PublicCityController;
+use App\Http\Controllers\Portal\PublicFaqController;
+use App\Http\Controllers\Portal\PublicJobController;
 use App\Http\Controllers\Portal\StaticPageController;
 use App\Http\Controllers\Portal\TrackingController;
-use App\Http\Middleware\TrackCompanyPageView;
+use App\Http\Controllers\RatgeberPreviewController;
+use App\Http\Controllers\Verwaltung\VerwaltungAdController;
+use App\Http\Controllers\Verwaltung\VerwaltungBlogController;
 use App\Http\Controllers\Verwaltung\VerwaltungCategoryController;
 use App\Http\Controllers\Verwaltung\VerwaltungCityController;
+use App\Http\Controllers\Verwaltung\VerwaltungClaimController;
 use App\Http\Controllers\Verwaltung\VerwaltungCompanyController;
 use App\Http\Controllers\Verwaltung\VerwaltungController;
-use App\Http\Controllers\Verwaltung\VerwaltungOrderController;
 use App\Http\Controllers\Verwaltung\VerwaltungEditSuggestionController;
+use App\Http\Controllers\Verwaltung\VerwaltungFaqController;
+use App\Http\Controllers\Verwaltung\VerwaltungInvitationController;
+use App\Http\Controllers\Verwaltung\VerwaltungJobController;
+use App\Http\Controllers\Verwaltung\VerwaltungOrderController;
+use App\Http\Controllers\Verwaltung\VerwaltungProfileController;
+use App\Http\Controllers\Verwaltung\VerwaltungReferralController;
 use App\Http\Controllers\Verwaltung\VerwaltungReviewController;
+use App\Http\Controllers\Verwaltung\VerwaltungRoleController;
+use App\Http\Controllers\Verwaltung\VerwaltungSettingsController;
+use App\Http\Controllers\Verwaltung\VerwaltungStatisticsController;
 use App\Http\Controllers\Verwaltung\VerwaltungSubscriptionController;
+use App\Http\Controllers\Verwaltung\VerwaltungTeamController;
 use App\Http\Controllers\Verwaltung\VerwaltungTransactionController;
 use App\Http\Controllers\Verwaltung\VerwaltungUserController;
-use App\Http\Controllers\Verwaltung\VerwaltungTeamController;
-use App\Http\Controllers\Verwaltung\VerwaltungRoleController;
-use App\Http\Controllers\Verwaltung\VerwaltungInvitationController;
-use App\Http\Controllers\Verwaltung\VerwaltungSettingsController;
-use App\Http\Controllers\Verwaltung\VerwaltungProfileController;
-use App\Http\Controllers\Verwaltung\VerwaltungClaimController;
-use App\Http\Controllers\Verwaltung\VerwaltungReferralController;
-use App\Http\Controllers\Verwaltung\VerwaltungJobController;
-use App\Http\Controllers\Verwaltung\VerwaltungFaqController;
-use App\Http\Controllers\Verwaltung\VerwaltungBlogController;
-use App\Http\Controllers\Verwaltung\VerwaltungAdController;
-use App\Http\Controllers\Verwaltung\VerwaltungStatisticsController;
 use App\Http\Middleware\EnsureHasCompany;
 use App\Http\Middleware\EnsureTenantDashboardAccess;
+use App\Http\Middleware\TrackCompanyPageView;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -75,16 +80,20 @@ Route::middleware([
         return response()->file($path, ['Content-Type' => 'application/xml']);
     })->where('name', '[a-z0-9\-]+')->name('portal.sitemap.part');
 
-    Route::get('/robots.txt', function () {
+    Route::get('/robots.txt', function (\App\Services\RobotsTxtBuilder $robots) {
         $path = storage_path('app/public/robots.txt');
         if (!file_exists($path)) {
-            $domain = request()->getHost();
-            $scheme = 'https';
-            return response("User-agent: *\nAllow: /\nDisallow: /firmenprofil\nDisallow: /verwaltung\nDisallow: /login\nDisallow: /register\n\nSitemap: {$scheme}://{$domain}/sitemap.xml\n", 200)
+            // Fallback bis der Sitemap-Job die Datei geschrieben hat — gleicher
+            // Inhalt inkl. KI-Crawler-Regeln (#18).
+            return response($robots->build('https://'.request()->getHost()), 200)
                 ->header('Content-Type', 'text/plain');
         }
         return response()->file($path, ['Content-Type' => 'text/plain']);
     })->name('portal.robots');
+
+    // KI-Sichtbarkeit: Kurzindex und Volltexte fuer LLM-Crawler (#18)
+    Route::get('/llms.txt', [LlmsTxtController::class, 'index'])->name('portal.llms');
+    Route::get('/llms-full.txt', [LlmsTxtController::class, 'full'])->name('portal.llms-full');
 
     // ads.txt (dynamisch pro Tenant)
     Route::get('/ads.txt', function () {
@@ -97,6 +106,17 @@ Route::middleware([
 
     // RSS-Feed (#204)
     Route::get('/ratgeber/feed', [BlogFeedController::class, 'rss'])->name('portal.blog.feed');
+
+    // Auskunftsseite des Recherche-Bots (#26). Die Adresse steht im
+    // User-Agent der Quell-Connectoren und muss erreichbar sein.
+    Route::get('/bot', \App\Http\Controllers\Portal\BotInfoController::class)->name('portal.bot-info');
+
+    // IndexNow-Schluesseldatei (#21). Das Muster ist eng genug, dass es
+    // robots.txt, ads.txt und llms.txt nicht anfasst: nur Hex, mindestens
+    // acht Zeichen.
+    Route::get('/{key}.txt', IndexNowKeyController::class)
+        ->where('key', '[a-f0-9]{8,128}')
+        ->name('portal.indexnow-key');
 });
 
 Route::middleware([
@@ -133,9 +153,21 @@ Route::middleware([
     // Ratgeber-Blog — öffentlich (#203)
     Route::get('/ratgeber', [PublicBlogController::class, 'index'])->name('portal.blog.index');
     Route::get('/ratgeber/suche', [PublicBlogController::class, 'search'])->name('portal.blog.search');
+    Route::get('/ratgeber/redaktion', [StaticPageController::class, 'editorial'])->name('portal.blog.editorial');
     Route::get('/ratgeber/kategorie/{slug}', [PublicBlogController::class, 'category'])->name('portal.blog.category');
     Route::get('/ratgeber/tag/{slug}', [PublicBlogController::class, 'tag'])->name('portal.blog.tag');
+
+    // Artikelvorschau der Redaktion (#20). Muss vor der Slug-Route stehen,
+    // sonst schluckt diese den Pfad. Signiert und nur fuer Redaktions-Accounts.
+    Route::get('/ratgeber/vorschau/{draft}', [RatgeberPreviewController::class, 'show'])
+        ->whereNumber('draft')
+        ->middleware(['signed', EnsureContentPreviewAccess::class])
+        ->name('ratgeber.preview');
+
     Route::get('/ratgeber/{slug}', [PublicBlogController::class, 'show'])->name('portal.blog.show');
+
+    // Autorenprofil der Redaktion (#18)
+    Route::get('/autor/{slug}', [AuthorController::class, 'show'])->name('portal.author.show');
 
     // Städteseiten (#213)
     Route::get('/staedte', [PublicCityController::class, 'index'])->name('portal.cities.index');

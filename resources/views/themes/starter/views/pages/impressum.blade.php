@@ -2,6 +2,11 @@
 
 @section('title', 'Impressum — ' . ($currentTenant->name ?? config('app.name')))
 
+{{-- Ohne hinterlegten Text ist die Seite rechtlich unvollstaendig — dann nicht indexieren lassen. --}}
+@empty($content)
+    @section('meta_robots', 'noindex, follow')
+@endempty
+
 @section('content')
 
     @include('components.breadcrumb', ['items' => [
@@ -18,7 +23,7 @@
                 </svg>
             </div>
             <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">Impressum</h1>
-            <p class="text-white/70 text-sm md:text-base">Angaben gemäß § 5 TMG</p>
+            <p class="text-white/70 text-sm md:text-base">Angaben gemäß § 5 DDG</p>
         </div>
     </div>
 

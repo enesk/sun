@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Portal\Category;
 use App\Models\Portal\City;
 use App\Models\Portal\Company;
+use App\Support\TenantCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
@@ -17,7 +18,7 @@ class PublicCityController extends Controller
      */
     public function index(): View
     {
-        $cities = Cache::remember('portal.cities.public.index.top20', 3600, fn () =>
+        $cities = Cache::remember(TenantCache::key('portal.cities.public.index.top20'), 3600, fn () =>
             City::withCount(['companies' => fn ($q) => $q->where('is_active', true)])
                 ->having('companies_count', '>', 0)
                 ->orderByDesc('companies_count')
@@ -76,7 +77,7 @@ class PublicCityController extends Controller
         $companies = $query->paginate(18)->withQueryString();
 
         // Sidebar: Kategorien in dieser Stadt (gecacht)
-        $categories = Cache::remember("portal.categories.city.{$city->id}", 3600, fn () =>
+        $categories = Cache::remember(TenantCache::key("portal.categories.city.{$city->id}"), 3600, fn () =>
             Category::select('categories.id', 'categories.name', 'categories.slug')
                 ->join('category_company', 'categories.id', '=', 'category_company.category_id')
                 ->join('companies', 'companies.id', '=', 'category_company.company_id')
@@ -91,7 +92,7 @@ class PublicCityController extends Controller
         );
 
         // Verwandte Städte (gleicher Bundesland, gecacht)
-        $relatedCities = Cache::remember("portal.cities.related.{$city->id}", 3600, fn () =>
+        $relatedCities = Cache::remember(TenantCache::key("portal.cities.related.{$city->id}"), 3600, fn () =>
             City::where('administrative_area_level_1', $city->administrative_area_level_1)
                 ->where('id', '!=', $city->id)
                 ->withCount(['companies' => fn ($q) => $q->where('is_active', true)])

@@ -39,6 +39,8 @@
         --dash-warning: #d97706;
         --dash-warning-light: #fffbeb;
         --dash-warning-border: #fde68a;
+        /* Textfarbe im Warnkasten: 6,9:1 auf #fffbeb (--dash-warning waere 3,9:1) */
+        --dash-warning-strong: #92400e;
         --dash-danger: #dc2626;
         --dash-danger-light: #fef2f2;
         --dash-danger-border: #fecaca;
@@ -217,7 +219,7 @@
     }
     .dash-badge-warning {
         background-color: var(--dash-warning-light, #fffbeb);
-        color: var(--dash-warning, #d97706);
+        color: var(--dash-warning-strong, #92400e);
     }
     .dash-badge-danger {
         background-color: var(--dash-danger-light, #fef2f2);
@@ -493,7 +495,7 @@
     .dash-toast-warning {
         background-color: var(--dash-warning-light, #fffbeb);
         border-color: var(--dash-warning-border, #fde68a);
-        color: var(--dash-warning, #d97706);
+        color: var(--dash-warning-strong, #92400e);
     }
     .dash-toast-info {
         background-color: var(--dash-info-light, #eff6ff);
@@ -811,7 +813,7 @@
     }
     .dash-tab-count-warning {
         background-color: var(--dash-warning-light, #fffbeb);
-        color: var(--dash-warning, #d97706);
+        color: var(--dash-warning-strong, #92400e);
     }
 
     /* Pagination */
@@ -1121,6 +1123,15 @@
     @media (min-width: 640px) {
         .dash-form-grid-2 { grid-template-columns: repeat(2, 1fr); }
         .dash-form-grid-3 { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    /* PLZ | Ort — 1/3 zu 2/3 (Vorgabe #61, §3.3) */
+    .dash-form-grid-zip {
+        display: grid;
+        gap: 1rem;
+    }
+    @media (min-width: 640px) {
+        .dash-form-grid-zip { grid-template-columns: 1fr 2fr; }
     }
 
     .dash-form-section {
@@ -1519,6 +1530,34 @@
         background-color: var(--dash-danger-light, #fef2f2);
         border-color: var(--dash-danger-border, #fecaca);
         color: var(--dash-danger, #dc2626);
+    }
+
+    .dash-flash-warning {
+        background-color: var(--dash-warning-light, #fffbeb);
+        border-color: var(--dash-warning-border, #fde68a);
+        color: var(--dash-warning-strong, #92400e);
+    }
+
+    .dash-flash-info {
+        background-color: var(--dash-info-light, #eff6ff);
+        border-color: var(--dash-info-border, #bfdbfe);
+        color: var(--dash-info, #2563eb);
+    }
+
+    /* Mehrzeilige Kästen: Symbol oben statt vertikal zentriert */
+    .dash-flash-block {
+        align-items: flex-start;
+    }
+
+    /* Fließtext im Kasten trägt nicht die Statusfarbe (Kontrast) */
+    .dash-flash-body {
+        color: var(--dash-text-primary);
+    }
+
+    /* Textlink im Warnkasten: sichtbarer Fokusring (Vorgabe #61, §4.1) */
+    .dash-flash-link:focus-visible {
+        outline: 2px solid currentColor;
+        outline-offset: 2px;
     }
 
     .dash-flash-icon {
@@ -2842,7 +2881,7 @@
 /* --- Tab Count Warning --- */
 .dash-tab-count-warning {
     background: rgba(245, 158, 11, 0.15);
-    color: #D97706;
+    color: var(--dash-warning-strong, #92400e);
 }
 
 /* --- Mobile Responsive --- */

@@ -13,6 +13,9 @@
         </div>
     </div>
 
+    {{-- Warnung: Anschrift fehlt, Rechtstexte rendern leer (#61) --}}
+    @livewire('verwaltung.address-warning-banner')
+
     {{-- KPI Stats (Livewire — with period filter) --}}
     <div class="dash-section" style="margin-top:0;">
         @livewire('verwaltung.stats-overview')

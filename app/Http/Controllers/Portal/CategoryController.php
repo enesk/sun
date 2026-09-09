@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Portal\Category;
 use App\Models\Portal\City;
 use App\Models\Portal\Company;
+use App\Support\TenantCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
@@ -14,7 +15,7 @@ class CategoryController extends Controller
 {
     public function index(): View
     {
-        $categories = Cache::remember('portal.categories.index', 3600, fn () =>
+        $categories = Cache::remember(TenantCache::key('portal.categories.index'), 3600, fn () =>
             Category::roots()
                 ->ordered()
                 ->withCount(['companies' => fn ($q) => $q->where('is_active', true)])
@@ -24,7 +25,7 @@ class CategoryController extends Controller
                 ->get()
         );
 
-        $totalCompanies = Cache::remember('portal.stats.total', 900, fn () =>
+        $totalCompanies = Cache::remember(TenantCache::key('portal.stats.total'), 900, fn () =>
             Company::active()->count()
         );
 
@@ -70,7 +71,7 @@ class CategoryController extends Controller
         $companies = $query->paginate(18)->withQueryString();
 
         // Sidebar: gecacht (1h)
-        $allCategories = Cache::remember('portal.categories.sidebar', 3600, fn () =>
+        $allCategories = Cache::remember(TenantCache::key('portal.categories.sidebar'), 3600, fn () =>
             Category::roots()
                 ->ordered()
                 ->withCount(['companies' => fn ($q) => $q->where('is_active', true)])
@@ -78,7 +79,7 @@ class CategoryController extends Controller
         );
 
         // Cities per Kategorie: JOIN statt doppelt-verschachtelter whereHas, gecacht + limitiert
-        $cities = Cache::remember("portal.cities.category.{$category->id}", 3600, fn () =>
+        $cities = Cache::remember(TenantCache::key("portal.cities.category.{$category->id}"), 3600, fn () =>
             City::select('cities.id', 'cities.name', 'cities.slug')
                 ->join('companies', 'cities.id', '=', 'companies.city_id')
                 ->join('category_company', 'companies.id', '=', 'category_company.company_id')

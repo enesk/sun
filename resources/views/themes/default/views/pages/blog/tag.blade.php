@@ -5,6 +5,11 @@
 
 @section('content')
 
+    {{-- Organization-JSON-LD des Portals (#18) --}}
+    @push('scripts')
+        @include('ratgeber.partials.organization-jsonld', ['organization' => $organization ?? []])
+    @endpush
+
     @include('components.breadcrumb', ['items' => $breadcrumb])
 
     {{-- Hero --}}
@@ -38,7 +43,7 @@
                     <div class="text-center py-16">
                         <h2 class="text-lg font-semibold text-[#0F172A] mb-2">Noch keine Artikel zu diesem Thema</h2>
                         <p class="text-sm text-[#64748B] mb-4">Schauen Sie bald wieder vorbei.</p>
-                        <a href="{{ route('portal.blog.index') }}" class="text-sm font-semibold" style="color: var(--portal-primary, #3B82F6);">Alle Ratgeber ansehen &rarr;</a>
+                        <a href="{{ route('portal.blog.index') }}" class="text-sm font-semibold" style="color: var(--portal-primary-text, #3472D8);">Alle Ratgeber ansehen &rarr;</a>
                     </div>
                 @endif
             </div>

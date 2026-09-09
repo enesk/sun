@@ -1,6 +1,26 @@
 User-agent: *
 Allow: /
-Disallow: /firmenprofil/dashboard
+Disallow: /firmenprofil/
+Disallow: /verwaltung/
+Disallow: /login
+Disallow: /register
+
+# KI-Crawler und KI-Suchdienste duerfen die Inhalte dieses Portals nutzen.
+# Kurzindex: http://sanitaer.test/llms.txt — Volltexte: http://sanitaer.test/llms-full.txt
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-User
+User-agent: Claude-SearchBot
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: CCBot
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /firmenprofil/
+Disallow: /verwaltung/
 Disallow: /login
 Disallow: /register
 

@@ -2,19 +2,20 @@
 
 namespace App\Jobs;
 
+use App\Content\Services\LlmsTxtBuilder;
+use App\Content\Services\RatgeberSitemapGenerator;
 use App\Models\Portal\Category;
 use App\Models\Portal\Company;
 use App\Models\Portal\FAQ;
 use App\Models\Portal\Job as PortalJob;
-use App\Models\Portal\Post;
 use App\Models\Tenant;
+use App\Services\RobotsTxtBuilder;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\File;
 use Spatie\Sitemap\Sitemap;
 use Spatie\Sitemap\SitemapIndex;
 use Spatie\Sitemap\Tags\Url;
@@ -24,6 +25,7 @@ class GenerateTenantSitemapJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $timeout = 600;
+
     public int $tries = 1;
 
     private const MAX_URLS_PER_SITEMAP = 45000;
@@ -49,6 +51,7 @@ class GenerateTenantSitemapJob implements ShouldQueue
                 'percent' => 0,
                 'message' => 'Keine Domain konfiguriert.',
             ], now()->addMinutes(5));
+
             return;
         }
 
@@ -59,7 +62,7 @@ class GenerateTenantSitemapJob implements ShouldQueue
 
         $tenant->run(function () use ($baseUrl, $cacheKey) {
             $sitemapDir = storage_path('app/public');
-            if (!is_dir($sitemapDir)) {
+            if (! is_dir($sitemapDir)) {
                 mkdir($sitemapDir, 0755, true);
             }
 
@@ -106,32 +109,16 @@ class GenerateTenantSitemapJob implements ShouldQueue
                 );
             }
 
-            // Blog posts
-            $blogPostCount = Post::published()->count();
-            if ($blogPostCount > 0) {
-                $miscSitemap->add(
-                    Url::create("{$baseUrl}/ratgeber")
-                        ->setPriority(0.8)
-                        ->setChangeFrequency(Url::CHANGE_FREQUENCY_DAILY)
-                );
-                Post::published()
-                    ->select(['slug', 'published_at', 'updated_at'])
-                    ->orderByDesc('published_at')
-                    ->chunk(200, function ($posts) use ($miscSitemap, $baseUrl) {
-                        foreach ($posts as $post) {
-                            $miscSitemap->add(
-                                Url::create("{$baseUrl}/ratgeber/{$post->slug}")
-                                    ->setPriority(0.7)
-                                    ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
-                                    ->setLastModificationDate($post->updated_at ?? $post->published_at)
-                            );
-                        }
-                    });
-            }
-
             $miscSitemap->writeToFile("{$sitemapDir}/sitemap-misc.xml");
             $sitemapFiles[] = 'sitemap-misc.xml';
-            $this->updateProgress($cacheKey, 15, 'Statische Seiten, Kategorien, Jobs & Blog fertig');
+
+            // Ratgeber: eigene Sitemap mit lastmod = dateModified der Artikelseite (#18)
+            $ratgeberFile = app(RatgeberSitemapGenerator::class)->generate($baseUrl, $sitemapDir);
+            if ($ratgeberFile !== null) {
+                $sitemapFiles[] = $ratgeberFile;
+            }
+
+            $this->updateProgress($cacheKey, 15, 'Statische Seiten, Kategorien, Jobs & Ratgeber fertig');
 
             // Step 2: Companies in chunks of MAX_URLS_PER_SITEMAP (15% → 90%)
             $this->updateProgress($cacheKey, 15, 'Firmen werden geladen...');
@@ -191,9 +178,11 @@ class GenerateTenantSitemapJob implements ShouldQueue
 
             $this->updateProgress($cacheKey, 95, 'robots.txt wird geschrieben...');
 
-            // Write robots.txt
-            $robotsContent = "User-agent: *\nAllow: /\nDisallow: /firmenprofil/\nDisallow: /verwaltung/\nDisallow: /login\nDisallow: /register\n\nSitemap: {$baseUrl}/sitemap.xml\n";
-            file_put_contents("{$sitemapDir}/robots.txt", $robotsContent);
+            // robots.txt inkl. KI-Crawler-Regeln (#18)
+            file_put_contents("{$sitemapDir}/robots.txt", app(RobotsTxtBuilder::class)->build($baseUrl));
+
+            // llms.txt neu aufbauen lassen, die Artikelliste kann sich geaendert haben
+            LlmsTxtBuilder::flush();
         });
 
         // Count totals for summary
@@ -213,7 +202,7 @@ class GenerateTenantSitemapJob implements ShouldQueue
         Cache::put(self::cacheKey($this->tenantId), [
             'status' => 'failed',
             'percent' => 0,
-            'message' => 'Fehler: ' . $exception->getMessage(),
+            'message' => 'Fehler: '.$exception->getMessage(),
         ], now()->addMinutes(5));
     }
 

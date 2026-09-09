@@ -10,6 +10,7 @@ use App\Models\Portal\FAQ;
 use App\Models\Portal\Job;
 use App\Models\Portal\Post;
 use App\Models\Portal\Review;
+use App\Support\TenantCache;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -18,7 +19,7 @@ class PortalHomeController extends Controller
 {
     public function index(): View
     {
-        $featuredCompanies = Cache::remember('portal.featured_companies', 300, fn () =>
+        $featuredCompanies = Cache::remember(TenantCache::key('portal.featured_companies'), 300, fn () =>
             Company::active()
                 ->with(['categories', 'city', 'media'])
                 ->premium()
@@ -28,11 +29,11 @@ class PortalHomeController extends Controller
                 ->get()
         );
 
-        $latestCompanies = Cache::remember('portal.random_companies', 300, fn () =>
+        $latestCompanies = Cache::remember(TenantCache::key('portal.random_companies'), 300, fn () =>
             $this->getRandomCompanies(6)
         );
 
-        $categories = Cache::remember('portal.categories.home', 3600, fn () =>
+        $categories = Cache::remember(TenantCache::key('portal.categories.home'), 3600, fn () =>
             Category::roots()
                 ->ordered()
                 ->with(['children' => fn ($q) => $q->ordered()->withCount(['companies' => fn ($q2) => $q2->where('is_active', true)])])
@@ -44,7 +45,7 @@ class PortalHomeController extends Controller
         $topCategories = $sortedCategories->take(3)->values();
         $restCategories = $sortedCategories->skip(3)->values();
 
-        $popularCities = Cache::remember('portal.cities.hero', 3600, fn () =>
+        $popularCities = Cache::remember(TenantCache::key('portal.cities.hero'), 3600, fn () =>
             City::withCount(['companies' => fn ($q) => $q->where('is_active', true)])
                 ->having('companies_count', '>', 0)
                 ->orderByDesc('companies_count')
@@ -52,7 +53,7 @@ class PortalHomeController extends Controller
                 ->get()
         );
 
-        $stats = Cache::remember('portal.stats', 900, fn () => [
+        $stats = Cache::remember(TenantCache::key('portal.stats'), 900, fn () => [
             'totalCompanies' => Company::active()->count(),
             'totalCities' => Company::active()
                 ->whereNotNull('city_id')
@@ -67,11 +68,11 @@ class PortalHomeController extends Controller
             'totalReviews' => Review::approved()->count(),
         ]);
 
-        $homeFaqs = Cache::remember('portal.home_faqs', 3600, fn () =>
+        $homeFaqs = Cache::remember(TenantCache::key('portal.home_faqs'), 3600, fn () =>
             FAQ::active()->forPage('home')->ordered()->take(6)->get()
         );
 
-        $latestPosts = Cache::remember('portal.latest_posts', 600, fn () =>
+        $latestPosts = Cache::remember(TenantCache::key('portal.latest_posts'), 600, fn () =>
             Post::published()
                 ->with(['category', 'media'])
                 ->latest('published_at')
@@ -79,7 +80,7 @@ class PortalHomeController extends Controller
                 ->get()
         );
 
-        $latestJobs = Cache::remember('portal.latest_jobs', 600, fn () =>
+        $latestJobs = Cache::remember(TenantCache::key('portal.latest_jobs'), 600, fn () =>
             Job::active()
                 ->published()
                 ->with(['company', 'company.media', 'city'])

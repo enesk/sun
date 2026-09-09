@@ -9,6 +9,7 @@ use App\Models\Portal\Company;
 use App\Models\Portal\Job;
 use App\Services\CompanyUrlService;
 use App\Services\TrackingService;
+use App\Support\TenantCache;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -65,7 +66,7 @@ class CompanyController extends Controller
         $companies = $query->paginate(18)->withQueryString();
 
         // Sidebar: gecacht (1h), ändert sich selten
-        $categories = Cache::remember('portal.categories.sidebar', 3600, fn () =>
+        $categories = Cache::remember(TenantCache::key('portal.categories.sidebar'), 3600, fn () =>
             Category::roots()
                 ->ordered()
                 ->withCount(['companies' => fn ($q) => $q->where('is_active', true)])
@@ -73,7 +74,7 @@ class CompanyController extends Controller
         );
 
         // Cities Sidebar: TOP 50 statt unbounded, gecacht
-        $cities = Cache::remember('portal.cities.sidebar', 3600, fn () =>
+        $cities = Cache::remember(TenantCache::key('portal.cities.sidebar'), 3600, fn () =>
             City::withCount(['companies' => fn ($q) => $q->where('is_active', true)])
                 ->having('companies_count', '>', 0)
                 ->orderByDesc('companies_count')
@@ -81,7 +82,7 @@ class CompanyController extends Controller
                 ->get()
         );
 
-        $totalCompanies = Cache::remember('portal.stats.total', 900, fn () =>
+        $totalCompanies = Cache::remember(TenantCache::key('portal.stats.total'), 900, fn () =>
             Company::active()->count()
         );
 
