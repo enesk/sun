@@ -1,0 +1,598 @@
+/*
+ * Content-Panel Theme (Filament Panel "content")
+ * ------------------------------------------------------------------
+ * Gestaltungsquelle: Dokument "Designsystem Content-Dashboard (Ticket #5)"
+ * Klammer:           Dokument "UX-Leitbild Ratgeber-Pipeline (Epic #1)"
+ *
+ * Dieses Theme gehoert ausschliesslich zum Panel `content` (config/content.php).
+ * Es darf NICHT in Admin- oder Dashboard-Panel importiert werden: das Content-
+ * Dashboard soll sich vom Admin-Panel klar unterscheiden (Ticket #5, Hinweis
+ * "eigenes Theme"). Deshalb wird `colors.css` (Violett #6f27e5) hier bewusst
+ * NICHT importiert.
+ *
+ * Registrierung (Umsetzung in #4):
+ *   vite.config.js  -> 'resources/css/content/theme.css' in input aufnehmen
+ *   ContentPanelProvider -> ->viteTheme('resources/css/content/theme.css')
+ *
+ * Statusfarben sind normativ. Sie gelten identisch in Board, Kalender,
+ * Tabellen, Leistung und E-Mail (Leitbild, Prinzip 2) und bilden die sieben
+ * Werte von App\Content\Enums\DisplayStatus ab. DraftStatus und TopicStatus
+ * bekommen KEINE eigenen Farben, sie werden ueber fromDraft()/fromTopic()
+ * abgebildet und nur als Fortschrittstext unter der Pille gezeigt.
+ */
+
+@import '../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../app/Filament/Content';
+@source '../../../app/Content';
+@source '../../views/filament/content';
+@source '../../views/content';
+@source '../../../vendor/**/*.blade.php';
+
+@theme {
+    /* ==============================================================
+       Markenfarbe des Content-Panels — Teal
+       Bewusst weit weg vom Admin-Violett (#6f27e5) und vom
+       Portal-Blau, damit ein Screenshot ohne Kontext eindeutig
+       zuordenbar ist.
+       ============================================================== */
+    --color-content-50:  #eefbf8;
+    --color-content-100: #d3f5ee;
+    --color-content-200: #a9ebe0;
+    --color-content-300: #72dbcd;
+    --color-content-400: #3cc2b3;
+    --color-content-500: #17a698;
+    --color-content-600: #0d857b;   /* Primaer: Schaltflaechen, Fokusring */
+    --color-content-700: #0d6a63;
+    --color-content-800: #105450;
+    --color-content-900: #114643;
+    --color-content-950: #032927;
+
+    /* Filament-Farbrollen des Panels */
+    --color-primary-50:  var(--color-content-50);
+    --color-primary-100: var(--color-content-100);
+    --color-primary-200: var(--color-content-200);
+    --color-primary-300: var(--color-content-300);
+    --color-primary-400: var(--color-content-400);
+    --color-primary-500: var(--color-content-500);
+    --color-primary-600: var(--color-content-600);
+    --color-primary-700: var(--color-content-700);
+    --color-primary-800: var(--color-content-800);
+    --color-primary-900: var(--color-content-900);
+    --color-primary-950: var(--color-content-950);
+
+    /* ==============================================================
+       Flaechen — warmes Grau statt reinem Neutralgrau.
+       Traegt die Unterscheidung zum Admin-Panel mit, auch wenn die
+       Seite gerade keine Markenfarbe zeigt.
+       ============================================================== */
+    --color-surface-page:    #f7f7f5;  /* Seitenhintergrund */
+    --color-surface-card:    #ffffff;  /* Karte, Tabelle, Spalte */
+    --color-surface-sunken:  #f0f0ed;  /* Board-Spalte, Skelett, Leerzustand */
+    --color-surface-nav:     #103f3c;  /* Seitennavigation, dunkel */
+    --color-surface-nav-active: #17a698;
+
+    --color-line-soft:   #e7e7e2;      /* Trennlinie in Karten */
+    --color-line-strong: #d3d3cc;      /* Kartenrand, Tabellenkopf */
+
+    --color-text-strong: #16211f;      /* Ueberschriften, Zahlen: 15,5:1 */
+    --color-text-base:   #3d4a48;      /* Fliesstext: 9,6:1 */
+    --color-text-muted:  #64716f;      /* Beschriftungen, Datenstand: 4,9:1 auf
+                                          surface-card. Auf surface-sunken nur
+                                          4,45:1 — dort text-base nehmen (#64). */
+
+    /* ==============================================================
+       Statusfarben — DisplayStatus, sieben Werte, normativ.
+       Je Status vier Rollen:
+         bg    Flaeche der Pille / des Badges
+         fg    Text und Rand, >= 4,5:1 auf bg und auf Weiss
+         dot   der 8-px-Punkt und die 20-px-Zaehlmarke; identisch mit fg,
+               damit der Punkt >= 4,5:1 traegt und weisse Zahlen darauf
+               lesbar bleiben (Ticket #30 — die frueheren helleren Punkte
+               erreichten bei "Zur Pruefung" nur 2,1:1)
+         fill  grosse Flaechen: Fortschrittsbalken, Kalenderbalken,
+               Diagrammreihen. Nur auf surface-card (Weiss), nie auf
+               surface-sunken, und nie ohne beschriftete Legende.
+       Farbe nie allein: immer Beschriftung oder Symbol daneben.
+       Diese Werte sind zugleich Schattierung 50 (bg) und 600 (fg) der in
+       config/content.php registrierten Filament-Farben status-* — dadurch
+       treffen Filament-Badge und .content-status exakt dieselben Toene.
+       ============================================================== */
+    --color-status-idea-bg:   #f4f5f7;
+    --color-status-idea-fg:   #475569;
+    --color-status-idea-dot:  #475569;
+    --color-status-idea-fill: #64748b;
+
+    --color-status-scheduled-bg:   #eff6ff;
+    --color-status-scheduled-fg:   #1d4ed8;
+    --color-status-scheduled-dot:  #1d4ed8;
+    --color-status-scheduled-fill: #3b82f6;
+
+    --color-status-generating-bg:   #f5f3ff;
+    --color-status-generating-fg:   #6d28d9;
+    --color-status-generating-dot:  #6d28d9;
+    --color-status-generating-fill: #8b5cf6;
+
+    --color-status-review-bg:   #fffbeb;
+    --color-status-review-fg:   #b45309;
+    --color-status-review-dot:  #b45309;
+    --color-status-review-fill: #d97706;
+
+    --color-status-published-bg:   #ecfdf5;
+    --color-status-published-fg:   #047857;
+    --color-status-published-dot:  #047857;
+    --color-status-published-fill: #059669;
+
+    --color-status-failed-bg:   #fef2f2;
+    --color-status-failed-fg:   #b91c1c;
+    --color-status-failed-dot:  #b91c1c;
+    --color-status-failed-fill: #dc2626;
+
+    --color-status-archived-bg:   #f8fafc;
+    --color-status-archived-fg:   #64716f;
+    --color-status-archived-dot:  #64716f;
+    --color-status-archived-fill: #7c8a88;
+
+    /* Wortmarken im Fassungsvergleich (#44/#53) — eigener Namensraum, weil
+       sie keine Statusbedeutung tragen. Kontraste: del 8,1:1, ins 9,4:1. */
+    --color-diff-del-bg: #fecaca;
+    --color-diff-del-fg: #7f1d1d;
+    --color-diff-ins-bg: #a7f3d0;
+    --color-diff-ins-fg: #064e3b;
+
+    /* Platzhalter im Prompt-Editor (#54) — eigener Namensraum, weil sie
+       keinen Status ausdruecken (#30). Zwei Zustaende: belegt (Beispielwert
+       in variables_json) und unbelegt. Unbelegt traegt zusaetzlich eine
+       gestrichelte Unterlinie, damit der Unterschied nicht allein an der
+       Farbe haengt. Kontraste: belegt 11,4:1, unbelegt 5,6:1. */
+    --color-placeholder-known-bg:   #d3f5ee;
+    --color-placeholder-known-fg:   #114643;
+    --color-placeholder-missing-bg: #f0f0ed;
+    --color-placeholder-missing-fg: #64716f;
+
+    /* Qualitaetsscore (Gate #15) — eigene Skala, NICHT die Statusfarben,
+       damit ein gruener Score nicht mit "Veroeffentlicht" verwechselt wird. */
+    --color-score-good:   #0d857b;   /* >= Auto-Freigabegrenze */
+    --color-score-mid:    #b45309;   /* unter Grenze, pruefbar */
+    --color-score-poor:   #b91c1c;   /* Ausschluss */
+
+    /* ==============================================================
+       Abstaende — 8px-Skala, deckungsgleich mit --portal-space-* in
+       resources/css/portal.css. Keine Zwischenwerte erfinden.
+       ============================================================== */
+    --spacing-content-1:  0.25rem;   /*  4px */
+    --spacing-content-2:  0.5rem;    /*  8px */
+    --spacing-content-3:  0.75rem;   /* 12px */
+    --spacing-content-4:  1rem;      /* 16px — Abstand zwischen Karten */
+    --spacing-content-6:  1.5rem;    /* 24px — Innenabstand Karte */
+    --spacing-content-8:  2rem;      /* 32px — Abstand zwischen Abschnitten */
+    --spacing-content-12: 3rem;      /* 48px */
+    --spacing-content-16: 4rem;      /* 64px */
+
+    /* ==============================================================
+       Typografie — Panel. Zahlen tabellar, damit Spalten in Tabellen
+       und Kacheln nicht springen.
+       ============================================================== */
+    --font-content-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+    --font-content-nums: "Inter Tight", Inter, ui-sans-serif, system-ui, sans-serif;
+
+    --text-content-metric:  2.75rem;  /* 44px — Tageszielzahl */
+    --text-content-h1:      1.75rem;  /* 28px — Seitentitel */
+    --text-content-h2:      1.25rem;  /* 20px — Kartentitel */
+    --text-content-h3:      1rem;     /* 16px — Abschnitt in Karte */
+    --text-content-body:    0.9375rem;/* 15px — Fliesstext im Panel */
+    --text-content-table:   0.875rem; /* 14px — Tabelle, Board-Karte */
+    --text-content-label:   0.75rem;  /* 12px — Beschriftung, Datenstand */
+
+    --leading-content-tight: 1.25;
+    --leading-content-body:  1.55;
+
+    /* ==============================================================
+       Radien und Elevation
+       ============================================================== */
+    --radius-content-sm: 0.375rem;  /*  6px — Statuspille, Marke */
+    --radius-content-md: 0.5rem;    /*  8px — Schaltflaeche, Feld */
+    --radius-content-lg: 0.75rem;   /* 12px — Karte, Board-Karte */
+    --radius-content-xl: 1rem;      /* 16px — Dialog, Pruefpanel */
+
+    --shadow-content-card:  0 1px 2px rgb(22 33 31 / 0.06), 0 1px 3px rgb(22 33 31 / 0.04);
+    --shadow-content-raise: 0 4px 12px rgb(22 33 31 / 0.10);
+    --shadow-content-over:  0 16px 40px rgb(22 33 31 / 0.16);
+}
+
+/* ==================================================================
+   Statuspille — eine Bauform, ueberall gleich.
+   Hoehe fest 24px, damit Board-Karten und Tabellenzeilen nicht
+   unterschiedlich hoch werden.
+   ================================================================== */
+@layer components {
+    .content-status {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-content-2);
+        height: 1.5rem;               /* 24px, verbindlich */
+        padding-inline: var(--spacing-content-2);
+        border-radius: var(--radius-content-sm);
+        font-size: var(--text-content-label);
+        font-weight: 600;
+        line-height: 1;
+        white-space: nowrap;
+    }
+
+    .content-status::before {
+        content: "";
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 9999px;
+        background: currentColor;
+        flex: none;
+    }
+
+    .content-status--idea       { background: var(--color-status-idea-bg);       color: var(--color-status-idea-fg); }
+    .content-status--scheduled  { background: var(--color-status-scheduled-bg);  color: var(--color-status-scheduled-fg); }
+    .content-status--generating { background: var(--color-status-generating-bg); color: var(--color-status-generating-fg); }
+    .content-status--review     { background: var(--color-status-review-bg);     color: var(--color-status-review-fg); }
+    .content-status--published  { background: var(--color-status-published-bg);  color: var(--color-status-published-fg); }
+    .content-status--failed     { background: var(--color-status-failed-bg);     color: var(--color-status-failed-fg); }
+    .content-status--archived   { background: var(--color-status-archived-bg);   color: var(--color-status-archived-fg); opacity: 0.85; }
+
+    /* ------------------------------------------------------------------
+       Aktualisierungsstand (#99). Pille in der Artikelliste, Streifen in
+       der Fassungsansicht. Keine neuen Farbtokens: "vorgemerkt" traegt den
+       Ton von "Zur Pruefung", "in Arbeit" den von "In Erstellung", alles
+       Uebrige bleibt neutral. Flaeche ist Schattierung 50, Text
+       Schattierung 600 — dieselbe Regel wie bei der Statuspille.
+       ------------------------------------------------------------------ */
+    .content-refresh--marked  { background: var(--color-status-review-bg);     color: var(--color-status-review-fg); }
+    .content-refresh--running { background: var(--color-status-generating-bg); color: var(--color-status-generating-fg); }
+    .content-refresh--neutral { background: var(--color-status-archived-bg);   color: var(--color-status-archived-fg); }
+
+    .content-refresh-strip {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--spacing-content-2);
+        border-inline-start: 3px solid;
+        border-radius: var(--radius-content-lg);
+        padding: var(--spacing-content-3);
+        font-size: var(--text-content-body);
+        /* Text statt Farbe traegt die Aussage; text-base ist auf allen drei
+           Flaechen die kleinste zulaessige Textfarbe (#64). */
+        color: var(--color-text-base);
+    }
+
+    .content-refresh-strip--marked  { background: var(--color-status-review-bg);     border-color: var(--color-status-review-dot); }
+    .content-refresh-strip--running { background: var(--color-status-generating-bg); border-color: var(--color-status-generating-dot); }
+    .content-refresh-strip--neutral { background: var(--color-surface-sunken);       border-color: var(--color-status-archived-dot); }
+
+    /* Nur "In Erstellung" pulsiert — und nur, wenn das System es erlaubt. */
+    .content-status--generating::before {
+        animation: content-pulse 1.6s ease-in-out infinite;
+    }
+
+    /* ------------------------------------------------------------------
+       Herkunfts-Pille — "abweichend" (§7a), "nicht änderbar" (§7b),
+       gesperrte Felder mit Herkunftsangabe (§7). Eine Bauform, eine
+       Klasse: 20 px hoch, damit sie neben der 24-px-Statuspille sichtbar
+       leichter wirkt, kein Punkt, kein Statusfarbton — sie nennt die
+       Herkunft eines Wertes, nicht seinen Zustand.
+       Text ist text-base (8,1:1 auf surface-sunken), NICHT text-muted:
+       dieses erreicht auf surface-sunken nur 4,45:1 und verfehlt die in
+       §7a geforderten 4,5:1 (Ticket #64).
+       ------------------------------------------------------------------ */
+    .content-origin-pill {
+        display: inline-flex;
+        align-items: center;
+        height: 1.25rem;              /* 20px, verbindlich */
+        padding-inline: var(--spacing-content-2);
+        border-radius: var(--radius-content-sm);
+        background: var(--color-surface-sunken);
+        font-size: var(--text-content-label);
+        line-height: 1;
+        white-space: nowrap;
+        color: var(--color-text-base);
+    }
+
+    /* ------------------------------------------------------------------
+       Filament-Badge = Statuspille.
+       Das Badge bringt Hoehe 24 px (py-1 + text-xs) und Radius 6 px
+       (rounded-md) schon mit; Flaeche und Text kommen aus der
+       registrierten Farbe (Schattierung 50 bzw. 600). Fehlt nur der
+       Punkt und das Schriftgewicht. Beides wird hier ergaenzt, streng
+       begrenzt auf die sieben Statusfarben, damit Zaehlmarken und
+       Tag-Eingaben im Panel unveraendert bleiben.
+       Regel fuer Umsetzende: Status-Badges bekommen KEIN ->icon(),
+       sonst stehen Punkt und Heroicon nebeneinander. Das Symbol aus
+       DisplayStatus::icon() gehoert in Auswahllisten, Filter und den
+       Kopf des Pruefblatts.
+       ------------------------------------------------------------------ */
+    .fi-badge:is(
+        .fi-color-status-idea,
+        .fi-color-status-scheduled,
+        .fi-color-status-generating,
+        .fi-color-status-review,
+        .fi-color-status-published,
+        .fi-color-status-failed,
+        .fi-color-status-archived
+    ) {
+        gap: var(--spacing-content-2);
+        font-weight: 600;
+    }
+
+    .fi-badge:is(
+        .fi-color-status-idea,
+        .fi-color-status-scheduled,
+        .fi-color-status-generating,
+        .fi-color-status-review,
+        .fi-color-status-published,
+        .fi-color-status-failed,
+        .fi-color-status-archived
+    )::before {
+        content: "";
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 9999px;
+        background: currentColor;
+        flex: none;
+    }
+
+    .fi-badge.fi-color-status-generating::before {
+        animation: content-pulse 1.6s ease-in-out infinite;
+    }
+
+    .fi-badge.fi-color-status-archived {
+        opacity: 0.85;
+    }
+
+    /* Fortschritt innerhalb eines Status (DraftStatus::progressLabel).
+       Steht UNTER der Pille, nie als eigene Pille. */
+    .content-status-progress {
+        display: block;
+        margin-top: var(--spacing-content-1);
+        font-size: var(--text-content-label);
+        color: var(--color-text-muted);
+    }
+
+    /* Datenstand — Pflicht an jeder Kennzahl aus Search Console/AdSense. */
+    .content-asof {
+        font-size: var(--text-content-label);
+        color: var(--color-text-muted);
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* ==================================================================
+       Fassungsvergleich (design/content-dashboard.md §4.1 / §4.1a).
+       Die Zeile bleibt neutral, nur die getauschten Woerter tragen Farbe —
+       sonst ist bei einer Aktualisierung die halbe Tabelle rot und gruen.
+       ================================================================== */
+    .content-diff-cell {
+        display: flex;
+        gap: var(--spacing-content-2);
+        padding: 8px 12px 8px 8px;
+        line-height: 1.55;
+    }
+
+    .content-diff-row {
+        min-height: 40px;
+    }
+
+    /* Rinne: Farbe ist nie das einzige Merkmal. Bei "changed" liegt sie auf
+       surface-sunken, deshalb text-base statt text-muted (#64). */
+    .content-diff-gutter {
+        flex: none;
+        width: 20px;
+        font-size: var(--text-content-label);
+        line-height: 1.55;
+        color: var(--color-text-base);
+    }
+
+    /* Marken kommen ohne Klasse aus dem Renderer: dort steht laut §4.1
+       ausschliesslich <del>/<ins> ohne Attribute. */
+    .content-diff-text :is(del, ins) {
+        padding: 0 2px;
+        border-radius: 2px;
+        line-height: inherit;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 2px;
+    }
+
+    .content-diff-text del {
+        background: var(--color-diff-del-bg);
+        color: var(--color-diff-del-fg);
+        text-decoration-line: line-through;
+    }
+
+    .content-diff-text ins {
+        background: var(--color-diff-ins-bg);
+        color: var(--color-diff-ins-fg);
+        text-decoration-line: underline;
+    }
+
+    @media (prefers-contrast: more) {
+        .content-diff-text :is(del, ins) {
+            background: transparent;
+            color: inherit;
+        }
+    }
+
+    /* Zusammengefasste Strecke — Trennzeile ueber beide Spalten, kein Text,
+       der sich wie Artikelinhalt liest. */
+    .content-diff-collapsed {
+        height: 32px;
+        padding: 0 var(--spacing-content-2);
+        text-align: center;
+        background: var(--color-surface-sunken);
+        font-size: var(--text-content-label);
+        /* text-base statt text-muted: auf surface-sunken traegt text-muted
+           nur 4,45:1 (#64). */
+        color: var(--color-text-base);
+    }
+
+    /* Unter 1024 px kippt jede Zeile auf Einspaltigkeit: "Bisher" ueber
+       "Neu". Waagerechtes Scrollen ist ausgeschlossen. */
+    @media (max-width: 1023px) {
+        .content-diff-table,
+        .content-diff-table tbody,
+        .content-diff-table tr,
+        .content-diff-table td {
+            display: block;
+            width: 100%;
+        }
+
+        .content-diff-table thead {
+            display: none;
+        }
+
+        .content-diff-row {
+            margin-bottom: var(--spacing-content-3);
+        }
+
+        .content-diff-side + .content-diff-side {
+            border-top: 1px solid var(--color-line-soft);
+        }
+
+        .content-diff-side::before {
+            content: attr(data-side);
+            display: block;
+            padding: 0 12px 0 8px;
+            font-size: var(--text-content-label);
+            /* Steht bei "changed" auf surface-sunken (#64). */
+            color: var(--color-text-base);
+        }
+    }
+
+    /* Laufende Erzeugung auf der Board-Karte (#42, §7). Der Punkt ist Zugabe;
+       die Zeile "läuft seit hh:mm" traegt die Information. */
+    .content-dot--running {
+        animation: content-pulse 1.8s ease-in-out infinite;
+    }
+
+    /* Skelett in Zielgeometrie statt Spinner. */
+    .content-skeleton {
+        background: var(--color-surface-sunken);
+        border-radius: var(--radius-content-md);
+        animation: content-shimmer 1.4s ease-in-out infinite;
+    }
+}
+
+@keyframes content-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.45; transform: scale(0.82); }
+}
+
+@keyframes content-shimmer {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.55; }
+}
+
+/* Fokus: 2px Ring in Markenfarbe mit 2px Abstand, ueberall sichtbar. */
+@layer base {
+    :where(a, button, [role="button"], input, select, textarea, summary, [tabindex]):focus-visible {
+        outline: 2px solid var(--color-content-600);
+        outline-offset: 2px;
+        border-radius: var(--radius-content-sm);
+    }
+
+    /* Zahlen laufen nicht auseinander. */
+    :where(td, th, .content-metric, .content-asof) {
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+/* Bewegung nur mit Zustimmung des Systems (WCAG 2.3.3, Leitbild §8). */
+@media (prefers-reduced-motion: reduce) {
+    .content-status--generating::before,
+    .fi-badge.fi-color-status-generating::before,
+    .content-skeleton {
+        animation: none;
+    }
+
+    .content-dot--running {
+        animation: none;
+        opacity: 1;
+    }
+}
+
+/*
+ * ==================================================================
+ * Panel-Chrome (Ticket #4)
+ * ------------------------------------------------------------------
+ * Dunkle Seitennavigation, warmer Seitenhintergrund, helle Kopfzeile
+ * nach design/content-dashboard.md, §0. Das ist der sichtbare
+ * Unterschied zum Admin-Panel: dort helle Navigation, Violett.
+ * Nur Chrome — Inhaltsbausteine stehen weiter oben.
+ * ==================================================================
+ */
+@layer components {
+    .fi-body {
+        background-color: var(--color-surface-page);
+    }
+
+    .fi-topbar {
+        background-color: var(--color-surface-card);
+        border-bottom: 1px solid var(--color-line-soft);
+        box-shadow: none;
+    }
+
+    .fi-sidebar,
+    .fi-sidebar .fi-sidebar-nav,
+    .fi-sidebar .fi-sidebar-footer {
+        background-color: var(--color-surface-nav);
+    }
+
+    .fi-sidebar .fi-sidebar-header {
+        background-color: var(--color-surface-nav);
+        border-bottom: 1px solid color-mix(in srgb, var(--color-content-300) 20%, transparent);
+        box-shadow: none;
+    }
+
+    .fi-sidebar .fi-sidebar-item-label,
+    .fi-sidebar .fi-sidebar-item-icon,
+    .fi-sidebar .fi-sidebar-group-label {
+        color: var(--color-content-100);
+    }
+
+    .fi-sidebar .fi-sidebar-item-btn:hover {
+        background-color: var(--color-content-800);
+    }
+
+    /* Aktiver Punkt: linke Kante 3 px, Flaeche content-900, Text weiss. */
+    .fi-sidebar .fi-sidebar-item.fi-active > .fi-sidebar-item-btn {
+        background-color: var(--color-content-900);
+        border-inline-start: 3px solid var(--color-surface-nav-active);
+    }
+
+    .fi-sidebar .fi-sidebar-item.fi-active .fi-sidebar-item-label,
+    .fi-sidebar .fi-sidebar-item.fi-active .fi-sidebar-item-icon {
+        color: #ffffff;
+    }
+
+    /* Zaehlmarke der Pruefung (#20 fuellt die Zahl). */
+    .fi-sidebar .fi-sidebar-item-badge-ctn .fi-badge {
+        background-color: var(--color-status-review-dot);
+        color: #ffffff;
+    }
+}
+
+/* ==================================================================
+   Prompt-Editor: Platzhalterhervorhebung (Ticket #54)
+   ------------------------------------------------------------------
+   CodeMirror-Decoration aus resources/js/content/prompt-code-editor.js.
+   Das Muster ist PromptRenderer::placeholderPattern(); gefaerbt wird
+   ausschliesslich, ob ein Beispielwert vorliegt — kein Status.
+   ================================================================== */
+@layer components {
+    .cm-prompt-placeholder {
+        background: var(--color-placeholder-known-bg);
+        color: var(--color-placeholder-known-fg);
+        border-radius: var(--radius-content-sm);
+        padding: 0 0.125rem;
+    }
+
+    .cm-prompt-placeholder.cm-prompt-placeholder-unknown {
+        background: var(--color-placeholder-missing-bg);
+        color: var(--color-placeholder-missing-fg);
+        text-decoration: underline dashed;
+        text-underline-offset: 2px;
+    }
+}

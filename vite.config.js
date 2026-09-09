@@ -12,6 +12,7 @@ export default defineConfig({
                 'resources/js/components.js',
                 'resources/css/filament/admin/theme.css',
                 'resources/css/filament/dashboard/theme.css',
+                'resources/css/content/theme.css',
             ],
             refresh: true,
         }),

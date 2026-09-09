@@ -40,6 +40,14 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        // Redaktions-Guard des Content-Panels (#4). Bewusst getrennt vom
+        // 'web'-Guard: eine Admin-Session gibt keinen Zugriff auf /content
+        // und umgekehrt (docs/content-pipeline.md, §6).
+        'content' => [
+            'driver' => 'session',
+            'provider' => 'content_users',
+        ],
     ],
 
     /*
@@ -63,6 +71,11 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
+        ],
+
+        'content_users' => [
+            'driver' => 'eloquent',
+            'model' => App\Content\Models\Central\ContentUser::class,
         ],
 
         // 'users' => [
@@ -94,6 +107,14 @@ return [
         'users' => [
             'provider' => 'users',
             'table' => 'password_reset_tokens',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+
+        'content_users' => [
+            'provider' => 'content_users',
+            'table' => 'content_password_reset_tokens',
+            'connection' => 'central',
             'expire' => 60,
             'throttle' => 60,
         ],
