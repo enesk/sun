@@ -18,7 +18,7 @@ war, ist vorbereitet (Abschnitt 1). Abschnitte 2 bis 5 sind Handarbeit.
 | `VOYAGE_API_KEY` | fehlt ganz |
 | `GOOGLE_SERVICE_ACCOUNT_JSON` | fehlt ganz |
 | Schalter und Budgets | gesetzt (`CONTENT_PIPELINE_ENABLED=true`, vier `CONTENT_BUDGET_*`) |
-| `bootstrap/cache/config.php` | vom **12.05.2026** — die `.env` wird bis zum Neuaufbau nicht gelesen |
+| `bootstrap/cache/config.php` | damals vom **12.05.2026** — inzwischen durch #117 neu gebaut, siehe Abschnitt 1c |
 | Eigentümer der Installation | `sanitaerfinden:sanitaerfinden` |
 | PHP der Webseite | PHP-FPM **8.5**, Pool `/etc/php/8.5/fpm/pool.d/sanitaerfinden.dev.conf`, `user = sanitaerfinden` |
 | PHP des Schedulers | `/usr/bin/php8.4`, Minutentakt per `crontab -u sanitaerfinden` |
@@ -47,6 +47,85 @@ Der Ablageort der Schlüsseldatei liegt fertig auf dem Server:
 Die `.env` wurde **nicht** angefasst: leere Platzhalterzeilen wirken wie ein
 fehlender Wert, sehen aber wie ein gepflegter aus. Der vorhandene
 Kommentarblock in der `.env` erklärt bereits, warum die drei Zeilen fehlen.
+
+## 1b. Nachprüfung vom 09.09.2026 (Stand vor dem Ausstellen)
+
+Erneut per Lesezugriff auf `sun` geprüft, damit beim Ausstellen niemand raten
+muss, was schon dasteht:
+
+| Prüfpunkt | Befund |
+| --- | --- |
+| `ANTHROPIC_API_KEY` in der Produktions-`.env` | keine Zeile |
+| `VOYAGE_API_KEY` | keine Zeile |
+| `GOOGLE_SERVICE_ACCOUNT_JSON` | keine Zeile |
+| `storage/app/private/google/` | vorhanden, `drwx------ sanitaerfinden`, **leer** |
+| Codestand | `fc06dd3`, `app/Content` fehlt weiter |
+
+Damit sind Abschnitt 2 bis 4 unverändert offen und Abschnitt 5 erst nach dem
+Deploy aus #109/#117 ausführbar: ohne `app/Content` gibt es auf dem Server
+weder `content:golive:check` noch `content:metrics:preflight`, die Abnahme
+dieses Tickets ist vorher nicht durchführbar.
+
+## 1c. Nachprüfung vom 09.09.2026, 15:16 Uhr (nach #117)
+
+Dritter Lesezugriff auf `sun`, nach der Horizon-Umstellung aus #117:
+
+| Prüfpunkt | Befund |
+| --- | --- |
+| `ANTHROPIC_API_KEY` / `VOYAGE_API_KEY` / `GOOGLE_SERVICE_ACCOUNT_JSON` | weiterhin keine Zeile in der `.env` |
+| `storage/app/private/google/` | vorhanden, `drwx------ sanitaerfinden`, weiterhin leer |
+| `QUEUE_CONNECTION` | `redis` (aus #117) |
+| `bootstrap/cache/config.php` | neu gebaut am 09.09.2026, `queue.default = redis` |
+| `config('content')` im Cache | **fehlt** — `config/content.php` liegt auf dem Server nicht vor |
+| Codestand | unverändert `fc06dd3`, `app/Content` fehlt |
+
+Damit bleibt die Abnahme dieses Tickets gesperrt: ohne `app/Content` gibt es
+auf dem Server weder `content:golive:check` noch `content:metrics:preflight`
+noch `content:llm:ping`. Die Schritte 2 bis 4 (Konten, Schlüssel, Datei) sind
+davon unabhängig und können jederzeit erledigt werden; nur Abschnitt 5 und das
+Protokoll in Abschnitt 7 warten auf den Deploy des Codestands.
+
+## 1d. Nachprüfung vom 09.09.2026, nach dem Deploy (#125)
+
+Vierter Lesezugriff auf `sun`, nachdem der Codestand nachgezogen wurde. Die
+Vorbedingung dieses Tickets ist damit **erfüllt** — die Abnahme ist jetzt
+durchführbar, sobald die Schlüssel da sind.
+
+| Prüfpunkt | Befund |
+| --- | --- |
+| Codestand | `59ce93e`, `app/Content` und `config/content.php` liegen auf dem Server |
+| `content:golive:check` / `content:metrics:preflight` / `content:llm:ping` | vorhanden und lauffähig |
+| `ANTHROPIC_API_KEY` / `VOYAGE_API_KEY` / `GOOGLE_SERVICE_ACCOUNT_JSON` | weiterhin keine Zeile in der `.env` |
+| `storage/app/private/google/` | vorhanden, `drwx------ sanitaerfinden`, weiterhin leer |
+| Queue | `redis`, alle sechs `content-*`-Queues in einem Horizon-Supervisor |
+
+Ausgangsstand der drei Proben (Befehle als Benutzer `sanitaerfinden` mit
+`/usr/bin/php8.4`, so wie der Scheduler sie fährt):
+
+```
+content:golive:check        143 Prüfpunkte, 1 Fehler, 73 Warnungen
+  ✗ Anthropic-Zugang               ANTHROPIC_API_KEY fehlt
+  ! Voyage-Zugang (Embeddings)     VOYAGE_API_KEY fehlt
+  ! Search-Console-Dienstkonto     GOOGLE_SERVICE_ACCOUNT_JSON nicht gesetzt
+content:metrics:preflight   28 Prüfpunkte, 2 Fehler, 25 Warnungen
+  ✗ Dienstkonto                    GOOGLE_SERVICE_ACCOUNT_JSON fehlt oder die Datei ist nicht lesbar
+  ✗ Gap-Connector registriert      CONTENT_SOURCES_GSC_ENABLED=true setzen
+content:llm:ping            ANTHROPIC_API_KEY ist nicht gesetzt.
+```
+
+Der eine Fehler des Go-Live-Checks ist genau der fehlende Anthropic-Schlüssel;
+alles andere an dieser Stelle sind Warnungen. Die Zeile „Sichtbare Properties"
+taucht in `content:metrics:preflight` erst auf, wenn das Dienstkonto lesbar
+ist — vorher bricht die Prüfung bei „Dienstkonto" ab.
+
+Zwei Punkte fallen dabei an, die **nicht** an einem Schlüssel hängen und
+deshalb auch nach dem Ausstellen offen bleiben:
+
+- `CONTENT_SOURCES_GSC_ENABLED` fehlt in der Produktions-`.env`. Ohne den
+  Schalter kennt `content:sources:run` den Connector `gsc_gap` nicht.
+- `gsc_property` ist bei allen Portalen leer (#107) und `ADSENSE_ACCOUNT_ID`
+  fehlt. „Sichtbare Properties" kann deshalb erst ✓ zeigen, wenn zusätzlich zu
+  Abschnitt 4 Schritt 5 mindestens eine Property gepflegt ist.
 
 ## 2. Anthropic-Schlüssel
 
@@ -132,9 +211,12 @@ Was der Go-Live-Check aus dem Pfad macht:
 | gesetzt, Datei unter `public/` | **Fehler** |
 | gesetzt, Datei da, außerhalb `public/` | ✓ „lesbar, außerhalb von public/" |
 
-Der letzte Fall prüft nur `is_file()`, nicht die Leserechte des ausführenden
-Benutzers. Eine Datei mit falschem Eigentümer meldet trotzdem ✓ und fällt erst
-beim ersten API-Aufruf auf (eigenes Ticket).
+Seit #119 prüft der letzte Fall zusätzlich `is_readable()` und ob sich die
+Datei als JSON mit `client_email` und `private_key` lesen lässt; ein falscher
+Eigentümer meldet jetzt Fehler statt ✓ und nennt Eigentümer, Modus und den
+ausführenden Benutzer. Was er weiterhin nicht sieht: ob die Search Console API
+im Cloud-Projekt aktiviert ist und ob die `client_email` in den Properties
+eingetragen wurde (Abschnitt 6).
 
 Solange alle Portale auf `.test`-Domains laufen, gibt es keine verifizierbare
 Property (#106, #107). Schritt 5 ist dann erst nach der Domain-Umstellung
@@ -147,10 +229,12 @@ php artisan config:cache
 php artisan queue:restart
 ```
 
-`bootstrap/cache/config.php` stammt vom 12.05.2026. Der Neuaufbau schaltet
-nicht nur die drei Schlüssel scharf, sondern **alle** seit Mai aufgelaufenen
-`.env`- und `config/`-Änderungen. Deshalb gehört er ans Ende des Deploys aus
-#109/#117 und nicht als Einzelgriff davor. `queue:restart` ist beim Umstieg auf
+Der Config-Cache ist seit #117 auf dem Stand vom 09.09.2026 und trägt bereits
+`QUEUE_CONNECTION=redis`; die alte Mai-Fassung ist weg. Der Neuaufbau schaltet
+trotzdem weiterhin **alle** `.env`- und `config/`-Änderungen mit scharf, die
+der Deploy aus #109 mitbringt — `config/content.php` fehlt im gecachten Stand
+noch ganz. Deshalb gehört er ans Ende dieses Deploys und nicht als Einzelgriff
+davor. `queue:restart` ist beim Umstieg auf
 Horizon (#117) durch `horizon:terminate` zu ersetzen.
 
 **Fertig, wenn:**
@@ -160,8 +244,9 @@ php artisan content:golive:check
 ```
 
 bei „Anthropic-Zugang" und „Search-Console-Dienstkonto" ✓ meldet und
-`php artisan content:metrics:preflight --offline` die `client_email` der
-Schlüsseldatei ausgibt.
+`php artisan content:metrics:preflight` bei „Sichtbare Properties" ✓ zeigt.
+Ohne Netzzugang prüft `content:metrics:preflight --offline` nur die
+Konfiguration und die Lesbarkeit der Schlüsseldatei.
 
 ## 6. Nachweis, dass ein Schlüssel wirklich trägt
 
