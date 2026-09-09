@@ -157,7 +157,12 @@ class TenantResource extends Resource
                                             ->maxLength(50),
                                         Textarea::make(TenantConfigConstants::CONTACT_ADDRESS)
                                             ->label(__('Adresse'))
-                                            ->rows(3),
+                                            ->rows(3)
+                                            // Abgeleiteter Wert (#60): Quelle ist der
+                                            // Adressdatensatz des Tenants.
+                                            ->disabled()
+                                            ->dehydrated(false)
+                                            ->helperText(__('Wird aus der Anschrift des Tenants erzeugt')),
                                     ])
                                     ->columns(2),
 

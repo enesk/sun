@@ -1,5 +1,9 @@
 <div>
     <form wire:submit="save">
+        @if($addressStatus['needsAttention'])
+            @include('livewire.verwaltung.partials.address-warning', ['action' => 'link'])
+        @endif
+
         <div class="space-y-6">
             {{-- Impressum --}}
             <div class="dash-card dash-card-padded space-y-4">
@@ -7,6 +11,13 @@
                     <h3 class="dash-form-section-title">Impressum</h3>
                     <p class="dash-input-hint">Pflichtangaben gemäß § 5 TMG. Wird auf der Impressum-Seite und im Footer angezeigt.</p>
                 </div>
+
+                {{-- Anschrift: Wiedergabe, bearbeitet wird sie unter „Allgemein" (#61, §4.2). --}}
+                @include('livewire.verwaltung.partials.address-readonly', [
+                    'label' => 'Anschrift im Impressum',
+                    'value' => $addressStatus['formatted'],
+                    'origin' => 'Aus den Workspace-Einstellungen',
+                ])
 
                 <div x-data="{ focused: false }">
                     <div class="rounded-lg transition-all"
@@ -41,6 +52,7 @@
                     </div>
                     <p class="dash-input-hint">HTML-Formatierung (fett, kursiv, Überschriften, Listen, Links) wird unterstützt.</p>
                     @error('impressum') <p class="dash-input-error-msg">{{ $message }}</p> @enderror
+                    @include('livewire.verwaltung.partials.legal-placeholders')
                 </div>
             </div>
 
@@ -57,6 +69,33 @@
                               placeholder="Datenschutzerklärung&#10;&#10;1. Datenschutz auf einen Blick&#10;Allgemeine Hinweise...&#10;&#10;2. Hosting und Content Delivery Networks (CDN)&#10;..."></textarea>
                     <p class="dash-input-hint">HTML-Formatierung wird unterstützt. Tipp: Nutzen Sie einen DSGVO-Generator für eine rechtssichere Vorlage.</p>
                     @error('datenschutz') <p class="dash-input-error-msg">{{ $message }}</p> @enderror
+                    @include('livewire.verwaltung.partials.legal-placeholders')
+                </div>
+            </div>
+
+            {{-- Redaktionsprinzipien (#29) --}}
+            <div class="dash-card dash-card-padded space-y-4">
+                <div>
+                    <h3 class="dash-form-section-title">So arbeitet unsere Redaktion</h3>
+                    <p class="dash-input-hint">Wird unter /ratgeber/redaktion ausgegeben und aus der Autorenbox jedes Ratgeber-Artikels verlinkt. Leer lassen, um den Standardtext zu verwenden.</p>
+                </div>
+
+                <div>
+                    <label for="responsibleName" class="dash-label">Redaktionell verantwortlich</label>
+                    <input type="text" id="responsibleName" wire:model="responsibleName"
+                           class="dash-input"
+                           placeholder="Name der verantwortlichen Person (§ 18 Abs. 2 MStV)">
+                    <p class="dash-input-hint">Ersetzt den Platzhalter [VERANTWORTLICH_NAME]. Ohne Angabe wird der Portalbetreiber genannt.</p>
+                    @error('responsibleName') <p class="dash-input-error-msg">{{ $message }}</p> @enderror
+                </div>
+
+                <div>
+                    <textarea wire:model="editorialPrinciples" rows="16"
+                              class="dash-textarea"
+                              placeholder="Leer lassen für den Standardtext (Themenauswahl, Entstehungsweg, Quellen, Aktualisierung, Haftungsausschluss)."></textarea>
+                    <p class="dash-input-hint">HTML-Formatierung wird unterstützt. Platzhalter werden beim Anzeigen ersetzt.</p>
+                    @error('editorialPrinciples') <p class="dash-input-error-msg">{{ $message }}</p> @enderror
+                    @include('livewire.verwaltung.partials.legal-placeholders')
                 </div>
             </div>
         </div>

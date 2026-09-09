@@ -10,6 +10,8 @@ use App\Services\CompanyUrlService;
 use App\Services\TenantBrandingService;
 use App\Services\TenantService;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class GeneralSettingsForm extends Component
@@ -28,7 +30,6 @@ class GeneralSettingsForm extends Component
     // Contact
     public string $contactEmail = '';
     public string $contactPhone = '';
-    public string $contactAddress = '';
 
     // Social Media
     public string $socialFacebook = '';
@@ -58,7 +59,21 @@ class GeneralSettingsForm extends Component
 
     // UI State
     public bool $saved = false;
+
+    #[Url(as: 'reiter')]
     public string $activeTab = 'workspace';
+
+    /**
+     * Zustand der Anschrift (#60). Steuert Pflichtstern, Pflichtregel und Warnkasten.
+     *
+     * @var array{hasAddress: bool, placeholdersUsed: bool, needsAttention: bool, formatted: ?string}
+     */
+    public array $addressStatus = [
+        'hasAddress' => false,
+        'placeholdersUsed' => false,
+        'needsAttention' => false,
+        'formatted' => null,
+    ];
 
     // Sitemap Progress
     public ?array $sitemapProgress = null;
@@ -85,7 +100,8 @@ class GeneralSettingsForm extends Component
         // Contact
         $this->contactEmail = $branding->get($tenant, TenantConfigConstants::CONTACT_EMAIL) ?? '';
         $this->contactPhone = $branding->get($tenant, TenantConfigConstants::CONTACT_PHONE) ?? '';
-        $this->contactAddress = $branding->get($tenant, TenantConfigConstants::CONTACT_ADDRESS) ?? '';
+
+        $this->addressStatus = $branding->legalAddressStatus($tenant);
 
         // Social
         $this->socialFacebook = $branding->get($tenant, TenantConfigConstants::SOCIAL_FACEBOOK) ?? '';
@@ -122,19 +138,23 @@ class GeneralSettingsForm extends Component
 
     protected function rules(): array
     {
+        // Frisch aus der Datenbank, nicht aus der Livewire-Eigenschaft: ein
+        // manipulierter Zustand darf die Pflichtangabe nicht umgehen (#61, §3.4).
+        $required = app(TenantBrandingService::class)
+            ->legalAddressStatus(tenant())['placeholdersUsed'];
+
         return [
             'tenantName' => ['required', 'string', 'min:2', 'max:255'],
-            'addressLine1' => ['nullable', 'string', 'max:255'],
+            'addressLine1' => [$required ? 'required' : 'nullable', 'string', 'max:255'],
             'addressLine2' => ['nullable', 'string', 'max:255'],
-            'city' => ['nullable', 'string', 'max:255'],
+            'city' => [$required ? 'required' : 'nullable', 'string', 'max:255'],
             'state' => ['nullable', 'string', 'max:255'],
-            'zip' => ['nullable', 'string', 'max:20'],
+            'zip' => [$required ? 'required' : 'nullable', 'string', 'max:20'],
             'countryCode' => ['nullable', 'string', 'max:5'],
             'phone' => ['nullable', 'string', 'max:50'],
             'taxNumber' => ['nullable', 'string', 'max:50'],
             'contactEmail' => ['nullable', 'email', 'max:255'],
             'contactPhone' => ['nullable', 'string', 'max:50'],
-            'contactAddress' => ['nullable', 'string', 'max:500'],
             'socialFacebook' => ['nullable', 'url', 'max:255'],
             'socialInstagram' => ['nullable', 'url', 'max:255'],
             'socialTwitter' => ['nullable', 'url', 'max:255'],
@@ -152,9 +172,34 @@ class GeneralSettingsForm extends Component
         ];
     }
 
+    protected function messages(): array
+    {
+        $text = 'Pflichtangabe, solange Impressum oder Datenschutz die Anschrift ausgeben.';
+
+        return [
+            'addressLine1.required' => $text,
+            'zip.required' => $text,
+            'city.required' => $text,
+        ];
+    }
+
     public function save(): void
     {
-        $this->validate();
+        try {
+            $this->validate();
+        } catch (ValidationException $e) {
+            // Der Fehler sitzt im Reiter „Workspace" — ohne Reiterwechsel
+            // meldet das Formular einen Fehler, den niemand sieht (#61, §3.4).
+            foreach (['addressLine1', 'zip', 'city', 'tenantName'] as $field) {
+                if ($e->validator->errors()->has($field)) {
+                    $this->activeTab = 'workspace';
+
+                    break;
+                }
+            }
+
+            throw $e;
+        }
 
         $tenant = tenant();
         $branding = app(TenantBrandingService::class);
@@ -186,11 +231,21 @@ class GeneralSettingsForm extends Component
             $tenant->address()->create($addressData);
         }
 
+        // settings.contact_address ist seit #60 nur noch abgeleitet: der
+        // Adressdatensatz ist die Quelle, der Schluessel wird bei jedem
+        // Speichern neu geschrieben, damit die bestehenden Leser weiterlaufen.
+        $contactAddress = (string) $branding->buildContactAddress(
+            $this->addressLine1,
+            $this->addressLine2,
+            $this->zip,
+            $this->city,
+        );
+
         // Tenant config — batch update
         $branding->setMany($tenant, [
             TenantConfigConstants::CONTACT_EMAIL => $this->contactEmail ?: null,
             TenantConfigConstants::CONTACT_PHONE => $this->contactPhone ?: null,
-            TenantConfigConstants::CONTACT_ADDRESS => $this->contactAddress ?: null,
+            TenantConfigConstants::CONTACT_ADDRESS => $contactAddress ?: null, // abgeleitet, siehe oben
             TenantConfigConstants::SOCIAL_FACEBOOK => $this->socialFacebook ?: null,
             TenantConfigConstants::SOCIAL_INSTAGRAM => $this->socialInstagram ?: null,
             TenantConfigConstants::SOCIAL_TWITTER => $this->socialTwitter ?: null,
@@ -211,6 +266,10 @@ class GeneralSettingsForm extends Component
         if ($patternChanged && app()->environment('production')) {
             GenerateTenantSitemapJob::dispatch($tenant->id);
         }
+
+        // Nach dem Schreiben neu bewerten: die Warnung und der Pflichtstern
+        // verschwinden ohne Neuladen der Seite (#61, §3.4).
+        $this->addressStatus = $branding->legalAddressStatus($tenant->refresh());
 
         $this->saved = true;
         $this->dispatch('toast', type: 'success', message: 'Einstellungen gespeichert');

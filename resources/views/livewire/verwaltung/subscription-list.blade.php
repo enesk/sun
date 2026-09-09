@@ -50,7 +50,7 @@
                     {{-- Past Due Warning --}}
                     @if($subscription->is_past_due)
                         <div class="dash-flash dash-flash-warning mb-4" role="alert" style="border-radius: 0.5rem;">
-                            <strong>Achtung:</strong> Die Zahlung für dieses Abonnement ist überfällig. Bitte aktualisiere deine Zahlungsdaten.
+                            <strong>Achtung:</strong> <span class="dash-flash-body">Die Zahlung für dieses Abonnement ist überfällig. Bitte aktualisiere deine Zahlungsdaten.</span>
                         </div>
                     @endif
 

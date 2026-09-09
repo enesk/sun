@@ -1,4 +1,19 @@
-<div x-data="{ tab: @entangle('activeTab') }">
+<div x-data="{
+        tab: @entangle('activeTab'),
+        jumpToAnschrift() {
+            const block = document.getElementById('anschrift');
+            if (! block) { return; }
+
+            const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            block.scrollIntoView({ block: 'start', behavior: reduced ? 'auto' : 'smooth' });
+
+            // Fokus auf das erste leere Pflichtfeld: Straße -> PLZ -> Ort.
+            const felder = ['addressLine1', 'zip', 'city'].map((id) => document.getElementById(id));
+            const ziel = felder.find((feld) => feld && ! feld.value) || felder[0];
+            if (ziel) { ziel.focus({ preventScroll: true }); }
+        },
+     }"
+     x-init="$nextTick(() => { if (window.location.hash === '#anschrift') { tab = 'workspace'; $nextTick(() => jumpToAnschrift()); } })">
     <form wire:submit="save">
         {{-- Tab Navigation --}}
         <div class="dash-tab-bar mb-6">
@@ -33,45 +48,70 @@
                     @error('tenantName') <p class="dash-input-error-msg">{{ $message }}</p> @enderror
                 </div>
 
-                {{-- Address Section --}}
-                <div style="border-top: 1px solid var(--dash-border); padding-top: 1.5rem;">
-                    <h4 class="text-sm font-semibold mb-4" style="color: var(--dash-text-primary);">Adresse (für Rechnungen)</h4>
-                    <div class="dash-form-grid dash-form-grid-2">
-                        <div>
-                            <label class="dash-label">Adresszeile 1</label>
-                            <input type="text" wire:model="addressLine1" class="dash-input" placeholder="Straße, Firma, c/o">
+                {{-- Anschrift — einziger Bearbeitungsort (#61) --}}
+                <div id="anschrift" style="border-top: 1px solid var(--dash-border); padding-top: 1.5rem; scroll-margin-top: calc(var(--dash-header-height, 3.5rem) + 1rem);">
+                    <h4 class="text-sm font-semibold" style="color: var(--dash-text-primary);">Anschrift</h4>
+                    <p class="dash-input-hint" style="margin-bottom: 1rem;">Erscheint im Impressum und auf Rechnungen.</p>
+
+                    @if($addressStatus['needsAttention'])
+                        @include('livewire.verwaltung.partials.address-warning', ['action' => 'none'])
+                    @endif
+
+                    <div class="space-y-4">
+                        <div class="dash-form-grid">
+                            <div>
+                                <label for="addressLine1" class="dash-label {{ $addressStatus['placeholdersUsed'] ? 'dash-label-required' : '' }}">Straße und Hausnummer</label>
+                                <input type="text" id="addressLine1" wire:model="addressLine1"
+                                       class="dash-input {{ $errors->has('addressLine1') ? 'dash-input-error' : '' }}"
+                                       placeholder="Musterstraße 1">
+                                @error('addressLine1') <p class="dash-input-error-msg">{{ $message }}</p> @enderror
+                            </div>
                         </div>
-                        <div>
-                            <label class="dash-label">Adresszeile 2</label>
-                            <input type="text" wire:model="addressLine2" class="dash-input" placeholder="Gebäude, Etage, etc.">
+                        <div class="dash-form-grid">
+                            <div>
+                                <label for="addressLine2" class="dash-label">Adresszusatz</label>
+                                <input type="text" id="addressLine2" wire:model="addressLine2" class="dash-input" placeholder="Gebäude, Etage, c/o">
+                            </div>
                         </div>
-                        <div>
-                            <label class="dash-label">Stadt</label>
-                            <input type="text" wire:model="city" class="dash-input" placeholder="Berlin">
+                        <div class="dash-form-grid-zip">
+                            <div>
+                                <label for="zip" class="dash-label {{ $addressStatus['placeholdersUsed'] ? 'dash-label-required' : '' }}">PLZ</label>
+                                <input type="text" id="zip" wire:model="zip"
+                                       class="dash-input {{ $errors->has('zip') ? 'dash-input-error' : '' }}"
+                                       placeholder="10115">
+                                @error('zip') <p class="dash-input-error-msg">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label for="city" class="dash-label {{ $addressStatus['placeholdersUsed'] ? 'dash-label-required' : '' }}">Ort</label>
+                                <input type="text" id="city" wire:model="city"
+                                       class="dash-input {{ $errors->has('city') ? 'dash-input-error' : '' }}"
+                                       placeholder="Berlin">
+                                @error('city') <p class="dash-input-error-msg">{{ $message }}</p> @enderror
+                            </div>
                         </div>
-                        <div>
-                            <label class="dash-label">Bundesland</label>
-                            <input type="text" wire:model="state" class="dash-input">
+                        <div class="dash-form-grid dash-form-grid-2">
+                            <div>
+                                <label for="state" class="dash-label">Bundesland</label>
+                                <input type="text" id="state" wire:model="state" class="dash-input">
+                            </div>
+                            <div>
+                                <label for="countryCode" class="dash-label">Land</label>
+                                <select id="countryCode" wire:model="countryCode" class="dash-select">
+                                    <option value="DE">Deutschland</option>
+                                    <option value="AT">Österreich</option>
+                                    <option value="CH">Schweiz</option>
+                                </select>
+                            </div>
                         </div>
-                        <div>
-                            <label class="dash-label">PLZ</label>
-                            <input type="text" wire:model="zip" class="dash-input" placeholder="10115">
-                        </div>
-                        <div>
-                            <label class="dash-label">Land</label>
-                            <select wire:model="countryCode" class="dash-select">
-                                <option value="DE">Deutschland</option>
-                                <option value="AT">Österreich</option>
-                                <option value="CH">Schweiz</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="dash-label">Telefon</label>
-                            <input type="text" wire:model="phone" class="dash-input">
-                        </div>
-                        <div>
-                            <label class="dash-label">Steuernummer</label>
-                            <input type="text" wire:model="taxNumber" class="dash-input" placeholder="DE123456789">
+                        <div class="dash-form-grid dash-form-grid-2">
+                            <div>
+                                <label for="phone" class="dash-label">Telefon</label>
+                                <input type="text" id="phone" wire:model="phone" class="dash-input">
+                            </div>
+                            <div>
+                                <label for="taxNumber" class="dash-label">Steuernummer</label>
+                                <input type="text" id="taxNumber" wire:model="taxNumber" class="dash-input" placeholder="DE123456789">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -105,10 +145,13 @@
                             <input type="text" wire:model="contactPhone" class="dash-input" placeholder="+49 30 1234567">
                         </div>
                     </div>
-                    <div>
-                        <label class="dash-label">Adresse</label>
-                        <textarea wire:model="contactAddress" rows="2" class="dash-textarea" placeholder="Musterstraße 1, 10115 Berlin"></textarea>
-                    </div>
+                    {{-- Anschrift: hier nur Wiedergabe, bearbeitet wird sie im Reiter „Workspace" (#61, §5). --}}
+                    @include('livewire.verwaltung.partials.address-readonly', [
+                        'label' => 'Anschrift',
+                        'value' => $addressStatus['formatted'],
+                        'origin' => 'Aus dem Reiter Workspace',
+                        'editHref' => '#anschrift',
+                    ])
                 </div>
 
                 {{-- Social --}}

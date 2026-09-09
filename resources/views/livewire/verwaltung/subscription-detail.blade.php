@@ -19,21 +19,23 @@
         {{-- Past Due Warning --}}
         @if($subscription->is_past_due)
             <div class="dash-flash dash-flash-warning mb-4" role="alert" style="border-radius: 0.5rem;">
-                <strong>Achtung:</strong> Die Zahlung für dieses Abonnement ist überfällig. Bitte aktualisieren Sie Ihre Zahlungsdaten.
+                <strong>Achtung:</strong> <span class="dash-flash-body">Die Zahlung für dieses Abonnement ist überfällig. Bitte aktualisieren Sie Ihre Zahlungsdaten.</span>
             </div>
         @endif
 
         {{-- Cancellation Warning --}}
         @if($subscription->is_canceled_at_end_of_cycle)
-            <div class="dash-flash dash-flash-warning mb-4" role="alert" style="border-radius: 0.5rem;">
+            <div class="dash-flash dash-flash-warning dash-flash-block mb-4" role="alert" style="border-radius: 0.5rem;">
                 <svg class="dash-flash-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z"/></svg>
                 <div>
                     <strong>Gekündigt.</strong>
-                    @if($subscription->ends_at)
-                        Ihr Abonnement läuft am {{ $subscription->ends_at->format('d.m.Y') }} aus. Bis dahin haben Sie weiterhin Zugriff auf alle Premium-Features.
-                    @else
-                        Ihr Abonnement wird nicht verlängert.
-                    @endif
+                    <span class="dash-flash-body">
+                        @if($subscription->ends_at)
+                            Ihr Abonnement läuft am {{ $subscription->ends_at->format('d.m.Y') }} aus. Bis dahin haben Sie weiterhin Zugriff auf alle Premium-Features.
+                        @else
+                            Ihr Abonnement wird nicht verlängert.
+                        @endif
+                    </span>
                 </div>
             </div>
         @endif

@@ -152,13 +152,13 @@
                         <p class="text-sm" style="color: var(--dash-text-secondary);">Um 2FA zu deaktivieren oder Recovery Codes zu erneuern, nutzen Sie bitte die Sicherheitseinstellungen in Ihrem Konto.</p>
                     </div>
                 @else
-                    <div class="dash-flash dash-flash-warning" role="status" style="border-radius: 0.5rem;">
+                    <div class="dash-flash dash-flash-warning dash-flash-block" role="status" style="border-radius: 0.5rem;">
                         <svg class="dash-flash-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                         </svg>
                         <div>
-                            <p class="text-sm font-medium">2FA ist nicht aktiviert</p>
-                            <p class="text-xs mt-0.5" style="opacity: 0.85;">Wir empfehlen die Aktivierung von 2FA für zusätzliche Sicherheit.</p>
+                            <p class="text-sm font-semibold">2FA ist nicht aktiviert</p>
+                            <p class="text-xs mt-0.5 dash-flash-body">Wir empfehlen die Aktivierung von 2FA für zusätzliche Sicherheit.</p>
                         </div>
                     </div>
                     <div class="pt-2">

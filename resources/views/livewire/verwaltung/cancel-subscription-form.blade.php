@@ -19,13 +19,13 @@
 
     <div class="dash-card dash-card-padded max-w-2xl">
         {{-- Warning Banner --}}
-        <div class="dash-flash dash-flash-warning mb-6" role="alert" style="border-radius: 0.75rem;">
+        <div class="dash-flash dash-flash-warning dash-flash-block mb-6" role="alert" style="border-radius: 0.75rem;">
             <svg class="w-6 h-6 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
             </svg>
             <div>
                 <h3 class="font-semibold mb-1">Achtung: Kündigung</h3>
-                <p class="text-sm" style="opacity: 0.85;">
+                <p class="text-sm dash-flash-body">
                     Das Abonnement wird zum Ende der aktuellen Abrechnungsperiode gekündigt.
                     Bis dahin können Sie alle Premium-Funktionen weiterhin nutzen.
                 </p>
