@@ -5,25 +5,30 @@ namespace App\Console\Commands;
 use App\Models\Portal\Category;
 use App\Models\Portal\ChCity;
 use App\Models\Portal\City;
-use App\Models\Portal\FrCity;
 use App\Models\Portal\Company;
 use App\Models\Portal\CompanyOpeningHour;
+use App\Models\Portal\FrCity;
 use App\Models\Portal\Review;
 use App\Models\Tenant;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
-use Stancl\Tenancy\Concerns\HasATenantArgument;
-use Stancl\Tenancy\Concerns\TenantAwareCommand;
 
 /**
- * Importiert Firmen aus der Google Places API in die aktive Tenant-DB.
+ * Importiert Firmen aus der Google Places API (New) in die aktive Tenant-DB.
+ *
+ * Dienst ist places.googleapis.com — die alte Places API
+ * (maps.googleapis.com/maps/api/place, Dienst places-backend.googleapis.com)
+ * gibt Google fuer neu angelegte Cloud-Projekte nicht mehr frei. Die
+ * API-Einschraenkung des Schluessels muss auf "Places API (New)" lauten.
  *
  * Kostenoptimierung:
  * - Dedup via google_places_id VOR Detail-Call (teuerster Call)
- * - Field-Mask auf Place Details (nur angeforderte Felder werden berechnet)
+ * - Text Search mit FieldMask places.id (Stufe "ID Only", unberechnet)
+ * - Field-Mask auf Place Details (bestimmt die Kostenstufe des Aufrufs)
  * - Fotos NUR für Firmen OHNE Website (--skip-photos deaktiviert komplett)
  * - Reviews optional (--skip-reviews)
  * - Limit pro Stadt (--limit)
@@ -53,13 +58,37 @@ class GetCompanies extends Command
 
     protected $description = 'Importiert Firmen aus der Google Places API in den aktuellen Tenant';
 
-    private const BASE_URL = 'https://maps.googleapis.com/maps/api/place';
+    private const BASE_URL = 'https://places.googleapis.com/v1';
 
-    // Place Details: nur Felder die wir brauchen
-    // Basic (kostenlos mit Text Search): name, place_id, types, formatted_address
-    // Contact ($3/1000): formatted_phone_number, website, opening_hours
-    // Atmosphere ($5/1000): rating, reviews, user_ratings_total
-    private const DETAIL_FIELDS = 'name,formatted_phone_number,website,rating,place_id,address_components,opening_hours,reviews,photos,types,user_ratings_total';
+    /**
+     * Text Search: wir brauchen aus der Trefferliste nur die Place-ID, weil der
+     * Dedup gegen companies.google_places_id vor dem Detail-Call laeuft.
+     * Eine FieldMask mit ausschliesslich places.id faellt in die Stufe
+     * "Text Search (ID Only)" und ist damit unberechnet.
+     */
+    private const SEARCH_FIELDS = 'places.id,nextPageToken';
+
+    /**
+     * Place Details: nur Felder die wir brauchen — die FieldMask bestimmt die
+     * Kostenstufe des Aufrufs.
+     * Essentials: id, addressComponents, types, photos
+     * Pro: displayName
+     * Enterprise: nationalPhoneNumber, websiteUri, regularOpeningHours, rating, userRatingCount
+     * Enterprise + Atmosphere: reviews
+     *
+     * @var string[]
+     */
+    private const DETAIL_FIELDS = [
+        'id',
+        'displayName',
+        'nationalPhoneNumber',
+        'websiteUri',
+        'rating',
+        'userRatingCount',
+        'addressComponents',
+        'regularOpeningHours',
+        'types',
+    ];
 
     private string $apiKey;
 
@@ -73,8 +102,19 @@ class GetCompanies extends Command
     private ?int $fallbackCategoryId = null;
 
     private int $apiCalls = 0;
+
+    /** Kostenpflichtige Detail-Calls (Text Search laeuft mit ID-Only-FieldMask kostenlos). */
+    private int $detailCalls = 0;
+
+    private int $photoCalls = 0;
+
+    /** @var bool Google hat den Schluessel abgelehnt (REQUEST_DENIED) — Abbruch statt Weiterlaufen */
+    private bool $apiKeyRejected = false;
+
     private int $limit;
+
     private bool $isDryRun;
+
     private string $country = 'de';
 
     public function handle(): int
@@ -83,12 +123,15 @@ class GetCompanies extends Command
         set_time_limit(0);
 
         // ── Tenant-Kontext setzen ──
-        // ── API Key prüfen (vor Tenant-Init, da env() danach nicht mehr greift) ──
-        $this->apiKey = env('GOOGLE_PLACES_API_KEY', 'AIzaSyD-efl6KB0e7czwg5p4taukfhkjfKYDoUw');
+        // ── API Key prüfen ──
+        // Ueber config(), damit der Schluessel auch mit gecachter Konfiguration
+        // (php artisan config:cache im Deploy) gefunden wird (#101).
+        $this->apiKey = (string) config('services.google.places_api_key', '');
         if (empty($this->apiKey)) {
             $this->error('GOOGLE_PLACES_API_KEY ist nicht in .env gesetzt.');
             $this->line('Füge folgende Zeile zu .env hinzu:');
             $this->line('GOOGLE_PLACES_API_KEY=dein_api_key');
+
             return self::FAILURE;
         }
 
@@ -100,6 +143,7 @@ class GetCompanies extends Command
                 $tenants = Tenant::all();
                 if ($tenants->isEmpty()) {
                     $this->error('Keine Tenants vorhanden.');
+
                     return self::FAILURE;
                 }
 
@@ -116,6 +160,7 @@ class GetCompanies extends Command
             $tenant = Tenant::find($tenantId);
             if (! $tenant) {
                 $this->error("Tenant mit ID {$tenantId} nicht gefunden.");
+
                 return self::FAILURE;
             }
 
@@ -130,6 +175,7 @@ class GetCompanies extends Command
             $input = $this->ask('Suchbegriff(e) eingeben (mehrere mit Komma trennen, z.B. "Sanitär, Heizung")');
             if (empty($input)) {
                 $this->error('Mindestens ein Suchbegriff erforderlich.');
+
                 return self::FAILURE;
             }
             $queries = array_map('trim', explode(',', $input));
@@ -149,15 +195,16 @@ class GetCompanies extends Command
         }
 
         $this->info('═══ Google Places Import ═══');
-        $this->info('Suchbegriffe: ' . implode(', ', $queries));
+        $this->info('Suchbegriffe: '.implode(', ', $queries));
         $countryLabels = ['de' => 'Deutschland (cities)', 'ch' => 'Schweiz (ch_cities)', 'fr' => 'Frankreich (fr_cities)'];
-        $this->info('Städte-Quelle: ' . ($countryLabels[$this->country] ?? $this->country));
+        $this->info('Städte-Quelle: '.($countryLabels[$this->country] ?? $this->country));
         $this->newLine();
 
         // ── Cities laden ──
         $allCities = $this->loadCities();
         if ($allCities->isEmpty()) {
             $this->error('Keine Städte gefunden. Zuerst CategoryMappingSeeder oder Import ausführen.');
+
             return self::FAILURE;
         }
 
@@ -168,11 +215,12 @@ class GetCompanies extends Command
         if ($skippedCities > 0 && ! $recheck) {
             $this->info("Städte: {$cities->count()} offen, {$skippedCities} bereits gecheckt (--recheck zum Wiederholen)");
         } else {
-            $this->info("Städte: {$cities->count()}" . ($recheck ? ' (Recheck-Modus)' : ''));
+            $this->info("Städte: {$cities->count()}".($recheck ? ' (Recheck-Modus)' : ''));
         }
 
         if ($cities->isEmpty()) {
             $this->info('Alle Städte bereits gecheckt. Nutze --recheck um sie erneut zu durchlaufen.');
+
             return self::SUCCESS;
         }
 
@@ -219,11 +267,20 @@ class GetCompanies extends Command
                 } catch (\Exception $e) {
                     $this->warn("  ✗ Text Search fehlgeschlagen: {$e->getMessage()}");
                     $totalErrors++;
+
                     continue;
                 }
 
+                if ($this->apiKeyRejected) {
+                    $this->newLine();
+                    $this->error('Abbruch: Der Schluessel in GOOGLE_PLACES_API_KEY ist gesperrt oder das Google-Projekt ist deaktiviert.');
+                    $this->line('Neuen Schluessel ausstellen und in .env eintragen — siehe docs/messungen/places-key-rotation-anleitung.md.');
+
+                    return self::FAILURE;
+                }
+
                 if (empty($results)) {
-                    $this->line("  → 0 Ergebnisse");
+                    $this->line('  → 0 Ergebnisse');
 
                     if (! $this->isDryRun && ! $city->checked) {
                         $city->update(['checked' => true]);
@@ -244,6 +301,7 @@ class GetCompanies extends Command
                     // Dedup VOR Detail-Call = größte Kostenersparnis
                     if (Company::where('google_places_id', $placeId)->exists()) {
                         $skippedInCity++;
+
                         continue;
                     }
 
@@ -254,6 +312,7 @@ class GetCompanies extends Command
 
                     if ($this->isDryRun) {
                         $newInCity++;
+
                         continue;
                     }
 
@@ -263,11 +322,21 @@ class GetCompanies extends Command
                     } catch (\Exception $e) {
                         $this->warn("  ✗ Detail-Call fehlgeschlagen: {$e->getMessage()}");
                         $totalErrors++;
+
                         continue;
+                    }
+
+                    if ($this->apiKeyRejected) {
+                        $this->newLine();
+                        $this->error('Abbruch: Der Schluessel in GOOGLE_PLACES_API_KEY ist gesperrt oder das Google-Projekt ist deaktiviert.');
+                        $this->line('Neuen Schluessel ausstellen und in .env eintragen — siehe docs/messungen/places-key-rotation-anleitung.md.');
+
+                        return self::FAILURE;
                     }
 
                     if (! $details) {
                         $totalErrors++;
+
                         continue;
                     }
 
@@ -276,6 +345,7 @@ class GetCompanies extends Command
                         $placeName = $details['name'] ?? '?';
                         $this->line("    ⊘ Übersprungen (hat Website): {$placeName}");
                         $skippedInCity++;
+
                         continue;
                     }
 
@@ -325,10 +395,16 @@ class GetCompanies extends Command
     // ════════════════════════════════════════════════════════════════════
 
     /**
-     * Text Search API — findet Places zu einem Suchbegriff.
-     * Paginiert automatisch (max. 3 Seiten × 20 = 60 Ergebnisse).
+     * Text Search (Places API New) — findet Places zu einem Suchbegriff.
+     * POST /v1/places:searchText, Schluessel im Header, Feldauswahl per FieldMask.
+     * Paginiert automatisch (max. 3 Seiten x 20 = 60 Ergebnisse); die neue API
+     * gibt den pageToken sofort gueltig zurueck, die Wartezeit der alten API
+     * entfaellt.
      *
-     * @return array<int, array>
+     * Rueckgabe in der alten Form (['place_id' => ...]), damit die Hauptschleife
+     * unveraendert bleibt.
+     *
+     * @return array<int, array{place_id: string}>
      */
     private function textSearch(string $query): array
     {
@@ -339,48 +415,41 @@ class GetCompanies extends Command
         do {
             $page++;
 
-            if ($nextPageToken) {
-                // Google verlangt ~2s Wartezeit bevor next_page_token gültig ist
-                sleep(2);
-            }
-
-            $params = [
-                'query' => $query,
-                'key' => $this->apiKey,
-                'language' => 'de',
+            $payload = [
+                'textQuery' => $query,
+                'languageCode' => 'de',
+                'pageSize' => 20,
             ];
 
             if ($nextPageToken) {
-                $params['pagetoken'] = $nextPageToken;
+                $payload['pageToken'] = $nextPageToken;
             }
 
-            $response = Http::connectTimeout(5)->timeout(15)->get(self::BASE_URL . '/textsearch/json', $params);
+            $response = Http::connectTimeout(5)->timeout(15)
+                ->withHeaders([
+                    'X-Goog-Api-Key' => $this->apiKey,
+                    'X-Goog-FieldMask' => self::SEARCH_FIELDS,
+                ])
+                ->post(self::BASE_URL.'/places:searchText', $payload);
             $this->apiCalls++;
 
             if (! $response->successful()) {
-                $this->warn("  API-Fehler Text Search: HTTP {$response->status()}");
-                break;
+                $this->reportApiError('Text Search', $response);
+
+                return $allResults;
             }
 
             $json = $response->json();
 
-            if (($json['status'] ?? '') !== 'OK' && ($json['status'] ?? '') !== 'ZERO_RESULTS') {
-                if (($json['status'] ?? '') === 'OVER_QUERY_LIMIT') {
-                    $this->error('  API-Limit erreicht! Warte oder erhöhe dein Quota.');
-                    return $allResults;
+            foreach ($json['places'] ?? [] as $place) {
+                if (! empty($place['id'])) {
+                    $allResults[] = ['place_id' => $place['id']];
                 }
-                $this->warn("  API Status: " . ($json['status'] ?? 'UNKNOWN'));
-                if (isset($json['error_message'])) {
-                    $this->warn("  " . $json['error_message']);
-                }
-                break;
             }
 
-            $results = $json['results'] ?? [];
-            $allResults = array_merge($allResults, $results);
-            $nextPageToken = $json['next_page_token'] ?? null;
+            $nextPageToken = $json['nextPageToken'] ?? null;
 
-            // Max 3 Seiten (Google-Limit)
+            // Max 3 Seiten (Kostendeckel wie bisher)
             if ($page >= 3) {
                 break;
             }
@@ -390,44 +459,225 @@ class GetCompanies extends Command
     }
 
     /**
-     * Place Details API — holt Detail-Infos zu einer Place-ID.
-     * Verwendet Field-Mask für Kostenoptimierung.
+     * Place Details (Places API New) — GET /v1/places/{placeId}.
+     * Die FieldMask ist Pflicht (ohne sie antwortet die API mit HTTP 400) und
+     * bestimmt zugleich die Kostenstufe.
+     *
+     * Rueckgabe in der alten Feldform, damit saveCompany() unveraendert bleibt.
      */
     private function getPlaceDetails(string $placeId): ?array
     {
-        $response = Http::connectTimeout(5)->timeout(15)->get(self::BASE_URL . '/details/json', [
-            'place_id' => $placeId,
-            'key' => $this->apiKey,
-            'language' => 'de',
-            'fields' => self::DETAIL_FIELDS,
-        ]);
+        $response = Http::connectTimeout(5)->timeout(15)
+            ->withHeaders([
+                'X-Goog-Api-Key' => $this->apiKey,
+                'X-Goog-FieldMask' => $this->detailFieldMask(),
+            ])
+            ->get(self::BASE_URL.'/places/'.rawurlencode($placeId), ['languageCode' => 'de']);
         $this->apiCalls++;
+        $this->detailCalls++;
 
         if (! $response->successful()) {
+            $this->reportApiError('Place Details', $response);
+
             return null;
         }
 
-        $json = $response->json();
-
-        if (($json['status'] ?? '') !== 'OK') {
-            return null;
-        }
-
-        return $json['result'] ?? null;
+        return $this->mapPlace($response->json() ?? []);
     }
 
     /**
-     * Place Photo API — lädt ein Foto herunter.
-     * Gibt den Bild-Inhalt als String zurück.
+     * FieldMask fuer den Detail-Call. Fotos und Reviews kosten extra und werden
+     * nur angefordert, wenn der Lauf sie auch verarbeitet.
+     */
+    private function detailFieldMask(): string
+    {
+        $fields = self::DETAIL_FIELDS;
+
+        if (! $this->option('skip-reviews')) {
+            $fields[] = 'reviews';
+        }
+
+        if (! $this->option('skip-photos')) {
+            $fields[] = 'photos';
+        }
+
+        return implode(',', $fields);
+    }
+
+    /**
+     * Fehlerauswertung der neuen API: sie meldet ueber HTTP-Codes und einen
+     * error-Block, nicht mehr ueber status: REQUEST_DENIED (#88).
+     */
+    private function reportApiError(string $label, Response $response): void
+    {
+        $json = $response->json();
+        $message = (string) ($json['error']['message'] ?? $response->body());
+        $status = (string) ($json['error']['status'] ?? '');
+
+        if ($response->status() === 429 || $status === 'RESOURCE_EXHAUSTED') {
+            $this->error('  API-Limit erreicht! Warte oder erhöhe dein Quota.');
+
+            return;
+        }
+
+        $keyRejected = in_array($response->status(), [401, 403], true)
+            || in_array($status, ['UNAUTHENTICATED', 'PERMISSION_DENIED'], true)
+            || Str::contains($message, [
+                'API key not valid',
+                'API key is invalid',
+                'API key expired',
+                'has not been used in project',
+                'is disabled',
+                'billing',
+            ], true);
+
+        if ($keyRejected) {
+            $this->apiKeyRejected = true;
+            $this->error('  Google lehnt GOOGLE_PLACES_API_KEY ab: '.Str::limit($message, 200));
+
+            return;
+        }
+
+        $this->warn("  API-Fehler {$label}: HTTP {$response->status()} — ".Str::limit($message, 200));
+    }
+
+    /**
+     * Antwort der neuen API auf die alten Feldnamen abbilden.
+     * Die Place-IDs beider Fassungen sind identisch, companies.google_places_id
+     * bleibt damit der Dedup-Schluessel.
+     */
+    private function mapPlace(array $place): ?array
+    {
+        if (empty($place['id'])) {
+            return null;
+        }
+
+        return [
+            'place_id' => $place['id'],
+            'name' => $place['displayName']['text'] ?? null,
+            'formatted_phone_number' => $place['nationalPhoneNumber'] ?? null,
+            'website' => $place['websiteUri'] ?? null,
+            'rating' => $place['rating'] ?? 0,
+            'user_ratings_total' => $place['userRatingCount'] ?? 0,
+            'types' => $place['types'] ?? [],
+            'address_components' => $this->mapAddressComponents($place['addressComponents'] ?? []),
+            'opening_hours' => ['periods' => $this->mapOpeningHours($place['regularOpeningHours']['periods'] ?? [])],
+            'reviews' => $this->mapReviews($place['reviews'] ?? []),
+            'photos' => $this->mapPhotos($place['photos'] ?? []),
+        ];
+    }
+
+    /**
+     * addressComponents: longText/shortText → long_name/short_name.
+     */
+    private function mapAddressComponents(array $components): array
+    {
+        $mapped = [];
+
+        foreach ($components as $component) {
+            $mapped[] = [
+                'types' => $component['types'] ?? [],
+                'long_name' => $component['longText'] ?? '',
+                'short_name' => $component['shortText'] ?? '',
+            ];
+        }
+
+        return $mapped;
+    }
+
+    /**
+     * regularOpeningHours: {hour, minute} → 'HHMM' wie in der alten API,
+     * damit formatGoogleTime() unveraendert bleibt.
+     */
+    private function mapOpeningHours(array $periods): array
+    {
+        $mapped = [];
+
+        foreach ($periods as $period) {
+            if (! isset($period['open'])) {
+                continue;
+            }
+
+            // Proto-JSON laesst Nullwerte weg — fehlender day heisst Sonntag (0).
+            $entry = [
+                'open' => [
+                    'day' => (int) ($period['open']['day'] ?? 0),
+                    'time' => $this->clockTime($period['open']),
+                ],
+            ];
+
+            if (isset($period['close'])) {
+                $entry['close'] = [
+                    'day' => (int) ($period['close']['day'] ?? 0),
+                    'time' => $this->clockTime($period['close']),
+                ];
+            }
+
+            $mapped[] = $entry;
+        }
+
+        return $mapped;
+    }
+
+    private function clockTime(array $point): string
+    {
+        return sprintf('%02d%02d', (int) ($point['hour'] ?? 0), (int) ($point['minute'] ?? 0));
+    }
+
+    /**
+     * reviews: authorAttribution.displayName, text.text und publishTime (RFC 3339)
+     * → author_name, text und Unix-Zeit wie in der alten API.
+     */
+    private function mapReviews(array $reviews): array
+    {
+        $mapped = [];
+
+        foreach ($reviews as $review) {
+            $time = isset($review['publishTime']) ? strtotime((string) $review['publishTime']) : false;
+
+            $mapped[] = [
+                'author_name' => $review['authorAttribution']['displayName'] ?? 'Anonym',
+                'rating' => $review['rating'] ?? null,
+                'text' => $review['text']['text'] ?? ($review['originalText']['text'] ?? null),
+                'time' => $time === false ? null : $time,
+            ];
+        }
+
+        return $mapped;
+    }
+
+    /**
+     * photos: der Ressourcenname ("places/<id>/photos/<ref>") tritt an die
+     * Stelle der alten photo_reference.
+     */
+    private function mapPhotos(array $photos): array
+    {
+        $mapped = [];
+
+        foreach ($photos as $photo) {
+            if (empty($photo['name'])) {
+                continue;
+            }
+
+            $mapped[] = ['photo_reference' => $photo['name']];
+        }
+
+        return $mapped;
+    }
+
+    /**
+     * Place Photo (Places API New) — GET /v1/{photoName}/media.
+     * Gibt den Bild-Inhalt als String zurück (Http folgt der Weiterleitung).
      */
     private function downloadPhoto(string $photoReference, int $maxWidth = 1200): ?string
     {
-        $response = Http::connectTimeout(5)->timeout(20)->get(self::BASE_URL . '/photo', [
-            'photoreference' => $photoReference,
-            'maxwidth' => $maxWidth,
-            'key' => $this->apiKey,
-        ]);
+        $response = Http::connectTimeout(5)->timeout(20)
+            ->withHeaders(['X-Goog-Api-Key' => $this->apiKey])
+            ->get(self::BASE_URL.'/'.ltrim($photoReference, '/').'/media', [
+                'maxWidthPx' => $maxWidth,
+            ]);
         $this->apiCalls++;
+        $this->photoCalls++;
 
         if (! $response->successful()) {
             return null;
@@ -569,7 +819,7 @@ class GetCompanies extends Command
         foreach ($reviews as $review) {
             $createdAt = now();
             if (isset($review['time']) && is_numeric($review['time'])) {
-                $createdAt = DB::raw('FROM_UNIXTIME(' . (int) $review['time'] . ')');
+                $createdAt = DB::raw('FROM_UNIXTIME('.(int) $review['time'].')');
             }
 
             $batch[] = [
@@ -652,7 +902,7 @@ class GetCompanies extends Command
                 }
 
                 // Temporäre Datei für Spatie Media Library
-                $tempPath = sys_get_temp_dir() . '/' . uniqid('gp_') . '.jpg';
+                $tempPath = sys_get_temp_dir().'/'.uniqid('gp_').'.jpg';
                 file_put_contents($tempPath, $imageData);
 
                 $company->addMedia($tempPath)
@@ -838,7 +1088,7 @@ class GetCompanies extends Command
         $fallback = Category::where('source_key', '_fallback')->first();
         $this->fallbackCategoryId = $fallback?->id;
 
-        $this->line("Kategorie-Map: " . count($this->categoryMap) . " Google-Types → " . $categories->count() . " Kategorien");
+        $this->line('Kategorie-Map: '.count($this->categoryMap).' Google-Types → '.$categories->count().' Kategorien');
     }
 
     /**
@@ -868,7 +1118,7 @@ class GetCompanies extends Command
     {
         $baseSlug = Str::slug($name);
         if (empty($baseSlug)) {
-            $baseSlug = 'firma-' . uniqid();
+            $baseSlug = 'firma-'.uniqid();
         }
 
         $slug = $baseSlug;
@@ -884,16 +1134,16 @@ class GetCompanies extends Command
 
     /**
      * Geschätzte API-Kosten basierend auf Anzahl der Calls.
-     * Google Places Pricing (Stand 2025):
-     * - Text Search: $32/1000
-     * - Place Details: $17/1000
-     * - Place Photos: $7/1000
+     * Places API (New), Preise pro 1000 Aufrufe (Stand 2025):
+     * - Text Search (ID Only): $0 — unsere Such-FieldMask ist places.id
+     * - Place Details (Enterprise + Atmosphere): ~$25
+     * - Place Photo: ~$7
      */
     private function estimateCost(): string
     {
-        // Grobe Schätzung: ~$25/1000 Calls im Mix
-        $estimated = ($this->apiCalls / 1000) * 25;
-        return '~$' . number_format($estimated, 2);
+        $estimated = ($this->detailCalls / 1000) * 25 + ($this->photoCalls / 1000) * 7;
+
+        return '~$'.number_format($estimated, 2);
     }
 
     /**
