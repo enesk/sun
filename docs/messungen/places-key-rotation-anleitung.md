@@ -65,8 +65,8 @@ unvollständig abschließen; siehe Hinweis dort.
    jedes Projekt durchgehen, das Places-Schlüssel führt. Die vier Werte gekürzt:
    `AIzaSyD-ef…YDoUw`, `AIzaSyDzqx…A19Xc`, `AIzaSyBzif…T_yHE`, `AIzaSyAal_…KcchU`.
    Dazu der tote `.env`-Wert `AIzaSyBeYd…ELWLM`, falls er im selben Projekt liegt.
-3. **Neuen Schlüssel `sun-places-server` ausstellen** — API-Einschränkung „Places API",
-   Anwendungseinschränkung „IP-Adressen", Tageskontingent setzen.
+3. **Neuen Schlüssel `sun-places-server` ausstellen** — API-Einschränkung
+   „Places API (New)", Anwendungseinschränkung „IP-Adressen", Tageskontingent setzen.
 4. **Wert eintragen** — Produktions-`.env` und lokale `.env`, dann `php artisan config:clear`.
 5. **Zwei Proben laufen lassen**, beide müssen grün sein:
 
@@ -142,11 +142,11 @@ gcloud services api-keys delete <KEY_ID> --project=<PROJEKT>
 Einschränkungen; das Tageskontingent aus Abschnitt 3.5 bleibt Konsolenarbeit:
 
 ```bash
-gcloud services enable places-backend.googleapis.com --project=<PROJEKT>
+gcloud services enable places.googleapis.com --project=<PROJEKT>
 gcloud services api-keys create \
   --project=<PROJEKT> \
   --display-name="sun-places-server" \
-  --api-target=service=places-backend.googleapis.com \
+  --api-target=service=places.googleapis.com \
   --allowed-ips=<PRODUKTIONS_IP>
 gcloud services api-keys get-key-string <NEUE_KEY_ID> --project=<PROJEKT> \
   --format="value(keyString)"
@@ -155,16 +155,19 @@ gcloud services api-keys get-key-string <NEUE_KEY_ID> --project=<PROJEKT> \
 `--allowed-ips` weglassen, solange die Produktions-IP fehlt (siehe Abschnitt 3.3),
 und später mit `gcloud services api-keys update … --allowed-ips=<IP>` nachziehen.
 
-**Achtung, das kann Abschnitt 4 kippen:** `GetCompanies` ruft ausschließlich die
-**alte** Places API (`maps.googleapis.com/maps/api/place/textsearch/json` und
-`/details/json`, Konstante `BASE_URL`, Dienst `places-backend.googleapis.com`).
-Google gibt diesen Dienst für neu angelegte Projekte nicht mehr frei; nur Projekte,
-die ihn schon einmal aktiviert hatten, dürfen ihn weiter nutzen. Der neue Schlüssel
-gehört deshalb in **eines der bestehenden Projekte** — dort reicht es, die
-Abrechnung einzuschalten. Schlägt `gcloud services enable places-backend.googleapis.com`
-fehl oder antwortet der Trockenlauf mit `REQUEST_DENIED` und einem Hinweis auf eine
-„legacy API", dann ist ein neues Projekt im Spiel und der Importer muss erst auf
-Places API (New) umgezogen werden — dafür gibt es ein eigenes Ticket.
+**Der Dienst heißt seit #108 `places.googleapis.com`.** `GetCompanies` ruft die
+**Places API (New)** auf (`POST /v1/places:searchText` und `GET /v1/places/{id}`),
+nicht mehr die alte Places API (`maps.googleapis.com/maps/api/place`, Dienst
+`places-backend.googleapis.com`). Die API-Einschränkung des Schlüssels
+`sun-places-server` muss deshalb auf **„Places API (New)"** lauten; die Auswahl
+„Places API" ohne Zusatz ist der Legacy-Dienst und führt zu HTTP 403.
+Das neue Projekt darf frisch angelegt sein — die Legacy-Freigabe, die Google für
+neue Projekte nicht mehr erteilt, braucht der Importer nicht mehr.
+
+Nur `places:keys:audit` fragt die **alte** API weiter ab, und zwar ausschließlich
+für die vier Verlaufsschlüssel: dort ist die Frage „gelöscht oder nicht", und
+darauf antwortet der Legacy-Endpunkt unabhängig von der Freischaltung. Die
+`.env`-Zeile desselben Befehls prüft gegen `places.googleapis.com`.
 ## 1. Abrechnung des alten Schlüssels prüfen
 
 1. Cloud Console öffnen: https://console.cloud.google.com/billing
@@ -236,16 +239,18 @@ Erwartet **nach** der Löschung für alle vier Zeilen:
    ausstellen, nicht den Produktionsschlüssel weitergeben.
    **Ist die Produktions-IP noch nicht bekannt** — `deploy.php` trägt in Zeile 15
    weiterhin den Platzhalter `1.2.3.4` —, dann den Schlüssel trotzdem ausstellen,
-   aber mit API-Einschränkung „Places API" *und* einem knapp bemessenen Tageslimit
+   aber mit API-Einschränkung „Places API (New)" *und* einem knapp bemessenen Tageslimit
    (Größenordnung eines Importlaufs). Die IP-Einschränkung wird nachgezogen, sobald
    der Produktionsserver steht; das gehört dann in die Protokollzeile 3.
-4. API-Einschränkung: nur „Places API" (und „Places API (New)", falls das Projekt sie
-   getrennt führt). Nichts sonst anhaken.
-5. Kontingent setzen, damit ein Leck begrenzt bleibt: „APIs & Dienste → Places API →
-   Kontingente", Tageslimit auf einen Wert oberhalb des üblichen Importlaufs.
+4. API-Einschränkung: nur „Places API (New)" (Dienst `places.googleapis.com`).
+   Nichts sonst anhaken — „Places API" ohne Zusatz ist der Legacy-Dienst, den der
+   Importer seit #108 nicht mehr aufruft.
+5. Kontingent setzen, damit ein Leck begrenzt bleibt: „APIs & Dienste →
+   Places API (New) → Kontingente", Tageslimit auf einen Wert oberhalb des
+   üblichen Importlaufs.
 
 **Probe:** Der neue Schlüssel steht in der Liste, Spalte „Einschränkungen" zeigt
-„Places API" und eine IP-Einschränkung.
+„Places API (New)" und eine IP-Einschränkung.
 
 ## 4. Neuen Wert eintragen und Lauf prüfen
 

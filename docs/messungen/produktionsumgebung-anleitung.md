@@ -134,27 +134,90 @@ Heutiger Stand auf dem Server:
 | `QUEUE_CONNECTION` | `database` — nicht Redis, obwohl Redis läuft |
 | Horizon | läuft nicht; kein Horizon-Programm im Supervisor |
 | Supervisor | `sanitaerfinden-worker` (beide Prozesse **FATAL**, „Exited too quickly"), `kasernencheck-moderation` |
-| Cron | für User `sanitaerfinden` **keine** crontab, also kein `schedule:run` |
+| Cron | eingetragen am 09.09.2026, `schedule:run` läuft im Minutentakt |
 
-Zu tun:
-1. Den defekten `sanitaerfinden-worker` klären (Logdatei lesen) — er trägt heute
-   die normalen Portal-Jobs und läuft nicht.
-2. Die drei Programme aus `deploy/supervisor/` (`content-sources.conf`,
-   `content-generate.conf`, `content-publish.conf`) einspielen, oder die Queues
-   über Horizon fahren. **Nicht beides**, sonst zieht jede Queue zwei Konsumenten.
-3. `queue:restart` nach jedem Release-Wechsel.
-4. Cron `* * * * * cd <pfad> && php artisan schedule:run >> /dev/null 2>&1`.
-5. `php artisan tenants:migrate` über alle Portale.
+### 5.1 Wegentscheidung (#110): Horizon auf Redis
 
-Hinweis: `content:golive:check` verlangt für jede Queue aus
-`content.pipeline.queues` einen **Horizon**-Supervisor und für `queue.default`
-etwas anderes als `sync`. Mit `QUEUE_CONNECTION=database` und ohne Horizon meldet
-er drei Fehler, auch wenn Supervisor die Queues sauber bedient. Das ist als
-eigenes Ticket festgehalten.
+Es gibt zwei Wege, die Queues der Pipeline zu bedienen. Gewählt ist **Horizon
+auf Redis**. Die drei Programme aus `deploy/supervisor/` bleiben ungenutzt und
+`dep deploy:supervisor-content` wird auf diesem Server **nie** ausgeführt.
+
+Gründe:
+
+- Horizon ist der Standardweg des Projekts. `dep provision:supervisor` legt das
+  Programm `horizon` an, `deploy.php` ruft nach jedem Release
+  `artisan:horizon:terminate`. Der Ausweichweg ist eine Sonderlocke, die bei
+  jedem Deploy mitgedacht werden muss.
+- `config/horizon.php` führt die drei Content-Supervisoren bereits vollständig
+  samt Produktions- und Staging-Skalierung; sie decken alle sechs Queues.
+- Beide Wege setzen Redis voraus: die Programme in `deploy/supervisor/` starten
+  `queue:work redis`. `QUEUE_CONNECTION=database` ist also in jedem Fall falsch.
+- `content:golive:check` prüft die Queues gegen `config('horizon.defaults')`.
+  Der Horizon-Weg erreicht Exit 0 ohne Eingriff in den Prüfcode. Den
+  Ausweichweg anzuerkennen hieße, im Check einen Serverzustand zu raten, den
+  die Konfiguration nicht kennt.
+- Horizon liefert zusätzlich die Warteschlangen-Sicht unter `/horizon`, die der
+  Betrieb aus #26 für Wartezeiten und fehlgeschlagene Jobs braucht.
+
+### 5.2 Schritte auf dem Server
+
+Reihenfolge einhalten — erst Redis, dann Horizon, dann den alten Worker
+abräumen.
+
+1. **Ursache des FATAL klären, bevor etwas geändert wird.** Das Log des
+   Programms steht in seiner Conf:
+   ```
+   grep -h "stdout_logfile\|command" /etc/supervisor/conf.d/sanitaerfinden-worker.conf
+   tail -n 50 <stdout_logfile>
+   ```
+   „Exited too quickly" heißt: der Prozess stirbt in unter einer Sekunde.
+   Die üblichen drei Ursachen, in dieser Reihenfolge prüfen:
+   `command` zeigt auf einen Pfad, den es nicht (mehr) gibt (falscher
+   `deploy_path`, alter Release-Symlink); `queue:work redis` bei fehlender
+   PHP-Erweiterung `redis` (`php8.4 -m | grep redis`); oder ein Fehler beim
+   Hochfahren der Anwendung, der auch `php artisan about` auslöst. Der Befund
+   gehört als Zeile in dieses Dokument, auch wenn das Programm danach entfällt.
+2. **`.env` auf Redis stellen** und den Config-Cache neu bauen:
+   ```
+   QUEUE_CONNECTION=redis
+   REDIS_CLIENT=phpredis
+   ```
+   danach `php artisan config:cache`. Der bestehende Cache stammt vom
+   12.05.2026, siehe Abschnitt „Achtung Config-Cache" — der Neuaufbau ist Teil
+   des Deploys aus Abschnitt 1 und darf nicht vorgezogen werden.
+   Wartende Jobs in der Tabelle `jobs` gehen mit dem Wechsel der Verbindung
+   verloren: vorher `select count(*) from jobs` prüfen und den Rest abarbeiten
+   lassen.
+3. **Horizon-Programm anlegen.** Entweder `dep provision:supervisor` (legt
+   `/etc/supervisor/conf.d/horizon.conf` an; Abschnitt 0 dieses Dokuments
+   beachten, der Task fasst auch nginx und PHP an) oder die Conf von Hand mit
+   demselben Inhalt und dem echten Pfad
+   `/home/sanitaerfinden/htdocs/sanitaerfinden.dev`. `APP_ENV` muss `production`
+   sein, sonst startet Horizon keinen einzigen Supervisor: fehlt der Eintrag
+   für die laufende Umgebung unter `horizon.environments`, lässt
+   `ProvisioningPlan::deploy()` die Programme kommentarlos aus.
+4. **Alten Worker entfernen.** `supervisor-1` in `config/horizon.php` bedient
+   die Queue `default` mit zehn Prozessen; `sanitaerfinden-worker` wird damit
+   überflüssig und würde die Portal-Jobs doppelt ziehen:
+   ```
+   supervisorctl stop sanitaerfinden-worker:*
+   rm /etc/supervisor/conf.d/sanitaerfinden-worker.conf
+   supervisorctl reread && supervisorctl update
+   ```
+   `kasernencheck-moderation` gehört zu einer fremden Anwendung und bleibt.
+5. **Starten und prüfen:** `supervisorctl start horizon`, dann
+   `php artisan horizon:status`.
+6. `php artisan tenants:migrate` über alle Portale.
+
+Bei jedem Release gilt weiter: `artisan:horizon:terminate` nach dem Wechsel des
+Symlinks (steht bereits in `deploy.php`). Ein zusätzliches `queue:restart`
+schadet nicht, ist mit Horizon aber überflüssig.
 
 **Probe:** `php artisan horizon:status` sagt `running`, `supervisorctl status`
-zeigt alle Programme `RUNNING`, `crontab -u sanitaerfinden -l` enthält
-`schedule:run`.
+zeigt alle Programme `RUNNING` und kein Programm mehr aus `deploy/supervisor/`,
+`crontab -u sanitaerfinden -l` enthält `schedule:run`, und
+`php artisan content:golive:check` zeigt bei „Queue-Verbindung" und den sechs
+Zeilen „Queue content-…" kein ✗.
 
 ## 6. Rollout und Abnahme
 
@@ -181,7 +244,7 @@ Lokal endet er am 09.09.2026 mit Exit 1 und drei Fehlern: Pipeline abgeschaltet
 | 2 Deploy-Ziel | 2026-09-09 | steffen | erledigt, `deploy.php` auf 88.198.64.145 / sanitaerfinden.com / enesk/sun |
 | 3 Produktions-`.env` | 2026-09-09 | steffen | Schalter und Budget gesetzt; die drei Schlüssel fehlen, siehe unten |
 | 4 Domains | 2026-09-09 | steffen | erledigt, 23 Portale gültig, vhost begradigt, 18 Stichproben HTTP 200 |
-| 5 Betrieb | 2026-09-09 | steffen | Cron läuft; Horizon offen (#110) |
+| 5 Betrieb | 2026-09-09 | steffen | Cron läuft; Weg entschieden (Horizon/Redis, #110), Umsetzung auf dem Server offen |
 | 6 Rollout |  |  | offen — #89 |
 | 7 `content:golive:check` Exit 0 |  |  | offen, setzt Abschnitt 1 voraus |
 
