@@ -12,9 +12,8 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * Tagesbericht der Content-Pipeline (#22) an die Redaktions-Accounts mit der
- * Rolle owner. Die Daten kommen fertig aus dem DailyReportBuilder; die Mail
- * rechnet nichts.
+ * Tagesbericht der Content-Pipeline (#22) an die Administratoren. Die Daten
+ * kommen fertig aus dem DailyReportBuilder; die Mail rechnet nichts.
  */
 class DailyContentReport extends Mailable implements ShouldQueue
 {

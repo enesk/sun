@@ -8,9 +8,11 @@ use App\Content\Models\Central\ContentAlert;
 use App\Content\Providers\AdSenseClient;
 use App\Content\Providers\IndexNowClient;
 use App\Content\Services\TenantRollout;
+use App\Models\Portal\AdSlot;
 use App\Models\Tenant;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
+use Throwable;
 
 /**
  * Vorabpruefung des Go-Live (#26).
@@ -115,7 +117,7 @@ class ContentGoLiveCheck extends Command
             'Alarm- und Berichtsempfänger',
             $recipients !== [],
             implode(', ', $recipients),
-            'Kein aktiver Redaktions-Account mit der Rolle owner (content:user:create)',
+            'Kein aktiver Administrator mit E-Mail-Adresse (php artisan app:create-admin-user)',
         );
 
         $this->check(
@@ -237,7 +239,10 @@ class ContentGoLiveCheck extends Command
     /**
      * Der Service Account fuer die Search Console. Er darf nicht unter
      * public/ liegen — sonst waere die Schluesseldatei aus dem Netz
-     * abrufbar (siehe docs/content-security-review.md).
+     * abrufbar (siehe docs/content-security-review.md). Geprueft wird
+     * ausserdem, ob der laufende Benutzer die Datei wirklich lesen darf
+     * (0600 mit fremdem Eigentuemer ist der haeufige Fall) und ob sie ein
+     * Dienstkontoschluessel mit client_email und private_key ist.
      */
     private function serviceAccount(): void
     {
@@ -263,7 +268,101 @@ class ContentGoLiveCheck extends Command
             return;
         }
 
-        $this->row(self::OK, 'Search-Console-Dienstkonto', 'lesbar, außerhalb von public/');
+        if (! is_readable($absolute)) {
+            $this->row(self::FAIL, 'Search-Console-Dienstkonto', sprintf(
+                'Nicht lesbar: %s (Eigentümer %s, Modus %s) — %s muss die Datei lesen können',
+                $absolute,
+                $this->fileOwner($absolute),
+                $this->fileMode($absolute),
+                $this->processUser(),
+            ));
+
+            return;
+        }
+
+        $raw = @file_get_contents($absolute);
+        $data = is_string($raw) ? json_decode($raw, true) : null;
+
+        if (! is_array($data)) {
+            $this->row(self::FAIL, 'Search-Console-Dienstkonto', "Kein lesbares JSON: {$absolute}");
+
+            return;
+        }
+
+        $missing = [];
+
+        foreach (['client_email', 'private_key'] as $field) {
+            if (trim((string) ($data[$field] ?? '')) === '') {
+                $missing[] = $field;
+            }
+        }
+
+        if ($missing !== []) {
+            $this->row(self::FAIL, 'Search-Console-Dienstkonto', sprintf(
+                'Kein Dienstkontoschlüssel, es fehlt: %s (%s)',
+                implode(', ', $missing),
+                $absolute,
+            ));
+
+            return;
+        }
+
+        $this->row(self::OK, 'Search-Console-Dienstkonto', sprintf(
+            'lesbar, außerhalb von public/, %s',
+            (string) $data['client_email'],
+        ));
+    }
+
+    /**
+     * Eigentuemer und Gruppe der Datei im Klartext, damit die Meldung
+     * ohne zweiten Blick auf den Server verstaendlich ist.
+     */
+    private function fileOwner(string $path): string
+    {
+        $uid = @fileowner($path);
+        $gid = @filegroup($path);
+
+        $user = is_int($uid) ? $this->userName($uid) : 'unbekannt';
+        $group = is_int($gid) && function_exists('posix_getgrgid')
+            ? ((posix_getgrgid($gid)['name'] ?? null) ?: (string) $gid)
+            : (is_int($gid) ? (string) $gid : 'unbekannt');
+
+        return "{$user}:{$group}";
+    }
+
+    private function fileMode(string $path): string
+    {
+        $perms = @fileperms($path);
+
+        return is_int($perms) ? substr(sprintf('%o', $perms), -4) : 'unbekannt';
+    }
+
+    /**
+     * Der Benutzer, unter dem dieser Prozess laeuft — also derjenige,
+     * der die Schluesseldatei lesen koennen muss.
+     */
+    private function processUser(): string
+    {
+        if (function_exists('posix_geteuid')) {
+            return 'der Prozessbenutzer '.$this->userName(posix_geteuid());
+        }
+
+        $name = get_current_user();
+
+        return $name === '' ? 'der PHP-Prozess' : "der Prozessbenutzer {$name}";
+    }
+
+    private function userName(int $uid): string
+    {
+        if (function_exists('posix_getpwuid')) {
+            $entry = posix_getpwuid($uid);
+
+            if (is_array($entry) && ($entry['name'] ?? '') !== '') {
+                return (string) $entry['name'];
+            }
+        }
+
+        return (string) $uid;
     }
 
     /**
@@ -417,7 +516,49 @@ class ContentGoLiveCheck extends Command
                 'articles_per_day ist 0 — das Portal erzeugt nichts',
                 $row['active'] ? self::FAIL : self::WARN,
             );
+
+            if ($row['active']) {
+                $this->autoAds($tenant, $prefix);
+            }
         }
+    }
+
+    /**
+     * Anzeigenplatz auto_ads eines freigeschalteten Portals (#100, #112).
+     *
+     * Auto Ads platzieren sich selbst und blenden ohne Kontoeinstellung einen
+     * Anker-Banner ein, der den body paddet und den CLS bis auf 1,0 treibt.
+     * Die Auslieferungsregel haelt ihn von den Ratgeber-Seiten fern, auf allen
+     * uebrigen Seiten bleibt er. Ob die Anker-Anzeigen im AdSense-Konto
+     * abgeschaltet sind, liegt ausserhalb des Repositories und ist von hier aus
+     * nicht einsehbar — deshalb nur WARN und nie FAIL.
+     */
+    private function autoAds(Tenant $tenant, string $prefix): void
+    {
+        $label = "{$prefix}: Anzeigenplatz auto_ads";
+
+        try {
+            /** @var int $active */
+            $active = $tenant->run(static fn (): int => AdSlot::query()
+                ->active()
+                ->forPosition('auto_ads')
+                ->count());
+        } catch (Throwable $exception) {
+            $this->row(self::WARN, $label, 'Anzeigenplätze nicht lesbar: '.$exception->getMessage());
+
+            return;
+        }
+
+        if ($active === 0) {
+            $this->row(self::OK, $label, 'kein aktiver Platz');
+
+            return;
+        }
+
+        $this->row(self::WARN, $label, sprintf(
+            '%d aktiver Platz — nur freigeben, wenn im AdSense-Konto unter Auto Ads → Anzeigenformate die Anker-Anzeigen abgeschaltet sind und die Abschaltung protokolliert ist (Datum, Konto, wer). Sonst schiebt der Anker-Banner das Layout um mehrere hundert Pixel (CLS bis 1,0). Von hier aus nicht prüfbar.',
+            $active,
+        ));
     }
 
     /**

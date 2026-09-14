@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Stancl\Tenancy\Database\Concerns\CentralConnection;
 
+use App\Content\Concerns\InteractsWithContentPanel;
 use App\Notifications\Auth\QueuedVerifyEmail;
 use App\Services\OrderService;
 use App\Services\SubscriptionService;
@@ -28,7 +29,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable implements FilamentUser, HasTenants, MustVerifyEmail, TwoFactorAuthenticatable
 {
     use CentralConnection;
-    use HasApiTokens, HasFactory, HasOneTimePasswords, HasRoles, Notifiable, TwoFactorAuthentication;
+    use HasApiTokens, HasFactory, HasOneTimePasswords, HasRoles, InteractsWithContentPanel, Notifiable, TwoFactorAuthentication;
 
     /**
      * The attributes that are mass assignable.
@@ -120,6 +121,12 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
         }
 
         if ($panel->getId() == 'dashboard' && ! $this->is_admin) {
+            return false;
+        }
+
+        // Content-Panel der Ratgeber-Pipeline: nur Administratoren, und
+        // gesperrte Konten nie (App\Content\Concerns\InteractsWithContentPanel).
+        if ($panel->getId() == config('content.panel.id', 'content') && ! $this->canAccessContentPanel()) {
             return false;
         }
 

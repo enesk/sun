@@ -48,6 +48,7 @@ final class DailyReportBuilder
 
         $portals = [];
         $published = 0;
+        $refreshed = 0;
         $target = 0;
         $failed = 0;
 
@@ -62,6 +63,7 @@ final class DailyReportBuilder
 
             $portals[] = $portal;
             $published += $portal['published'];
+            $refreshed += $portal['refreshed'];
             $target += $portal['target'];
             $failed += count($portal['failed_slots']);
         }
@@ -73,6 +75,7 @@ final class DailyReportBuilder
             'generated_at' => CarbonImmutable::now()->toIso8601String(),
             'totals' => [
                 'published' => $published,
+                'refreshed' => $refreshed,
                 'target' => $target,
                 'failed_slots' => $failed,
                 'portals' => count($portals),
@@ -129,17 +132,29 @@ final class DailyReportBuilder
         $tenantId = (int) $tenant->getKey();
 
         try {
-            /** @var array{target: int, articles: array<int, array<string, mixed>>, failed: array<int, array<string, mixed>>} $data */
+            /** @var array{target: int, articles: array<int, array<string, mixed>>, refreshes: array<int, array<string, mixed>>, failed: array<int, array<string, mixed>>} $data */
             $data = $tenant->run(function () use ($date): array {
                 $settings = TenantContentSetting::query()->first();
                 $target = max(1, (int) ($settings?->articles_per_day
                     ?? config('content.targets.articles_per_tenant_per_day', 2)));
 
                 $articles = [];
+                $refreshes = [];
                 $failed = [];
 
                 foreach (ContentDailyOrchestrator::draftsOfDay($date) as $draft) {
                     if ($draft->status === DraftStatus::PUBLISHED) {
+                        // Eine Aktualisierung (#24) traegt dieselbe Adresse und
+                        // als `published_at` das Datum der Erstveroeffentlichung.
+                        // Sie ist kein Artikel des Tages (#103) und bekommt
+                        // deshalb eine eigene Spur statt einer zweiten Zeile
+                        // in `articles`.
+                        if ($draft->isRefresh()) {
+                            $refreshes[] = self::refreshRow($draft);
+
+                            continue;
+                        }
+
                         $articles[] = [
                             'title' => (string) $draft->title,
                             'url' => (string) (($draft->publication_json ?? [])['url'] ?? ''),
@@ -159,7 +174,7 @@ final class DailyReportBuilder
                     }
                 }
 
-                return ['target' => $target, 'articles' => $articles, 'failed' => $failed];
+                return ['target' => $target, 'articles' => $articles, 'refreshes' => $refreshes, 'failed' => $failed];
             });
         } catch (Throwable $exception) {
             Log::warning('Tagesbericht: Portal uebersprungen.', [
@@ -181,7 +196,9 @@ final class DailyReportBuilder
             'name' => (string) $tenant->name,
             'target' => $data['target'],
             'published' => count($data['articles']),
+            'refreshed' => count($data['refreshes']),
             'articles' => $data['articles'],
+            'refreshes' => $data['refreshes'],
             'failed_slots' => $failedSlots,
             'cost' => round($cost, 4),
         ];
@@ -285,6 +302,35 @@ final class DailyReportBuilder
                 'since' => $alert->created_at?->format('d.m. H:i'),
             ])
             ->all();
+    }
+
+    /**
+     * Eine Zeile der Spur „Aktualisiert" (#103). Die Uhrzeit kommt aus dem
+     * Lauf selbst (`updated_at`, sonst `created_at`) — `published_at` traegt
+     * bei einer Kindfassung bewusst das Datum der Erstveroeffentlichung und
+     * stuende in der Zeitspalte falsch. Es erscheint stattdessen als
+     * `first_published`. Die Adresse aendert sich beim Aktualisieren nicht;
+     * fehlt sie an der Kindfassung, gilt die der Elternfassung.
+     *
+     * @return array<string, mixed>
+     */
+    private static function refreshRow(ArticleDraft $draft): array
+    {
+        $url = (string) (($draft->publication_json ?? [])['url'] ?? '');
+
+        $parent = $draft->parentDraft;
+
+        if ($url === '' && $parent instanceof ArticleDraft) {
+            $url = (string) (($parent->publication_json ?? [])['url'] ?? '');
+        }
+
+        return [
+            'title' => (string) $draft->title,
+            'url' => $url,
+            'cost' => round((float) $draft->generation_cost_usd, 4),
+            'at' => ($draft->updated_at ?? $draft->created_at)?->format('H:i'),
+            'first_published' => $draft->published_at?->format('d.m.Y'),
+        ];
     }
 
     /**

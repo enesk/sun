@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Mail;
 /**
  * Tagesbericht der Content-Pipeline (#22), planmaessig um 20:00.
  *
- * Der Bericht geht an alle aktiven Redaktions-Accounts mit der Rolle owner
+ * Der Bericht geht an alle aktiven Administratoren
  * und liegt zusaetzlich central in `content_daily_reports`, aus der die
  * Uebersicht des Panels ihn zeigt.
  */
@@ -59,7 +59,7 @@ class ContentDailyReport extends Command
         )));
 
         if ($recipients === []) {
-            $this->warn('Kein Empfaenger: es gibt keinen aktiven Redaktions-Account mit der Rolle owner.');
+            $this->warn('Kein Empfaenger: es gibt keinen aktiven Administrator.');
 
             return self::SUCCESS;
         }
@@ -90,11 +90,12 @@ class ContentDailyReport extends Command
         ));
 
         $this->table(
-            ['Portal', 'Veroeffentlicht', 'Ziel', 'Offene Slots', 'USD'],
+            ['Portal', 'Veroeffentlicht', 'Ziel', 'Aktualisiert', 'Offene Slots', 'USD'],
             array_map(static fn (array $portal): array => [
                 $portal['name'],
                 $portal['published'],
                 $portal['target'],
+                $portal['refreshed'] ?? 0,
                 count($portal['failed_slots']),
                 number_format((float) $portal['cost'], 2),
             ], $report['portals']),

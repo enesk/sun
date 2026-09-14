@@ -67,6 +67,6 @@ class Overview extends ContentPage
 
     public function canSeeCosts(): bool
     {
-        return (bool) $this->contentUser()?->canSeeCosts();
+        return (bool) $this->contentUser()?->canSeeContentCosts();
     }
 }

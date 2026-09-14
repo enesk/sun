@@ -14,7 +14,7 @@ use Throwable;
  * Search-Console-Property je Portal pflegen (#107).
  *
  * Das Content-Panel kennt das Feld seit #116, aber nur je Portal und nur mit
- * angemeldetem Redaktions-Account. Fuer zweiundzwanzig Portale ist das der
+ * angemeldetem Administrator. Fuer zweiundzwanzig Portale ist das der
  * falsche Weg: die Property ist in aller Regel schlicht die Domain des
  * Portals, und genau diese Ableitung soll ein Befehl in einem Durchgang
  * schreiben koennen — auch nach einem Domainwechsel, wo der Seeder nicht mehr

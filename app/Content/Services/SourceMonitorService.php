@@ -7,12 +7,12 @@ namespace App\Content\Services;
 use App\Content\Enums\DisplayStatus;
 use App\Content\Enums\SourceFrequency;
 use App\Content\Jobs\RunSourceConnectorJob;
-use App\Content\Models\Central\ContentUser;
 use App\Content\Models\Central\ProviderState;
 use App\Content\Models\Central\SourceSetting;
 use App\Content\Models\SourceItem;
 use App\Content\Sources\SourceRegistry;
 use App\Models\Tenant;
+use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -275,7 +275,7 @@ final class SourceMonitorService
                     'weight' => $weight,
                     // Beim Wiedereinschalten verliert der Grund seinen Bezug.
                     'disabled_reason' => $enabled ? null : Str::limit($reason, 200, ''),
-                    'updated_by_content_user_id' => $this->currentUserId(),
+                    'updated_by_user_id' => $this->currentUserId(),
                 ],
             );
         }
@@ -473,11 +473,11 @@ final class SourceMonitorService
      */
     private function userName(?SourceSetting $setting): ?string
     {
-        if ($setting?->updated_by_content_user_id === null) {
+        if ($setting?->updated_by_user_id === null) {
             return null;
         }
 
-        return ContentUser::query()->find($setting->updated_by_content_user_id)?->name;
+        return User::query()->find($setting->updated_by_user_id)?->name;
     }
 
     private function currentUserId(): ?int
@@ -489,7 +489,7 @@ final class SourceMonitorService
             return null;
         }
 
-        return $user instanceof ContentUser ? (int) $user->getKey() : null;
+        return $user instanceof User ? (int) $user->getKey() : null;
     }
 
     private function tenant(int $id): ?Tenant

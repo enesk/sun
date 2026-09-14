@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Http\Middleware\UpdateUserLastSeenAt;
 use Filament\Actions\Action;
+use Filament\Facades\Filament;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -33,6 +34,12 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->navigation()
             ->userMenuItems([
+                // Kurzer Weg ins Content-Panel der Ratgeber-Pipeline; es
+                // teilt sich die Sitzung mit dem Admin-Panel.
+                Action::make('content-panel')
+                    ->label(__('Ratgeber'))
+                    ->url(fn () => Filament::getPanel(config('content.panel.id', 'content'))->getUrl())
+                    ->icon('heroicon-s-newspaper'),
                 Action::make('user-dashboard')
                     ->label(__('User Dashboard'))
                     ->visible(

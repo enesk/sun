@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Content\Models\Central;
 
 use App\Content\Enums\SourceFrequency;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,7 +25,7 @@ use Throwable;
  * @property string|null $frequency_override
  * @property int $weight
  * @property string|null $disabled_reason
- * @property int|null $updated_by_content_user_id
+ * @property int|null $updated_by_user_id
  * @property \Illuminate\Support\Carbon|null $updated_at
  */
 class SourceSetting extends Model
@@ -44,7 +45,7 @@ class SourceSetting extends Model
         'frequency_override',
         'weight',
         'disabled_reason',
-        'updated_by_content_user_id',
+        'updated_by_user_id',
     ];
 
     protected function casts(): array
@@ -57,7 +58,7 @@ class SourceSetting extends Model
 
     public function updatedBy(): BelongsTo
     {
-        return $this->belongsTo(ContentUser::class, 'updated_by_content_user_id');
+        return $this->belongsTo(User::class, 'updated_by_user_id');
     }
 
     public static function forKey(string $sourceKey): ?self

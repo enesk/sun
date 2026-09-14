@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
  * des Tenant-Switchers (#4).
  *
  * Laeuft hinter Authenticate, weil die Auswahl gegen die Portalzuordnung
- * des angemeldeten Redaktions-Accounts geprueft wird. Ist nichts oder
+ * des angemeldeten Administrators geprueft wird. Ist nichts oder
  * "Alle Portale" gewaehlt, bleibt die Anfrage im Central-Kontext.
  *
  * Der Kontext wird nach der Anfrage wieder beendet, damit ein Queue-Worker

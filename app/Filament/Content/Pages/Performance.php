@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Filament\Content\Pages;
 
-use App\Content\Models\Central\ContentUser;
 use App\Content\Services\ContentTenantContext;
 use App\Content\Services\PerformanceDashboardService;
 use App\Models\Tenant;
+use App\Models\User;
 use BackedEnum;
 use Filament\Facades\Filament;
 use Livewire\Attributes\Url;
@@ -95,7 +95,7 @@ class Performance extends ContentPage
     {
         $user = Filament::auth()->user();
 
-        return $user instanceof ContentUser && $user->canSeeCosts();
+        return $user instanceof User && $user->canSeeContentCosts();
     }
 
     /**

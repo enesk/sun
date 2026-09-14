@@ -13,6 +13,7 @@
     $monitor = $this->getMonitorData();
     $connectors = $monitor['connectors'];
     $summary = $monitor['summary'];
+    $notConfigured = $monitor['not_configured'];
 @endphp
 
 <x-filament-panels::page>

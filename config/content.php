@@ -32,20 +32,17 @@ return [
     | Panel / Guard
     |--------------------------------------------------------------------------
     |
-    | Das Content-Dashboard laeuft in einem eigenen Filament-Panel mit eigenem
-    | Guard und eigener Benutzertabelle (content_users) in der Central-DB.
-    | Admin-Sessions geben keinen Zugriff auf das Content-Panel.
+    | Das Content-Dashboard laeuft in einem eigenen Filament-Panel, meldet sich
+    | aber ueber den gewoehnlichen SaaSykit-Login an ('web'-Guard,
+    | App\Models\User). Zugang haben ausschliesslich Administratoren
+    | (users.is_admin), geprueft in App\Models\User::canAccessPanel().
     |
     */
 
     'panel' => [
         'id' => 'content',
         'path' => env('CONTENT_PANEL_PATH', 'content'),
-        'guard' => 'content',
-        'provider' => 'content_users',
-        'password_broker' => 'content_users',
-        'table' => 'content_users',
-        'connection' => 'central',
+        'guard' => 'web',
     ],
 
     /*
@@ -583,8 +580,8 @@ return [
         ],
 
         // Alarme (#22). Kritische Alarme gehen einmalig sofort an die
-        // Redaktions-Accounts mit der Rolle owner; abends stehen sie noch
-        // einmal gesammelt im Tagesbericht.
+        // Administratoren; abends stehen sie noch einmal gesammelt im
+        // Tagesbericht.
         'alerts' => [
             'mail' => (bool) env('CONTENT_ALERT_MAIL', true),
         ],
@@ -1333,9 +1330,9 @@ return [
     |--------------------------------------------------------------------------
     |
     | Die bestehende Artikel-Tabelle des Portals heisst `posts` und fuehrt
-    | `author_id` als Pflichtfeld auf einen Benutzer der Central-DB. Die
-    | Redaktions-Accounts des Content-Panels (content_users) sind davon
-    | getrennt, deshalb steht der veroeffentlichende Benutzer hier.
+    | `author_id` als Pflichtfeld auf einen Benutzer der Central-DB. Das
+    | Content-Panel schreibt nie den angemeldeten Administrator hinein,
+    | deshalb steht der veroeffentlichende Benutzer hier.
     |
     */
 

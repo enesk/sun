@@ -14,8 +14,8 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * Sofortmeldung eines kritischen Alarms der Content-Pipeline (#22) an die
- * Redaktions-Accounts mit der Rolle owner. Der Tagesbericht um 20:00 fuehrt
- * dieselben Alarme noch einmal gesammelt auf; diese Mail geht direkt raus,
+ * Administratoren. Der Tagesbericht um 20:00 fuehrt dieselben Alarme noch
+ * einmal gesammelt auf; diese Mail geht direkt raus,
  * damit ein gerissener Slot nicht bis zum Abend unbemerkt bleibt.
  */
 class ContentAlertRaised extends Mailable implements ShouldQueue

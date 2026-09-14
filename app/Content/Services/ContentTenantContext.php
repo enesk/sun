@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Content\Services;
 
-use App\Content\Models\Central\ContentUser;
 use App\Models\Tenant;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Stancl\Tenancy\Database\TenantCollection;
@@ -88,11 +88,11 @@ class ContentTenantContext
     {
         $user = $this->user();
 
-        if (! $user instanceof ContentUser) {
+        if (! $user instanceof User) {
             return false;
         }
 
-        return $user->canAccessTenant($tenantId)
+        return $user->canAccessContentTenant($tenantId)
             && Tenant::query()->whereKey($tenantId)->exists();
     }
 
@@ -100,17 +100,17 @@ class ContentTenantContext
     {
         $user = $this->user();
 
-        if (! $user instanceof ContentUser) {
+        if (! $user instanceof User) {
             return new TenantCollection;
         }
 
-        return $user->accessibleTenants();
+        return $user->accessibleContentTenants();
     }
 
-    private function user(): ?ContentUser
+    private function user(): ?User
     {
-        $user = Auth::guard(config('content.panel.guard'))->user();
+        $user = Auth::guard(config('content.panel.guard', 'web'))->user();
 
-        return $user instanceof ContentUser ? $user : null;
+        return $user instanceof User && $user->canAccessContentPanel() ? $user : null;
     }
 }

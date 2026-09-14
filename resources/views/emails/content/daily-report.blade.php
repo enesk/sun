@@ -31,6 +31,14 @@
                 ]) }}
             </p>
 
+            @if (($totals['refreshed'] ?? 0) > 0)
+                {{-- Aktualisierungen sind kein Artikel des Tages (#103) und
+                     stehen deshalb in einem eigenen Satz, nicht in der Zahl. --}}
+                <p style="margin: 0 0 16px; line-height: 24px">
+                    {{ trans_choice('{1}Zusätzlich wurde ein Artikel aktualisiert.|[2,*]Zusätzlich wurden :count Artikel aktualisiert.', $totals['refreshed'], ['count' => $totals['refreshed']]) }}
+                </p>
+            @endif
+
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
                 <tr>
                     <td style="padding: 8px 0; font-weight: 600; color: #64748b; width: 220px;">{{ __('Kosten heute') }}</td>
@@ -70,11 +78,19 @@
             @endif
 
             @foreach ($report['portals'] as $portal)
+                @php
+                    $refreshes = $portal['refreshes'] ?? [];
+                    $refreshed = $portal['refreshed'] ?? count($refreshes);
+                @endphp
+
                 <div style="border-top: 1px solid #e2e8f0; padding: 16px 0;">
                     <p style="margin: 0 0 8px; font-weight: 600; color: #0f172a">
                         {{ $portal['name'] }}
                         <span style="font-weight: 400; color: #64748b;">
                             {{ $portal['published'] }}/{{ $portal['target'] }} {{ __('veröffentlicht') }} ·
+                            @if ($refreshed > 0)
+                                {{ __(':count aktualisiert', ['count' => $refreshed]) }} ·
+                            @endif
                             {{ number_format($portal['cost'], 2) }} USD
                         </span>
                     </p>
@@ -94,13 +110,42 @@
                         </p>
                     @endforeach
 
+                    @if ($refreshes !== [])
+                        @if ($portal['articles'] === [])
+                            {{-- Feststellung, keine Bewertung: die Bewertung
+                                 leistet die Zahl 0/:target in der Portalzeile. --}}
+                            <p style="margin: 0 0 4px; line-height: 22px; color: #64748b;">
+                                {{ __('Heute ist kein neuer Artikel erschienen.') }}
+                            </p>
+                        @endif
+
+                        <p style="margin: 12px 0 4px; font-size: 13px; font-weight: 600; color: #64748b;">
+                            {{ __('Aktualisiert') }}
+                        </p>
+
+                        @foreach ($refreshes as $refresh)
+                            <p style="margin: 0 0 4px; line-height: 22px;">
+                                {{ $refresh['at'] }} —
+                                @if ($refresh['url'] !== '')
+                                    <a href="{{ $refresh['url'] }}" style="color: #2563eb;">{{ $refresh['title'] }}</a>
+                                @else
+                                    {{ $refresh['title'] }}
+                                @endif
+                                <span style="color: #64748b;">
+                                    {{ __('erschienen am :date', ['date' => $refresh['first_published']]) }},
+                                    {{ number_format($refresh['cost'], 2) }} USD
+                                </span>
+                            </p>
+                        @endforeach
+                    @endif
+
                     @foreach ($portal['failed_slots'] as $slot)
                         <p style="margin: 0 0 4px; line-height: 22px; color: #b91c1c;">
                             {{ $slot['title'] }}: {{ $slot['reason'] }}
                         </p>
                     @endforeach
 
-                    @if ($portal['articles'] === [] && $portal['failed_slots'] === [])
+                    @if ($portal['articles'] === [] && $refreshes === [] && $portal['failed_slots'] === [])
                         <p style="margin: 0; line-height: 22px; color: #64748b;">{{ __('Heute ist nichts erschienen.') }}</p>
                     @endif
                 </div>

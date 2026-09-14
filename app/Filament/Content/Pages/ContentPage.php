@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Content\Pages;
 
-use App\Content\Models\Central\ContentUser;
 use App\Content\Services\ContentTenantContext;
+use App\Models\User;
 use Filament\Facades\Filament;
 use Filament\Pages\Page;
 
@@ -32,11 +32,11 @@ abstract class ContentPage extends Page
         return static::$followUpTicket;
     }
 
-    protected function contentUser(): ?ContentUser
+    protected function contentUser(): ?User
     {
         $user = Filament::auth()->user();
 
-        return $user instanceof ContentUser ? $user : null;
+        return $user instanceof User && $user->canAccessContentPanel() ? $user : null;
     }
 
     public function getSelectedPortalLabel(): string

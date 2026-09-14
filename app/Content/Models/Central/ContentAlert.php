@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Content\Models\Central;
 
-use App\Content\Enums\ContentRole;
 use App\Content\Enums\DisplayStatus;
 use App\Content\Mail\ContentAlertRaised;
 use App\Models\Tenant;
+use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -234,16 +234,16 @@ class ContentAlert extends Model
     }
 
     /**
-     * Empfaenger der Alarm- und Berichtsmails: aktive Redaktions-Accounts
-     * mit der Rolle owner.
+     * Empfaenger der Alarm- und Berichtsmails: die Administratoren, also
+     * genau der Kreis, der auch das Content-Panel oeffnen darf.
      *
      * @return array<int, string>
      */
     public static function ownerRecipients(): array
     {
-        return ContentUser::query()
-            ->active()
-            ->where('role', ContentRole::OWNER->value)
+        return User::query()
+            ->admin()
+            ->where('is_blocked', false)
             ->pluck('email')
             ->map(static fn ($email): string => (string) $email)
             ->filter()

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Content\Services;
 
 use App\Content\Enums\DisplayStatus;
+use App\Content\Enums\DraftStatus;
 use App\Content\Models\ArticleDraft;
 use App\Content\Models\Central\ContentAlert;
 use App\Content\Models\Central\LlmUsageLog;
@@ -82,6 +83,7 @@ final class ContentOverviewService
         $events = [];
         $target = 0;
         $published = 0;
+        $refreshed = 0;
         $unavailable = [];
 
         foreach ($tenants as $tenant) {
@@ -99,6 +101,7 @@ final class ContentOverviewService
 
             $target += $portal['target'];
             $published += $portal['published'];
+            $refreshed += $portal['refreshed'];
             $events = array_merge($events, $portal['events']);
             unset($portal['events']);
 
@@ -119,6 +122,7 @@ final class ContentOverviewService
             'target' => [
                 'total' => $target,
                 'published' => $published,
+                'refreshed' => $refreshed,
                 'expected_now' => $this->expectedByNow($target),
             ],
             'counts' => $counts,
@@ -173,7 +177,16 @@ final class ContentOverviewService
                     ->where('quality_report_json->quality->at_risk', true)
                     ->count();
 
-                return $this->fromDrafts($tenant, $target, $drafts, $openTopics, $atRisk);
+                // Aktualisierungen des Tages als eigene Spur (#103): sie
+                // zaehlen nicht gegen das Tagesziel, sind aber geleistete und
+                // bezahlte Arbeit und duerfen nicht unsichtbar bleiben.
+                $refreshed = ArticleDraft::query()
+                    ->refreshesOn($today)
+                    ->notWithdrawn()
+                    ->where('status', DraftStatus::PUBLISHED->value)
+                    ->count();
+
+                return $this->fromDrafts($tenant, $target, $drafts, $openTopics, $atRisk, $refreshed);
             });
         } catch (Throwable $exception) {
             Log::warning('Content-Uebersicht: Portal uebersprungen.', [
@@ -189,7 +202,7 @@ final class ContentOverviewService
      * @param  \Illuminate\Database\Eloquent\Collection<int, ArticleDraft>  $drafts
      * @return array<string, mixed>
      */
-    private function fromDrafts(Tenant $tenant, int $target, $drafts, int $openTopics, int $atRisk = 0): array
+    private function fromDrafts(Tenant $tenant, int $target, $drafts, int $openTopics, int $atRisk = 0, int $refreshed = 0): array
     {
         $counts = array_fill_keys(array_map(fn (DisplayStatus $s) => $s->value, DisplayStatus::cases()), 0);
         $dots = [];
@@ -230,6 +243,7 @@ final class ContentOverviewService
             'branch' => BranchResolver::label(BranchResolver::resolve($tenant) ?? '') ?? __('Ohne Branche'),
             'target' => $target,
             'published' => $published,
+            'refreshed' => $refreshed,
             'failed' => $failed,
             'counts' => $counts,
             'dots' => $dots,

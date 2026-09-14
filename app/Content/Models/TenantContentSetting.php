@@ -35,6 +35,9 @@ class TenantContentSetting extends Model
         'brand_colors_json',
         'scoring_weights_json',
         'gsc_property',
+        'gsc_check_status',
+        'gsc_checked_at',
+        'gsc_check_detail',
     ];
 
     protected function casts(): array
@@ -54,6 +57,7 @@ class TenantContentSetting extends Model
             'cluster_performance_json' => 'array',
             'brand_colors_json' => 'array',
             'scoring_weights_json' => 'array',
+            'gsc_checked_at' => 'datetime',
         ];
     }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Content\Models\Central;
 
 use App\Models\Tenant;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -49,7 +50,7 @@ class PromptTemplate extends Model
 
     public function author(): BelongsTo
     {
-        return $this->belongsTo(ContentUser::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function scopeActive(Builder $query): Builder

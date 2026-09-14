@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Content\Http\Middleware;
 
-use App\Content\Models\Central\ContentUser;
 use App\Content\Services\ContentPreviewLink;
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,12 +19,12 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * 1. Die Adresse muss gueltig signiert und darf nicht abgelaufen sein
  *    (`signed`-Middleware, davor in der Route).
- * 2. Der in der Adresse mitgefuehrte Redaktions-Account muss existieren,
- *    aktiv sein und dieses Portal sehen duerfen.
+ * 2. Der in der Adresse mitgefuehrte Benutzer muss existieren und
+ *    Administrator sein (users.is_admin).
  *
- * Ist der `content`-Guard auf dieser Domain doch angemeldet (etwa weil Panel
- * und Portal dieselbe Domain teilen), gilt dessen Benutzer und der Parameter
- * wird nicht gebraucht. Ohne beides ist die Seite nicht erreichbar.
+ * Ist auf dieser Domain bereits ein Administrator angemeldet, gilt dessen
+ * Sitzung und der Parameter wird nicht gebraucht. Ein gewoehnlicher
+ * Portalbenutzer reicht nicht. Ohne beides ist die Seite nicht erreichbar.
  *
  * Zusaetzlich setzt die Middleware `X-Robots-Tag: noindex, nofollow` — eine
  * Vorschau darf unter keinen Umstaenden in den Index geraten.
@@ -36,12 +36,12 @@ class EnsureContentPreviewAccess
         $user = $this->resolveUser($request);
 
         if ($user === null) {
-            abort(403, __('Die Vorschau ist nur für angemeldete Redaktions-Accounts erreichbar.'));
+            abort(403, __('Die Vorschau ist nur für angemeldete Administratoren erreichbar.'));
         }
 
         $tenantId = tenant() !== null ? (int) tenant()->getKey() : null;
 
-        if ($tenantId !== null && ! $user->canAccessTenant($tenantId)) {
+        if ($tenantId !== null && ! $user->canAccessContentTenant($tenantId)) {
             abort(403, __('Für dieses Portal fehlt die Berechtigung.'));
         }
 
@@ -54,13 +54,15 @@ class EnsureContentPreviewAccess
         return $response;
     }
 
-    private function resolveUser(Request $request): ?ContentUser
+    private function resolveUser(Request $request): ?User
     {
-        $guard = Auth::guard((string) config('content.panel.guard', 'content'));
+        $guard = Auth::guard((string) config('content.panel.guard', 'web'));
 
         $current = $guard->user();
 
-        if ($current instanceof ContentUser && $current->is_active) {
+        // Auf der Portaldomain ist am 'web'-Guard auch ein gewoehnlicher
+        // Portalbenutzer denkbar — deshalb zaehlt hier nur ein Administrator.
+        if ($current instanceof User && $current->canAccessContentPanel()) {
             return $current;
         }
 
@@ -70,6 +72,8 @@ class EnsureContentPreviewAccess
             return null;
         }
 
-        return ContentUser::query()->active()->find($id);
+        $user = User::query()->find($id);
+
+        return $user instanceof User && $user->canAccessContentPanel() ? $user : null;
     }
 }

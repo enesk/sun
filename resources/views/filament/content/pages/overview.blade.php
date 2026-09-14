@@ -78,6 +78,14 @@
                     <p class="mt-content-1 text-content-label text-text-muted">
                         {{ __('veröffentlichte Artikel heute') }}
                     </p>
+                    @if (($target['refreshed'] ?? 0) > 0)
+                        {{-- Nebenaussage (§1b): Aktualisierungen zaehlen nicht
+                             gegen das Tagesziel und bekommen deshalb keine
+                             zweite grosse Zahl, nur diese Zeile. --}}
+                        <p class="text-content-label text-text-muted">
+                            {{ trans_choice('{1}und eine Aktualisierung|[2,*]und :count Aktualisierungen', $target['refreshed'], ['count' => $target['refreshed']]) }}
+                        </p>
+                    @endif
                 </div>
 
                 <div class="lg:col-span-6">
@@ -140,15 +148,27 @@
                     @foreach ($snapshot['portals'] as $portal)
                         @php
                             $atRisk = ($portal['at_risk'] ?? 0) > 0;
+                            $refreshed = $portal['refreshed'] ?? 0;
                             $riskTitle = __(':name — Tagesziel gefährdet', ['name' => $portal['name']]);
+
+                            // Zugaengliche Beschriftung (§1a/§1b): erst die
+                            // Stoerung, dann der Tagesstand, die Aktualisierung
+                            // zuletzt. Das Zeichen ↻ wird nicht angesagt.
+                            $tileLabel = $atRisk
+                                ? __(':name, Tagesziel gefährdet, :published von :target veröffentlicht', ['name' => $portal['name'], 'published' => $portal['published'], 'target' => $portal['target']])
+                                : __(':name, :published von :target veröffentlicht', ['name' => $portal['name'], 'published' => $portal['published'], 'target' => $portal['target']]);
+
+                            if ($refreshed > 0) {
+                                $tileLabel .= ', '.trans_choice('{1}ein Artikel aktualisiert|[2,*]:count Artikel aktualisiert', $refreshed, ['count' => $refreshed]);
+                            }
                         @endphp
 
                         <a
                             href="{{ \App\Filament\Content\Pages\Production::getUrl(['portal' => [$portal['id']]]) }}"
                             class="flex h-[72px] flex-col justify-between rounded-content-lg bg-surface-card p-content-3 shadow-content-card"
-                            @if ($atRisk)
-                                aria-label="{{ __(':name, Tagesziel gefährdet, :published von :target veröffentlicht', ['name' => $portal['name'], 'published' => $portal['published'], 'target' => $portal['target']]) }}"
-                                title="{{ $riskTitle }}"
+                            @if ($atRisk || $refreshed > 0)
+                                aria-label="{{ $tileLabel }}"
+                                title="{{ $atRisk ? $riskTitle : $tileLabel }}"
                             @endif
                         >
                             <span class="flex items-center gap-content-2 min-w-0">
@@ -178,8 +198,11 @@
                                     ></span>
                                 @endforeach
 
-                                <span class="ms-auto text-content-label text-text-muted">
-                                    {{ $portal['published'] }}/{{ $portal['target'] }}
+                                {{-- Zaehler und Aktualisierungsmarke brechen nie
+                                     um; reicht der Platz nicht, wird die
+                                     Punktreihe gekuerzt (§1b). --}}
+                                <span class="ms-auto shrink-0 whitespace-nowrap text-content-label text-text-muted">
+                                    {{ $portal['published'] }}/{{ $portal['target'] }}@if ($refreshed > 0)<span style="margin-inline: 4px" aria-hidden="true">·</span><span aria-hidden="true">↻</span> {{ $refreshed }}@endif
                                 </span>
                             </span>
                         </a>

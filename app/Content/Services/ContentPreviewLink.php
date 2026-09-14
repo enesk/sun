@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\URL;
  * `content`-Guards dort nicht zur Verfuegung: die 24 Portale sind eigene
  * Domains, das Sitzungscookie von /content reicht nicht hinueber.
  *
- * Die Adresse traegt deshalb den pruefenden Redaktions-Account als Parameter
+ * Die Adresse traegt deshalb den pruefenden Administrator als Parameter
  * `pruefer` mit und ist signiert. Erzeugen kann sie nur, wer im Panel
  * angemeldet ist; die Middleware auf der Portalseite prueft Signatur,
  * Ablauf, Aktivstatus des Accounts und dessen Portalzuordnung erneut.
@@ -35,7 +35,7 @@ final class ContentPreviewLink
      */
     public const TTL_MINUTES = 60;
 
-    public function for(Tenant $tenant, ArticleDraft $draft, ?int $contentUserId = null): ?string
+    public function for(Tenant $tenant, ArticleDraft $draft, ?int $userId = null): ?string
     {
         $domain = trim((string) $tenant->domain);
 
@@ -46,7 +46,7 @@ final class ContentPreviewLink
         // Bewusst ueber den Guard und nicht ueber filament()->auth(): der
         // Link wird auch ausserhalb einer Panel-Anfrage gebaut (Konsole,
         // Queue), dort gaebe es kein Panel.
-        $contentUserId ??= (int) Auth::guard((string) config('content.panel.guard', 'content'))->id();
+        $userId ??= (int) Auth::guard((string) config('content.panel.guard', 'web'))->id();
 
         URL::forceRootUrl($this->scheme().'://'.$domain);
 
@@ -56,7 +56,7 @@ final class ContentPreviewLink
                 now()->addMinutes(self::TTL_MINUTES),
                 [
                     'draft' => (int) $draft->getKey(),
-                    self::USER_PARAM => $contentUserId,
+                    self::USER_PARAM => $userId,
                 ],
             );
         } finally {

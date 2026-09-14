@@ -6,12 +6,12 @@ namespace App\Filament\Content\Resources\PromptTemplates;
 
 use App\Content\Llm\PromptRenderer;
 use App\Content\Llm\PromptSchemaContract;
-use App\Content\Models\Central\ContentUser;
 use App\Content\Models\Central\PromptTemplate;
 use App\Filament\Content\Forms\Components\PromptCodeEditor;
 use App\Filament\Content\Resources\PromptTemplates\Pages\EditPromptTemplate;
 use App\Filament\Content\Resources\PromptTemplates\Pages\ListPromptTemplates;
 use App\Models\Tenant;
+use App\Models\User;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Facades\Filament;
@@ -68,7 +68,7 @@ class PromptTemplateResource extends Resource
     {
         $user = Filament::auth()->user();
 
-        return $user instanceof ContentUser && $user->canManageSettings();
+        return $user instanceof User && $user->canManageContentSettings();
     }
 
     public static function form(Schema $schema): Schema

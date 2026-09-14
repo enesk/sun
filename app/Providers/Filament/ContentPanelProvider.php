@@ -10,7 +10,6 @@ use App\Content\Livewire\EditorialCalendar;
 use App\Content\Livewire\PipelineBoard;
 use App\Content\Livewire\ReviewQueue;
 use App\Content\Livewire\TenantSwitcher;
-use App\Content\Models\Central\ContentUser;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -21,7 +20,6 @@ use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentColor;
 use Filament\View\PanelsRenderHook;
-use Illuminate\Auth\Events\Login;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -29,15 +27,16 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Facades\Event;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Livewire\Livewire;
 
 /**
  * Content-Panel der Ratgeber-Pipeline (#4).
  *
- * Eigenes Panel, eigener Guard, eigene Benutzertabelle — eine Admin-Session
- * gibt hier keinen Zugriff und umgekehrt (docs/content-pipeline.md, §6).
+ * Eigenes Panel, aber gewoehnlicher SaaSykit-Login: Guard 'web',
+ * App\Models\User, kein eigenes Anmeldeformular und keine eigene
+ * Benutzertabelle. Wer sich anmelden darf, entscheidet
+ * App\Models\User::canAccessPanel() — ausschliesslich Administratoren.
  * Es werden ausdruecklich keine Ressourcen des Admin-Panels eingebunden:
  * discoverResources/discoverPages zeigen ausschliesslich auf app/Filament/Content.
  *
@@ -52,13 +51,9 @@ class ContentPanelProvider extends PanelProvider
         return $panel
             ->id(config('content.panel.id', 'content'))
             ->path(config('content.panel.path', 'content'))
-            ->authGuard(config('content.panel.guard', 'content'))
-            ->authPasswordBroker(config('content.panel.password_broker', 'content_users'))
+            ->authGuard(config('content.panel.guard', 'web'))
             ->brandName('SUN Content')
             ->favicon(asset('images/favicon.ico'))
-            ->login()
-            ->passwordReset()
-            ->profile(isSimple: false)
             ->colors([
                 // Deckungsgleich mit --color-content-* aus resources/css/content/theme.css.
                 'primary' => [
@@ -101,7 +96,7 @@ class ContentPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
                 // Erst nach der Anmeldung: die Portalauswahl wird gegen die
-                // Zuordnung des Redaktions-Accounts geprueft.
+                // Zuordnung des angemeldeten Administrators geprueft.
                 InitializeContentTenant::class,
             ])
             // Globaler Portal-Umschalter in der Kopfzeile.
@@ -143,15 +138,5 @@ class ContentPanelProvider extends PanelProvider
         // die Warteschlange und das Pruefblatt neu rendert — die Vorschau im
         // Rahmen bleibt dabei stehen.
         Livewire::component('content.review-queue', ReviewQueue::class);
-
-        Event::listen(Login::class, function (Login $event): void {
-            if ($event->guard !== config('content.panel.guard', 'content')) {
-                return;
-            }
-
-            if ($event->user instanceof ContentUser) {
-                $event->user->forceFill(['last_login_at' => now()])->saveQuietly();
-            }
-        });
     }
 }

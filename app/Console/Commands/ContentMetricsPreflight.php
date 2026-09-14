@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Content\Providers\AdSenseClient;
 use App\Content\Providers\SearchConsoleClient;
+use App\Content\Services\SearchConsoleProperty;
 use App\Content\Services\TenantRollout;
 use App\Models\Tenant;
 use Carbon\CarbonImmutable;
@@ -52,7 +53,7 @@ class ContentMetricsPreflight extends Command
     /** @var array<int, array{0: string, 1: string, 2: string}> */
     private array $rows = [];
 
-    public function handle(SearchConsoleClient $searchConsole, AdSenseClient $adSense, TenantRollout $rollout): int
+    public function handle(SearchConsoleClient $searchConsole, AdSenseClient $adSense, TenantRollout $rollout, SearchConsoleProperty $property): int
     {
         // Artisan::call kann denselben Befehl mehrfach ausfuehren; ohne das
         // Zuruecksetzen stuenden die Zeilen des vorigen Laufs noch da.
@@ -65,7 +66,7 @@ class ContentMetricsPreflight extends Command
 
         $sites = $keyReadable && ! $offline ? $this->sites($searchConsole) : null;
 
-        $this->portals($searchConsole, $rollout, $sites, $offline);
+        $this->portals($searchConsole, $rollout, $sites, $offline, $property);
         $this->adSense($adSense, $offline);
 
         $this->table(['Zustand', 'Prüfpunkt', 'Befund'], array_map(
@@ -192,7 +193,7 @@ class ContentMetricsPreflight extends Command
      *
      * @param  array<string, string>|null  $sites
      */
-    private function portals(SearchConsoleClient $client, TenantRollout $rollout, ?array $sites, bool $offline): void
+    private function portals(SearchConsoleClient $client, TenantRollout $rollout, ?array $sites, bool $offline, SearchConsoleProperty $state): void
     {
         $rows = $this->filtered($rollout->status());
 
@@ -221,6 +222,10 @@ class ContentMetricsPreflight extends Command
             }
 
             if ($sites !== null && ! isset($sites[$property])) {
+                // Denselben Befund ins Panel schreiben (#116): "Kein Zugriff"
+                // ist der Fall, der ohne Anzeige wie der Gutfall aussieht.
+                $state->record($tenant, SearchConsoleProperty::STATE_NO_ACCESS, 'Nicht in der Liste der sichtbaren Properties.');
+
                 $this->row(
                     self::FAIL,
                     $label,
@@ -236,7 +241,15 @@ class ContentMetricsPreflight extends Command
                 continue;
             }
 
-            $this->row(...$this->probe($client, $property, $sites[$property] ?? 'unbekannt', $label));
+            $result = $this->probe($client, $property, $sites[$property] ?? 'unbekannt', $label);
+
+            $state->record($tenant, match ($result[0]) {
+                self::OK => SearchConsoleProperty::STATE_CONNECTED,
+                self::WARN => SearchConsoleProperty::STATE_NO_DATA,
+                default => SearchConsoleProperty::STATE_NO_ACCESS,
+            }, $result[2]);
+
+            $this->row(...$result);
         }
     }
 

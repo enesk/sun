@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Filament\Content\Pages;
 
-use App\Content\Models\Central\ContentUser;
 use App\Content\Services\ContentTenantContext;
 use App\Content\Services\SourceMonitorService;
 use App\Models\Tenant;
+use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\Placeholder;
@@ -52,7 +52,7 @@ class SourceMonitor extends ContentPage
     {
         $user = Filament::auth()->user();
 
-        return $user instanceof ContentUser && $user->canManageSettings();
+        return $user instanceof User && $user->canManageContentSettings();
     }
 
     /**

@@ -148,8 +148,8 @@ class ArticleMapper
 
     /**
      * Autor des Artikels. `posts.author_id` verweist auf einen Benutzer der
-     * Central-DB; die Redaktions-Accounts des Content-Panels sind davon
-     * getrennt, deshalb kommt die ID aus der Konfiguration.
+     * Central-DB; der angemeldete Administrator soll dort nie stehen,
+     * deshalb kommt die ID aus der Konfiguration.
      */
     private function authorId(): int
     {

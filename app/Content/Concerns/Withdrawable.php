@@ -27,6 +27,10 @@ use InvalidArgumentException;
  * database/migrations/tenant/..._add_withdrawal_columns_to_content_tables.php):
  * `withdrawn_at`, `withdrawn_reason`, `withdrawn_by`.
  *
+ * `withdrawn_by` ist eine `users.id` der Central-DB (der im Content-Panel
+ * angemeldete Administrator); der Spaltenkommentar der Migration nennt noch
+ * die alte Tabelle `content_users`, die es seit #139 nicht mehr gibt.
+ *
  * @property \Illuminate\Support\Carbon|null $withdrawn_at
  * @property string|null $withdrawn_reason
  * @property int|null $withdrawn_by

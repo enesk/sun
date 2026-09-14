@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Content\Services\SearchConsoleProperty;
 use App\Content\Services\TenantRollout;
 use App\Models\Tenant;
 use Illuminate\Console\Command;
@@ -32,7 +33,7 @@ class ContentRollout extends Command
 
     protected $description = 'Zeigt und setzt den Rollout-Schalter der Ratgeber-Pipeline je Portal';
 
-    public function handle(TenantRollout $rollout): int
+    public function handle(TenantRollout $rollout, SearchConsoleProperty $searchConsole): int
     {
         $changed = 0;
         $threshold = $this->threshold();
@@ -92,9 +93,18 @@ class ContentRollout extends Command
 
         $status = $rollout->status();
 
+        // Zustand der Search-Console-Property je Portal (#116): eine gepflegte
+        // Property allein sagt nichts darueber, ob das Dienstkonto sie lesen
+        // darf. Die Spalte zeigt denselben Befund wie das Content-Panel.
+        $searchConsoleStates = [];
+
+        foreach ($searchConsole->overview() as $row) {
+            $searchConsoleStates[(int) $row['tenant']->getKey()] = (string) $row['state']['label'];
+        }
+
         $this->table(
-            ['ID', 'Portal', 'Domain', 'Aktiv', 'Artikel/Tag', 'Auto-Live ab', 'YMYL', 'GSC-Property'],
-            array_map(static function (array $row): array {
+            ['ID', 'Portal', 'Domain', 'Aktiv', 'Artikel/Tag', 'Auto-Live ab', 'YMYL', 'GSC-Property', 'Search Console'],
+            array_map(static function (array $row) use ($searchConsoleStates): array {
                 /** @var Tenant $tenant */
                 $tenant = $row['tenant'];
 
@@ -107,6 +117,7 @@ class ContentRollout extends Command
                     $row['threshold'] ?: '—',
                     $row['ymyl'] ? 'ja' : '—',
                     $row['gsc_property'] ?? '—',
+                    $searchConsoleStates[(int) $tenant->getKey()] ?? '—',
                 ];
             }, $status),
         );
