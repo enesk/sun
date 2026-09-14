@@ -53,6 +53,8 @@
 
 {{-- CSS eingebettet statt verlinkt: keine render-blockierende Anfrage (~8 KB gzip) --}}
 @if(app()->isProduction() && ! \Illuminate\Support\Facades\Vite::isRunningHot())
+{{-- Schrift vorab laden: der Hero-Text ist das LCP-Element und wartet sonst auf die Schrift --}}
+<link rel="preload" href="{{ \Illuminate\Support\Facades\Vite::asset('resources/views/themes/sun-v2/fonts/figtree-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
 <style>{!! \Illuminate\Support\Facades\Vite::content('resources/views/themes/sun-v2/css/app.css') !!}</style>
 @vite(['resources/views/themes/sun-v2/js/app.js'])
 @else
