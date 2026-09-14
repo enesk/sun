@@ -7,6 +7,7 @@ namespace App\Themes\SunV2;
 use App\Models\Portal\City;
 use App\Models\Portal\Company;
 use App\Models\Portal\Post;
+use App\Support\CityUrl;
 use App\Support\TenantCache;
 use App\Themes\ThemeManager;
 use Illuminate\Database\Eloquent\Collection;
@@ -21,8 +22,8 @@ use Illuminate\View\View;
  * Orte in der Naehe, Ratgeber und SEO-Text.
  *
  * Firmenliste und Filter kommen aus PublicCityController::show() (fuer alle
- * Themes); Stadtteile gibt es im Datenmodell nicht, deshalb fehlen der
- * Stadtteil-Filter und die Stadtteil-Chips der Vorlage.
+ * Themes). Stadtteil-Chips, Local-Hub-Einleitung und FAQ kommen als $localHub
+ * aus dem CityContentResolver (#12); einen Stadtteil-Filter gibt es nicht.
  */
 final class CityViewComposer
 {
@@ -55,9 +56,10 @@ final class CityViewComposer
 
         $view->with('citySun', [
             'filters' => $filters,
-            'heading' => $total > 0
-                ? number_format($total, 0, ',', '.')." {$plural} in {$city->name}"
-                : "Keine {$plural} in {$city->name} gefunden",
+            // H1 aus demselben Template wie der Title (#10); nur ein leeres Filterergebnis sagt das offen
+            'heading' => $total === 0
+                ? "Keine {$plural} in {$city->name} gefunden"
+                : ($data['cityHeading'] ?? number_format($total, 0, ',', '.')." {$plural} in {$city->name}"),
             'intro' => $this->intro($city, $stats, (int) $city->companies_count),
             'sortLabel' => SearchViewComposer::SORTS[$sortKey],
             'sortLinks' => collect(SearchViewComposer::SORTS)->map(fn (string $label, string $key): array => [
@@ -71,7 +73,7 @@ final class CityViewComposer
                 $this->toggle($city, $filters, $config['search']['quick_term'], 'q', $config['search']['quick_term']),
             ],
             'hasFilters' => collect($filters)->except('sort')->filter()->isNotEmpty(),
-            'resetUrl' => route('portal.cities.show', $city->slug),
+            'resetUrl' => CityUrl::show($city),
             'pages' => PageWindow::for($companies),
             'services' => collect($config['services'])
                 ->map(fn (array $service): array => [
@@ -84,7 +86,7 @@ final class CityViewComposer
                 ->all(),
             'nearby' => $this->nearby($city),
             'posts' => $this->posts($city),
-            'seo' => $this->seo($city, $config['city']['seo']),
+            'seo' => $this->seo($city, $config['city']['seo'], filled($data['localHub']['intro_html'] ?? null)),
             'searchPlaceholder' => $config['search']['placeholder'],
         ]);
     }
@@ -189,7 +191,7 @@ final class CityViewComposer
         return Cache::remember(TenantCache::key("sun-v2.city.nearby.{$city->id}"), 3600, function () use ($city): Collection {
             $query = City::query()
                 ->whereKeyNot($city->id)
-                ->whereNotIn('name', ['', 'None'])
+                ->named()
                 ->withCount(['companies' => fn ($companies) => $companies->where('is_active', true)])
                 ->having('companies_count', '>', 0)
                 ->orderByDesc('companies_count')
@@ -221,15 +223,17 @@ final class CityViewComposer
 
     /**
      * SEO-Text: gepflegter Stadttext (city_contents.intro_text), sonst der
-     * Branchentext aus der Theme-Konfiguration.
+     * Branchentext aus der Theme-Konfiguration. Steht die Local-Hub-Einleitung
+     * schon oben auf der Seite (#12), immer der Branchentext — sonst stuende
+     * derselbe Stadttext zweimal da.
      *
      * @param  array{headline: string, paragraphs: array<int, string>}  $fallback
      * @return array{headline: string, paragraphs: array<int, string>}
      */
-    private function seo(City $city, array $fallback): array
+    private function seo(City $city, array $fallback, bool $hubIntroShown = false): array
     {
         $headline = strtr($fallback['headline'], [':city' => $city->name]);
-        $intro = trim(strip_tags((string) $city->cityContent?->getAttribute('intro_text')));
+        $intro = $hubIntroShown ? '' : trim(strip_tags((string) $city->cityContent?->getAttribute('intro_text')));
 
         if ($intro !== '') {
             return [

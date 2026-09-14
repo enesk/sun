@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Portal;
 
+use App\Enums\ModerationStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Portal\Company;
 use App\Models\Portal\Review;
@@ -34,7 +35,7 @@ class OwnerDashboardController extends Controller
 
         $stats = [
             'reviews_total' => $reviews->count(),
-            'reviews_pending' => $reviews->where('moderation_status', 'pending')->count(),
+            'reviews_pending' => $reviews->whereIn('moderation_status', ModerationStatus::openValues())->count(),
             'reviews_approved' => $reviews->where('moderation_status', 'approved')->count(),
             'rating' => $company->rating,
             'rating_count' => $company->rating_count,

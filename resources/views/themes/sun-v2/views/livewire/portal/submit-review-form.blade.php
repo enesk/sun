@@ -52,7 +52,7 @@
         @error('body')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
       </div>
 
-      <p class="text-sm text-zinc-500">Deine Bewertung wird nach einer kurzen Prüfung veröffentlicht.</p>
+      <p class="text-sm text-zinc-500">Deine Bewertung wird geprüft und erscheint erst nach der Freigabe.</p>
 
       <div class="flex flex-col-reverse sm:flex-row gap-2">
         <button type="button" wire:click="toggleForm" class="btn-ghost">Abbrechen</button>
@@ -69,7 +69,7 @@
       <span class="size-10 rounded-full bg-white text-brand flex items-center justify-center shrink-0"><x-sun.icon name="check" class="icon" /></span>
       <div>
         <p class="font-semibold text-zinc-900">Danke für deine Bewertung!</p>
-        <p class="mt-1 text-sm text-zinc-700">Sie wird nach einer kurzen Prüfung veröffentlicht, meist innerhalb von 24 Stunden.</p>
+        <p class="mt-1 text-sm text-zinc-700">Wir prüfen sie und schalten sie danach frei — erst dann erscheint sie auf dieser Seite, meist innerhalb von 24 Stunden.</p>
       </div>
     </div>
   @endif

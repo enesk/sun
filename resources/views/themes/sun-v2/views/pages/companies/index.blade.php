@@ -15,10 +15,6 @@
 
 @section('title', $search['heading'].' | '.($currentTenant->name ?? config('app.name')))
 @section('meta_description', $search['heading'].' – mit Bewertungen, Öffnungszeiten und direkter Telefonnummer.')
-@if(request()->hasAny(['q', 'ort', 'umkreis', 'sort', 'city', 'category', 'min_rating', 'rated', 'open_now', 'page']))
-    @section('meta_robots', 'noindex, follow')
-@endif
-@section('canonical', route('portal.companies.index'))
 
 @section('content')
 

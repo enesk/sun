@@ -20,7 +20,7 @@
             'url' => route('home'),
         ],
         'numberOfItems' => $totalCities,
-    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}
     </script>
     @endpush
 
@@ -50,7 +50,7 @@
         @if($cities->isNotEmpty())
             <div class="cities-grid">
                 @foreach($cities as $index => $city)
-                    <a href="{{ route('portal.cities.show', $city->slug) }}"
+                    <a href="{{ \App\Support\CityUrl::show($city) }}"
                        class="city-card">
                         <div class="city-card__icon">
                             <span class="text-sm font-bold" style="color: var(--portal-primary)">{{ $index + 1 }}</span>

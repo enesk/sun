@@ -1,3 +1,9 @@
+@php
+    // Robots/Canonical: SeoService (#7) hat Vorrang, sonst die @section der Seite.
+    $seo = app(\App\Services\Seo\SeoService::class);
+    $metaRobots = $seo->robots() !== null ? e($seo->robots()) : ($__env->hasSection('meta_robots') ? $__env->yieldContent('meta_robots') : null);
+    $canonicalUrl = $seo->canonical() !== null ? e($seo->canonical()) : $__env->yieldContent('canonical', url()->current());
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
 <head>
@@ -7,15 +13,15 @@
     {{-- SEO Meta --}}
     <title>@yield('title', ($currentTenant->name ?? config('app.name')))</title>
     <meta name="description" content="@yield('meta_description', '')">
-    @hasSection('meta_robots')
-        <meta name="robots" content="@yield('meta_robots')">
+    @if($metaRobots !== null)
+        <meta name="robots" content="{!! $metaRobots !!}">
     @endif
 
     {{-- Open Graph --}}
     <meta property="og:title" content="@yield('title', ($currentTenant->name ?? config('app.name')))">
     <meta property="og:description" content="@yield('meta_description', '')">
     <meta property="og:type" content="@yield('og_type', 'website')">
-    <meta property="og:url" content="@yield('canonical', url()->current())">
+    <meta property="og:url" content="{!! $canonicalUrl !!}">
     <meta property="og:site_name" content="{{ $currentTenant->name ?? config('app.name') }}">
     <meta property="og:locale" content="de_DE">
     @hasSection('og_image')
@@ -50,7 +56,10 @@
     @endif
 
     {{-- Canonical --}}
-    <link rel="canonical" href="@yield('canonical', url()->current())">
+    <link rel="canonical" href="{!! $canonicalUrl !!}">
+
+    {{-- Schema.org JSON-LD (#8) --}}
+    <x-seo.json-ld />
 
     {{-- 1. Base CSS (Tailwind + DaisyUI) --}}
     @vite(['resources/css/app.css'])

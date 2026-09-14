@@ -28,6 +28,9 @@ class AppServiceProvider extends ServiceProvider
             $this->app->register(TelescopeServiceProvider::class);
         }
 
+        // Robots/Canonical je Anfrage (#7)
+        $this->app->scoped(\App\Services\Seo\SeoService::class);
+
         // payment providers
         $this->app->tag([
             StripeProvider::class,

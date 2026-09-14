@@ -81,6 +81,7 @@ class CategoryController extends Controller
         // Cities per Kategorie: JOIN statt doppelt-verschachtelter whereHas, gecacht + limitiert
         $cities = Cache::remember(TenantCache::key("portal.cities.category.{$category->id}"), 3600, fn () =>
             City::select('cities.id', 'cities.name', 'cities.slug')
+                ->named()
                 ->join('companies', 'cities.id', '=', 'companies.city_id')
                 ->join('category_company', 'companies.id', '=', 'category_company.company_id')
                 ->where('companies.is_active', true)

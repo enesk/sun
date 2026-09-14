@@ -44,9 +44,7 @@
             </p>
         @endif
         <div class="flex gap-2 mt-auto pt-1">
-            @if($company->tel)
-                <a href="tel:{{ preg_replace('/[^0-9+]/', '', $company->tel) }}" class="btn-primary flex-1"><x-sun.icon name="phone" class="icon" />Anrufen</a>
-            @endif
+            <x-phone-link :number="$company->tel" class="btn-primary flex-1" fallback-class="flex-1 self-center text-sm text-zinc-700"><x-sun.icon name="phone" class="icon" />Anrufen</x-phone-link>
             <a href="{{ $company->portal_url }}" class="btn-secondary flex-1">Profil</a>
         </div>
     </div>

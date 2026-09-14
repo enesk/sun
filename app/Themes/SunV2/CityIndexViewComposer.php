@@ -110,7 +110,7 @@ final class CityIndexViewComposer
         return collect(Cache::remember(TenantCache::key('sun-v2.cities.index.v3'), 3600, fn (): array => City::query()
             ->select(['id', 'name', 'slug', 'zipcode', 'administrative_area_level_1'])
             ->withCount(['companies' => fn ($query) => $query->where('is_active', true)])
-            ->whereNotIn('name', ['', 'None'])
+            ->named()
             ->whereIn('administrative_area_level_1', self::STATES)
             ->having('companies_count', '>', 0)
             ->orderByDesc('companies_count')

@@ -81,7 +81,7 @@ class GenerateCityContent extends Command implements Isolatable
         }
 
         if (! $this->option('overwrite')) {
-            $query->whereDoesntHave('cityContent');
+            $query->whereDoesntHave('cityContent', fn ($content) => $content->whereNotNull('intro_text')->where('intro_text', '<>', ''));
         }
 
         $totalCities = $query->count();
@@ -113,7 +113,7 @@ class GenerateCityContent extends Command implements Isolatable
     private function processCity(City $city, string $provider, array $config, bool $isDryRun, string $portalName): void
     {
         // Skip if content exists and not overwriting
-        if (! $this->option('overwrite') && $city->cityContent) {
+        if (! $this->option('overwrite') && filled($city->cityContent?->getAttribute('intro_text'))) {
             $this->skipped++;
 
             return;

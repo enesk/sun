@@ -4,14 +4,15 @@ namespace App\Console\Commands;
 
 use App\Models\Portal\Company;
 use App\Models\Tenant;
+use App\Services\Ai\CompanyDescriptionGenerator;
+use App\Services\Ai\CompanyDescriptionResult;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Process;
 use Stancl\Tenancy\Concerns\HasATenantArgument;
 use Stancl\Tenancy\Concerns\TenantAwareCommand;
 
 class GenerateCompanyDescriptions extends Command
 {
-    use TenantAwareCommand, HasATenantArgument {
+    use HasATenantArgument, TenantAwareCommand {
         HasATenantArgument::getTenants as getTenantsFromTrait;
     }
 
@@ -21,11 +22,16 @@ class GenerateCompanyDescriptions extends Command
         {--dry-run : Nur anzeigen, nicht speichern}
         {--force : Auch Firmen mit bestehender Beschreibung überschreiben}';
 
-    protected $description = 'Generiert Firmenbeschreibungen via Claude Code CLI für Firmen ohne Website und ohne Beschreibung';
+    protected $description = 'Generiert Firmenbeschreibungen via Claude Code CLI (mit KI-Footprint-Guard) für Firmen ohne Website und ohne Beschreibung';
 
     private int $generated = 0;
+
     private int $skipped = 0;
+
     private int $errors = 0;
+
+    private int $failed = 0;
+
     private float $startTime = 0;
 
     protected function getTenants(): array
@@ -45,7 +51,7 @@ class GenerateCompanyDescriptions extends Command
         return [$tenant];
     }
 
-    public function handle(): int
+    public function handle(CompanyDescriptionGenerator $generator): int
     {
         $limit = (int) $this->option('limit');
         $offset = (int) $this->option('offset');
@@ -61,6 +67,12 @@ class GenerateCompanyDescriptions extends Command
         if (! $force) {
             $query->where(function ($q) {
                 $q->whereNull('description')->orWhere('description', '');
+            });
+
+            // Zweimal verworfene Generierungen nur mit --force erneut versuchen.
+            $query->where(function ($q) {
+                $q->whereNull('description_source')
+                    ->orWhere('description_source', '!=', config('seo.description_generator.failed_source'));
             });
         }
 
@@ -83,10 +95,11 @@ class GenerateCompanyDescriptions extends Command
         $companies = $query->get();
         $total = $companies->count();
 
-        $this->info("Gefunden: {$total} Firmen ohne Website" . ($force ? '' : ' und ohne Beschreibung'));
+        $this->info("Gefunden: {$total} Firmen ohne Website".($force ? '' : ' und ohne Beschreibung'));
 
         if ($total === 0) {
             $this->info('Keine Firmen zu verarbeiten.');
+
             return self::SUCCESS;
         }
 
@@ -109,35 +122,46 @@ class GenerateCompanyDescriptions extends Command
             // Fortschrittsbalken bauen (30 Zeichen breit)
             $barWidth = 30;
             $filled = (int) round($barWidth * $current / $total);
-            $progressBar = str_repeat('█', $filled) . str_repeat('░', $barWidth - $filled);
+            $progressBar = str_repeat('█', $filled).str_repeat('░', $barWidth - $filled);
 
             // Status-Zeile
             $this->output->write("\r\033[K");
             $this->output->write(
                 "  <fg=cyan>{$current}</>/<fg=white>{$total}</> [{$progressBar}] <fg=yellow>{$percent}%</>"
-                . "  <fg=gray>⏱ {$elapsedStr} | ETA: {$eta} |</>"
-                . "  <fg=green>✓ {$this->generated}</> <fg=red>✗ {$this->errors}</>"
+                ."  <fg=gray>⏱ {$elapsedStr} | ETA: {$eta} |</>"
+                ."  <fg=green>✓ {$this->generated}</> <fg=red>✗ {$this->errors}</>"
             );
 
             // Firmenname darunter
             $this->newLine();
             $truncatedName = mb_strlen($company->name) > 50
-                ? mb_substr($company->name, 0, 47) . '...'
+                ? mb_substr($company->name, 0, 47).'...'
                 : $company->name;
             $this->output->write("  <fg=gray>→ #{$company->id} {$truncatedName}</>");
 
-            $prompt = $this->buildPrompt($company);
-            $description = $this->callClaude($prompt);
+            $result = $generator->generate($company);
 
-            if ($description === null) {
+            if ($result->status === CompanyDescriptionResult::ERROR) {
                 $this->errors++;
                 $this->newLine();
                 $this->error("  ✗ Fehler bei: {$company->name} (ID: {$company->id})");
+
                 continue;
             }
 
-            // Bereinigung: Manchmal kommt ein Prefix wie "Hier ist die Beschreibung:" zurück
-            $description = $this->cleanResponse($description);
+            if ($result->status === CompanyDescriptionResult::FAILED) {
+                $this->failed++;
+                $this->newLine();
+                $this->warn("  ✗ Verworfen nach {$result->attempts} Versuchen (KI-Footprint/zu kurz): {$company->name} (ID: {$company->id})");
+
+                if (! $dryRun) {
+                    $company->update(['description_source' => config('seo.description_generator.failed_source')]);
+                }
+
+                continue;
+            }
+
+            $description = (string) $result->description;
 
             if ($dryRun) {
                 $this->newLine();
@@ -163,89 +187,15 @@ class GenerateCompanyDescriptions extends Command
         $this->newLine(2);
         $totalTime = $this->formatDuration(microtime(true) - $this->startTime);
 
-        $this->info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        $this->info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         $this->info("  Fertig in {$totalTime}");
         $this->info("  ✓ Generiert:    {$this->generated}");
         $this->info("  ⊘ Übersprungen: {$this->skipped}");
+        $this->info("  ✗ Verworfen:    {$this->failed}");
         $this->info("  ✗ Fehler:       {$this->errors}");
-        $this->info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        $this->info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
         return self::SUCCESS;
-    }
-
-    private function buildPrompt(Company $company): string
-    {
-        $categories = $company->categories->pluck('name')->implode(', ') ?: 'Unbekannt';
-        $city = $company->city?->name ?? 'Unbekannt';
-        $address = trim("{$company->street} {$company->house_no}");
-        $rating = $company->rating > 0 ? "{$company->rating}/5 Sternen bei {$company->rating_count} Bewertungen" : 'Keine Bewertungen';
-
-        // Beste Reviews zusammenfassen
-        $reviewContext = '';
-        if ($company->reviews->isNotEmpty()) {
-            $reviewTexts = $company->reviews
-                ->filter(fn ($r) => ! empty($r->body))
-                ->map(fn ($r) => "- {$r->rating}/5: \"{$r->body}\"")
-                ->take(3)
-                ->implode("\n");
-
-            if ($reviewTexts) {
-                $reviewContext = "\n\nKundenbewertungen:\n{$reviewTexts}";
-            }
-        }
-
-        return <<<PROMPT
-Du bist ein sachlicher Texter fuer ein deutsches Branchenportal. Schreibe eine informative Firmenbeschreibung (2-4 Saetze, 150-300 Zeichen) fuer:
-
-Firma: {$company->name}
-Kategorie: {$categories}
-Stadt: {$city}
-Adresse: {$address}
-Bewertung: {$rating}{$reviewContext}
-
-Regeln:
-- Sachlich-professionell, keine Werbesprache
-- Erwaehne die Bewertung mit Sternen und Anzahl
-- Wenn Kundenbewertungen vorhanden, paraphrasiere eine positive Aussage
-- Erwaehne Branche und Standort
-- Keine erfundenen Details (keine Telefonnummern, keine Preise, keine Leistungen die nicht in den Daten stehen)
-- Deutsch
-- NUR die Beschreibung ausgeben, kein Prefix wie "Hier ist..." oder "Beschreibung:"
-- Keine Anfuehrungszeichen um den gesamten Text
-PROMPT;
-    }
-
-    private function callClaude(string $prompt): ?string
-    {
-        // Prompt als Temp-File, um Shell-Escaping-Probleme zu vermeiden
-        $tmpFile = tempnam(sys_get_temp_dir(), 'claude_prompt_');
-        file_put_contents($tmpFile, $prompt);
-
-        try {
-            // Nested-Session-Check umgehen: CLAUDECODE explizit leeren
-            $result = Process::timeout(60)
-                ->env([
-                    'CLAUDECODE' => '',
-                    'CLAUDE_CODE_ENTRYPOINT' => '',
-                ])
-                ->run("cat {$tmpFile} | /Users/enes/.local/bin/claude -p --model sonnet 2>&1");
-
-            if (! $result->successful()) {
-                $this->warn("  Claude CLI Exit-Code: {$result->exitCode()}");
-                $this->warn("  Output: " . substr($result->output(), 0, 500));
-                return null;
-            }
-
-            $output = trim($result->output());
-
-            if (empty($output)) {
-                return null;
-            }
-
-            return $output;
-        } finally {
-            @unlink($tmpFile);
-        }
     }
 
     private function formatDuration(float $seconds): string
@@ -259,27 +209,5 @@ PROMPT;
         }
 
         return sprintf('%dm %02ds', $m, $s);
-    }
-
-    private function cleanResponse(string $text): string
-    {
-        // Entferne typische LLM-Prefixe
-        $prefixes = [
-            'Hier ist die Beschreibung:',
-            'Hier ist die Firmenbeschreibung:',
-            'Beschreibung:',
-            'Firmenbeschreibung:',
-        ];
-
-        foreach ($prefixes as $prefix) {
-            if (str_starts_with($text, $prefix)) {
-                $text = trim(substr($text, strlen($prefix)));
-            }
-        }
-
-        // Entferne umschließende Anführungszeichen (gerade und typographische)
-        $text = preg_replace('/^["„"](.+)[""\x{201C}]$/su', '$1', $text) ?? $text;
-
-        return trim($text);
     }
 }

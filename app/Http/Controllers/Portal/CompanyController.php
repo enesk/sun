@@ -10,6 +10,7 @@ use App\Models\Portal\Job;
 use App\Services\CompanyListingFilters;
 use App\Services\CompanyLocationSearch;
 use App\Services\CompanyUrlService;
+use App\Services\Seo\SeoService;
 use App\Services\TrackingService;
 use App\Support\TenantCache;
 use Illuminate\Http\RedirectResponse;
@@ -23,7 +24,7 @@ class CompanyController extends Controller
         private TrackingService $trackingService
     ) {}
 
-    public function index(Request $request): View
+    public function index(Request $request, SeoService $seo): View
     {
         $query = Company::active()
             ->with(['categories', 'city', 'media', 'openingHours']);
@@ -42,6 +43,7 @@ class CompanyController extends Controller
         }
 
         // Stadt-Filter
+        $city = null;
         if ($request->filled('city')) {
             $city = City::where('name', $request->city)->first();
             if ($city) {
@@ -87,6 +89,7 @@ class CompanyController extends Controller
         // Cities Sidebar: TOP 50 statt unbounded, gecacht
         $cities = Cache::remember(TenantCache::key('portal.cities.sidebar'), 3600, fn () =>
             City::withCount(['companies' => fn ($q) => $q->where('is_active', true)])
+                ->named()
                 ->having('companies_count', '>', 0)
                 ->orderByDesc('companies_count')
                 ->limit(50)
@@ -105,6 +108,9 @@ class CompanyController extends Controller
                 $request
             );
         }
+
+        // Robots + Canonical: Filter-URLs noindex, Canonical auf Stadtseite oder /firmen (#7)
+        $seo->forCompanyListing($request, $city);
 
         return view('pages.companies.index', [
             ...compact('companies', 'categories', 'cities', 'totalCompanies', 'sort'),
@@ -244,6 +250,9 @@ class CompanyController extends Controller
             ->latest('published_at')
             ->take(3)
             ->get();
+
+        // Schema.org LocalBusiness im <head> (#8)
+        app(SeoService::class)->forCompanyProfile($company);
 
         // Breadcrumb
         $breadcrumb = [

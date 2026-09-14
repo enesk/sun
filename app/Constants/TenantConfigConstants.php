@@ -28,6 +28,22 @@ class TenantConfigConstants
 
     public const OG_IMAGE_PATH = 'branding.og_image_path';
 
+    // SEO-Templates der Stadtseite /staedte/{slug} (#10), aufgeloest von
+    // App\Services\Seo\SeoService::cityMeta(). Leer = Vorgabe aus SeoService.
+    public const SEO_TRADE_PLURAL = 'seo.trade_plural';
+
+    public const SEO_CITY_TITLE = 'seo.city_title';
+
+    public const SEO_CITY_DESCRIPTION = 'seo.city_description';
+
+    public const SEO_CITY_HEADING = 'seo.city_heading';
+
+    public const SEO_CITY_FALLBACK_TITLE = 'seo.city_fallback_title';
+
+    public const SEO_CITY_FALLBACK_DESCRIPTION = 'seo.city_fallback_description';
+
+    public const SEO_CITY_FALLBACK_HEADING = 'seo.city_fallback_heading';
+
     // Footer & Impressum
     public const FOOTER_TEXT = 'branding.footer_text';
 

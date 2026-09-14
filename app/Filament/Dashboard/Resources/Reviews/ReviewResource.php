@@ -2,13 +2,17 @@
 
 namespace App\Filament\Dashboard\Resources\Reviews;
 
+use App\Enums\ModerationStatus;
 use App\Filament\Dashboard\Resources\Reviews\Pages\EditReview;
 use App\Filament\Dashboard\Resources\Reviews\Pages\ListReviews;
 use App\Models\Portal\Review;
+use App\Support\TenantCache;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -18,16 +22,18 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Actions\BulkAction;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 class ReviewResource extends Resource
 {
+    private const FILTER_OPEN = 'open';
+
     protected static ?string $model = Review::class;
 
     protected static bool $isScopedToTenant = false;
@@ -68,9 +74,20 @@ class ReviewResource extends Resource
         return __('Bewertungen');
     }
 
+    /**
+     * Offene Bewertungen (pending + needs_review), 60 s gecacht. Der Schluessel
+     * traegt Mandant und Sichtbereich, Inhaber sehen nur ihre eigenen Betriebe.
+     */
     public static function getNavigationBadge(): ?string
     {
-        $count = static::getEloquentQuery()->pending()->count();
+        $user = auth()->user();
+        $scope = $user?->isAdmin() ? 'admin' : 'user.'.$user?->getAuthIdentifier();
+
+        $count = (int) Cache::remember(
+            TenantCache::key("reviews.moderation.open_badge.{$scope}"),
+            (int) config('moderation.reviews.badge_cache_seconds', 60),
+            fn (): int => static::getEloquentQuery()->whereIn('moderation_status', ModerationStatus::openValues())->count(),
+        );
 
         return $count > 0 ? (string) $count : null;
     }
@@ -118,14 +135,14 @@ class ReviewResource extends Resource
                 Section::make(__('Moderation'))
                     ->schema([
                         Select::make('moderation_status')
-                            ->options([
-                                Review::STATUS_PENDING => __('Ausstehend'),
-                                Review::STATUS_APPROVED => __('Freigegeben'),
-                                Review::STATUS_REJECTED => __('Abgelehnt'),
-                            ])
+                            ->options(ModerationStatus::options())
                             ->required()
                             ->label(__('Status'))
                             ->reactive(),
+                        TextInput::make('moderation_reason')
+                            ->maxLength(255)
+                            ->label(__('Grund'))
+                            ->helperText(__('Heuristik, Meldung oder Ablehnungsgrund.')),
                         Textarea::make('moderation_note')
                             ->rows(3)
                             ->label(__('Moderationsnotiz'))
@@ -133,7 +150,7 @@ class ReviewResource extends Resource
                             ->columnSpanFull(),
                         Placeholder::make('moderated_by_info')
                             ->label(__('Moderiert von'))
-                            ->content(fn (?Review $record) => $record?->moderated_by ?? '—'),
+                            ->content(fn (?Review $record) => collect([$record?->moderated_by_name, $record?->moderated_at?->format('d.m.Y H:i')])->filter()->implode(', ') ?: '—'),
                         Placeholder::make('approved_at_info')
                             ->label(__('Freigegeben am'))
                             ->content(fn (?Review $record) => $record?->approved_at?->format('d.m.Y H:i') ?? '—'),
@@ -147,7 +164,7 @@ class ReviewResource extends Resource
             ->description(__('Bewertungen moderieren und verwalten.'))
             ->columns([
                 TextColumn::make('company.name')
-                    ->label(__('Firma'))
+                    ->label(__('Betrieb'))
                     ->sortable()
                     ->searchable()
                     ->limit(30),
@@ -158,44 +175,39 @@ class ReviewResource extends Resource
                 TextColumn::make('rating')
                     ->label(__('Sterne'))
                     ->sortable()
-                    ->formatStateUsing(fn (int $state) => str_repeat('★', $state) . str_repeat('☆', 5 - $state)),
-                TextColumn::make('title')
-                    ->label(__('Titel'))
-                    ->limit(40)
-                    ->searchable(),
+                    ->formatStateUsing(fn ($state) => number_format((float) $state, 1, ',', '')),
                 TextColumn::make('body')
-                    ->label(__('Text'))
-                    ->limit(60)
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->label(__('Auszug'))
+                    ->state(fn (Review $record): string => trim(($record->title ? "{$record->title} – " : '').(string) $record->body))
+                    ->limit(80)
+                    ->tooltip(fn (Review $record): ?string => $record->body)
+                    ->searchable(['title', 'body']),
                 TextColumn::make('moderation_status')
                     ->label(__('Status'))
                     ->badge()
-                    ->formatStateUsing(fn (string $state) => match ($state) {
-                        Review::STATUS_PENDING => __('Ausstehend'),
-                        Review::STATUS_APPROVED => __('Freigegeben'),
-                        Review::STATUS_REJECTED => __('Abgelehnt'),
-                        default => $state,
-                    })
-                    ->color(fn (string $state) => match ($state) {
-                        Review::STATUS_PENDING => 'warning',
-                        Review::STATUS_APPROVED => 'success',
-                        Review::STATUS_REJECTED => 'danger',
-                        default => 'gray',
-                    })
+                    ->formatStateUsing(fn (string $state) => ModerationStatus::labelFor($state))
+                    ->color(fn (string $state) => ModerationStatus::tryFrom($state)?->color() ?? 'gray')
                     ->sortable(),
+                TextColumn::make('moderation_reason')
+                    ->label(__('Grund'))
+                    ->limit(50)
+                    ->tooltip(fn (Review $record): ?string => $record->moderation_reason)
+                    ->placeholder('—'),
                 TextColumn::make('created_at')
-                    ->label(__('Erstellt'))
+                    ->label(__('Datum'))
                     ->dateTime(config('app.datetime_format'))
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
                 SelectFilter::make('moderation_status')
-                    ->options([
-                        Review::STATUS_PENDING => __('Ausstehend'),
-                        Review::STATUS_APPROVED => __('Freigegeben'),
-                        Review::STATUS_REJECTED => __('Abgelehnt'),
-                    ])
+                    ->options([self::FILTER_OPEN => __('Zu prüfen'), ...ModerationStatus::options()])
+                    ->default(self::FILTER_OPEN)
+                    ->query(fn (Builder $query, array $data): Builder => match ($data['value'] ?? null) {
+                        null, '' => $query,
+                        self::FILTER_OPEN => $query->whereIn('moderation_status', ModerationStatus::openValues()),
+                        default => $query->where('moderation_status', $data['value']),
+                    })
                     ->label(__('Status')),
                 SelectFilter::make('company_id')
                     ->relationship('company', 'name')
@@ -219,7 +231,7 @@ class ReviewResource extends Resource
                     ->color('success')
                     ->requiresConfirmation()
                     ->action(fn (Review $record) => $record->approve())
-                    ->visible(fn (Review $record) => $record->moderation_status !== Review::STATUS_APPROVED),
+                    ->visible(fn (Review $record) => static::canModerate() && $record->moderation_status !== Review::STATUS_APPROVED),
                 Action::make('quick_reject')
                     ->label(__('Ablehnen'))
                     ->icon(Heroicon::OutlinedXMark)
@@ -231,33 +243,37 @@ class ReviewResource extends Resource
                             ->rows(2),
                     ])
                     ->action(fn (Review $record, array $data) => $record->reject($data['reason'] ?? null))
-                    ->visible(fn (Review $record) => $record->moderation_status !== Review::STATUS_REJECTED),
+                    ->visible(fn (Review $record) => static::canModerate() && $record->moderation_status !== Review::STATUS_REJECTED),
                 EditAction::make(),
+                DeleteAction::make(),
             ])
-            ->bulkActions([
-                BulkAction::make('approve')
-                    ->label(__('Freigeben'))
-                    ->icon(Heroicon::OutlinedCheck)
-                    ->color('success')
-                    ->action(function (Collection $records) {
-                        $records->each(fn (Review $review) => $review->approve());
-                    })
-                    ->deselectRecordsAfterCompletion()
-                    ->requiresConfirmation(),
-                BulkAction::make('reject')
-                    ->label(__('Ablehnen'))
-                    ->icon(Heroicon::OutlinedXMark)
-                    ->color('danger')
-                    ->form([
-                        Textarea::make('reason')
-                            ->label(__('Grund (optional)'))
-                            ->rows(2),
-                    ])
-                    ->action(function (Collection $records, array $data) {
-                        $records->each(fn (Review $review) => $review->reject($data['reason'] ?? null));
-                    })
-                    ->deselectRecordsAfterCompletion()
-                    ->requiresConfirmation(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    BulkAction::make('approve')
+                        ->label(__('Freigeben'))
+                        ->icon(Heroicon::OutlinedCheck)
+                        ->color('success')
+                        ->action(function (Collection $records) {
+                            $records->each(fn (Review $review) => $review->approve());
+                        })
+                        ->deselectRecordsAfterCompletion()
+                        ->requiresConfirmation(),
+                    BulkAction::make('reject')
+                        ->label(__('Ablehnen'))
+                        ->icon(Heroicon::OutlinedXMark)
+                        ->color('danger')
+                        ->form([
+                            Textarea::make('reason')
+                                ->label(__('Grund (optional)'))
+                                ->rows(2),
+                        ])
+                        ->action(function (Collection $records, array $data) {
+                            $records->each(fn (Review $review) => $review->reject($data['reason'] ?? null));
+                        })
+                        ->deselectRecordsAfterCompletion()
+                        ->requiresConfirmation(),
+                    DeleteBulkAction::make(),
+                ])->visible(fn (): bool => static::canModerate()),
             ]);
     }
 
@@ -277,5 +293,30 @@ class ReviewResource extends Resource
     public static function canCreate(): bool
     {
         return false;
+    }
+
+    /**
+     * Inhaber sehen die Liste nur lesend, moderiert wird ausschliesslich von
+     * Administratoren (#17). Die Sperre sitzt hier und nicht nur an den
+     * Buttons, damit auch die Edit-Route und Livewire-Aufrufe abgewiesen werden.
+     */
+    public static function canEdit(Model $record): bool
+    {
+        return static::canModerate();
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return static::canModerate();
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return static::canModerate();
+    }
+
+    private static function canModerate(): bool
+    {
+        return Review::canBeModeratedBy(auth()->user());
     }
 }

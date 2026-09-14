@@ -10,6 +10,7 @@ use App\Models\Portal\FAQ;
 use App\Models\Portal\Job as PortalJob;
 use App\Models\Tenant;
 use App\Services\RobotsTxtBuilder;
+use App\Services\Seo\SitemapGenerator;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -77,6 +78,9 @@ class GenerateTenantSitemapJob implements ShouldQueue
             $this->updateProgress($cacheKey, 5, 'Statische Seiten & Kategorien...');
             $miscSitemap = Sitemap::create();
             $this->addStaticPages($miscSitemap, $baseUrl);
+
+            // Stadtseiten /staedte/{slug} (#7)
+            app(SitemapGenerator::class)->addCityPages($miscSitemap, $baseUrl);
 
             // Categories
             $categories = Category::select(['slug', 'updated_at'])->get();

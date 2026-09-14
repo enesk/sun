@@ -64,7 +64,7 @@ class ReviewTable extends Component
 
     public function updatedSelectAll(bool $value): void
     {
-        if ($value) {
+        if ($value && $this->canModerate()) {
             $this->selected = $this->getReviewQuery()->pluck('id')->map(fn ($id) => (string) $id)->toArray();
         } else {
             $this->selected = [];
@@ -98,6 +98,8 @@ class ReviewTable extends Component
 
     public function approveReview(int $reviewId): void
     {
+        $this->authorizeModeration();
+
         $review = $this->resolveReview($reviewId);
         if (! $review) return;
 
@@ -108,6 +110,8 @@ class ReviewTable extends Component
 
     public function openRejectModal(int $reviewId): void
     {
+        $this->authorizeModeration();
+
         $this->rejectingReviewId = $reviewId;
         $this->rejectReason = '';
         $this->isBulkReject = false;
@@ -116,6 +120,8 @@ class ReviewTable extends Component
 
     public function confirmReject(): void
     {
+        $this->authorizeModeration();
+
         if ($this->isBulkReject) {
             $this->executeBulkReject();
             return;
@@ -139,6 +145,8 @@ class ReviewTable extends Component
 
     public function bulkApprove(): void
     {
+        $this->authorizeModeration();
+
         $reviews = Review::whereIn('id', $this->selected)->get();
         $count = 0;
 
@@ -156,6 +164,8 @@ class ReviewTable extends Component
 
     public function openBulkRejectModal(): void
     {
+        $this->authorizeModeration();
+
         $this->rejectReason = '';
         $this->isBulkReject = true;
         $this->showRejectModal = true;
@@ -182,6 +192,8 @@ class ReviewTable extends Component
 
     public function deleteReview(int $reviewId): void
     {
+        $this->authorizeModeration();
+
         $review = $this->resolveReview($reviewId);
         if (! $review) return;
 
@@ -202,12 +214,13 @@ class ReviewTable extends Component
             ->paginate(15);
 
         $isAdmin = auth()->user()->isAdmin();
+        $canModerate = $this->canModerate();
 
         // Status counts for tabs
         $baseQuery = $this->getBaseQuery();
         $statusCounts = [
             'all' => (clone $baseQuery)->count(),
-            'pending' => (clone $baseQuery)->pending()->count(),
+            'pending' => (clone $baseQuery)->awaitingModeration()->count(),
             'approved' => (clone $baseQuery)->approved()->count(),
             'rejected' => (clone $baseQuery)->rejected()->count(),
         ];
@@ -218,6 +231,7 @@ class ReviewTable extends Component
         return view('livewire.verwaltung.review-table', compact(
             'reviews',
             'isAdmin',
+            'canModerate',
             'statusCounts',
             'companies',
         ));
@@ -245,7 +259,7 @@ class ReviewTable extends Component
 
         // Status filter
         if ($this->filterStatus === 'pending') {
-            $query->pending();
+            $query->awaitingModeration();
         } elseif ($this->filterStatus === 'approved') {
             $query->approved();
         } elseif ($this->filterStatus === 'rejected') {
@@ -287,6 +301,21 @@ class ReviewTable extends Component
         }
 
         return $query->orderBy('name')->pluck('name', 'id')->toArray();
+    }
+
+    private function canModerate(): bool
+    {
+        return Review::canBeModeratedBy(auth()->user());
+    }
+
+    /**
+     * Freigeben, Ablehnen und Loeschen nur fuer Administratoren (#17). Die
+     * Pruefung sitzt in jeder oeffentlichen Methode, weil Livewire-Aufrufe
+     * auch ohne sichtbaren Button abgesetzt werden koennen.
+     */
+    private function authorizeModeration(): void
+    {
+        abort_unless($this->canModerate(), 403, 'Bewertungen moderieren nur Administratoren.');
     }
 
     private function resolveReview(?int $reviewId): ?Review

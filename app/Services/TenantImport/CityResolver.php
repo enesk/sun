@@ -19,8 +19,8 @@ class CityResolver
     public function resolve(string $city, ?string $zipcode = null, ?string $administrativeAreaLevel1 = null): int
     {
         $normalizedName = $this->normalize($city);
-        if (empty($normalizedName)) {
-            throw new \InvalidArgumentException('Stadtname darf nicht leer sein.');
+        if (City::isPlaceholderName($normalizedName)) {
+            throw new \InvalidArgumentException("Stadtname darf nicht leer oder ein Platzhalter sein: \"{$city}\".");
         }
 
         $normalizedState = $administrativeAreaLevel1 ? $this->normalize($administrativeAreaLevel1) : null;

@@ -8,6 +8,7 @@ use App\Content\Models\ArticleDraft;
 use App\Content\Models\DraftSource;
 use App\Models\Portal\City;
 use App\Models\Portal\Post;
+use App\Support\CityUrl;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
@@ -207,7 +208,7 @@ class ArticleBlockPresenter
 
         return [
             'name' => $city->name,
-            'url' => route('portal.cities.show', $city->slug),
+            'url' => CityUrl::show($city),
             'company_count' => $city->companies()->count(),
             'facts' => $this->pairs($outline['regional_facts'] ?? []),
             'intro' => isset($outline['regional_intro']) ? (string) $outline['regional_intro'] : null,

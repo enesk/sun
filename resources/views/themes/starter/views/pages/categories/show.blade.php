@@ -25,7 +25,7 @@
             'url' => route('home'),
         ],
         'numberOfItems' => $companies->total(),
-    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}
     </script>
     @endpush
 

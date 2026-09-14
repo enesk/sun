@@ -7,6 +7,9 @@ namespace App\Themes\SunV2;
 use App\Models\Portal\Company;
 use App\Models\Portal\CompanyOpeningHour;
 use App\Models\Portal\Review;
+use App\Support\Breadcrumb;
+use App\Support\CityUrl;
+use App\Support\PhoneNumber;
 use App\Support\TenantCache;
 use App\Themes\ThemeManager;
 use Carbon\CarbonImmutable;
@@ -49,11 +52,14 @@ final class ProfileViewComposer
             'mapsUrl' => $company->full_address
                 ? 'https://maps.google.com/?q='.urlencode($company->full_address)
                 : null,
-            'phone' => $company->tel ? preg_replace('/[^0-9+]/', '', $company->tel) : null,
+            // E.164 fuer tel:-Links und JSON-LD, null wenn nicht normalisierbar
+            'phone' => PhoneNumber::toE164($company->tel),
+            'phoneDisplay' => PhoneNumber::display($company->tel),
             'cityLabel' => $cityName ? "{$config['branch_plural']} in {$cityName}" : null,
-            'cityUrl' => $cityName
-                ? route('portal.companies.index', ['city' => $cityName, 'sort' => 'rating'])
+            'cityUrl' => $company->city
+                ? CityUrl::show($company->city)
                 : route('portal.companies.index'),
+            'breadcrumb' => Breadcrumb::forCompany($company),
             'nearby' => $this->nearby($company),
             'nearbyCount' => $this->nearbyCount($company),
         ]);

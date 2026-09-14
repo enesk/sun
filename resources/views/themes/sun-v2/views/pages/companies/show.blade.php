@@ -23,11 +23,7 @@
 @section('content')
 <div class="container-portal pt-6 pb-12 md:pb-16">
 
-  <nav aria-label="Brotkrumen" class="text-sm text-zinc-500 flex items-center gap-1.5 flex-wrap">
-    <a href="{{ route('home') }}" class="hover:text-brand hidden sm:inline">Start</a><span class="hidden sm:inline"><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" /></span>
-    <a href="{{ $profile['cityUrl'] }}" class="hover:text-brand">{{ $profile['cityLabel'] ?? $plural }}</a><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" />
-    <span class="text-zinc-900">{{ $company->name }}</span>
-  </nav>
+  <x-sun.breadcrumb :items="$profile['breadcrumb']" />
 
   <div class="mt-4 grid gap-6 lg:grid-cols-[1fr_20rem] xl:grid-cols-[1fr_22rem] lg:items-start">
 
@@ -217,6 +213,7 @@
                     <p class="mt-1 text-sm leading-relaxed text-zinc-700">{{ $review->owner_response }}</p>
                   </div>
                 @endif
+                <livewire:reviews.report-review-button :review-id="$review->id" :key="'report-review-'.$review->id" />
               </li>
             @endforeach
           </ul>
@@ -241,9 +238,7 @@
       <div class="card p-5">
         <p class="text-sm text-zinc-500">Beschreib dein Anliegen, {{ $company->name }} meldet sich mit einem Angebot.</p>
         <button type="button" class="mt-3 btn-primary w-full" data-open-lead><x-sun.icon name="mail" class="icon" />Angebot anfragen</button>
-        @if($profile['phone'])
-          <a href="tel:{{ $profile['phone'] }}" class="mt-2 btn-secondary w-full"><x-sun.icon name="phone" class="icon" />{{ $company->tel }}</a>
-        @endif
+        <x-phone-link :number="$company->tel" class="mt-2 btn-secondary w-full" fallback-class="mt-2 block text-center text-sm font-medium text-zinc-700"><x-sun.icon name="phone" class="icon" />{{ $profile['phoneDisplay'] }}</x-phone-link>
         @if($company->website)
           <a href="{{ $company->website }}" rel="nofollow noopener" target="_blank" class="mt-2 btn-ghost w-full"><x-sun.icon name="globe" class="icon" stroke-linecap="butt" stroke-linejoin="miter" />Website</a>
         @endif
@@ -300,47 +295,9 @@
 
 <!-- ================= MOBILE: STICKY BOTTOM BAR ================= -->
 <div class="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-zinc-200 p-3 flex gap-2 lg:hidden" style="padding-bottom:max(.75rem,env(safe-area-inset-bottom))">
-  @if($profile['phone'])
-    <a href="tel:{{ $profile['phone'] }}" class="btn-secondary size-11 min-h-11 px-0 shrink-0" aria-label="Anrufen: {{ $company->tel }}"><x-sun.icon name="phone" class="icon" /></a>
-  @endif
+  <x-phone-link :number="$company->tel" :fallback="false" class="btn-secondary size-11 min-h-11 px-0 shrink-0" aria-label="Anrufen: {{ $profile['phoneDisplay'] }}"><x-sun.icon name="phone" class="icon" /></x-phone-link>
   <button type="button" class="btn-primary flex-1 whitespace-nowrap" data-open-lead>Angebot anfragen</button>
 </div>
 
 @include('partials.sun.lead-dialog', ['company' => $company])
-
-@push('scripts')
-<script type="application/ld+json">
-{!! json_encode(array_filter([
-    '@'.'context' => 'https://schema.org',
-    '@type' => 'LocalBusiness',
-    'name' => $company->name,
-    'description' => $company->description ? \Illuminate\Support\Str::limit($company->description, 250) : null,
-    'address' => $company->full_address ? array_filter([
-        '@type' => 'PostalAddress',
-        'streetAddress' => $company->street ? trim($company->street.' '.$company->house_no) : null,
-        'postalCode' => $company->zipcode,
-        'addressLocality' => $company->city?->name,
-        'addressCountry' => 'DE',
-    ]) : null,
-    'telephone' => $company->tel,
-    'email' => $company->email,
-    'url' => $company->website,
-    'aggregateRating' => $company->rating_count > 0 ? [
-        '@type' => 'AggregateRating',
-        'ratingValue' => $company->rating,
-        'reviewCount' => $company->rating_count,
-        'bestRating' => 5,
-        'worstRating' => 1,
-    ] : null,
-    'openingHoursSpecification' => $company->openingHours->isNotEmpty()
-        ? $company->openingHours->map(fn ($h) => array_filter([
-            '@type' => 'OpeningHoursSpecification',
-            'dayOfWeek' => ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][$h->day_of_week] ?? null,
-            'opens' => ! $h->is_closed && $h->opens_at ? substr($h->opens_at, 0, 5) : null,
-            'closes' => ! $h->is_closed && $h->closes_at ? substr($h->closes_at, 0, 5) : null,
-        ]))->values()->all()
-        : null,
-]), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
-</script>
-@endpush
 @endsection

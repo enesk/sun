@@ -17,6 +17,10 @@
         $brandColor = config('themes.sun-v2.default_brand_color');
     }
     $hasStickyAd = \App\View\Components\AdSlot::hasSlotsForPosition('mobile_sticky_bottom');
+    // Robots/Canonical: SeoService (#7) hat Vorrang, sonst die @section der Seite.
+    $seo = app(\App\Services\Seo\SeoService::class);
+    $metaRobots = $seo->robots() !== null ? e($seo->robots()) : ($__env->hasSection('meta_robots') ? $__env->yieldContent('meta_robots') : null);
+    $canonicalUrl = $seo->canonical() !== null ? e($seo->canonical()) : $__env->yieldContent('canonical', url()->current());
 @endphp
 <!doctype html>
 <html lang="de" style="--brand:{{ $brandColor }}">
@@ -26,15 +30,16 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <title>@yield('title', $portalName)</title>
 <meta name="description" content="@yield('meta_description', '')">
-@hasSection('meta_robots')
-<meta name="robots" content="@yield('meta_robots')">
+@if($metaRobots !== null)
+<meta name="robots" content="{!! $metaRobots !!}">
 @endif
-<link rel="canonical" href="@yield('canonical', url()->current())">
+<link rel="canonical" href="{!! $canonicalUrl !!}">
+<x-seo.json-ld />
 
 <meta property="og:title" content="@yield('title', $portalName)">
 <meta property="og:description" content="@yield('meta_description', '')">
 <meta property="og:type" content="@yield('og_type', 'website')">
-<meta property="og:url" content="@yield('canonical', url()->current())">
+<meta property="og:url" content="{!! $canonicalUrl !!}">
 <meta property="og:site_name" content="{{ $portalName }}">
 <meta property="og:locale" content="de_DE">
 @if(!empty($currentTenant) && $currentTenant->getAttribute('branding.og_image_path'))

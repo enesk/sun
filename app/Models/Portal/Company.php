@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Services\CompanyUrlService;
+use App\Services\Seo\StructuredDataService;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -67,6 +68,11 @@ class Company extends Model implements HasMedia
                 $company->slug = Str::slug($company->name);
             }
         });
+
+        // JSON-LD des Profils neu bauen (#8); Bewertungs-Freigaben laufen ueber
+        // Review -> recalculateRating() -> update() ebenfalls hier durch.
+        static::saved(fn (Company $company) => StructuredDataService::forget($company->id));
+        static::deleted(fn (Company $company) => StructuredDataService::forget($company->id));
     }
 
     // ── Relationships ──

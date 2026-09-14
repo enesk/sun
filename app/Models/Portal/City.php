@@ -55,6 +55,31 @@ class City extends Model
         return $this->hasOne(CityContent::class);
     }
 
+    /**
+     * Ortsnamen, die kein Ort sind (#4): Importskripte schreiben null als Text
+     * ("None" aus Python, "null"/"undefined" aus JavaScript, "nan" aus pandas).
+     * Verglichen wird getrimmt und kleingeschrieben.
+     */
+    public const PLACEHOLDER_NAMES = ['none', 'null', 'nan', 'undefined'];
+
+    public static function isPlaceholderName(?string $name): bool
+    {
+        $normalized = mb_strtolower(trim((string) $name));
+
+        return $normalized === '' || in_array($normalized, self::PLACEHOLDER_NAMES, true);
+    }
+
+    /**
+     * Nur Orte mit echtem Namen — fuer alle oeffentlichen Ortslisten.
+     */
+    public function scopeNamed($query)
+    {
+        return $query
+            ->whereNotNull($this->qualifyColumn('name'))
+            ->whereRaw("TRIM({$this->qualifyColumn('name')}) <> ''")
+            ->whereRaw("LOWER(TRIM({$this->qualifyColumn('name')})) NOT IN (".implode(',', array_fill(0, count(self::PLACEHOLDER_NAMES), '?')).')', self::PLACEHOLDER_NAMES);
+    }
+
     public function scopeByState($query, string $state)
     {
         return $query->where('administrative_area_level_1', $state);

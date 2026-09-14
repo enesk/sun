@@ -24,7 +24,7 @@
         ],
         'query-input' => 'required name=search_term_string',
     ],
-], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}
 </script>
 @endpush
 
@@ -186,7 +186,7 @@
     <x-sun.section-heading :title="$sun['citiesHeading']" :href="route('portal.cities.index')" link="Alle Städte" />
     <ul class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-1">
       @foreach($sun['cities'] as $city)
-        <li><a href="{{ route('portal.cities.show', $city->slug) }}" class="flex justify-between min-h-11 items-center hover:text-brand"><span class="font-medium text-zinc-900">{{ $city->name }}</span><span class="text-sm text-zinc-500">{{ number_format($city->companies_count, 0, ',', '.') }}</span></a></li>
+        <li><a href="{{ \App\Support\CityUrl::show($city) }}" class="flex justify-between min-h-11 items-center hover:text-brand"><span class="font-medium text-zinc-900">{{ $city->name }}</span><span class="text-sm text-zinc-500">{{ number_format($city->companies_count, 0, ',', '.') }}</span></a></li>
       @endforeach
     </ul>
     <div class="mt-4">

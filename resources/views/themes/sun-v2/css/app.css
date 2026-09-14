@@ -17,6 +17,8 @@
 @import 'tailwindcss' source(none);
 
 @source '../views';
+/* Local Hub der Stadtseite: x-city.intro / x-city.faq (#12) */
+@source '../../../components/city';
 /* Werbeplaetze: <x-ad-slot> rendert Klassen aus Komponente und View */
 @source '../../../components/ad-slot.blade.php';
 @source '../../../../../app/View/Components/AdSlot.php';

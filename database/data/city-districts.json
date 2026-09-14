@@ -1,0 +1,895 @@
+{
+    "_hinweis": "Stadtteile/Stadtbezirke der 50 einwohnerstaerksten Staedte, die im Elektriker-Portal gefuehrt werden (#11). Zuordnung ueber cities.slug. Gepflegt von Hand, eingelesen von Database\\Seeders\\CityDistrictsSeeder.",
+    "cities": [
+        {
+            "slug": "berlin",
+            "name": "Berlin",
+            "districts": [
+                "Mitte",
+                "Friedrichshain-Kreuzberg",
+                "Pankow",
+                "Charlottenburg-Wilmersdorf",
+                "Spandau",
+                "Steglitz-Zehlendorf",
+                "Tempelhof-Schöneberg",
+                "Neukölln",
+                "Treptow-Köpenick",
+                "Marzahn-Hellersdorf",
+                "Lichtenberg",
+                "Reinickendorf"
+            ]
+        },
+        {
+            "slug": "hamburg",
+            "name": "Hamburg",
+            "districts": [
+                "Hamburg-Mitte",
+                "Altona",
+                "Eimsbüttel",
+                "Hamburg-Nord",
+                "Wandsbek",
+                "Bergedorf",
+                "Harburg"
+            ]
+        },
+        {
+            "slug": "munchen",
+            "name": "München",
+            "districts": [
+                "Altstadt-Lehel",
+                "Maxvorstadt",
+                "Schwabing",
+                "Haidhausen",
+                "Sendling",
+                "Neuhausen-Nymphenburg",
+                "Bogenhausen",
+                "Giesing",
+                "Laim",
+                "Pasing",
+                "Moosach",
+                "Trudering-Riem",
+                "Ramersdorf-Perlach"
+            ]
+        },
+        {
+            "slug": "koln",
+            "name": "Köln",
+            "districts": [
+                "Innenstadt",
+                "Rodenkirchen",
+                "Lindenthal",
+                "Ehrenfeld",
+                "Nippes",
+                "Chorweiler",
+                "Porz",
+                "Kalk",
+                "Mülheim"
+            ]
+        },
+        {
+            "slug": "frankfurt-am-main",
+            "name": "Frankfurt am Main",
+            "districts": [
+                "Innenstadt",
+                "Sachsenhausen",
+                "Bornheim",
+                "Nordend",
+                "Bockenheim",
+                "Westend",
+                "Gallus",
+                "Höchst",
+                "Niederrad",
+                "Fechenheim",
+                "Bergen-Enkheim",
+                "Praunheim"
+            ]
+        },
+        {
+            "slug": "stuttgart",
+            "name": "Stuttgart",
+            "districts": [
+                "Mitte",
+                "Bad Cannstatt",
+                "Vaihingen",
+                "Degerloch",
+                "Feuerbach",
+                "Zuffenhausen",
+                "Nord",
+                "Ost",
+                "Süd",
+                "West",
+                "Birkach",
+                "Botnang",
+                "Hedelfingen",
+                "Möhringen",
+                "Mühlhausen",
+                "Münster",
+                "Obertürkheim",
+                "Plieningen",
+                "Sillenbuch",
+                "Stammheim",
+                "Untertürkheim",
+                "Wangen",
+                "Weilimdorf"
+            ]
+        },
+        {
+            "slug": "dusseldorf",
+            "name": "Düsseldorf",
+            "districts": [
+                "Altstadt",
+                "Carlstadt",
+                "Pempelfort",
+                "Oberkassel",
+                "Bilk",
+                "Unterbilk",
+                "Flingern",
+                "Derendorf",
+                "Gerresheim",
+                "Benrath",
+                "Kaiserswerth",
+                "Rath",
+                "Eller",
+                "Wersten"
+            ]
+        },
+        {
+            "slug": "leipzig",
+            "name": "Leipzig",
+            "districts": [
+                "Zentrum",
+                "Gohlis",
+                "Connewitz",
+                "Plagwitz",
+                "Lindenau",
+                "Reudnitz",
+                "Schleußig",
+                "Südvorstadt",
+                "Grünau",
+                "Paunsdorf"
+            ]
+        },
+        {
+            "slug": "dortmund",
+            "name": "Dortmund",
+            "districts": [
+                "Innenstadt-West",
+                "Innenstadt-Nord",
+                "Innenstadt-Ost",
+                "Eving",
+                "Scharnhorst",
+                "Brackel",
+                "Aplerbeck",
+                "Hörde",
+                "Hombruch",
+                "Lütgendortmund",
+                "Huckarde",
+                "Mengede"
+            ]
+        },
+        {
+            "slug": "essen",
+            "name": "Essen",
+            "districts": [
+                "Stadtkern",
+                "Rüttenscheid",
+                "Altenessen",
+                "Borbeck",
+                "Steele",
+                "Kettwig",
+                "Werden",
+                "Frohnhausen",
+                "Holsterhausen",
+                "Kray",
+                "Katernberg",
+                "Bredeney"
+            ]
+        },
+        {
+            "slug": "bremen",
+            "name": "Bremen",
+            "districts": [
+                "Mitte",
+                "Neustadt",
+                "Schwachhausen",
+                "Findorff",
+                "Östliche Vorstadt",
+                "Horn-Lehe",
+                "Walle",
+                "Gröpelingen",
+                "Hemelingen",
+                "Obervieland",
+                "Huchting",
+                "Osterholz",
+                "Vegesack",
+                "Blumenthal"
+            ]
+        },
+        {
+            "slug": "dresden",
+            "name": "Dresden",
+            "districts": [
+                "Altstadt",
+                "Neustadt",
+                "Pieschen",
+                "Klotzsche",
+                "Loschwitz",
+                "Blasewitz",
+                "Leuben",
+                "Prohlis",
+                "Plauen",
+                "Cotta"
+            ]
+        },
+        {
+            "slug": "hannover",
+            "name": "Hannover",
+            "districts": [
+                "Mitte",
+                "Vahrenwald-List",
+                "Bothfeld-Vahrenheide",
+                "Buchholz-Kleefeld",
+                "Misburg-Anderten",
+                "Kirchrode-Bemerode-Wülferode",
+                "Südstadt-Bult",
+                "Döhren-Wülfel",
+                "Ricklingen",
+                "Linden-Limmer",
+                "Ahlem-Badenstedt-Davenstedt",
+                "Herrenhausen-Stöcken",
+                "Nord"
+            ]
+        },
+        {
+            "slug": "nurnberg",
+            "name": "Nürnberg",
+            "districts": [
+                "Altstadt",
+                "Gostenhof",
+                "St. Johannis",
+                "St. Leonhard",
+                "Galgenhof",
+                "Gleißhammer",
+                "Mögeldorf",
+                "Langwasser",
+                "Eibach",
+                "Schweinau",
+                "Ziegelstein",
+                "Wöhrd",
+                "Maxfeld",
+                "Katzwang"
+            ]
+        },
+        {
+            "slug": "duisburg",
+            "name": "Duisburg",
+            "districts": [
+                "Mitte",
+                "Walsum",
+                "Hamborn",
+                "Meiderich/Beeck",
+                "Homberg/Ruhrort/Baerl",
+                "Rheinhausen",
+                "Süd"
+            ]
+        },
+        {
+            "slug": "bochum",
+            "name": "Bochum",
+            "districts": [
+                "Mitte",
+                "Wattenscheid",
+                "Nord",
+                "Ost",
+                "Süd",
+                "Südwest"
+            ]
+        },
+        {
+            "slug": "wuppertal",
+            "name": "Wuppertal",
+            "districts": [
+                "Elberfeld",
+                "Elberfeld-West",
+                "Uellendahl-Katernberg",
+                "Vohwinkel",
+                "Cronenberg",
+                "Barmen",
+                "Oberbarmen",
+                "Heckinghausen",
+                "Langerfeld-Beyenburg",
+                "Ronsdorf"
+            ]
+        },
+        {
+            "slug": "bielefeld",
+            "name": "Bielefeld",
+            "districts": [
+                "Mitte",
+                "Schildesche",
+                "Gadderbaum",
+                "Brackwede",
+                "Dornberg",
+                "Jöllenbeck",
+                "Heepen",
+                "Stieghorst",
+                "Sennestadt",
+                "Senne"
+            ]
+        },
+        {
+            "slug": "bonn",
+            "name": "Bonn",
+            "districts": [
+                "Zentrum",
+                "Bad Godesberg",
+                "Beuel",
+                "Hardtberg",
+                "Poppelsdorf",
+                "Endenich",
+                "Kessenich",
+                "Duisdorf"
+            ]
+        },
+        {
+            "slug": "munster",
+            "name": "Münster",
+            "districts": [
+                "Mitte",
+                "Kreuzviertel",
+                "Mauritz",
+                "Gievenbeck",
+                "Kinderhaus",
+                "Coerde",
+                "Hiltrup",
+                "Wolbeck",
+                "Roxel"
+            ]
+        },
+        {
+            "slug": "mannheim",
+            "name": "Mannheim",
+            "districts": [
+                "Innenstadt/Jungbusch",
+                "Neckarstadt-West",
+                "Neckarstadt-Ost",
+                "Lindenhof",
+                "Schwetzingerstadt/Oststadt",
+                "Neckarau",
+                "Feudenheim",
+                "Käfertal",
+                "Vogelstang",
+                "Waldhof",
+                "Sandhofen",
+                "Seckenheim",
+                "Rheinau",
+                "Wallstadt",
+                "Friedrichsfeld",
+                "Schönau"
+            ]
+        },
+        {
+            "slug": "karlsruhe",
+            "name": "Karlsruhe",
+            "districts": [
+                "Innenstadt-West",
+                "Innenstadt-Ost",
+                "Südstadt",
+                "Südweststadt",
+                "Weststadt",
+                "Nordweststadt",
+                "Oststadt",
+                "Mühlburg",
+                "Daxlanden",
+                "Knielingen",
+                "Grünwinkel",
+                "Oberreut",
+                "Rüppurr",
+                "Waldstadt",
+                "Durlach",
+                "Neureut"
+            ]
+        },
+        {
+            "slug": "augsburg",
+            "name": "Augsburg",
+            "districts": [
+                "Innenstadt",
+                "Lechhausen",
+                "Haunstetten",
+                "Göggingen",
+                "Pfersee",
+                "Oberhausen",
+                "Hochzoll",
+                "Kriegshaber",
+                "Hochfeld",
+                "Universitätsviertel",
+                "Bärenkeller",
+                "Inningen"
+            ]
+        },
+        {
+            "slug": "wiesbaden",
+            "name": "Wiesbaden",
+            "districts": [
+                "Mitte",
+                "Nordost",
+                "Südost",
+                "Rheingauviertel",
+                "Westend",
+                "Biebrich",
+                "Schierstein",
+                "Dotzheim",
+                "Sonnenberg",
+                "Bierstadt",
+                "Erbenheim",
+                "Mainz-Kastel"
+            ]
+        },
+        {
+            "slug": "monchengladbach",
+            "name": "Mönchengladbach",
+            "districts": [
+                "Gladbach",
+                "Rheydt",
+                "Neuwerk",
+                "Giesenkirchen",
+                "Odenkirchen",
+                "Wickrath",
+                "Hardt",
+                "Rheindahlen",
+                "Holt",
+                "Eicken"
+            ]
+        },
+        {
+            "slug": "gelsenkirchen",
+            "name": "Gelsenkirchen",
+            "districts": [
+                "Altstadt",
+                "Buer",
+                "Horst",
+                "Erle",
+                "Schalke",
+                "Bismarck",
+                "Ückendorf",
+                "Hassel",
+                "Resse",
+                "Rotthausen",
+                "Feldmark",
+                "Scholven"
+            ]
+        },
+        {
+            "slug": "aachen",
+            "name": "Aachen",
+            "districts": [
+                "Mitte",
+                "Burtscheid",
+                "Brand",
+                "Eilendorf",
+                "Haaren",
+                "Kornelimünster/Walheim",
+                "Laurensberg",
+                "Richterich"
+            ]
+        },
+        {
+            "slug": "braunschweig",
+            "name": "Braunschweig",
+            "districts": [
+                "Innenstadt",
+                "Östliches Ringgebiet",
+                "Westliches Ringgebiet",
+                "Nordstadt",
+                "Weststadt",
+                "Lehndorf",
+                "Querum",
+                "Wenden",
+                "Heidberg",
+                "Melverode",
+                "Stöckheim",
+                "Riddagshausen"
+            ]
+        },
+        {
+            "slug": "kiel",
+            "name": "Kiel",
+            "districts": [
+                "Altstadt",
+                "Vorstadt",
+                "Düsternbrook",
+                "Brunswik",
+                "Ravensberg",
+                "Schreventeich",
+                "Wik",
+                "Gaarden-Ost",
+                "Hassee",
+                "Elmschenhagen",
+                "Mettenhof",
+                "Holtenau",
+                "Friedrichsort",
+                "Suchsdorf"
+            ]
+        },
+        {
+            "slug": "chemnitz",
+            "name": "Chemnitz",
+            "districts": [
+                "Zentrum",
+                "Kaßberg",
+                "Sonnenberg",
+                "Schloßchemnitz",
+                "Bernsdorf",
+                "Kappel",
+                "Gablenz",
+                "Hilbersdorf",
+                "Altendorf",
+                "Rabenstein",
+                "Ebersdorf",
+                "Einsiedel",
+                "Siegmar"
+            ]
+        },
+        {
+            "slug": "halle-saale",
+            "name": "Halle (Saale)",
+            "districts": [
+                "Altstadt",
+                "Paulusviertel",
+                "Giebichenstein",
+                "Kröllwitz",
+                "Halle-Neustadt",
+                "Heide-Nord",
+                "Silberhöhe",
+                "Trotha",
+                "Ammendorf",
+                "Dölau",
+                "Südliche Innenstadt",
+                "Frohe Zukunft"
+            ]
+        },
+        {
+            "slug": "magdeburg",
+            "name": "Magdeburg",
+            "districts": [
+                "Altstadt",
+                "Stadtfeld Ost",
+                "Stadtfeld West",
+                "Sudenburg",
+                "Buckau",
+                "Neue Neustadt",
+                "Alte Neustadt",
+                "Leipziger Straße",
+                "Reform",
+                "Olvenstedt",
+                "Cracau",
+                "Rothensee",
+                "Ottersleben"
+            ]
+        },
+        {
+            "slug": "freiburg-im-breisgau",
+            "name": "Freiburg im Breisgau",
+            "districts": [
+                "Altstadt",
+                "Wiehre",
+                "Herdern",
+                "Stühlinger",
+                "Haslach",
+                "Littenweiler",
+                "Zähringen",
+                "Vauban",
+                "Rieselfeld",
+                "Weingarten",
+                "St. Georgen",
+                "Betzenhausen",
+                "Landwasser",
+                "Günterstal"
+            ]
+        },
+        {
+            "slug": "krefeld",
+            "name": "Krefeld",
+            "districts": [
+                "Mitte",
+                "Uerdingen",
+                "Bockum",
+                "Fischeln",
+                "Hüls",
+                "Oppum",
+                "Linn",
+                "Verberg",
+                "Gartenstadt",
+                "Traar",
+                "Forstwald"
+            ]
+        },
+        {
+            "slug": "mainz",
+            "name": "Mainz",
+            "districts": [
+                "Altstadt",
+                "Neustadt",
+                "Oberstadt",
+                "Hartenberg-Münchfeld",
+                "Gonsenheim",
+                "Bretzenheim",
+                "Mombach",
+                "Weisenau",
+                "Laubenheim",
+                "Hechtsheim",
+                "Finthen",
+                "Lerchenberg",
+                "Marienborn",
+                "Drais",
+                "Ebersheim"
+            ]
+        },
+        {
+            "slug": "lubeck",
+            "name": "Lübeck",
+            "districts": [
+                "Innenstadt",
+                "St. Jürgen",
+                "Moisling",
+                "Buntekuh",
+                "St. Lorenz Süd",
+                "St. Lorenz Nord",
+                "St. Gertrud",
+                "Schlutup",
+                "Kücknitz",
+                "Travemünde"
+            ]
+        },
+        {
+            "slug": "erfurt",
+            "name": "Erfurt",
+            "districts": [
+                "Altstadt",
+                "Andreasvorstadt",
+                "Brühlervorstadt",
+                "Krämpfervorstadt",
+                "Löbervorstadt",
+                "Johannesvorstadt",
+                "Daberstedt",
+                "Herrenberg",
+                "Rieth",
+                "Moskauer Platz",
+                "Roter Berg",
+                "Melchendorf"
+            ]
+        },
+        {
+            "slug": "oberhausen",
+            "name": "Oberhausen",
+            "districts": [
+                "Alt-Oberhausen",
+                "Sterkrade",
+                "Osterfeld",
+                "Schmachtendorf",
+                "Holten",
+                "Königshardt",
+                "Klosterhardt",
+                "Lirich",
+                "Alstaden",
+                "Buschhausen"
+            ]
+        },
+        {
+            "slug": "rostock",
+            "name": "Rostock",
+            "districts": [
+                "Stadtmitte",
+                "Kröpeliner-Tor-Vorstadt",
+                "Südstadt",
+                "Reutershagen",
+                "Lütten Klein",
+                "Evershagen",
+                "Lichtenhagen",
+                "Groß Klein",
+                "Schmarl",
+                "Dierkow",
+                "Toitenwinkel",
+                "Gehlsdorf",
+                "Brinckmansdorf",
+                "Warnemünde"
+            ]
+        },
+        {
+            "slug": "kassel",
+            "name": "Kassel",
+            "districts": [
+                "Mitte",
+                "Vorderer Westen",
+                "Wehlheiden",
+                "Bad Wilhelmshöhe",
+                "Kirchditmold",
+                "Rothenditmold",
+                "Nord-Holland",
+                "Wesertor",
+                "Bettenhausen",
+                "Forstfeld",
+                "Waldau",
+                "Niederzwehren",
+                "Oberzwehren",
+                "Harleshausen"
+            ]
+        },
+        {
+            "slug": "hagen",
+            "name": "Hagen",
+            "districts": [
+                "Mitte",
+                "Wehringhausen",
+                "Altenhagen",
+                "Emst",
+                "Boele",
+                "Vorhalle",
+                "Haspe",
+                "Eilpe",
+                "Dahl",
+                "Hohenlimburg"
+            ]
+        },
+        {
+            "slug": "potsdam",
+            "name": "Potsdam",
+            "districts": [
+                "Innenstadt",
+                "Babelsberg",
+                "Potsdam West",
+                "Bornstedt",
+                "Bornim",
+                "Eiche",
+                "Golm",
+                "Groß Glienicke",
+                "Drewitz",
+                "Kirchsteigfeld",
+                "Waldstadt",
+                "Schlaatz",
+                "Zentrum Ost"
+            ]
+        },
+        {
+            "slug": "saarbrucken",
+            "name": "Saarbrücken",
+            "districts": [
+                "St. Johann",
+                "Alt-Saarbrücken",
+                "Malstatt",
+                "Eschberg",
+                "St. Arnual",
+                "Burbach",
+                "Dudweiler",
+                "Brebach-Fechingen",
+                "Güdingen",
+                "Bübingen",
+                "Scheidt"
+            ]
+        },
+        {
+            "slug": "hamm",
+            "name": "Hamm",
+            "districts": [
+                "Mitte",
+                "Uentrop",
+                "Rhynern",
+                "Pelkum",
+                "Herringen",
+                "Bockum-Hövel",
+                "Heessen"
+            ]
+        },
+        {
+            "slug": "ludwigshafen-am-rhein",
+            "name": "Ludwigshafen am Rhein",
+            "districts": [
+                "Mitte",
+                "Süd",
+                "Nord/Hemshof",
+                "West",
+                "Friesenheim",
+                "Oggersheim",
+                "Oppau",
+                "Edigheim",
+                "Pfingstweide",
+                "Gartenstadt",
+                "Maudach",
+                "Mundenheim",
+                "Rheingönheim",
+                "Ruchheim"
+            ]
+        },
+        {
+            "slug": "oldenburg-oldenburg",
+            "name": "Oldenburg (Oldenburg)",
+            "districts": [
+                "Innenstadt",
+                "Bürgerfelde",
+                "Donnerschwee",
+                "Ehnern",
+                "Eversten",
+                "Kreyenbrück",
+                "Osternburg",
+                "Bloherfelde",
+                "Etzhorn",
+                "Ohmstede",
+                "Nadorst",
+                "Wechloy",
+                "Haarentor",
+                "Dietrichsfeld",
+                "Bümmerstede"
+            ]
+        },
+        {
+            "slug": "solingen",
+            "name": "Solingen",
+            "districts": [
+                "Mitte",
+                "Wald",
+                "Gräfrath",
+                "Ohligs",
+                "Aufderhöhe",
+                "Merscheid",
+                "Höhscheid",
+                "Burg"
+            ]
+        },
+        {
+            "slug": "osnabruck",
+            "name": "Osnabrück",
+            "districts": [
+                "Innenstadt",
+                "Westerberg",
+                "Weststadt",
+                "Wüste",
+                "Schölerberg",
+                "Kalkhügel",
+                "Sonnenhügel",
+                "Schinkel",
+                "Haste",
+                "Dodesheide",
+                "Eversburg",
+                "Hellern",
+                "Voxtrup",
+                "Atter",
+                "Nahne"
+            ]
+        },
+        {
+            "slug": "leverkusen",
+            "name": "Leverkusen",
+            "districts": [
+                "Wiesdorf",
+                "Opladen",
+                "Schlebusch",
+                "Manfort",
+                "Rheindorf",
+                "Hitdorf",
+                "Bürrig",
+                "Küppersteg",
+                "Quettingen",
+                "Lützenkirchen",
+                "Bergisch Neukirchen",
+                "Steinbüchel",
+                "Alkenrath"
+            ]
+        },
+        {
+            "slug": "darmstadt",
+            "name": "Darmstadt",
+            "districts": [
+                "Mitte",
+                "Bessungen",
+                "Darmstadt-Nord",
+                "Darmstadt-Ost",
+                "Darmstadt-West",
+                "Eberstadt",
+                "Arheilgen",
+                "Kranichstein",
+                "Wixhausen"
+            ]
+        }
+    ]
+}

@@ -15,18 +15,19 @@ class EditReview extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        // is_approved und approved_at synchron mit moderation_status halten
-        if ($data['moderation_status'] === Review::STATUS_APPROVED) {
-            $data['is_approved'] = true;
-            $data['approved_at'] = $data['approved_at'] ?? now();
-            $data['moderated_by'] = auth()->user()?->name;
-        } elseif ($data['moderation_status'] === Review::STATUS_REJECTED) {
-            $data['is_approved'] = false;
-            $data['approved_at'] = null;
-            $data['moderated_by'] = auth()->user()?->name;
-        } else {
-            $data['is_approved'] = false;
-            $data['approved_at'] = null;
+        // is_approved und approved_at synchron mit moderation_status halten;
+        // Rating und JSON-LD baut der ReviewObserver neu auf.
+        $status = $data['moderation_status'] ?? $this->record->moderation_status;
+
+        $data['is_approved'] = $status === Review::STATUS_APPROVED;
+        $data['approved_at'] = $status === Review::STATUS_APPROVED
+            ? ($this->record->approved_at ?? now())
+            : null;
+
+        if ($status !== $this->record->moderation_status) {
+            $data['moderated_at'] = now();
+            $data['moderated_by'] = auth()->id();
+            $data['moderated_by_name'] = auth()->user()?->name;
         }
 
         return $data;

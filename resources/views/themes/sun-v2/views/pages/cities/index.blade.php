@@ -93,7 +93,7 @@
       @else
         <ul class="mt-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-1">
           @foreach($citiesSun['results'] as $city)
-            <li><a href="{{ route('portal.cities.show', $city['slug']) }}" class="flex justify-between items-center min-h-11 gap-4 hover:text-brand"><span class="min-w-0 truncate"><span class="font-medium text-zinc-900">{{ $city['name'] }}</span> <span class="text-sm text-zinc-500">{{ $city['zip'] }}</span></span><span class="text-sm text-zinc-500">{{ number_format($city['count'], 0, ',', '.') }}</span></a></li>
+            <li><a href="{{ \App\Support\CityUrl::fromSlug($city['slug']) }}" class="flex justify-between items-center min-h-11 gap-4 hover:text-brand"><span class="min-w-0 truncate"><span class="font-medium text-zinc-900">{{ $city['name'] }}</span> <span class="text-sm text-zinc-500">{{ $city['zip'] }}</span></span><span class="text-sm text-zinc-500">{{ number_format($city['count'], 0, ',', '.') }}</span></a></li>
           @endforeach
         </ul>
       @endif
@@ -116,7 +116,7 @@
       <h2 class="text-2xl font-semibold text-zinc-900">{{ $citiesSun['land'] ? 'Größte Orte in '.$citiesSun['land'] : 'Größte Städte' }}</h2>
       <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         @foreach($citiesSun['top'] as $city)
-          <a href="{{ route('portal.cities.show', $city['slug']) }}" class="card-interactive p-4 flex items-center gap-3 min-w-0">
+          <a href="{{ \App\Support\CityUrl::fromSlug($city['slug']) }}" class="card-interactive p-4 flex items-center gap-3 min-w-0">
             <span class="size-10 shrink-0 rounded-xl bg-brand-50 text-brand flex items-center justify-center" aria-hidden="true"><x-sun.icon name="map-pin" class="icon" /></span>
             <span class="min-w-0">
               <span class="block font-semibold text-zinc-900 truncate">{{ $city['name'] }}</span>
@@ -141,7 +141,7 @@
           <h3 class="text-lg font-semibold text-zinc-900 border-b border-zinc-200 pb-2">{{ $letter }}</h3>
           <ul class="mt-2 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-1">
             @foreach($group as $city)
-              <li><a href="{{ route('portal.cities.show', $city['slug']) }}" class="flex justify-between items-center min-h-11 gap-4 hover:text-brand"><span class="font-medium text-zinc-900 truncate">{{ $city['name'] }}</span><span class="text-sm text-zinc-500">{{ number_format($city['count'], 0, ',', '.') }}</span></a></li>
+              <li><a href="{{ \App\Support\CityUrl::fromSlug($city['slug']) }}" class="flex justify-between items-center min-h-11 gap-4 hover:text-brand"><span class="font-medium text-zinc-900 truncate">{{ $city['name'] }}</span><span class="text-sm text-zinc-500">{{ number_format($city['count'], 0, ',', '.') }}</span></a></li>
             @endforeach
           </ul>
         </div>

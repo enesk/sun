@@ -9,44 +9,54 @@ use Livewire\Component;
  * Recent reviews widget with quick-approve/reject actions.
  *
  * Shows the last 5 reviews across all companies in the tenant.
- * Admin can approve or reject directly from the dashboard.
+ * Only global admins may approve or reject (#17); other dashboard users see
+ * the reviews of their own companies read-only.
  */
 class RecentReviews extends Component
 {
     public function approve(int $reviewId): void
     {
+        $this->authorizeModeration();
+
         $review = Review::findOrFail($reviewId);
-        $review->update([
-            'moderation_status' => Review::STATUS_APPROVED,
-            'is_approved' => true,
-            'approved_at' => now(),
-            'moderated_by' => auth()->id(),
-        ]);
+        $review->approve();
 
         $this->dispatch('toast', type: 'success', message: 'Bewertung freigegeben.');
     }
 
     public function reject(int $reviewId): void
     {
+        $this->authorizeModeration();
+
         $review = Review::findOrFail($reviewId);
-        $review->update([
-            'moderation_status' => Review::STATUS_REJECTED,
-            'is_approved' => false,
-            'moderated_by' => auth()->id(),
-        ]);
+        $review->reject();
 
         $this->dispatch('toast', type: 'success', message: 'Bewertung abgelehnt.');
     }
 
     public function render()
     {
-        $reviews = Review::with('company')
+        $user = auth()->user();
+        $canModerate = Review::canBeModeratedBy($user);
+
+        $baseQuery = Review::query()->when(
+            ! $user->isAdmin(),
+            fn ($query) => $query->whereHas('company', fn ($q) => $q->where('user_id', $user->id)),
+        );
+
+        $reviews = (clone $baseQuery)
+            ->with('company')
             ->latest()
             ->take(5)
             ->get();
 
-        $pendingCount = Review::where('moderation_status', 'pending')->count();
+        $pendingCount = (clone $baseQuery)->awaitingModeration()->count();
 
-        return view('livewire.verwaltung.recent-reviews', compact('reviews', 'pendingCount'));
+        return view('livewire.verwaltung.recent-reviews', compact('reviews', 'pendingCount', 'canModerate'));
+    }
+
+    private function authorizeModeration(): void
+    {
+        abort_unless(Review::canBeModeratedBy(auth()->user()), 403, 'Bewertungen moderieren nur Administratoren.');
     }
 }

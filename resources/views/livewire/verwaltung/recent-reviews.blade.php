@@ -25,7 +25,7 @@
         <div class="space-y-3">
             @foreach($reviews as $review)
                 <div class="flex items-start gap-3 p-3 rounded-lg"
-                     style="border: 1px solid var(--dash-border); background-color: {{ $review->moderation_status === 'pending' ? 'var(--dash-warning-light)' : 'var(--dash-surface)' }};"
+                     style="border: 1px solid var(--dash-border); background-color: {{ $review->isAwaitingModeration() ? 'var(--dash-warning-light)' : 'var(--dash-surface)' }};"
                      wire:key="review-{{ $review->id }}">
                     {{-- Stars --}}
                     <div class="flex items-center gap-0.5 shrink-0 pt-0.5">
@@ -54,7 +54,7 @@
                         @endif
 
                         {{-- Moderation actions for pending reviews --}}
-                        @if($review->moderation_status === 'pending')
+                        @if($canModerate && $review->isAwaitingModeration())
                             <div class="flex items-center gap-2 mt-2">
                                 <button wire:click="approve({{ $review->id }})"
                                         wire:loading.attr="disabled"
@@ -73,6 +73,8 @@
                                     Ablehnen
                                 </button>
                             </div>
+                        @elseif($review->isAwaitingModeration())
+                            <span class="dash-badge dash-badge-warning mt-1">Wartet auf Prüfung</span>
                         @else
                             <span class="dash-badge {{ $review->moderation_status === 'approved' ? 'dash-badge-success' : 'dash-badge-danger' }} mt-1">
                                 {{ $review->moderation_status === 'approved' ? 'Freigegeben' : 'Abgelehnt' }}

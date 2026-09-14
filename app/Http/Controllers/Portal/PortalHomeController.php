@@ -47,6 +47,7 @@ class PortalHomeController extends Controller
 
         $popularCities = Cache::remember(TenantCache::key('portal.cities.hero'), 3600, fn () =>
             City::withCount(['companies' => fn ($q) => $q->where('is_active', true)])
+                ->named()
                 ->having('companies_count', '>', 0)
                 ->orderByDesc('companies_count')
                 ->take(5)

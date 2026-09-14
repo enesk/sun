@@ -4,7 +4,7 @@
         @php
             $tabs = [
                 '' => ['label' => 'Alle', 'count' => $statusCounts['all']],
-                'pending' => ['label' => 'Ausstehend', 'count' => $statusCounts['pending']],
+                'pending' => ['label' => 'Zu prüfen', 'count' => $statusCounts['pending']],
                 'approved' => ['label' => 'Freigegeben', 'count' => $statusCounts['approved']],
                 'rejected' => ['label' => 'Abgelehnt', 'count' => $statusCounts['rejected']],
             ];
@@ -73,7 +73,7 @@
         </div>
 
         {{-- Bulk Actions --}}
-        @if(count($selected) > 0)
+        @if($canModerate && count($selected) > 0)
             <div class="dash-table-bulk">
                 <span class="dash-table-bulk-count">{{ count($selected) }} ausgewählt</span>
                 <button wire:click="bulkApprove"
@@ -96,12 +96,14 @@
             <div class="dash-card dash-card-padded" wire:key="review-{{ $review->id }}">
                 <div class="flex items-start gap-3">
                     {{-- Checkbox --}}
-                    <input type="checkbox"
-                           wire:model.live="selected"
-                           value="{{ $review->id }}"
-                           class="mt-1 shrink-0"
-                           style="accent-color: var(--portal-primary, #3b82f6);"
-                           aria-label="Bewertung auswählen">
+                    @if($canModerate)
+                        <input type="checkbox"
+                               wire:model.live="selected"
+                               value="{{ $review->id }}"
+                               class="mt-1 shrink-0"
+                               style="accent-color: var(--portal-primary, #3b82f6);"
+                               aria-label="Bewertung auswählen">
+                    @endif
 
                     {{-- Content --}}
                     <div class="flex-1 min-w-0">
@@ -121,6 +123,8 @@
                             {{-- Status Badge --}}
                             @if($review->isPending())
                                 <span class="dash-badge dash-badge-warning">Ausstehend</span>
+                            @elseif($review->needsReview())
+                                <span class="dash-badge dash-badge-danger" title="{{ $review->moderation_reason }}">Zu prüfen</span>
                             @elseif($review->isApproved())
                                 <span class="dash-badge dash-badge-success">Freigegeben</span>
                             @elseif($review->isRejected())
@@ -183,15 +187,18 @@
                                     Notiz vorhanden
                                 </span>
                             @endif
-                            @if($review->moderated_by)
-                                <span>Moderiert von {{ $review->moderated_by }}</span>
+                            @if($review->moderation_reason)
+                                <span style="color: var(--dash-warning);">Grund: {{ $review->moderation_reason }}</span>
+                            @endif
+                            @if($review->moderated_by_name)
+                                <span>Moderiert von {{ $review->moderated_by_name }}</span>
                             @endif
                         </div>
                     </div>
 
                     {{-- Quick Actions --}}
                     <div class="flex items-center gap-1 shrink-0">
-                        @if(! $review->isApproved())
+                        @if($canModerate && ! $review->isApproved())
                             <button wire:click="approveReview({{ $review->id }})"
                                     wire:confirm="Bewertung von &quot;{{ $review->author_name ?: 'Anonym' }}&quot; freigeben?"
                                     class="dash-btn-icon"
@@ -203,7 +210,7 @@
                             </button>
                         @endif
 
-                        @if(! $review->isRejected())
+                        @if($canModerate && ! $review->isRejected())
                             <button wire:click="openRejectModal({{ $review->id }})"
                                     class="dash-btn-icon dash-btn-danger"
                                     title="Ablehnen">

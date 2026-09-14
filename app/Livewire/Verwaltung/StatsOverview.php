@@ -30,7 +30,7 @@ class StatsOverview extends Component
 
         // Reviews
         $reviewsTotal = Review::count();
-        $reviewsPending = Review::where('moderation_status', 'pending')->count();
+        $reviewsPending = Review::awaitingModeration()->count();
         $reviewsNew = Review::where('created_at', '>=', $periodStart)->count();
         $reviewsPrev = Review::whereBetween('created_at', [$prevStart, $periodStart])->count();
 

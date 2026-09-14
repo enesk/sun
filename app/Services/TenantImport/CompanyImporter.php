@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace App\Services\TenantImport;
 
 use App\DTOs\TenantImport\TenantImportResult;
+use App\Models\Portal\City;
 use App\Models\Portal\Company;
+use App\Services\CityStateResolver;
+use App\Support\ForeignCompanyDetector;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -20,6 +23,7 @@ class CompanyImporter
         private readonly OpeningHoursImporter $openingHoursImporter,
         private readonly ReviewImporter $reviewImporter,
         private readonly PhotoImporter $photoImporter,
+        private readonly CityStateResolver $cityStates,
     ) {}
 
     public function import(
@@ -43,6 +47,19 @@ class CompanyImporter
                 return $result;
             }
 
+            // Ausländische Betriebe aus dem Scraper-Dump (US/CH/FR/AT …) gehören
+            // nicht in ein deutsches Portal (#16). 'country' => null schaltet ab.
+            if (($options['country'] ?? 'DE') === 'DE') {
+                $foreignReason = ForeignCompanyDetector::reason($place->tel ?? $place->phone ?? null, $place->zipcode ?? null);
+
+                if ($foreignReason !== null) {
+                    $result->companiesSkipped++;
+                    Log::info("TenantImport: Place #{$place->id} übersprungen — nicht in Deutschland ({$foreignReason}).");
+                    DB::commit();
+                    return $result;
+                }
+            }
+
             // Duplikaterkennung über ID und google_places_id
             $googlePlacesId = $place->g_places_id ?? $place->google_places_id ?? null;
             $existingCompany = Company::find($place->id);
@@ -60,11 +77,18 @@ class CompanyImporter
 
             // City auflösen
             $cityId = null;
-            if (!empty($place->city)) {
+            // Dumps aus dem Python-Scraper tragen fehlende Orte als Text "None" (#4)
+            if (! City::isPlaceholderName($place->city ?? null)) {
+                // Bundesland nur, wenn es eines ist: US-/FR-Places mit gleicher PLZ
+                // haben deutsche Orte sonst mit "North Carolina" angelegt (#18)
+                $state = ($options['country'] ?? 'DE') === 'DE'
+                    ? $this->cityStates->forGermanCity($place->administrative_area_level_1 ?? null, $place->zipcode ?? null)
+                    : ($place->administrative_area_level_1 ?? null);
+
                 $cityId = $this->cityResolver->resolve(
                     $place->city,
                     $place->zipcode ?? null,
-                    $place->administrative_area_level_1 ?? null,
+                    $state,
                 );
             }
 

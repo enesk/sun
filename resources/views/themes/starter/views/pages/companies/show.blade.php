@@ -241,6 +241,8 @@
                                             <p class="text-sm text-[#64748B] leading-relaxed">{{ $review->owner_response }}</p>
                                         </div>
                                     @endif
+
+                                    <livewire:reviews.report-review-button :review-id="$review->id" :key="'report-review-'.$review->id" />
                                 </article>
                             @endforeach
                         </div>
@@ -311,9 +313,9 @@
                             <svg class="w-5 h-5 shrink-0 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                             </svg>
-                            <a href="tel:{{ $company->tel }}" class="text-base-content/70 hover:text-base-content transition-colors hover:underline">
+                            <x-phone-link :number="$company->tel" class="text-base-content/70 hover:text-base-content transition-colors hover:underline">
                                 {{ $company->tel }}
-                            </a>
+                            </x-phone-link>
                         </div>
                     @endif
 
@@ -547,45 +549,6 @@
             }
         });
     })();
-    </script>
-    @endpush
-
-    {{-- Schema.org Structured Data --}}
-    @push('scripts')
-    <script type="application/ld+json">
-    {!! json_encode(array_filter([
-        '@context' => 'https://schema.org',
-        '@type' => 'LocalBusiness',
-        'name' => $company->name,
-        'description' => $company->description ? Str::limit($company->description, 250) : null,
-        'address' => $company->full_address ? array_filter([
-            '@type' => 'PostalAddress',
-            'streetAddress' => $company->street ? trim($company->street . ' ' . $company->house_no) : null,
-            'postalCode' => $company->zipcode,
-            'addressLocality' => $company->city?->name,
-            'addressCountry' => 'DE',
-        ]) : null,
-        'telephone' => $company->tel,
-        'email' => $company->email,
-        'url' => $company->website,
-        'aggregateRating' => $company->rating_count > 0 ? [
-            '@type' => 'AggregateRating',
-            'ratingValue' => $company->rating,
-            'reviewCount' => $company->rating_count,
-            'bestRating' => 5,
-            'worstRating' => 1,
-        ] : null,
-        'image' => null,
-        'sameAs' => $company->website ?: null,
-        'openingHoursSpecification' => $company->openingHours->isNotEmpty()
-            ? $company->openingHours->map(fn ($h) => array_filter([
-                '@type' => 'OpeningHoursSpecification',
-                'dayOfWeek' => ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][$h->day_of_week] ?? null,
-                'opens' => !$h->is_closed && $h->opens_at ? substr($h->opens_at, 0, 5) : null,
-                'closes' => !$h->is_closed && $h->closes_at ? substr($h->closes_at, 0, 5) : null,
-            ]))->values()->all()
-            : null,
-    ]), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
     </script>
     @endpush
 

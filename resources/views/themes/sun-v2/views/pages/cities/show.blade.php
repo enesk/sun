@@ -1,7 +1,8 @@
 {{--
     Stadtseite /staedte/{slug} im Theme sun-v2 (Vorlage elektrikerportal-stadtseite.html).
     Daten: PublicCityController::show() plus $citySun aus App\Themes\SunV2\CityViewComposer.
-    Indexierbar ohne Filter; mit Suchbegriff, Filter oder Seitenzahl noindex.
+    Robots/Canonical setzt App\Services\Seo\SeoService::forCityPage() (#7), Title/H1 SeoService::cityMeta() (#10).
+    Local Hub ($localHub): CityContentResolver::forCity(), gerendert von x-city.intro / x-city.faq (#12).
 --}}
 @extends('layouts.sun')
 
@@ -9,15 +10,11 @@
     $filters = $citySun['filters'];
     $betweenAd = \App\View\Components\AdSlot::hasSlotsForPosition('listing_between_results');
     $plural = config('themes.sun-v2.search.branch_plural');
-    $portalName = $currentTenant->name ?? config('app.name');
 @endphp
 
-@section('title', $city->cityContent?->meta_title ?: $citySun['heading'].' | '.$portalName)
-@section('meta_description', $city->cityContent?->meta_description ?: ($citySun['intro'] ?? $citySun['heading']))
-@if(request()->hasAny(['q', 'sort', 'category', 'min_rating', 'rated', 'open_now', 'page']))
-    @section('meta_robots', 'noindex, follow')
-@endif
-@section('canonical', route('portal.cities.show', $city->slug))
+{{-- Title/Description/H1 aus SeoService::cityMeta() (#10) --}}
+@section('title', $metaTitle)
+@section('meta_description', $metaDescription)
 
 @section('content')
 
@@ -44,14 +41,16 @@
 </form>
 
 <div class="container-portal pt-6 pb-12 md:pb-16">
-  <nav aria-label="Brotkrumen" class="text-sm text-zinc-500 flex items-center gap-1.5 flex-wrap">
-    <a href="{{ route('home') }}" class="hover:text-brand hidden sm:inline">Start</a><span class="hidden sm:inline"><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" /></span>
-    <a href="{{ route('portal.cities.index') }}" class="hover:text-brand">Städte</a><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" /><span class="text-zinc-900">{{ $city->name }}</span>
-  </nav>
+  <x-sun.breadcrumb :items="\App\Support\Breadcrumb::forCity($city)" />
 
   <h1 class="mt-4 text-3xl md:text-4xl font-bold tracking-tight text-zinc-900">{{ $citySun['heading'] }}</h1>
   @if($citySun['intro'])
     <p class="mt-3 max-w-prose text-base leading-relaxed">{{ $citySun['intro'] }}</p>
+  @endif
+
+  {{-- Local Hub: Einleitung + Stadtteile, nur auf der indexierbaren Seite 1 ($localHub sonst null, #12) --}}
+  @if($localHub)
+    <x-city.intro :city="$city" :content="$localHub" />
   @endif
 
   <div class="mt-5 -mx-4 px-4 sm:mx-0 sm:px-0 flex gap-2 overflow-x-auto scroll-snap pb-1" role="group" aria-label="Filter">
@@ -106,6 +105,11 @@
     </div>
   </div>
 
+  {{-- FAQ des Local Hubs; FAQPage-JSON-LD aus derselben Liste setzt SeoService::forCityPage() (#12) --}}
+  @if($localHub)
+    <x-city.faq :city="$city" :faqs="$localHub['faqs']" />
+  @endif
+
   @if($citySun['services'] !== [])
     <section class="mt-12 md:mt-16">
       <h2 class="text-2xl font-semibold text-zinc-900">Leistungen in {{ $city->name }}</h2>
@@ -122,7 +126,7 @@
       <h2 class="text-2xl font-semibold text-zinc-900">{{ $plural }} in der Nähe von {{ $city->name }}</h2>
       <ul class="mt-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-1">
         @foreach($citySun['nearby'] as $other)
-          <li><a href="{{ route('portal.cities.show', $other->slug) }}" class="flex justify-between items-center min-h-11 gap-4 hover:text-brand"><span class="font-medium text-zinc-900">{{ $other->name }}</span><span class="text-sm text-zinc-500">{{ number_format($other->companies_count, 0, ',', '.') }}</span></a></li>
+          <li><a href="{{ \App\Support\CityUrl::show($other) }}" class="flex justify-between items-center min-h-11 gap-4 hover:text-brand"><span class="font-medium text-zinc-900">{{ $other->name }}</span><span class="text-sm text-zinc-500">{{ number_format($other->companies_count, 0, ',', '.') }}</span></a></li>
         @endforeach
       </ul>
     </section>

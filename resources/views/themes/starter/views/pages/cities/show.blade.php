@@ -3,11 +3,6 @@
 @section('title', $metaTitle)
 @section('meta_description', $metaDescription)
 
-@if(request('q') || request('sort') || request('category') || request('page'))
-@section('meta_robots', 'noindex, follow')
-@endif
-@section('canonical', route('portal.cities.show', $city->slug))
-
 @section('content')
 
     {{-- Schema.org: CollectionPage mit areaServed --}}
@@ -18,7 +13,7 @@
         '@type' => 'CollectionPage',
         'name' => "Firmen in {$city->name}",
         'description' => $metaDescription,
-        'url' => route('portal.cities.show', $city->slug),
+        'url' => \App\Support\CityUrl::show($city),
         'isPartOf' => [
             '@type' => 'WebSite',
             'name' => $currentTenant->name ?? config('app.name'),
@@ -34,7 +29,7 @@
             ] : null,
         ]),
         'numberOfItems' => $companies->total(),
-    ]), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+    ]), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}
     </script>
     @endpush
 
@@ -56,7 +51,7 @@
                         &middot; {{ $categories->count() }} {{ $categories->count() === 1 ? 'Kategorie' : 'Kategorien' }}
                     @endif
                 </div>
-                <h1 class="text-2xl sm:text-3xl font-bold text-white mb-2">Firmen in {{ $city->name }}</h1>
+                <h1 class="text-2xl sm:text-3xl font-bold text-white mb-2">{{ $cityHeading }}</h1>
                 @if($city->administrative_area_level_1)
                     <p class="text-white/80 text-sm sm:text-base">{{ $city->administrative_area_level_1 }}</p>
                 @endif
@@ -86,7 +81,7 @@
 
         {{-- Suchleiste --}}
         <div class="mb-8">
-            <form action="{{ route('portal.cities.show', $city->slug) }}" method="GET" role="search"
+            <form action="{{ \App\Support\CityUrl::show($city) }}" method="GET" role="search"
                   class="bg-base-100 rounded-xl shadow-sm border border-base-200 p-4">
                 <div class="flex flex-col sm:flex-row gap-3">
                     <div class="flex-1 relative">
@@ -110,7 +105,7 @@
         {{-- Kategorie-Pill-Filter --}}
         @if($categories->isNotEmpty())
             <div class="flex flex-wrap gap-2 mb-6" role="list" aria-label="Kategorie-Filter">
-                <a href="{{ route('portal.cities.show', $city->slug) }}"
+                <a href="{{ \App\Support\CityUrl::show($city) }}"
                    class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium transition-colors
                           {{ !request('category') ? 'bg-portal-primary/10 text-portal-primary-dark' : 'bg-base-200 text-base-content/60 hover:bg-base-300' }}"
                    role="listitem">
@@ -175,7 +170,7 @@
                 </h2>
                 <div class="city-related">
                     @foreach($relatedCities as $related)
-                        <a href="{{ route('portal.cities.show', $related->slug) }}" class="city-related__link">
+                        <a href="{{ \App\Support\CityUrl::show($related) }}" class="city-related__link">
                             <svg class="w-3.5 h-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                             {{ $related->name }}
                             <span class="text-xs opacity-50">({{ $related->companies_count }})</span>

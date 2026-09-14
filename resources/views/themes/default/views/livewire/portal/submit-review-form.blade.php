@@ -144,7 +144,7 @@
                 <svg class="inline w-3.5 h-3.5 mr-1 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                Ihre Bewertung wird nach einer kurzen Prüfung veröffentlicht.
+                Ihre Bewertung wird geprüft und erscheint erst nach der Freigabe.
             </p>
 
             {{-- Aktionen — Mobile: Full-Width gestackt, Desktop: inline --}}
@@ -184,7 +184,7 @@
                 </div>
                 <div>
                     <h4 class="font-semibold text-green-800 text-sm">Vielen Dank für Ihre Bewertung!</h4>
-                    <p class="text-xs sm:text-sm text-green-700 mt-1">Ihre Bewertung wird nach einer kurzen Prüfung veröffentlicht. Dies dauert in der Regel weniger als 24 Stunden.</p>
+                    <p class="text-xs sm:text-sm text-green-700 mt-1">Ihre Bewertung wird von unserer Redaktion geprüft und erscheint erst nach der Freigabe auf dieser Seite. Das dauert in der Regel weniger als 24 Stunden.</p>
                 </div>
             </div>
         </div>

@@ -184,7 +184,7 @@ final class SearchViewComposer
      */
     private function cityLinks(Collection $cities, string $activeCity, int $limit): array
     {
-        $valid = $cities->reject(fn (City $city): bool => in_array(trim((string) $city->name), ['', 'None'], true))->values();
+        $valid = $cities->reject(fn (City $city): bool => City::isPlaceholderName($city->name))->values();
 
         return [
             'chips' => $valid->take($limit)->map(fn (City $city): array => [

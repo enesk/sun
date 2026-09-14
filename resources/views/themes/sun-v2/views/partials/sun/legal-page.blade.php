@@ -41,7 +41,7 @@
                 <a href="mailto:{{ $supportEmail }}" class="flex items-center gap-2 min-h-11 sm:min-h-0 text-brand font-medium hover:underline"><x-sun.icon name="mail" class="size-4 shrink-0" />{{ $supportEmail }}</a>
               @endif
               @if($legal['contact']['phone'] !== '')
-                <a href="tel:{{ preg_replace('/[^\d+]/', '', $legal['contact']['phone']) }}" class="flex items-center gap-2 min-h-11 sm:min-h-0 text-brand font-medium hover:underline"><x-sun.icon name="phone" class="size-4 shrink-0" />{{ $legal['contact']['phone'] }}</a>
+                <x-phone-link :number="$legal['contact']['phone']" class="flex items-center gap-2 min-h-11 sm:min-h-0 text-brand font-medium hover:underline" fallback-class="flex items-center gap-2 min-h-11 sm:min-h-0 font-medium"><x-sun.icon name="phone" class="size-4 shrink-0" />{{ $legal['contact']['phone'] }}</x-phone-link>
               @endif
             </div>
           @endif

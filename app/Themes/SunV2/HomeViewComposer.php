@@ -127,7 +127,7 @@ final class HomeViewComposer
         return Cache::remember(TenantCache::key('sun-v2.home.cities'), 3600, fn (): Collection => City::query()
             ->withCount(['companies' => fn ($query) => $query->where('is_active', true)])
             // Importreste: Orte ohne echten Namen gehoeren nicht auf die Startseite
-            ->whereNotIn('name', ['', 'None'])
+            ->named()
             ->having('companies_count', '>', 0)
             ->orderByDesc('companies_count')
             ->take(12)

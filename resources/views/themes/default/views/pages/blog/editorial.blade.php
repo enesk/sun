@@ -19,7 +19,7 @@
             'url' => url('/'),
             'publishingPrinciples' => route('portal.blog.editorial'),
         ],
-    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}
     </script>
     @endpush
 

@@ -2,7 +2,9 @@
 {{-- Usage: @include('components.hero', ['showSearch' => true, 'popularCategories' => $popularCategories]) --}}
 @if($themeOptions['show_hero'] ?? true)
 @php
-    $cities = ($popularCities ?? collect())->pluck('name')->toArray();
+    // Importreste wie "None" sind kein Ort (#4)
+    $popularCities = ($popularCities ?? collect())->reject(fn ($city) => \App\Models\Portal\City::isPlaceholderName($city->name))->values();
+    $cities = $popularCities->pluck('name')->map(fn ($name) => trim($name))->toArray();
 @endphp
 
 <section class="hero-mesh relative overflow-hidden"
@@ -44,7 +46,7 @@
         {{-- Dynamic Title with Slide Animation --}}
         <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
             @if(count($cities) > 0)
-                Finden Sie Unternehmen in
+                Unternehmen in
                 <span class="hero-keyword-wrapper inline-block relative overflow-hidden align-bottom"
                       aria-live="polite">
                     <span class="hero-keyword inline-block transition-all duration-300"
@@ -53,11 +55,13 @@
                               'hero-keyword-enter': animating && direction === 'down'
                           }"
                           style="transition-timing-function: var(--ease-spring, cubic-bezier(0.22, 1, 0.36, 1))"
-                          x-text="words[current]">{{ $cities[0] ?? '' }}</span>
+                          x-text="words[current]"><x-search.location-label :city="$cities[0] ?? null" /></span>
                     <span class="hero-keyword-highlight"></span>
                 </span>
+            @elseif(!empty($title))
+                {{ $title }}
             @else
-                {{ $title ?? ($currentTenant->name ?? config('app.name')) }}
+                Unternehmen in <x-search.location-label />
             @endif
         </h1>
 
@@ -98,7 +102,7 @@
                 <p class="text-sm text-white/60 mb-2">Beliebte St&auml;dte:</p>
                 <div class="flex flex-nowrap md:flex-wrap md:justify-center gap-2 overflow-x-auto pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
                     @foreach($popularCities as $city)
-                        <a href="{{ route('portal.cities.show', $city->slug) }}"
+                        <a href="{{ \App\Support\CityUrl::show($city) }}"
                            class="hero-tag inline-flex items-center shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium text-white border border-white/20 transition-all backdrop-blur-sm">
                             <svg class="w-4 h-4 mr-1 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>

@@ -7,7 +7,6 @@
     $initials = count($words) > 1
         ? mb_substr($words[0], 0, 1).mb_substr($words[1], 0, 1)
         : mb_substr($words[0] ?? '?', 0, 2);
-    $phone = $company->tel ? preg_replace('/[^0-9+]/', '', $company->tel) : null;
 @endphp
 <article class="card-interactive p-5 flex flex-col lg:flex-row lg:items-start gap-4 @if($company->is_premium) border-l-4 border-l-brand @endif">
   <div class="flex-1 min-w-0 flex flex-col gap-3">
@@ -58,9 +57,7 @@
     </div>
   </div>
   <div class="flex lg:flex-col gap-2 lg:w-44 shrink-0">
-    @if($phone)
-      <a href="tel:{{ $phone }}" class="btn-primary flex-1"><x-sun.icon name="phone" class="icon" />Anrufen</a>
-    @endif
+    <x-phone-link :number="$company->tel" class="btn-primary flex-1" fallback-class="flex-1 self-center text-sm text-zinc-700 lg:text-center"><x-sun.icon name="phone" class="icon" />Anrufen</x-phone-link>
     <a href="{{ $company->portal_url }}" class="btn-secondary flex-1">Profil</a>
   </div>
 </article>

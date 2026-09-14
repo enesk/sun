@@ -76,6 +76,7 @@ class PublicJobController extends Controller
 
         $cities = Cache::remember(TenantCache::key('portal.jobs.cities.sidebar'), 3600, fn () =>
             City::select('cities.id', 'cities.name', 'cities.slug')
+                ->named()
                 ->join('jobs', function ($join) {
                     $join->on('cities.id', '=', 'jobs.city_id')
                         ->where('jobs.is_active', true)
@@ -91,6 +92,7 @@ class PublicJobController extends Controller
         // Auch Städte über Company-Beziehung zählen
         $companyCities = Cache::remember(TenantCache::key('portal.jobs.company_cities.sidebar'), 3600, fn () =>
             City::select('cities.id', 'cities.name', 'cities.slug')
+                ->named()
                 ->join('companies', 'cities.id', '=', 'companies.city_id')
                 ->join('jobs', function ($join) {
                     $join->on('companies.id', '=', 'jobs.company_id')

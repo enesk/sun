@@ -3,11 +3,6 @@
 @section('title', 'Firmenverzeichnis — ' . ($currentTenant->name ?? config('app.name')))
 @section('meta_description', 'Alle Unternehmen im Überblick. Finden Sie lokale Firmen, Handwerker und Dienstleister in Ihrer Nähe.')
 
-@if(request('q') || request('sort') || request('category') || request('city') || request('page'))
-@section('meta_robots', 'noindex, follow')
-@endif
-@section('canonical', route('portal.companies.index'))
-
 @section('content')
 
     {{-- Schema.org: CollectionPage --}}
@@ -25,7 +20,7 @@
             'url' => route('home'),
         ],
         'numberOfItems' => $companies->total(),
-    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}
     </script>
     @endpush
 

@@ -2,6 +2,7 @@
 
 namespace App\Models\Portal;
 
+use App\Services\Seo\StructuredDataService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Stancl\Tenancy\Database\Concerns\TenantConnection;
@@ -9,6 +10,7 @@ use Stancl\Tenancy\Database\Concerns\TenantConnection;
 class CompanyOpeningHour extends Model
 {
     use TenantConnection;
+
     protected $fillable = [
         'company_id',
         'day_of_week',
@@ -32,6 +34,14 @@ class CompanyOpeningHour extends Model
         6 => 'Sonntag',
     ];
 
+    protected static function booted(): void
+    {
+        // JSON-LD des Profils neu bauen (#8). Massen-upsert/delete feuern kein
+        // Event, dafuer greift die Cache-TTL aus config/tenant-schema-types.php.
+        static::saved(fn (CompanyOpeningHour $hour) => StructuredDataService::forget((int) $hour->company_id));
+        static::deleted(fn (CompanyOpeningHour $hour) => StructuredDataService::forget((int) $hour->company_id));
+    }
+
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
@@ -49,7 +59,7 @@ class CompanyOpeningHour extends Model
         }
 
         if ($this->opens_at && $this->closes_at) {
-            return substr($this->opens_at, 0, 5) . ' – ' . substr($this->closes_at, 0, 5);
+            return substr($this->opens_at, 0, 5).' – '.substr($this->closes_at, 0, 5);
         }
 
         return 'Keine Angabe';

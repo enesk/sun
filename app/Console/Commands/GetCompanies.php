@@ -10,6 +10,7 @@ use App\Models\Portal\CompanyOpeningHour;
 use App\Models\Portal\FrCity;
 use App\Models\Portal\Review;
 use App\Models\Tenant;
+use App\Services\CityStateResolver;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Client\Response;
@@ -349,6 +350,16 @@ class GetCompanies extends Command
                         continue;
                     }
 
+                    // Nur Places im Zielland — regionCode gewichtet die Suche nur (#16)
+                    $placeCountry = $this->placeCountry($details['address_components'] ?? []);
+                    if ($placeCountry !== null && $placeCountry !== $this->regionCode()) {
+                        $placeName = $details['name'] ?? '?';
+                        $this->line("    ⊘ Übersprungen (Land {$placeCountry}): {$placeName}");
+                        $skippedInCity++;
+
+                        continue;
+                    }
+
                     // Speichern
                     $company = $this->saveCompany($details, $city);
                     if ($company) {
@@ -415,9 +426,12 @@ class GetCompanies extends Command
         do {
             $page++;
 
+            // regionCode gewichtet die Treffer auf das Zielland; ohne ihn lieferte
+            // "Elektriker in 73045 …" auch Betriebe aus Oklahoma (#16).
             $payload = [
                 'textQuery' => $query,
                 'languageCode' => 'de',
+                'regionCode' => $this->regionCode(),
                 'pageSize' => 20,
             ];
 
@@ -961,6 +975,29 @@ class GetCompanies extends Command
     }
 
     /**
+     * ISO-3166-1-Kuerzel des Place aus der Adresskomponente 'country' (short_name),
+     * null wenn Google keine liefert.
+     */
+    private function placeCountry(array $components): ?string
+    {
+        foreach ($components as $component) {
+            if (in_array('country', $component['types'] ?? [], true) && ($component['short_name'] ?? '') !== '') {
+                return strtoupper($component['short_name']);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Zielland der Laenderquelle (--country) als ISO-3166-1-Kuerzel.
+     */
+    private function regionCode(): string
+    {
+        return strtoupper($this->country);
+    }
+
+    /**
      * Findet oder erstellt die City basierend auf Google-Adressdaten.
      * Fallback: Die Stadt die für die Suche verwendet wurde.
      */
@@ -976,10 +1013,11 @@ class GetCompanies extends Command
     private function resolveDeCity(array $address, Model $searchCity): int
     {
         $cityName = $address['city'] ?? null;
-        $state = $address['state'] ?? null;
         $zipcode = $address['zipcode'] ?? null;
+        // Nur echte Bundeslaender uebernehmen, Regionen wie "Allgäu" nicht (#18)
+        $state = app(CityStateResolver::class)->forGermanCity($address['state'] ?? null, $zipcode);
 
-        if (! $cityName) {
+        if (City::isPlaceholderName($cityName)) {
             return $searchCity->id;
         }
 
@@ -1027,7 +1065,7 @@ class GetCompanies extends Command
         $cityName = $address['city'] ?? null;
         $zipcode = $address['zipcode'] ?? null;
 
-        if (! $cityName) {
+        if (City::isPlaceholderName($cityName)) {
             return $searchCity->id;
         }
 
@@ -1053,7 +1091,7 @@ class GetCompanies extends Command
         $cityName = $address['city'] ?? null;
         $zipcode = $address['zipcode'] ?? null;
 
-        if (! $cityName) {
+        if (City::isPlaceholderName($cityName)) {
             return $searchCity->id;
         }
 

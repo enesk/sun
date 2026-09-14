@@ -1,0 +1,825 @@
+{
+    "/staedte/hamburg": [
+        {
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            "url": "http://elektriker.test/staedte/hamburg",
+            "numberOfItems": 362,
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "url": "http://elektriker.test/14964-ekiz-elektrotechnik-gmbh",
+                    "name": "Ekiz Elektrotechnik GmbH"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "url": "http://elektriker.test/14985-heimnetz-experten-pc-router-endgeraten-einrichtung-bei-ihnen-zuhause",
+                    "name": "Heimnetz Experten - PC, Router, Endgeräten Einrichtung bei Ihnen Zuhause"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 3,
+                    "url": "http://elektriker.test/24654-elektrotechnik-cordes-gmbh",
+                    "name": "Elektrotechnik Cordes GmbH"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 4,
+                    "url": "http://elektriker.test/14994-kocaman-elektrotechnik",
+                    "name": "Kocaman Elektrotechnik"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 5,
+                    "url": "http://elektriker.test/15034-werner-loos-elektrotechnik-gmbh",
+                    "name": "Werner Loos Elektrotechnik GmbH"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 6,
+                    "url": "http://elektriker.test/14999-laube-elektrotechnik",
+                    "name": "Laube Elektrotechnik"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 7,
+                    "url": "http://elektriker.test/15025-schmidt-von-frieling-gmbh-hamburger-haustechnik",
+                    "name": "Schmidt von Frieling GmbH Hamburger Haustechnik"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 8,
+                    "url": "http://elektriker.test/15003-jurgen-schroder",
+                    "name": "Jürgen Schröder"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 9,
+                    "url": "http://elektriker.test/14966-maca-service-gmbh-elektroinstallation-maler-renovierung-sanierung",
+                    "name": "MaCa Service GmbH | Elektroinstallation, Maler, Renovierung & Sanierung"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 10,
+                    "url": "http://elektriker.test/15012-alarmtechnik-west-lars-kuhrmann",
+                    "name": "Alarmtechnik-West Lars Kührmann"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 11,
+                    "url": "http://elektriker.test/14962-klingbeil-stephan-elektrotechnik-hausservice",
+                    "name": "Klingbeil Stephan Elektrotechnik & Hausservice"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 12,
+                    "url": "http://elektriker.test/14979-norbert-ganschow-elektroinstallation",
+                    "name": "Norbert Ganschow Elektroinstallation"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 13,
+                    "url": "http://elektriker.test/14656-elektrotechnik-thorsten-becker",
+                    "name": "Elektrotechnik Thorsten Becker"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 14,
+                    "url": "http://elektriker.test/14799-dias-elektrotechnik",
+                    "name": "Dias Elektrotechnik"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 15,
+                    "url": "http://elektriker.test/14658-elektro-witt",
+                    "name": "Elektro Witt"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 16,
+                    "url": "http://elektriker.test/14659-hoffmann-reineck-elektrotechnik-gmbh",
+                    "name": "Hoffmann + Reineck Elektrotechnik GmbH"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 17,
+                    "url": "http://elektriker.test/14798-hinrichs-elektrotechnik",
+                    "name": "Hinrichs Elektrotechnik"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 18,
+                    "url": "http://elektriker.test/14792-wisag-elektrotechnik-nord",
+                    "name": "WISAG Elektrotechnik Nord"
+                }
+            ]
+        },
+        {
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "url": "http://elektriker.test/staedte/hamburg",
+            "mainEntity": [
+                {
+                    "@type": "Question",
+                    "name": "Was kostet ein Elektriker in Hamburg pro Stunde?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Der Stundensatz hängt von Region, Qualifikation (Geselle oder Meister) und Auftrag ab und unterscheidet sich zwischen Städten und ländlichen Gegenden deutlich. Als grobe Orientierung werden häufig Stundensätze im Bereich von etwa 50 bis 90 Euro netto genannt, dazu kommen oft Anfahrt und Material.\n\nVerbindlich ist nur das Angebot des Betriebs. Fragen Sie in Hamburg bei mehreren Betrieben einen Kostenvoranschlag an und vergleichen Sie, was jeweils enthalten ist."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "Gibt es in Hamburg einen Elektro-Notdienst?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Viele Elektrobetriebe bieten außerhalb der Geschäftszeiten einen Notdienst an, allerdings nicht jeder und nicht rund um die Uhr. Ob ein Betrieb Notdienst anbietet, steht in seinem Profil oder lässt sich telefonisch klären.\n\nFür Einsätze nachts, am Wochenende und an Feiertagen berechnen Betriebe in der Regel Zuschläge. Lassen Sie sich die Kosten vorab am Telefon nennen."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "Was gehört zu einem E-Check?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Beim E-Check prüft eine Elektrofachkraft elektrische Anlagen und Geräte auf Sicherheit. Dazu gehören eine Sichtprüfung auf Schäden, Messungen etwa von Isolationswiderstand und Schutzleiter sowie die Prüfung der Fehlerstrom-Schutzschalter.\n\nDas Ergebnis wird in einem Prüfprotokoll dokumentiert. Wie oft geprüft werden sollte, hängt von der Nutzung ab; für gewerbliche Anlagen und Vermietungen können Vorgaben von Versicherern oder Berufsgenossenschaften gelten."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "Wie finde ich einen seriösen Elektriker in Hamburg?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Achten Sie auf einen Eintrag in der Handwerksrolle, ein vollständiges Impressum mit Anschrift und nachvollziehbare Bewertungen. Ein seriöser Betrieb nennt die Kosten vor Beginn der Arbeiten, erstellt auf Wunsch einen schriftlichen Kostenvoranschlag und stellt eine ordentliche Rechnung.\n\nVorsicht ist geboten bei Pauschalpreisen am Telefon ohne Besichtigung, Barzahlung ohne Rechnung und Druck, sofort zu unterschreiben."
+                    }
+                }
+            ]
+        },
+        {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Startseite",
+                    "item": "http://elektriker.test"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Hamburg",
+                    "item": "http://elektriker.test/staedte/hamburg"
+                }
+            ]
+        }
+    ],
+    "/staedte/stuttgart": [
+        {
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            "url": "https://elektriker.test/staedte/stuttgart",
+            "numberOfItems": 135,
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "url": "https://elektriker.test/1305-elektro-stuttgart",
+                    "name": "Elektro Stuttgart"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "url": "https://elektriker.test/1306-elektro-huiss-gmbh",
+                    "name": "Elektro Huiss GmbH"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 3,
+                    "url": "https://elektriker.test/1307-tuma-elektrik",
+                    "name": "TUMA Elektrik"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 4,
+                    "url": "https://elektriker.test/1308-schelling-elektrotechnik",
+                    "name": "Schelling - Elektrotechnik"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 5,
+                    "url": "https://elektriker.test/1309-elektro-bokno",
+                    "name": "Elektro Bökno"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 6,
+                    "url": "https://elektriker.test/1446-elektro-grauer",
+                    "name": "Elektro Grauer"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 7,
+                    "url": "https://elektriker.test/1311-elektro-lauxmann-gmbh",
+                    "name": "Elektro Lauxmann GmbH"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 8,
+                    "url": "https://elektriker.test/1312-elektro-berg-gmbh-elektroinstallationen",
+                    "name": "Elektro Berg GmbH Elektroinstallationen"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 9,
+                    "url": "https://elektriker.test/1313-elektro-lang-gmbh",
+                    "name": "Elektro Lang GmbH"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 10,
+                    "url": "https://elektriker.test/1314-elektro-ferbach",
+                    "name": "Elektro Ferbach"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 11,
+                    "url": "https://elektriker.test/1438-felix-muhle-elektrotechnik",
+                    "name": "Felix Mühle Elektrotechnik"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 12,
+                    "url": "https://elektriker.test/1316-elektroservice-hadzic",
+                    "name": "Elektroservice Hadzic"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 13,
+                    "url": "https://elektriker.test/1433-elektro-schlecht",
+                    "name": "Elektro Schlecht"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 14,
+                    "url": "https://elektriker.test/1432-siwasec-gmbh",
+                    "name": "SIWAsec GmbH"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 15,
+                    "url": "https://elektriker.test/1319-florotec-florian-rosner-elektrotechnik",
+                    "name": "FLOROTEC Florian Rösner Elektrotechnik"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 16,
+                    "url": "https://elektriker.test/1428-spiegel-elektrotechnik-gmbh",
+                    "name": "Spiegel Elektrotechnik GmbH"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 17,
+                    "url": "https://elektriker.test/1321-eddison-electrics-gmbh",
+                    "name": "Eddison Electrics GmbH"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 18,
+                    "url": "https://elektriker.test/1426-team-tsaknis-elektrotechnik-gmbh",
+                    "name": "Team Tsaknis Elektrotechnik GmbH"
+                }
+            ]
+        },
+        {
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "url": "http://elektriker.test/staedte/stuttgart",
+            "mainEntity": [
+                {
+                    "@type": "Question",
+                    "name": "Was kostet ein Elektriker in Stuttgart pro Stunde?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Der Stundensatz hängt von Region, Qualifikation (Geselle oder Meister) und Auftrag ab und unterscheidet sich zwischen Städten und ländlichen Gegenden deutlich. Als grobe Orientierung werden häufig Stundensätze im Bereich von etwa 50 bis 90 Euro netto genannt, dazu kommen oft Anfahrt und Material.\n\nVerbindlich ist nur das Angebot des Betriebs. Fragen Sie in Stuttgart bei mehreren Betrieben einen Kostenvoranschlag an und vergleichen Sie, was jeweils enthalten ist."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "Gibt es in Stuttgart einen Elektro-Notdienst?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Viele Elektrobetriebe bieten außerhalb der Geschäftszeiten einen Notdienst an, allerdings nicht jeder und nicht rund um die Uhr. Ob ein Betrieb Notdienst anbietet, steht in seinem Profil oder lässt sich telefonisch klären.\n\nFür Einsätze nachts, am Wochenende und an Feiertagen berechnen Betriebe in der Regel Zuschläge. Lassen Sie sich die Kosten vorab am Telefon nennen."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "Was gehört zu einem E-Check?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Beim E-Check prüft eine Elektrofachkraft elektrische Anlagen und Geräte auf Sicherheit. Dazu gehören eine Sichtprüfung auf Schäden, Messungen etwa von Isolationswiderstand und Schutzleiter sowie die Prüfung der Fehlerstrom-Schutzschalter.\n\nDas Ergebnis wird in einem Prüfprotokoll dokumentiert. Wie oft geprüft werden sollte, hängt von der Nutzung ab; für gewerbliche Anlagen und Vermietungen können Vorgaben von Versicherern oder Berufsgenossenschaften gelten."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "Wie finde ich einen seriösen Elektriker in Stuttgart?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Achten Sie auf einen Eintrag in der Handwerksrolle, ein vollständiges Impressum mit Anschrift und nachvollziehbare Bewertungen. Ein seriöser Betrieb nennt die Kosten vor Beginn der Arbeiten, erstellt auf Wunsch einen schriftlichen Kostenvoranschlag und stellt eine ordentliche Rechnung.\n\nVorsicht ist geboten bei Pauschalpreisen am Telefon ohne Besichtigung, Barzahlung ohne Rechnung und Druck, sofort zu unterschreiben."
+                    }
+                }
+            ]
+        },
+        {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Startseite",
+                    "item": "http://elektriker.test"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Stuttgart",
+                    "item": "http://elektriker.test/staedte/stuttgart"
+                }
+            ]
+        }
+    ],
+    "/staedte/berlin": [
+        {
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            "url": "http://elektriker.test/staedte/berlin",
+            "numberOfItems": 78,
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "url": "http://elektriker.test/41-rudolf-deschan",
+                    "name": "Rudolf Deschan"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "url": "http://elektriker.test/1300-elektro-voltage-elektriker-in-berlin-elektriker-notdienst",
+                    "name": "Elektro Voltage : Elektriker in Berlin | Elektriker Notdienst"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 3,
+                    "url": "http://elektriker.test/1295-kayan-elektro-und-informationstechnik",
+                    "name": "Kayan Elektro- und Informationstechnik"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 4,
+                    "url": "http://elektriker.test/257-elektroinstallation-lars-grutzbach",
+                    "name": "Elektroinstallation Lars Grützbach"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 5,
+                    "url": "http://elektriker.test/258-mz-elektrotechnik-ug",
+                    "name": "MZ Elektrotechnik UG"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 6,
+                    "url": "http://elektriker.test/1291-energie-kreuzberg-inhaber-franz-cosmo-weichbrodt-ehm-volker-steinke-elektroinstallation",
+                    "name": "Energie Kreuzberg, Inhaber Franz Cosmo Weichbrodt / ehm. Volker Steinke Elektroinstallation"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 7,
+                    "url": "http://elektriker.test/260-schonfelder-elektroanlagen-gmbh",
+                    "name": "Schönfelder Elektroanlagen GmbH"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 8,
+                    "url": "http://elektriker.test/1290-elektrovia-elektriker-berlin",
+                    "name": "Elektrovia - Elektriker Berlin"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 9,
+                    "url": "http://elektriker.test/1289-uni-elektro-berlin-friedrichshain",
+                    "name": "UNI ELEKTRO Berlin-Friedrichshain"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 10,
+                    "url": "http://elektriker.test/264-ote-electro-electronic-entwicklungen-gmbh",
+                    "name": "OTE Electro Electronic Entwicklungen GmbH"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 11,
+                    "url": "http://elektriker.test/270-elektro-kladow",
+                    "name": "Elektro-Kladow"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 12,
+                    "url": "http://elektriker.test/316-elektro-anlagen-sudwest-elektromeister-gmbh",
+                    "name": "Elektro-Anlagen Südwest Elektromeister GmbH"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 13,
+                    "url": "http://elektriker.test/539-elektro-techvolt-elektriker-in-berlin-elektriker-notdienst",
+                    "name": "Elektro TechVolt / Elektriker in Berlin / Elektriker Notdienst"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 14,
+                    "url": "http://elektriker.test/542-elektrotechnik-schwenk",
+                    "name": "Elektrotechnik Schwenk"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 15,
+                    "url": "http://elektriker.test/1284-rayan-elektro-und-steuerungstechnik-gmbh",
+                    "name": "Rayan Elektro- und Steuerungstechnik GmbH"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 16,
+                    "url": "http://elektriker.test/610-elektro-notdienst-berlin-mitte-umgebung-24-h-service-aurotec-haustechnik-und-service-gmbh",
+                    "name": "Elektro Notdienst Berlin Mitte & Umgebung - 24 h Service Aurotec Haustechnik und Service GmbH"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 17,
+                    "url": "http://elektriker.test/1283-miton-elektro-gmbh",
+                    "name": "Miton Elektro GmbH"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 18,
+                    "url": "http://elektriker.test/962-elektro-pawlowski-berlin-reinickendorf-wedding-pankow",
+                    "name": "Elektro Pawlowski | Berlin Reinickendorf | Wedding | Pankow"
+                }
+            ]
+        },
+        {
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "url": "http://elektriker.test/staedte/berlin",
+            "mainEntity": [
+                {
+                    "@type": "Question",
+                    "name": "Was kostet ein Elektriker in Berlin pro Stunde?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Der Stundensatz hängt von Region, Qualifikation (Geselle oder Meister) und Auftrag ab und unterscheidet sich zwischen Städten und ländlichen Gegenden deutlich. Als grobe Orientierung werden häufig Stundensätze im Bereich von etwa 50 bis 90 Euro netto genannt, dazu kommen oft Anfahrt und Material.\n\nVerbindlich ist nur das Angebot des Betriebs. Fragen Sie in Berlin bei mehreren Betrieben einen Kostenvoranschlag an und vergleichen Sie, was jeweils enthalten ist."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "Gibt es in Berlin einen Elektro-Notdienst?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Viele Elektrobetriebe bieten außerhalb der Geschäftszeiten einen Notdienst an, allerdings nicht jeder und nicht rund um die Uhr. Ob ein Betrieb Notdienst anbietet, steht in seinem Profil oder lässt sich telefonisch klären.\n\nFür Einsätze nachts, am Wochenende und an Feiertagen berechnen Betriebe in der Regel Zuschläge. Lassen Sie sich die Kosten vorab am Telefon nennen."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "Was gehört zu einem E-Check?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Beim E-Check prüft eine Elektrofachkraft elektrische Anlagen und Geräte auf Sicherheit. Dazu gehören eine Sichtprüfung auf Schäden, Messungen etwa von Isolationswiderstand und Schutzleiter sowie die Prüfung der Fehlerstrom-Schutzschalter.\n\nDas Ergebnis wird in einem Prüfprotokoll dokumentiert. Wie oft geprüft werden sollte, hängt von der Nutzung ab; für gewerbliche Anlagen und Vermietungen können Vorgaben von Versicherern oder Berufsgenossenschaften gelten."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "Wie finde ich einen seriösen Elektriker in Berlin?",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "Achten Sie auf einen Eintrag in der Handwerksrolle, ein vollständiges Impressum mit Anschrift und nachvollziehbare Bewertungen. Ein seriöser Betrieb nennt die Kosten vor Beginn der Arbeiten, erstellt auf Wunsch einen schriftlichen Kostenvoranschlag und stellt eine ordentliche Rechnung.\n\nVorsicht ist geboten bei Pauschalpreisen am Telefon ohne Besichtigung, Barzahlung ohne Rechnung und Druck, sofort zu unterschreiben."
+                    }
+                }
+            ]
+        },
+        {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Startseite",
+                    "item": "http://elektriker.test"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Berlin",
+                    "item": "http://elektriker.test/staedte/berlin"
+                }
+            ]
+        }
+    ],
+    "/1-torsten-martin-elektroanlagen": [
+        {
+            "@context": "https://schema.org",
+            "@type": "Electrician",
+            "@id": "http://elektriker.test/1-torsten-martin-elektroanlagen#business",
+            "name": "Torsten Martin Elektroanlagen",
+            "url": "http://elektriker.test/1-torsten-martin-elektroanlagen",
+            "mainEntityOfPage": "http://elektriker.test/1-torsten-martin-elektroanlagen",
+            "telephone": "+493575230307",
+            "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "Feldstraße 7",
+                "postalCode": "01945",
+                "addressLocality": "Ruhland",
+                "addressCountry": "DE"
+            },
+            "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": 4,
+                "reviewCount": 5,
+                "bestRating": 5,
+                "worstRating": 1
+            }
+        },
+        {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Startseite",
+                    "item": "http://elektriker.test"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Elektriker in Ruhland",
+                    "item": "http://elektriker.test/staedte/ruhland"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 3,
+                    "name": "Torsten Martin Elektroanlagen",
+                    "item": "http://elektriker.test/1-torsten-martin-elektroanlagen"
+                }
+            ]
+        }
+    ],
+    "/2-epfrohler-wickfeld": [
+        {
+            "@context": "https://schema.org",
+            "@type": "Electrician",
+            "@id": "http://elektriker.test/2-epfrohler-wickfeld#business",
+            "name": "EP:Fröhler & Wickfeld",
+            "url": "http://elektriker.test/2-epfrohler-wickfeld",
+            "mainEntityOfPage": "http://elektriker.test/2-epfrohler-wickfeld",
+            "sameAs": "https://www.ep.de/froehler-wickfeld",
+            "telephone": "+49357527802",
+            "image": "http://elektriker.test/storage-63c3cf52-1076-4908-bd07-80cdcb21c2e6/media/1/conversions/682bf5fbdb245-medium.jpg",
+            "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "Markt 9-10",
+                "postalCode": "01945",
+                "addressLocality": "Ruhland",
+                "addressCountry": "DE"
+            },
+            "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": 4.2,
+                "reviewCount": 5,
+                "bestRating": 5,
+                "worstRating": 1
+            },
+            "openingHoursSpecification": [
+                {
+                    "@type": "OpeningHoursSpecification",
+                    "dayOfWeek": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday"
+                    ],
+                    "opens": "09:00",
+                    "closes": "17:00"
+                }
+            ]
+        },
+        {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Startseite",
+                    "item": "http://elektriker.test"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Elektriker in Ruhland",
+                    "item": "http://elektriker.test/staedte/ruhland"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 3,
+                    "name": "EP:Fröhler & Wickfeld",
+                    "item": "http://elektriker.test/2-epfrohler-wickfeld"
+                }
+            ]
+        }
+    ],
+    "/3-elektromaschinenbau-noack-kg": [
+        {
+            "@context": "https://schema.org",
+            "@type": "Electrician",
+            "@id": "http://elektriker.test/3-elektromaschinenbau-noack-kg#business",
+            "name": "Elektromaschinenbau Noack KG",
+            "url": "http://elektriker.test/3-elektromaschinenbau-noack-kg",
+            "mainEntityOfPage": "http://elektriker.test/3-elektromaschinenbau-noack-kg",
+            "telephone": "+49357522132",
+            "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "Ernst-Thälmann-Straße 3",
+                "postalCode": "01945",
+                "addressLocality": "Ruhland",
+                "addressCountry": "DE"
+            },
+            "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": 5,
+                "reviewCount": 5,
+                "bestRating": 5,
+                "worstRating": 1
+            },
+            "openingHoursSpecification": [
+                {
+                    "@type": "OpeningHoursSpecification",
+                    "dayOfWeek": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday"
+                    ],
+                    "opens": "06:00",
+                    "closes": "15:00"
+                },
+                {
+                    "@type": "OpeningHoursSpecification",
+                    "dayOfWeek": [
+                        "Friday"
+                    ],
+                    "opens": "06:00",
+                    "closes": "11:30"
+                }
+            ]
+        },
+        {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Startseite",
+                    "item": "http://elektriker.test"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Elektriker in Ruhland",
+                    "item": "http://elektriker.test/staedte/ruhland"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 3,
+                    "name": "Elektromaschinenbau Noack KG",
+                    "item": "http://elektriker.test/3-elektromaschinenbau-noack-kg"
+                }
+            ]
+        }
+    ],
+    "/4-elektro-zieschang": [
+        {
+            "@context": "https://schema.org",
+            "@type": "Electrician",
+            "@id": "http://elektriker.test/4-elektro-zieschang#business",
+            "name": "ELEKTRO - Zieschang",
+            "url": "http://elektriker.test/4-elektro-zieschang",
+            "mainEntityOfPage": "http://elektriker.test/4-elektro-zieschang",
+            "sameAs": "http://www.elektro-zieschang.de/",
+            "telephone": "+49357523480",
+            "image": "http://elektriker.test/storage-63c3cf52-1076-4908-bd07-80cdcb21c2e6/media/11/conversions/682bf5fdb5a7f-medium.jpg",
+            "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "Parkweg 2",
+                "postalCode": "01945",
+                "addressLocality": "Ruhland",
+                "addressCountry": "DE"
+            },
+            "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": 5,
+                "reviewCount": 5,
+                "bestRating": 5,
+                "worstRating": 1
+            },
+            "openingHoursSpecification": [
+                {
+                    "@type": "OpeningHoursSpecification",
+                    "dayOfWeek": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday"
+                    ],
+                    "opens": "14:00",
+                    "closes": "16:00"
+                }
+            ]
+        },
+        {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Startseite",
+                    "item": "http://elektriker.test"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Elektriker in Ruhland",
+                    "item": "http://elektriker.test/staedte/ruhland"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 3,
+                    "name": "ELEKTRO - Zieschang",
+                    "item": "http://elektriker.test/4-elektro-zieschang"
+                }
+            ]
+        }
+    ],
+    "/5-jurgen-rudolf-elektro": [
+        {
+            "@context": "https://schema.org",
+            "@type": "Electrician",
+            "@id": "http://elektriker.test/5-jurgen-rudolf-elektro#business",
+            "name": "Jürgen Rudolf Elektro",
+            "url": "http://elektriker.test/5-jurgen-rudolf-elektro",
+            "mainEntityOfPage": "http://elektriker.test/5-jurgen-rudolf-elektro",
+            "telephone": "+4935756630166",
+            "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "Am Dorfplatz 10",
+                "postalCode": "01945",
+                "addressLocality": "Ruhland",
+                "addressCountry": "DE"
+            },
+            "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": 5,
+                "reviewCount": 3,
+                "bestRating": 5,
+                "worstRating": 1
+            }
+        },
+        {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Startseite",
+                    "item": "http://elektriker.test"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Elektriker in Ruhland",
+                    "item": "http://elektriker.test/staedte/ruhland"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 3,
+                    "name": "Jürgen Rudolf Elektro",
+                    "item": "http://elektriker.test/5-jurgen-rudolf-elektro"
+                }
+            ]
+        }
+    ]
+}

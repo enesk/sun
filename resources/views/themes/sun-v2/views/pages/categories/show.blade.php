@@ -133,7 +133,7 @@
       <h2 class="text-2xl font-semibold text-zinc-900">{{ $category->name }} nach Ort</h2>
       <ul class="mt-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-1">
         @foreach($cities as $city)
-          <li><a href="{{ $url(['city' => $city->name, 'page' => null]) }}" class="flex justify-between items-center min-h-11 gap-4 hover:text-brand"><span class="font-medium text-zinc-900">{{ $city->name }}</span><span class="text-sm text-zinc-500">{{ $count((int) $city->companies_count) }}</span></a></li>
+          <li><a href="{{ \App\Support\CityUrl::show($city) }}" class="flex justify-between items-center min-h-11 gap-4 hover:text-brand"><span class="font-medium text-zinc-900">{{ $city->name }}</span><span class="text-sm text-zinc-500">{{ $count((int) $city->companies_count) }}</span></a></li>
         @endforeach
       </ul>
     </section>

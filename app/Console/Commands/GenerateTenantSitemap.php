@@ -8,6 +8,7 @@ use App\Models\Portal\FAQ;
 use App\Models\Portal\Job;
 use App\Models\Portal\Post;
 use App\Models\Tenant;
+use App\Services\Seo\SitemapGenerator;
 use Illuminate\Console\Command;
 use Spatie\Sitemap\Sitemap;
 use Spatie\Sitemap\SitemapIndex;
@@ -81,6 +82,9 @@ class GenerateTenantSitemap extends Command
             if (FAQ::active()->exists()) {
                 $miscSitemap->add(Url::create("{$baseUrl}/faq")->setPriority(0.7)->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY));
             }
+
+            // Stadtseiten /staedte/{slug} (#7)
+            app(SitemapGenerator::class)->addCityPages($miscSitemap, $baseUrl);
 
             // Categories
             Category::select(['slug', 'updated_at'])->each(function ($category) use ($miscSitemap, $baseUrl) {
