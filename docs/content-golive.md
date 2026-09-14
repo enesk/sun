@@ -158,10 +158,10 @@ Erschöpftes Budget setzt den Provider in `provider_states` auf `paused` mit
 
 ## 4. Alarme, Bericht und Sicherung
 
-- [ ] Für Enes und Uwe existiert je ein aktiver Redaktions-Account mit der
-      Rolle `owner`:
-      `php artisan content:user:create`.
-      An genau diese Adressen gehen Tagesbericht (20:00) und Alarme.
+- [ ] Für Enes und Uwe existiert je ein aktives Administratorkonto
+      (`users.is_admin`, notfalls `php artisan app:create-admin-user`).
+      An genau diese Adressen gehen Tagesbericht (20:00) und Alarme, und nur
+      diese Konten kommen in `/content` hinein.
 - [ ] Testversand: `php artisan content:report:daily --no-mail` zeigt den
       Bericht, danach einmal ohne `--no-mail` gegen die echten Empfänger.
 - [ ] **Sicherung der Artikeltabellen vor dem ersten Lauf:**

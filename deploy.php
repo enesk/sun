@@ -29,7 +29,16 @@ require 'contrib/crontab.php';
 $remoteUser = 'sanitaerfinden';   // the user that will be used to connect to remote server and deploy the app
 $sudoPassword = '';  // the sudo password of the remote user (leave empty if using ssh key)
 
-$deployPath = '~/app';      // the path where the app will be deployed on the remote server
+// Ziel eines Deployer-Deploys. Absolut, ohne Tilde: die Tasks unten setzen den
+// Wert unveraendert in Supervisor-Confs ein, und '~' wird dort nicht aufgeloest
+// (#117). Achtung: die AUSGELIEFERTE Installation liegt nicht hier, sondern
+// handgepflegt unter /home/sanitaerfinden/htdocs/sanitaerfinden.dev. Ein
+// Horizon-Programm, das auf {{deployPath}}/current/artisan zeigt, laeuft dort
+// ins Leere — genau daran ist 'sanitaerfinden-worker' mit FATAL gescheitert.
+// Das laufende Horizon-Programm auf dem Server heisst
+// 'sanitaerfinden-horizon', zeigt auf den echten Pfad und wird von Hand
+// gepflegt (docs/messungen/produktionsumgebung-anleitung.md, Abschnitt 5.2).
+$deployPath = '/home/sanitaerfinden/app';
 
 $host = '88.198.64.145';    // the host of the remote server (can be an IP or domain)
 $domain = 'sanitaerfinden.com';   // the domain of the app

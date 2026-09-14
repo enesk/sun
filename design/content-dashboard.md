@@ -969,7 +969,41 @@ Vier Reiter. Zweispaltig: links Bereichsnavigation 220 px, rechts Formular, Feld
 
 **Budget**: Tagesbudget, Monatsbudget, Verhalten bei Überschreitung. Die aktuellen Werte aus `config/content.php` werden als Herkunft benannt, wenn sie aus der Umgebung stammen und im Panel nicht änderbar sind — ein Feld, das aussieht wie änderbar und beim Speichern nichts tut, ist schlimmer als ein gesperrtes Feld. Die Herkunft wird an gesperrten Feldern immer mit derselben Pille genannt: `.content-origin-pill` (20 px, `surface-sunken`, `text-base`, kein Statusfarbton), Bauform und Begründung in §7b.1.
 
+Ein Budgetwert von **0 schaltet die betroffene Prüfung ab** (`BudgetGuard::assertBelow()` kehrt bei `$limit <= 0` ohne Prüfung zurück). Die Zeile zeigt dann keinen Geldbetrag, sondern den Klartext „Ohne Grenze" in der Warnfarbe (`--color-status-review-fg`), dahinter in Textfarbe „(0 schaltet die Prüfung ab)". „0,00 $" wäre die gefährlichste Fehldeutung dieser Fläche: es liest sich als „es wird nichts ausgegeben", gemeint ist das Gegenteil. Steht mindestens ein Wert auf 0, erscheint über der Tabelle ein Warnkasten (`role="status"`, Symbol 20 px in `--color-status-review-fill`, Fließtext in Textfarbe) mit den Namen der betroffenen Umgebungsvariablen. Stehen alle Werte, erscheint kein Kasten — keine Dauerwarnung im Normalzustand.
+
 **Zustände**: Leer und gut — nicht anwendbar, Einstellungen sind nie leer. Leer und schlecht — kein Portal aktiv: Band „Für kein Portal ist die Produktion aktiv." Lädt — Formularskelette. Teilweise — ein Speichern schlägt fehl: Fehler am Feld, nicht als seitenweite Meldung. Veraltet — nicht relevant.
+
+### 7.1 Messung (Search Console) — Property, Zustand, Zugriff (Ticket #116)
+
+Herkunft: Vorgabe zu #107. `gsc_property` stand als nacktes Textfeld in der Sektion *Autor und Organisation*, nahm jede Zeichenkette an und zeigte keinen Zustand. Der teuerste Fehlerfall — Property gepflegt, Dienstkonto aber nicht als Nutzer eingetragen — sah damit genauso aus wie der Gutfall, weil die Search-Console-API dann leere Listen statt eines Fehlers liefert.
+
+**Ort**: eigene Sektion „Messung (Search Console)" als **letzte** Formularsektion des Reiters *Portal*, nach *Kategorie-Zuordnung*. Die Angabe wird einmal gesetzt und danach selten angefasst; sie darf *Produktion* und *Veröffentlichungsfenster* nicht nach unten drücken.
+
+**Formprüfung** (`App\Content\Services\SearchConsoleProperty::validate()`, live beim Verlassen des Feldes und beim Speichern):
+
+- `sc-domain:` + Hostname, klein geschrieben, ohne Schema, Pfad oder Port.
+- `https://` + Host + optional Pfad + abschließender Schrägstrich.
+- Reservierte Endungen `.test`, `.local`, `.invalid`, `.example` und `localhost` **blockieren das Speichern**: ein solcher Wert liefert garantiert nie Daten, stellt den Go-Live-Check aber trotzdem auf Grün.
+- Weicht die Domain der Property von der Portal-Domain ab, erscheint nur eine Warnung (`role="status"`, Warnfarbe). Eine übergeordnete Domain-Property ist ein legitimer Sonderfall und wird nicht blockiert.
+
+**Sechs Zustände**, jeder als `.content-status`-Pille mit Text *und* Farbe, in einem `aria-live="polite"`-Bereich:
+
+| Zustand | Pille | Klasse | Bedeutung |
+| --- | --- | --- | --- |
+| `missing` | Nicht eingerichtet | `--idea` | Kein Wert gepflegt, das Portal liefert keine Metriken. |
+| `unchecked` | Ungeprüft | `--scheduled` | Wert gepflegt, Zugriff noch nie geprüft. |
+| `connected` | Verbunden | `--published` | Property sichtbar, Zeilen vorhanden. |
+| `no_data` | Ohne Daten | `--review` | Leserecht bestätigt, 0 Zeilen im Fenster des Collectors. |
+| `no_access` | Kein Zugriff | `--failed` | Property für das Dienstkonto nicht sichtbar. |
+| `no_service_account` | Dienstkonto fehlt | `--failed` | `GOOGLE_SERVICE_ACCOUNT_JSON` fehlt, es lässt sich nichts prüfen. |
+
+`missing` und `no_service_account` werden immer aus dem aktuellen Zustand abgeleitet, die übrigen drei stehen in `tenant_content_settings.gsc_check_status` mit `gsc_checked_at` und `gsc_check_detail`. Ein geänderter Property-Wert löscht den Befund beim Speichern — sonst stünde „Verbunden" an einer nie geprüften Property.
+
+**Schaltfläche „Zugriff prüfen"** rechts neben der Zustandszeile ruft dieselbe Prüfung, die `content:metrics:preflight` je Portal macht (sites.list plus Stichprobe über das Fenster des Gap-Connectors), und schreibt Befund und Zeitstempel. Während des Laufs „Prüfe …" mit Ladeindikator und gesperrter Schaltfläche. Gesperrt ist sie ohne Portal, ohne Wert, bei ungespeichertem Wert und ohne Dienstkonto — der Grund steht als Hilfetext unter der Schaltfläche, nicht nur im Tooltip. Fehler des Aufrufs erscheinen mit dem Klartext von Google.
+
+**Dienstkonto** steht darunter als statischer Text mit sichtbar beschrifteter Schaltfläche „Adresse kopieren" und Textbestätigung „Kopiert" — kein deaktiviertes Formularfeld, das fiele aus der Tabulatorfolge. Ohne hinterlegtes Konto steht dort „Noch kein Dienstkonto hinterlegt (`GOOGLE_SERVICE_ACCOUNT_JSON`)."
+
+**Sammelansicht**: unter dem Budget-Abschnitt die Tabelle „Search Console je Portal" mit Name, Zustandspille und Property, sortiert nach Schweregrad — `no_access`, `no_service_account`, `missing`, `unchecked`, `no_data`, `connected`. `php artisan content:rollout` trägt dieselben Zustände als Spalte „Search Console", behält dort aber die Sortierung nach Portal-ID, weil die Tabelle zum Schalten und nicht zum Suchen dient.
 
 ---
 

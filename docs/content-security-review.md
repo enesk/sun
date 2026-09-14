@@ -17,24 +17,26 @@ Stelle im Code und — wo etwas zu tun war — die Änderung.
 
 **Befund: in Ordnung.**
 
-Das Content-Panel ist ein eigenes Filament-Panel mit eigenem Guard, eigener
-Benutzertabelle und eigenem Passwort-Broker
-(`App\Providers\Filament\ContentPanelProvider`, `config/content.php` → `panel`).
-Es teilt sich mit dem Portal- und Admin-Bereich keine Sitzung: der Guard heißt
-`content`, der Provider `content_users`.
+Das Content-Panel ist ein eigenes Filament-Panel
+(`App\Providers\Filament\ContentPanelProvider`, `config/content.php` → `panel`),
+meldet sich aber über den gewöhnlichen SaaSykit-Login am `web`-Guard an. Zugang
+haben ausschließlich Administratoren (`users.is_admin`); gesperrte Konten nie.
 
 | Prüfpunkt | Stelle | Befund |
 | --- | --- | --- |
-| Zugang nur für aktive Accounts | `ContentUser::canAccessPanel()` | `is_active` **und** Panel-ID werden geprüft |
-| Rollentrennung | `App\Content\Enums\ContentRole` | `owner` sieht Einstellungen und Kosten, `editor` nur Produktion und Prüfung |
-| Einstellungen abgeriegelt | `Filament\Content\Pages\Settings::canAccess()` | nur `owner` — damit auch der Rollout-Schalter |
-| Portalzuordnung | `ContentUser::canAccessTenant()`, `InitializeContentTenant` | leere Liste = alle Portale, sonst Whitelist; wird bei jeder Anfrage neu geprüft |
+| Zugang nur für Administratoren | `App\Models\User::canAccessPanel()` | `is_admin` **und** nicht gesperrt, sonst HTTP 403 |
+| Abfragen an einer Stelle | `App\Content\Concerns\InteractsWithContentPanel` | Einstellungen, Kosten und Portalauswahl gehen alle über `canAccessContentPanel()` |
+| Einstellungen abgeriegelt | `Filament\Content\Pages\Settings::canAccess()` | nur Administratoren — damit auch der Rollout-Schalter |
+| Portalzuordnung | `User::canAccessContentTenant()`, `InitializeContentTenant` | Administratoren sehen alle Portale; die Auswahl wird bei jeder Anfrage neu geprüft |
 | Sitzungsschutz | `ContentPanelProvider::panel()` | `EncryptCookies`, `StartSession`, `AuthenticateSession`, `VerifyCsrfToken` |
-| Anmeldeversuche | `Filament\Auth\Pages\Login::authenticate()` | 5 Versuche je Minute und Schlüssel |
-| Passwörter | `ContentUser` | `password` mit Cast `hashed`, im `$hidden`-Array |
+| Anmeldeversuche | `Auth\LoginController` der Anwendung | das Panel hat keine eigene Anmeldemaske mehr |
+| Passwörter | `App\Models\User` | `password` mit Cast `hashed`, im `$hidden`-Array |
 
-Bewusst **keine** Spatie-Permissions: die hängen am `web`-Guard und würden die
-Trennung wieder aufheben.
+Der frühere eigene Guard `content` mit der Tabelle `content_users` ist entfallen:
+ein zweiter Satz Zugangsdaten hat in der Praxis nur den Zugang verhindert. Die
+Tabellen `content_users` und `content_password_reset_tokens` sind gelöscht
+(Migration `2026_09_12_000002`), die Konten davor als JSON ohne Passwort-Hash
+unter `storage/app/backups/` archiviert.
 
 ## 2. Signierte Vorschau-Adressen
 

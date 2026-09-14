@@ -3,12 +3,20 @@
 Status: **verbindlich für die Ausführung**
 Ticket: #105 (Rest aus #81), gehört in die Go-Live-Woche #89
 Vorbefund: `tageslauf-abnahme-2026-09-09.md`
-Letzte Änderung: 2026-09-09
+Letzte Änderung: 2026-09-09 (Produktionsstand nachgetragen)
 
 Kein Schritt dieser Anleitung ist aus dem Repository heraus ausführbar. Sie braucht
-das Anthropic-Konto, einen Staging- oder Produktionshost mit Cron und Horizon und
-das Postfach des Owner-Accounts. Die Anleitung sagt, in welcher Reihenfolge gearbeitet
-wird, welche Probe jeden Schritt abschließt und wie das Ergebnis festgehalten wird.
+das Anthropic-Konto, einen Host mit Cron und Horizon und das Postfach des
+Owner-Accounts. Die Anleitung sagt, in welcher Reihenfolge gearbeitet wird, welche
+Probe jeden Schritt abschließt und wie das Ergebnis festgehalten wird.
+
+**Der Abnahmetag läuft auf Produktion, nicht auf Staging.** Einen Staging-Host gibt
+es nicht (#106); der einzige Host mit Cron und Horizon ist
+`/home/sanitaerfinden/htdocs/sanitaerfinden.dev` auf 88.198.64.145. Das hat eine
+Folge, die vor dem Start bewusst zu entscheiden ist: was der Tag veröffentlicht,
+steht auf echten Domains öffentlich im Netz. Die drei Abnahmeportale deshalb so
+wählen, dass ihre Artikel auch bleiben dürfen, und die Auto-Live-Schwelle vorher auf
+85 beziehungsweise 90 bei YMYL setzen (Abschnitt 2).
 
 ---
 
@@ -19,14 +27,37 @@ wird, welche Probe jeden Schritt abschließt und wie das Ergebnis festgehalten w
 | Modellguthaben | `CONTENT_PIPELINE_ENABLED=true php artisan content:llm:ping` | antwortet ohne 400 |
 | Freigeschaltete Portale | `php artisan content:rollout` | genau drei, davon ein YMYL-Portal |
 | Reservethemen je Portal | siehe Abschnitt 6 | mindestens 8 je Portal |
-| Owner-Account | Rolle `owner`, echtes erreichbares Postfach | Berichts- und Alarmmail kommen an |
-| Zählregeln | #102, #103/#113, #104 erledigt | sonst Auswertung von Hand bereinigen |
+| Owner-Account | Rolle `owner`, echtes erreichbares Postfach; Probe `php artisan content:report:daily --date=<Vortag>` | Bericht kommt im Postfach an, nicht nur in der Queue |
+| Zählregeln | #102, #103/#113, #104 sind erledigt (09.09.2026) | Zahlen aus Abschnitt 4 sind ohne Handarbeit belastbar |
 | Zeitzone des Hosts | `php artisan tinker --execute="echo config('app.timezone');"` | passt zu den Uhrzeiten der Kette |
 
-Sind #102, #103/#113 oder #104 am Abnahmetag noch offen, ist die Tabelle aus
-Abschnitt 4 trotzdem gültig — dann aber von Hand bereinigen: nicht freigeschaltete
-Portale aus der Berichtszeile streichen und jede Kindfassung (`parent_draft_id`
-gesetzt) aus `veröffentlicht` herausnehmen, ihre Kosten aber stehen lassen.
+Die drei Zählregel-Tickets sind seit dem 09.09.2026 erledigt: der Bericht zählt nur
+freigeschaltete Portale (#102), Kindfassungen laufen als eigene Spur statt als
+zweiter veröffentlichter Artikel (#113) und der Providerstatus meldet ein
+erschöpftes Modellguthaben (#104). Die Tabelle aus Abschnitt 4 ist damit direkt
+übernehmbar; die frühere Handbereinigung entfällt.
+
+## 0.1 Stand der Voraussetzungen auf Produktion (gemessen 2026-09-09)
+
+Gemessen über SSH auf dem Produktionshost, alle Aufrufe lesend.
+
+| Punkt | Befund | Rest |
+| --- | --- | --- |
+| Codestand | `59ce93e`, `app/Content` vorhanden | — |
+| `CONTENT_PIPELINE_ENABLED` | `true` in der `.env` | — |
+| Cron | Minutentakt mit `schedule:run`, Log `/home/sanitaerfinden/logs/schedule.log` | — |
+| Horizon | `horizon:status` = `Horizon is running.` | Worker-Zahlen am Abnahmetag gegen `horizon:status` prüfen |
+| `config/horizon.php` | `production`-Block trägt die drei Content-Programme mit 2 / 4 / 1 | — |
+| Anthropic | `content:llm:ping` meldet „ANTHROPIC_API_KEY ist nicht gesetzt", `golive:check` zählt das als **Fehler** | #120 |
+| Voyage, Google-Dienstkonto | nicht gesetzt (Warnung) | #120 |
+| Portale | **kein** Portal freigeschaltet, `content:golive:check` zählt 143 Prüfpunkte, 1 Fehler, 21 Warnungen | Abschnitt 2 |
+| Auto-Live-Schwelle | 14 Portale stehen auf 80, die YMYL-Portale auf 90 | Abschnitt 2 |
+| `CONTENT_SOURCES_GSC_ENABLED` | fehlt in der `.env`, Gap-Connector `gsc_gap` nicht registriert | #132 |
+| Zeitzone | `APP_TIMEZONE=UTC`, Kette hängt an `content.pipeline.timezone` (Europe/Berlin) | kein Eingriff nötig, die Einträge in `routes/console.php` setzen die Zeitzone selbst |
+
+Solange der Anthropic-Schlüssel fehlt (#120), ist der Abnahmetag nicht startbar:
+`content:golive:check` endet mit einem Fehler und `discover` bricht ab, bevor ein
+Thema entsteht.
 
 ## 1. Guthaben aufladen
 
@@ -35,15 +66,37 @@ vom 09.09.2026: 0,20 bis 0,45 USD je Entwurf, rund 4,32 USD für drei Portale mi
 zwölf Entwürfen. Probe: `content:llm:ping` antwortet, danach zeigt die Übersicht des
 Content-Panels für Anthropic keinen Störungshinweis mehr.
 
+Aufladen allein reicht auf Produktion nicht: dort ist am 09.09.2026 überhaupt kein
+`ANTHROPIC_API_KEY` eingetragen, `content:llm:ping` meldet „ANTHROPIC_API_KEY ist
+nicht gesetzt" und `content:golive:check` zählt das als Fehler. Guthaben und
+Schlüsseleintrag laufen zusammen über #115/#120; erst danach unterscheidet
+`llm:ping` überhaupt zwischen „kein Schlüssel" und „kein Guthaben".
+
 ## 2. Host vorbereiten
 
-- `CONTENT_PIPELINE_ENABLED=true` in der `.env` des Hosts, danach `config:cache` neu bauen.
+Cron, Horizon und `CONTENT_PIPELINE_ENABLED` sind auf Produktion seit #117 gesetzt
+(Abschnitt 0.1). Offen bleiben die drei Punkte darunter.
+
+- `CONTENT_PIPELINE_ENABLED=true` in der `.env` des Hosts, danach `config:cache` neu
+  bauen. Auf Produktion bereits gesetzt.
 - Cron ruft `schedule:run` minütlich. Probe: `php artisan schedule:list` zeigt
   02:00 discover, 03:00 select, 03:30 generate, alle 30 Minuten watchdog, 20:00 Bericht.
-- Horizon läuft mit dem `staging`-Block aus `config/horizon.php`:
+- Horizon läuft mit dem Block der laufenden `APP_ENV` aus `config/horizon.php` —
+  auf Produktion `production`, auf einem Staging-Host `staging`, beide mit
   `supervisor-content-sources` (2), `supervisor-content-generate` (4),
   `supervisor-content-publish` (1). Probe: `php artisan horizon:status` meldet
   „running", und kein Worker steht auf FATAL.
+- Schlüssel eintragen (#120) und in dieser Reihenfolge prüfen:
+  `content:golive:check` (Werte gesetzt?), `content:metrics:preflight` (Zugang
+  trägt?), `content:llm:ping` (Modell antwortet?). Erst wenn `golive:check` **null
+  Fehler** meldet, ist der Tag startbar.
+- Drei Portale freischalten und dabei die Schwelle mitziehen:
+  `php artisan content:rollout --activate=<portal> --threshold=85`. YMYL-Portale
+  bleiben bei 90, das setzt das Kommando selbst. Probe: `content:rollout` ohne
+  Argumente listet genau drei aktive Portale, davon eines YMYL.
+- `CONTENT_SOURCES_GSC_ENABLED` in der `.env` entscheiden (#132). Fehlt der Wert,
+  läuft der Tag ohne den Gap-Connector `gsc_gap` — das ist zulässig, gehört aber als
+  Randbedingung ins Protokoll.
 - Ab hier bis zum Ende des Kalendertages **kein Eingriff**. Jeder manuelle Aufruf
   entwertet die Abnahme; Beobachtung nur lesend über Panel, Horizon und Logdatei.
 

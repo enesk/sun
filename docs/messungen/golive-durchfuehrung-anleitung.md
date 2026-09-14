@@ -16,38 +16,138 @@ Repository heraus ist kein Schritt ausführbar.
 
 ---
 
-## 0. Ausgangsstand am 09.09.2026 (lokal erhoben)
+## 0. Ausgangsstand am 09.09.2026 (auf Produktion erhoben)
 
-`php artisan content:golive:check` lokal: **128 Prüfpunkte, 3 Fehler, 32
-Warnungen, Exit-Code 1.** Die Fehler und die betriebsrelevanten Warnungen:
+Erhoben auf `88.198.64.145` (SSH-Kürzel `sun`), Anwendung unter
+`/home/sanitaerfinden/htdocs/sanitaerfinden.dev`, alle Befehle als
+`sudo -u sanitaerfinden /usr/bin/php8.4 artisan …`.
 
-| Punkt | Befund | Abschnitt |
-| --- | --- | --- |
-| Pipeline eingeschaltet | `content.enabled` ist false (`CONTENT_PIPELINE_ENABLED`) | 1 |
-| Search-Console-Property (Handwerker, Apotheke) | `gsc_property` leer, Portal aber aktiv | 1 |
-| Voyage-Zugang | `VOYAGE_API_KEY` fehlt | 1 |
-| Search-Console-Dienstkonto | `GOOGLE_SERVICE_ACCOUNT_JSON` nicht gesetzt | 1 |
-| AdSense-Ertragsdaten | abgeschaltet, Kennzahlen bleiben null | 1 |
-| Deploy-Ziel | `deploy.php` trägt noch `1.2.3.4` / `yourdomain.com` / `git@github.com:username/saasykit.git` | 3 |
-| Auto-Live-Schwelle | 12 Portale stehen auf 80 statt 85 (setzt `content:rollout --threshold=85`) | 5 |
+### 0.1 Vorher: keine Zeile in `tenant_content_settings`
 
-`php artisan content:rollout` lokal: 3 von 20 Portalen freigeschaltet
-(Sanitär, Handwerker, Apotheke) — das ist der Staging-Stand aus #81 und
-zugleich die vorgesehene Zusammensetzung der Woche 1 (ein YMYL-Portal, zwei
-Handwerksportale).
+Erster Lauf von `content:golive:check` auf Produktion: **143 Prüfpunkte, 1
+Fehler, 73 Warnungen, Exit-Code 1.** Ursache der Masse an Warnungen war nicht
+die Pflege, sondern eine fehlende Zeile: `tenant_content_settings` war in
+**allen 23** Portal-Datenbanken leer. `TenantRollout::status()` liest daraus
+`articles_per_day`, `auto_publish_threshold`, `is_ymyl` und `gsc_property` und
+fällt ohne Zeile auf 0 beziehungsweise leer zurück. Jedes Portal meldete
+deshalb „articles_per_day ist 0 — das Portal erzeugt nichts", „Schwelle 0" und
+„gsc_property ist leer".
 
-**Diese Werte sind der lokale Stand, nicht der Produktionsstand.** Ein
-Produktionsserver existiert noch nicht: `deploy.php` zeigt auf die
-Starterkit-Platzhalter, alle 20 Portale laufen auf `.test`-Domains. Solange das
-so ist, ist Abschnitt 1 dieser Anleitung nicht durchführbar.
+Nachgezogen mit dem vorhandenen, idempotenten Seeder:
 
-### Drei unbrauchbare Domainwerte
+```
+php artisan db:seed --class=TenantContentSettingSeeder --force
+```
 
-`zahnarzt.test#` (Doppelkreuz am Ende), `geruestbuaer.gmbh` (Schreibfehler, kein
-`.test`) und `schlusseldienst` (ohne Domainendung). Aus ihnen baut
-`content:golive:check` bereits fehlerhafte IndexNow-Adressen. Vor der Woche 2
-müssen sie auf die echten Produktionsdomains gesetzt werden, sonst schlagen
-IndexNow-Meldung, `gsc_property` und Sitemap dieser drei Portale fehl.
+Ergebnis: **23 angelegt, 0 bereits vorhanden.** Der Seeder schreibt
+`articles_per_day = 2`, `auto_publish_threshold` 90 für YMYL und 80 sonst,
+`is_ymyl` aus dem Slug von Name und Domain, das Veröffentlichungsfenster und
+`gsc_property = sc-domain:<domain>`. `is_active` bleibt bewusst `false` — die
+Freischaltung ist allein Sache von `content:rollout`.
+
+Als YMYL erkannt wurden sechs Portale: Tierarztportal.com, ApothekeFinden,
+Unfallchirurgie in der Nähe, Zahnarzt in der Nähe, Energieberater, ArztFinder.
+
+### 0.2 Nachher: ein Fehler, 21 Warnungen
+
+`content:golive:check`: **143 Prüfpunkte, 1 Fehler, 21 Warnungen, Exit-Code 1.**
+
+| Punkt | Zustand | Befund | Abschnitt |
+| --- | --- | --- | --- |
+| Anthropic-Zugang | Fehler | `ANTHROPIC_API_KEY` fehlt in der Produktions-`.env` | 1 |
+| Voyage-Zugang | Warnung | `VOYAGE_API_KEY` fehlt | 1 |
+| Search-Console-Dienstkonto | Warnung | `GOOGLE_SERVICE_ACCOUNT_JSON` nicht gesetzt | 1 |
+| AdSense-Ertragsdaten | Warnung | abgeschaltet, `pageviews` und `adsense_revenue_usd` bleiben null | 1 |
+| Freigeschaltete Portale | Warnung | kein Portal freigeschaltet — so gewollt, siehe 0.4 | 5 |
+| Auto-Live-Schwelle | Warnung | 17 Nicht-YMYL-Portale stehen auf 80 statt 85 | 5 |
+
+Die 17 Schwellen-Warnungen setzt `content:rollout --threshold=85` beim Rollout
+selbst; der Befehl greift nur auf **freigeschaltete** Portale, vorher ändert er
+nichts. Sie sind kein offener Punkt.
+
+### 0.3 Was auf Produktion in Ordnung ist
+
+Abschnitt 2 (Budget) und Abschnitt 3 (Betrieb) sind vollständig grün:
+
+| Punkt | Befund |
+| --- | --- |
+| Pipeline eingeschaltet | `CONTENT_PIPELINE_ENABLED=true` |
+| Zeitzone des Scheduler | `Europe/Berlin` |
+| Sieben Quell-Connectoren | eingeschaltet, Zugang vollständig |
+| Budget | 35,00 USD/Tag, 1.050,00 USD/Monat, 2,50 USD je Portal × 23 gegen 35,00 |
+| Provider-Anteile | Summe 1,00 |
+| Queue-Verbindung | `redis` |
+| Alle sechs Pipeline-Queues | je in einem Horizon-Supervisor |
+| `APP_KEY` | gesetzt |
+| Deploy-Ziel (`deploy.php`) | Host, Domain und Repository eingetragen |
+| Scheduler | Tagesbericht `content:report:daily` steht auf `0 20 * * *` |
+
+Erreichbarkeit am Ursprung geprüft (an Cloudflare vorbei, `--resolve` auf
+`88.198.64.145`) für die drei Portale der Woche 1: `/` und `/bot` antworten je
+mit HTTP 200.
+
+Sicherung nach dem Seeder neu geschrieben:
+`php artisan content:golive:backup` → 46 Dateien in
+`storage/app/backups/content/2026-09-09`, `posts` und `article_drafts` je
+Portal, durchweg 0 Zeilen (es ist noch kein Ratgeber erschienen).
+
+Tagesbericht geprobt: `content:report:daily --no-mail` meldet „0 von 0
+Artikeln" — die Zählung nimmt korrekt nur freigeschaltete Portale (#102).
+Danach einmal echt versandt, Bestätigung „Tagesbericht versandt an:
+kul@widimedia.com".
+
+### 0.4 Was den Go-Live weiterhin blockiert
+
+1. **`ANTHROPIC_API_KEY` fehlt** (#120, Handarbeit Enes). Ohne Modellzugang
+   erzeugt kein Portal einen Artikel; jeder Tageslauf bräche in der
+   Erzeugungsstufe ab. Das ist der eine Fehler des Checks.
+2. **`VOYAGE_API_KEY` fehlt** — ohne Embeddings arbeitet die Duplikatsprüfung
+   nur über SimHash.
+3. **`GOOGLE_SERVICE_ACCOUNT_JSON` fehlt** — die Search-Console-Quelle liefert
+   nichts; `gsc_property` ist zwar seit 0.1 überall gepflegt, aber ohne
+   Dienstkonto ungeprüft (#107).
+4. **Modellguthaben** (#105) — auch mit Schlüssel ist ein Kalendertag ohne
+   Eingriff erst danach möglich.
+5. **Zweiter Empfänger fehlt.** `ContentAlert::ownerRecipients()` liefert nur
+   `kul@widimedia.com`; für Uwe existiert kein Redaktions-Account mit der Rolle
+   `owner`. Abschnitt 4 der Checkliste verlangt beide.
+
+Solange Punkt 1 offen ist, wird **nicht freigeschaltet**. Ein Portal
+freizuschalten setzt `activated_at` auf den Tag der Freischaltung; die
+Wochenzählung der Abnahme (`activeTenantsOn()`, #102) begänne dann mit Tagen
+ohne jede Produktion, und die Vorgabe „40 von 42" wäre strukturell verfehlt.
+
+### 0.5 Automatische Datenbanksicherung ist wirkungslos
+
+Bei der Suche nach dem Datenbank-Backup außerhalb des Servers gefunden: unter
+`/home/sanitaerfinden/backups/databases/<db>/<datum>/` liegt für jeden Tag und
+jede der 23 Datenbanken genau eine `.sql.gz` — jede davon **20 Byte groß**, also
+ein leeres gzip. Das betrifft auch die zentrale Datenbank `sun`. Der zugehörige
+Cron-Eintrag in `/etc/cron.d/clp` ruft `clpctl db:backup` auf; dieser Befehl
+existiert in der installierten CloudPanel-Version nicht mehr. Es gibt damit auf
+Produktion **keine verwertbare Datenbanksicherung**. Eigenes Ticket, siehe #134.
+
+Die NDJSON-Sicherung aus `content:golive:backup` ist davon unberührt und
+geschrieben; sie deckt aber nur `posts` und `article_drafts`.
+
+### 0.6 Zusammensetzung der Woche 1
+
+Vorgesehen, sobald Punkt 0.4/1 erledigt ist:
+
+| Rolle | Portal | ID | Domain | Schwelle |
+| --- | --- | --- | --- | --- |
+| YMYL | ApothekeFinden | 50 | apotheke.firmenfreund.de | 90 (YMYL-Boden) |
+| Handwerk | Hoch- und Tiefbauunternehmen | 24 | firmenfreund.de | 85 |
+| Handwerk | ElektrikerPortal | 30 | elektrikerportal.com | 85 |
+
+```
+php artisan content:rollout --activate=50 --activate=24 --activate=30 --threshold=85
+```
+
+Gewählt, weil alle drei am Ursprung mit HTTP 200 antworten, kein Portal davon
+in den Cloudflare-Weiterleitungen aus #127 oder den vhost-Namen ohne Tenant aus
+#128 steckt und `sanitaerfinden.com` als `CENTRAL_DOMAIN` bewusst außen vor
+bleibt.
 
 ---
 
@@ -62,6 +162,13 @@ php artisan content:golive:check
 
 **Probe:** Der Befehl endet mit Exit-Code 0 und meldet 0 Fehler. Warnungen sind
 zulässig, müssen aber im Protokoll unten je Zeile begründet stehen.
+
+- **Auto Ads:** Meldet der Check bei einem Portal „Anzeigenplatz auto_ads: n
+  aktiver Platz", darf dieses Portal erst öffentlich gehen, wenn im
+  AdSense-Konto unter *Auto Ads → Anzeigenformate* die Anker-Anzeigen
+  abgeschaltet sind. Nachweis mit Datum, Konto und ausführender Person ins
+  Protokoll (Abschnitt 9) eintragen; ohne Nachweis den Platz vorher auf inaktiv
+  setzen (Vorgabe #100, Abschnitt 6).
 
 ## 2. Sicherung vor dem ersten Lauf
 
@@ -140,21 +247,28 @@ Panel zurück.
 
 ---
 
-## 8. Offene Codefehler, die die Abnahme verfälschen
+## 8. Was vor der Abnahme noch offen ist
 
-Diese Tickets sind noch offen und betreffen genau die Zahlen, an denen die
-Abnahme hängt. Sie gehören vor Abschnitt 5 dieser Anleitung erledigt:
+Stand 09.09.2026. Die Codefehler, die die Abnahmezahlen verfälscht hätten, sind
+inzwischen erledigt: #100 (CLS durch `auto_ads`), #101 (Places-Schlüssel über
+`config()`), #102 (Bericht zählt nur freigeschaltete Portale), #103/#113
+(Aktualisierung zählt nicht als zweiter Artikel), #104 (Providerstatus bei
+leerem Guthaben), #106 (Produktionsumgebung).
 
-| Ticket | Wirkung auf die Abnahme |
+Offen und vor Abschnitt 3 dieser Anleitung zu erledigen:
+
+| Ticket | Wirkung auf den Go-Live |
 | --- | --- |
-| #102 | Tagesbericht zählt alle 20 Portale statt der freigeschalteten — die Quote der Woche 1 ist damit nicht ablesbar |
-| #103 | Kindfassung einer Aktualisierung zählt als zweiter veröffentlichter Artikel — „2 Artikel je Portal" wäre vorgetäuscht |
-| #104 | Providerstatus meldet „aktuell" bei erschöpftem Modellguthaben — ein Ausfall des Tageslaufs bliebe unbemerkt |
-| #101 | Places-Import liest den Schlüssel mit `env()` statt `config()` und bricht auf Produktion mit gecachter Config ab |
-| #100 | Anzeigenplatz `auto_ads` verursacht CLS bis 1,0 auf der Ratgeber-Seite, die mit dem Go-Live öffentlich wird |
-| #105 | Modellguthaben aufladen und einen Kalendertag ohne Eingriff laufen lassen — Voraussetzung für Abschnitt 6 |
-| #106 | Produktionsumgebung: Server, Deploy-Ziel, echte Domains, Schlüssel — ohne sie ist Abschnitt 1 nicht durchführbar |
-| #107 | `gsc_property` bei 19 von 20 Portalen leer — zwei der drei Fehler des Checks stammen daher |
+| #120 | Anthropic-, Voyage- und Google-Schlüssel auf Produktion eintragen — ohne den Anthropic-Schlüssel erzeugt kein Portal einen Artikel. Der eine Fehler des Checks. |
+| #105 | Modellguthaben aufladen und einen Kalendertag ohne Eingriff laufen lassen |
+| #107 | `gsc_property` ist seit dem Seeder-Nachzug (siehe 0.1) überall gepflegt, der Zugriff des Dienstkontos je Property ist aber ungeprüft — `content:rollout` zeigt den Zustand je Portal (#116) |
+| #134 | Automatische Datenbanksicherung schreibt leere Dumps — die Rückfahrkarte für Abschnitt 2 fehlt |
+| — | Zweiter Redaktions-Account mit der Rolle `owner` für Uwe (#135), sonst erreicht der Tagesbericht nur Enes |
+
+Vor der Woche 2 zusätzlich zu klären, weil sie Portale betreffen, die dann
+öffentlich Ratgeber ausliefern: #130 und #131 (Cloudflare-Weiterleitungen und
+fehlende Namen im Zertifikat). #129 (Weiterleitungsschleife der www.-Namen) ist
+am 09.09.2026 behoben.
 
 ---
 
@@ -168,6 +282,7 @@ ablegen.
 Datum:                       <tt.mm.jjjj>
 content:golive:check:        <n> Prüfpunkte, <n> Fehler, <n> Warnungen, Exit <0/1>
 Begründete Warnungen:        <Zeile — Begründung>
+Auto-Ads-Nachweis:           <Portal> — Anker-Anzeigen aus am <tt.mm.jjjj>, Konto <id>, durch <name> / kein aktiver Platz
 Sicherung NDJSON:            <Pfad>            Größe: <n>
 Datenbank-Backup extern:     <Ablageort>       Datum: <tt.mm.jjjj>
 

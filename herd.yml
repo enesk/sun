@@ -1,0 +1,18 @@
+name: sun
+php: '8.5'
+secured: true
+aliases:
+    - apotheke
+    - bodenleger
+    - fahrschulefinder
+    - firmenfreund
+    - handwerker
+    - htbau
+    - sanitaer
+    - elektriker
+services:
+    mariadb:
+        version: 11.8.9
+        port: '${DB_PORT}'
+integrations:
+    forge: {  }

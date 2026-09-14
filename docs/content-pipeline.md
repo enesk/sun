@@ -220,8 +220,6 @@ Alles, was zum Content eines Mandanten gehört, liegt beim Tenant.**
 
 | Tabelle | Zweck |
 |---|---|
-| `content_users` | Redaktions-Accounts des Content-Panels (eigener Guard, §6) |
-| `content_password_reset_tokens` | Passwort-Reset für diesen Guard |
 | `content_sources` | Quellendefinitionen (RSS, GSC, DataForSEO-Profile), tenantübergreifend |
 | `content_source_runs` | Lauf-Protokoll je Quelle inkl. Fehlern (Quellen-Monitor, #20) |
 | `content_prompt_templates` | Prompt-Templates und Branchen-Styleguides, versioniert |
@@ -361,33 +359,33 @@ Horizon-Prozesszahl anzupassen.
 
 ---
 
-## 6. Security: Panel-Guard und Zugangsdaten
+## 6. Security: Panel-Zugang und Zugangsdaten
 
-### Entscheidung — eigener Guard, eigene Tabelle
+### Entscheidung — SaaSykit-Login, nur Administratoren
 
-Das Content-Dashboard bekommt ein **eigenes Filament-Panel mit der ID `content`** unter
-`/content`, mit dem Guard `content` und einer **eigenen Benutzertabelle `content_users` in
-der Central-DB**. Es gibt **keinen** Zugriff über Admin-Sessions.
+Das Content-Dashboard ist ein **eigenes Filament-Panel mit der ID `content`** unter
+`/content`, meldet sich aber über den **gewöhnlichen SaaSykit-Login** an. Es gibt kein
+eigenes Anmeldeformular, keinen eigenen Guard und keine eigene Benutzertabelle mehr.
 
 | Bestandteil | Wert |
 |---|---|
 | Panel-ID | `content` |
 | Pfad | `/content` |
-| Guard | `content` (Driver `session`, Provider `content_users`) |
-| Provider-Modell | `App\Models\ContentUser` (Connection `central`) |
-| Tabelle | `content_users` |
-| Passwort-Broker | `content_users` |
-| Session-Cookie | eigener Cookie-Name, damit Admin- und Content-Session nie kollidieren |
+| Guard | `web` (Driver `session`, Provider `users`) |
+| Provider-Modell | `App\Models\User` (Connection `central`) |
+| Anmeldung | `/login` der Anwendung; das Panel bringt keine eigene Login-Seite mit |
+| Zugang | ausschließlich `users.is_admin`, gesperrte Konten nie |
 
-Begründung: Die Pipeline verfügt über Budgets in echtem Geld, Prompt-Templates und
-Provider-Konfiguration. Ein Rollen-Flag auf `App\Models\User` würde bedeuten, dass jede
-Lücke im Admin- oder Dashboard-Panel auch das Budget erreicht. Ein eigener Guard trennt
-das sauber, kostet eine Tabelle und ein Panel-Provider, und passt zu der im Projekt bereits
-etablierten Panel-Trennung (Admin / Dashboard).
+Begründung: Das Panel bedienen dieselben Personen, die auch das Admin-Panel bedienen. Ein
+zweiter Satz Zugangsdaten hat in der Praxis nur dazu geführt, dass niemand hineinkam. Die
+Prüfung sitzt an einer Stelle: `App\Models\User::canAccessPanel()` lehnt jedes Konto ohne
+`is_admin` ab, Filaments `Authenticate` beantwortet das mit HTTP 403.
 
-`content_users` bekommt: `name`, `email` (unique), `password`, `is_active`,
-`two_factor_*`, `last_login_at`. Autorisierung innerhalb des Panels über zwei Rollen
-(`editor`, `owner`); nur `owner` darf Budgets und Provider-Einstellungen ändern.
+Innerhalb des Panels gibt es keine Rollenabstufung mehr — wer hinein darf, darf alles:
+Produktion, Prüfung, Einstellungen, Budget und jedes Portal. Die Abfragen stehen einzeln in
+`App\Content\Concerns\InteractsWithContentPanel` (`canManageContentSettings()`,
+`canSeeContentCosts()`, `canAccessContentTenant()`), damit eine feinere Abstufung später an
+einer Stelle nachrüstbar ist.
 
 ### API-Keys
 
@@ -527,8 +525,6 @@ Artikel-Tabelle des Portals (siehe unten).
 
 | Tabelle | Arbeitsname in §4 | Zweck |
 |---|---|---|
-| `content_users` | `content_users` | Redaktions-Accounts des Content-Panels |
-| `content_password_reset_tokens` | dito | Passwort-Reset für den `content`-Guard |
 | `content_fingerprints` | `content_embeddings` (tenantübergreifend) | SimHash + Embedding je veröffentlichtem Artikel |
 | `prompt_templates` | `content_prompt_templates` | Versionierte Prompts und Styleguides |
 | `llm_usage_logs` | `content_cost_records` | Kosten- und Token-Logging je Provider-Aufruf |
@@ -594,8 +590,8 @@ Entwurf und werden vom Ratgeber-Template (#17) aus `article_drafts` gelesen.
 `updateArticle()` ist der Weg des Refresh-Loops (#24) und lässt Slug, `published_at` und
 `author_id` unangetastet, damit URL und Erstveröffentlichung stabil bleiben.
 
-`posts.author_id` ist ein Benutzer der **Central-DB** und hat nichts mit den
-Redaktions-Accounts `content_users` zu tun. Deshalb steht die ID in der Konfiguration
+`posts.author_id` ist ein Benutzer der **Central-DB** und nie der im Panel angemeldete
+Administrator. Deshalb steht die ID in der Konfiguration
 (`CONTENT_AUTHOR_USER_ID`, Default 1) und nicht in `tenant_content_settings`. Der dort
 gepflegte `author_name` ist die im Frontend gezeigte Autorenangabe (#18, #27).
 

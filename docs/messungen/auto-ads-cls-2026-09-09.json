@@ -1,0 +1,225 @@
+{
+  "ticket": 111,
+  "datum": "2026-09-09",
+  "werkzeug": "Lighthouse 13, Chrome headless",
+  "laeufe": [
+    {
+      "lauf": "firma-mobil-1",
+      "url": "http://sanitaer.test/39783-heizung-luftung-sanitar-dietmar-frei",
+      "formfaktor": "mobile",
+      "cls": 0.006179584966216602,
+      "performance": 89,
+      "lcp": 3152.0507999999995,
+      "verursacher": [
+        {
+          "selektor": "header.header-floating > div.px-4 > div.flex > button.md:hidden",
+          "score": 0.006179584966216602
+        }
+      ],
+      "anzeigen_requests": [
+        {
+          "status": 200,
+          "url": "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2563111817853634"
+        },
+        {
+          "status": 200,
+          "url": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202609030101/show_ads_impl_fy2021.js"
+        },
+        {
+          "status": 200,
+          "url": "https://pagead2.googlesyndication.com/pagead/html/r20260908/r20190131/zrt_lookup_fy2021.html"
+        },
+        {
+          "status": 204,
+          "url": "https://pagead2.googlesyndication.com/pagead/gen_204?id=ach_evt&tn=DIV&cls=phpdebugbar%20phpdebugbar-minimized&ign=false"
+        },
+        {
+          "status": 204,
+          "url": "https://pagead2.googlesyndication.com/pagead/gen_204?id=ach_evt&tn=HEADER&cls=header-floating%20fixed%20left-1%2F2%20-tr"
+        },
+        {
+          "status": 403,
+          "url": "https://pagead2.googlesyndication.com/pagead/ads?client=ca-pub-2563111817853634&output=html&adk=1812271804&adf=302519425"
+        },
+        {
+          "status": 200,
+          "url": "https://pagead2.googlesyndication.com/bg/rovsx5GobiciF3nAITIR2knYa4a8sBIma9qENduYb2E.js"
+        }
+      ]
+    },
+    {
+      "lauf": "firma-mobil-2",
+      "url": "http://sanitaer.test/39783-heizung-luftung-sanitar-dietmar-frei",
+      "formfaktor": "mobile",
+      "cls": 0.006179584966216602,
+      "performance": 85,
+      "lcp": 4237.8904999999995,
+      "verursacher": [
+        {
+          "selektor": "header.header-floating > div.px-4 > div.flex > button.md:hidden",
+          "score": 0.006179584966216602
+        }
+      ],
+      "anzeigen_requests": [
+        {
+          "status": 200,
+          "url": "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2563111817853634"
+        },
+        {
+          "status": 200,
+          "url": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202609030101/show_ads_impl_fy2021.js"
+        },
+        {
+          "status": 200,
+          "url": "https://pagead2.googlesyndication.com/pagead/html/r20260908/r20190131/zrt_lookup_fy2021.html"
+        },
+        {
+          "status": 204,
+          "url": "https://pagead2.googlesyndication.com/pagead/gen_204?id=ach_evt&tn=DIV&cls=fixed%20bottom-%5B20px%5D%20left-0%20right-0%"
+        },
+        {
+          "status": 204,
+          "url": "https://pagead2.googlesyndication.com/pagead/gen_204?id=ach_evt&tn=HEADER&cls=header-floating%20fixed%20left-1%2F2%20-tr"
+        },
+        {
+          "status": 403,
+          "url": "https://pagead2.googlesyndication.com/pagead/ads?client=ca-pub-2563111817853634&output=html&adk=1812271804&adf=302519425"
+        },
+        {
+          "status": 200,
+          "url": "https://pagead2.googlesyndication.com/bg/rovsx5GobiciF3nAITIR2knYa4a8sBIma9qENduYb2E.js"
+        }
+      ]
+    },
+    {
+      "lauf": "firma-mobil-3",
+      "url": "http://sanitaer.test/39783-heizung-luftung-sanitar-dietmar-frei",
+      "formfaktor": "mobile",
+      "cls": 0.006179584966216602,
+      "performance": 83,
+      "lcp": 4672.9661,
+      "verursacher": [
+        {
+          "selektor": "header.header-floating > div.px-4 > div.flex > button.md:hidden",
+          "score": 0.006179584966216602
+        }
+      ],
+      "anzeigen_requests": [
+        {
+          "status": 200,
+          "url": "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2563111817853634"
+        },
+        {
+          "status": 200,
+          "url": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202609030101/show_ads_impl_fy2021.js"
+        },
+        {
+          "status": 200,
+          "url": "https://pagead2.googlesyndication.com/pagead/html/r20260908/r20190131/zrt_lookup_fy2021.html"
+        },
+        {
+          "status": 204,
+          "url": "https://pagead2.googlesyndication.com/pagead/gen_204?id=ach_evt&tn=HEADER&cls=header-floating%20fixed%20left-1%2F2%20-tr"
+        },
+        {
+          "status": 403,
+          "url": "https://pagead2.googlesyndication.com/pagead/ads?client=ca-pub-2563111817853634&output=html&adk=1812271804&adf=302519425"
+        },
+        {
+          "status": 200,
+          "url": "https://pagead2.googlesyndication.com/bg/rovsx5GobiciF3nAITIR2knYa4a8sBIma9qENduYb2E.js"
+        }
+      ]
+    },
+    {
+      "lauf": "ratgeber-desktop-1",
+      "url": "http://sanitaer.test/ratgeber/heizungstausch-forderung-in-bayern-was-gilt-2026",
+      "formfaktor": "desktop",
+      "cls": 0.01669323866548001,
+      "performance": 100,
+      "lcp": 668.3272,
+      "verursacher": [
+        {
+          "selektor": "header.header-floating > div.px-4 > div.flex > nav.hidden",
+          "score": 0.01669323866548001
+        }
+      ],
+      "anzeigen_requests": []
+    },
+    {
+      "lauf": "ratgeber-desktop-2",
+      "url": "http://sanitaer.test/ratgeber/heizungstausch-forderung-in-bayern-was-gilt-2026",
+      "formfaktor": "desktop",
+      "cls": 0.01669323866548001,
+      "performance": 99,
+      "lcp": 742.6208,
+      "verursacher": [
+        {
+          "selektor": "header.header-floating > div.px-4 > div.flex > nav.hidden",
+          "score": 0.01669323866548001
+        }
+      ],
+      "anzeigen_requests": []
+    },
+    {
+      "lauf": "ratgeber-desktop-3",
+      "url": "http://sanitaer.test/ratgeber/heizungstausch-forderung-in-bayern-was-gilt-2026",
+      "formfaktor": "desktop",
+      "cls": 0.01669323866548001,
+      "performance": 100,
+      "lcp": 653.0653,
+      "verursacher": [
+        {
+          "selektor": "header.header-floating > div.px-4 > div.flex > nav.hidden",
+          "score": 0.01669323866548001
+        }
+      ],
+      "anzeigen_requests": []
+    },
+    {
+      "lauf": "ratgeber-mobil-1",
+      "url": "http://sanitaer.test/ratgeber/heizungstausch-forderung-in-bayern-was-gilt-2026",
+      "formfaktor": "mobile",
+      "cls": 0.006179584966216602,
+      "performance": 88,
+      "lcp": 3282.5092,
+      "verursacher": [
+        {
+          "selektor": "header.header-floating > div.px-4 > div.flex > button.md:hidden",
+          "score": 0.006179584966216602
+        }
+      ],
+      "anzeigen_requests": []
+    },
+    {
+      "lauf": "ratgeber-mobil-2",
+      "url": "http://sanitaer.test/ratgeber/heizungstausch-forderung-in-bayern-was-gilt-2026",
+      "formfaktor": "mobile",
+      "cls": 0.006179584966216602,
+      "performance": 99,
+      "lcp": 1644.4125,
+      "verursacher": [
+        {
+          "selektor": "header.header-floating > div.px-4 > div.flex > button.md:hidden",
+          "score": 0.006179584966216602
+        }
+      ],
+      "anzeigen_requests": []
+    },
+    {
+      "lauf": "ratgeber-mobil-3",
+      "url": "http://sanitaer.test/ratgeber/heizungstausch-forderung-in-bayern-was-gilt-2026",
+      "formfaktor": "mobile",
+      "cls": 0.006179584966216602,
+      "performance": 91,
+      "lcp": 2984.57295,
+      "verursacher": [
+        {
+          "selektor": "header.header-floating > div.px-4 > div.flex > button.md:hidden",
+          "score": 0.006179584966216602
+        }
+      ],
+      "anzeigen_requests": []
+    }
+  ]
+}
