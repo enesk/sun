@@ -198,11 +198,21 @@ zusammen mit laufender Arbeit an #18. Produktion steht auf `0b7445e`.
 | Bewertungs-Scan Tenant 30 | 14.09.2026 | **nicht angewendet**, nur Trockenlauf: 956 Treffer, davon 559 nur „Text länger als 1500 Zeichen“ (echte ausführliche Bewertungen). Heuristik wird in einem eigenen Ticket nachgeschärft | Dimitri |
 | Live-Probe elektrikerportal.com | 14.09.2026 16:25 | Startseite 200 ohne „None“; 5 Profile (meiste Bewertungen) 200, `tel:+49…`, 0× `about:invalid`, `Electrician` + `BreadcrumbList`, keine Footprints; `/staedte/hamburg`, `berlin`, `stuttgart` mit Title-Template, Brotkrume, `ItemList` + `FAQPage` + `BreadcrumbList`; Filter-URLs `noindex, follow` + Canonical wie in Abschnitt 1 ✅ | Dimitri |
 | Schema-Prüfung Live (validator.schema.org) | 14.09.2026 | `/staedte/hamburg`: BreadcrumbList, ItemList, FAQPage, 0 Fehler/0 Warnungen; `/1280-mb-elektro-berlin`: Electrician, BreadcrumbList, 0/0 ✅ | Dimitri |
-| Rich Results Test Google | | offen, Handarbeit (keine Schnittstelle) – Live-URLs siehe unten | |
+| Rich Results Test Google | | offen, Handarbeit Enes (#20, keine Schnittstelle) – `/staedte/hamburg` und `/1280-mb-elektro-berlin` | |
 | Andere Portale | 14.09.2026 | sanitaerfinden.com, malerfinder.de, firmenfreund.de, kfzwerkstatt.io, zahnarzt.firmenfreund.de: 200; Laravel-Log seit Migrationsende 0 Fehler | Dimitri |
 | Sitemap generiert | 14.09.2026 16:22 | `tenants:generate-sitemap --tenant=30`: Index + `sitemap-misc.xml` (5.493) + `sitemap-companies-1.xml` (29.148), 0× `/firmen?` ✅ | Dimitri |
-| Sitemap in Search Console eingereicht | | offen, Handarbeit Enes (kein Dienstkonto) | |
-| URL-Prüfung 5 Profile + 3 Städte | | offen, Handarbeit Enes (Google bietet dafür keine API) | |
+| Vorprobe Search Console (#20) | 14.09.2026 | `robots.txt` 200, `Allow: /`, verweist auf `sitemap.xml`; `sitemap.xml` 200 `application/xml`, Index mit `sitemap-misc.xml` (200) + `sitemap-companies-1.xml` (200); alle 8 URLs 200, in der Sitemap enthalten (Profile in `companies-1`, Städte in `misc`), Canonical auf sich selbst, kein `noindex`, kein `X-Robots-Tag`; JSON-LD Profile `Electrician`/`AggregateRating`/`BreadcrumbList`, Städte `ItemList`/`FAQPage`/`BreadcrumbList` ✅ | Sebastian |
+| Sitemap in Search Console eingereicht | | offen, Handarbeit Enes (#20, kein Dienstkonto) | |
+| URL-Prüfung 5 Profile + 3 Städte | | offen, Handarbeit Enes (#20, Google bietet dafür keine API) | |
+
+**Handarbeit Enes (#20)** – Vorprobe ist grün, es fehlt nur noch der Kontozugriff:
+1. Search Console, Property `elektrikerportal.com` → Sitemaps → `https://elektrikerportal.com/sitemap.xml` einreichen.
+   Probe: Status „Erfolgreich“, erkannte URLs ≈ 34.600 (5.493 + 29.148). Zeile „Sitemap in Search Console eingereicht“ ausfüllen.
+2. URL-Prüfung → jede der 8 URLs unten eingeben → „Indexierung beantragen“ (Tageskontingent ca. 10–12 Anfragen, reicht).
+   Probe: Meldung „Indexierung beantragt“; bei „URL ist nicht auf Google“ vorher „Live-URL testen“ muss „URL ist verfügbar“ zeigen. Zeile „URL-Prüfung“ ausfüllen.
+3. https://search.google.com/test/rich-results mit `https://elektrikerportal.com/staedte/hamburg` und `https://elektrikerportal.com/1280-mb-elektro-berlin`.
+   Probe: Hamburg „Breadcrumbs“ + „FAQ“ gültig (ItemList wird dort nicht als eigenes Rich Result gelistet), Profil „Breadcrumbs“ + „Rezensions-Snippets“ gültig. Zeile „Rich Results Test Google“ ausfüllen.
+4. Ab 21.09.2026 wöchentlich die Tabelle in `docs/rollout-seo-hardening-portale.md` Abschnitt 5 fortschreiben (vier Zeilen sind vorbereitet).
 
 **URLs für die URL-Prüfung** (Profile mit den meisten Bewertungen):
 - https://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro

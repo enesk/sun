@@ -122,11 +122,27 @@ und URL-Prüfung von 3 Städteseiten. Der Code ist ab dem Deploy überall aktiv.
   zeigen auch mit Vorlage weder Intro noch FAQ. Entweder das Portal auf sun-v2
   umstellen oder die Komponenten in die anderen Themes übernehmen (dann
   `x-sun.icon` in `components/city/faq.blade.php` ersetzen).
-- **Bewertungs-Scan nicht blind anwenden:** Auf elektrikerportal lieferte
-  `moderation:scan-existing-reviews` 956 Treffer, davon 559 nur wegen
-  `max_length` 1500 (echte, ausführliche Google-Bewertungen). Mit `--apply`
-  wären sie verschwunden, und das Rating hätte sich verschoben. Deshalb dort nicht
-  angewendet. Erst nach dem Nachschärfen der Heuristik (eigenes Ticket) je Portal laufen lassen.
+- **Bewertungs-Scan erst nach Trockenlauf anwenden:** Seit #19 läuft
+  `moderation:scan-existing-reviews` im Bestandsmodus
+  (`ReviewSpamDetector::forExistingReviews()`). Ein Treffer ist dort nur noch ein
+  Bewerbungsschreiben, also ein Stichwort wie Bewerbung, Praktikum oder Position
+  **zusammen mit** einer Grußformel („sehr geehrte“, „mit freundlichen Grüßen“).
+  Textlänge, Link, E-Mail oder Telefonnummer zählen nur zusätzlich. Für neue
+  Gastbewertungen gilt weiter jedes Signal einzeln.
+  Verlauf auf elektrikerportal (Tenant 30, 99.793 Bewertungen):
+  - Ursprüngliche Heuristik: 956 Treffer.
+  - Nur ohne Längenregel und ohne alleinige Grußformel: 199 Treffer. Von 20
+    Stichproben war keine eine Bewerbung („Praktikum gemacht“, „an jeder
+    Position“, Firmen-Domain im Text).
+  - Bestandsmodus: 6 Treffer, alle echte Bewerbungsschreiben. Am 14.09.2026 mit
+    `--apply` auf `needs_review` gesetzt.
+
+  Berichte liegen unter `storage/app/moderation-scan/elektrikerportal-com-2026-09-14*.csv`
+  (`-vor-19`, `-19-zwischenstand`, ohne Zusatz, `-apply`). Je weiterem Portal gilt:
+  zuerst Trockenlauf, dann alle Treffer lesen (bei mehr als 20 mindestens
+  20 Stichproben), erst danach `--apply`.
+  Der Code ist noch nicht auf Produktion. Der Lauf am 14.09. nutzte eine Kopie
+  unter `/tmp`, die danach gelöscht wurde. Für weitere Portale also erst deployen.
 - **Bewertungen:** Mit #13 und #17 sind neue Bewertungen `pending` und nur
   globale Admins moderieren. Für Portale mit vielen Bewertungen einplanen, wer
   die Queue abarbeitet. `reviews:approve-all` gibt nur noch `pending` ohne
@@ -146,4 +162,7 @@ Wöchentlich je Portal in der Search Console:
 
 | Woche | Portal | noindex-Ausschlüsse | Rich-Result-Impr. | Manuelle Maßnahmen | Kürzel |
 | --- | --- | --- | --- | --- | --- |
-| | | | | | |
+| 1 (21.09.2026) | elektrikerportal.com | | | | |
+| 2 (28.09.2026) | elektrikerportal.com | | | | |
+| 3 (05.10.2026) | elektrikerportal.com | | | | |
+| 4 (12.10.2026) | elektrikerportal.com | | | | |

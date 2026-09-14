@@ -41,10 +41,18 @@ return [
             'ausgeschriebene Stelle*',
             'um die Stelle',
             'um eine Stelle',
-            'sehr geehrte*',
-            'mit freundlichen gruessen',
             'Ausbildungsplatz*',
             'Praktikum*',
+        ],
+
+        /*
+         * Grussformeln zaehlen nur zusammen mit einem Stichwort aus 'keywords'.
+         * Allein sind sie meist Dankschreiben an den Betrieb (Elektrikerportal
+         * #19: 132 x 'mit freundlichen gruessen', 43 x 'sehr geehrte' im Bestand).
+         */
+        'greeting_keywords' => [
+            'sehr geehrte*',
+            'mit freundlichen gruessen',
         ],
 
         // E-Mail-Adressen, URLs und Telefonnummern im Text (Titel, Text, Name)
@@ -55,7 +63,13 @@ return [
         // Mindestanzahl Ziffern, ab der eine Ziffernfolge als Telefonnummer gilt
         'phone_min_digits' => 7,
 
-        // Texte ueber dieser Laenge (Zeichen, Titel + Text) gehen in die Pruefung
+        /*
+         * Texte ueber dieser Laenge (Zeichen, Titel + Text) gehen in die Pruefung.
+         * Das gilt allein nur fuer neue Bewertungen. Beim Bestandsscan
+         * (moderation:scan-existing-reviews) zaehlt nur ein Bewerbungsschreiben
+         * (Stichwort plus Grussformel) — dort waren lange Texte, Links und
+         * einzelne Stichwoerter fast immer echte Kundenbewertungen (#19).
+         */
         'max_length' => 1500,
 
         // Melden-Button: Versuche je IP bzw. angemeldetem Nutzer im Zeitfenster

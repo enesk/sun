@@ -22,6 +22,10 @@ use Illuminate\Support\Facades\Schema;
  * Die Umstellung laeuft ueber das Model, damit der ReviewObserver Rating und
  * JSON-LD des Betriebs nachzieht. Je Portal entsteht ein CSV-Bericht unter
  * storage/app/moderation-scan/.
+ *
+ * Der Detector laeuft im Bestandsmodus (#19): Treffer ist nur ein
+ * Bewerbungsschreiben (Stichwort plus Grussformel), siehe
+ * ReviewSpamDetector::forExistingReviews().
  */
 class ScanExistingReviews extends Command
 {
@@ -45,7 +49,7 @@ class ScanExistingReviews extends Command
         }
 
         $apply = (bool) $this->option('apply');
-        $detector = ReviewSpamDetector::fromConfig();
+        $detector = ReviewSpamDetector::forExistingReviews();
         $reportDir = $this->centralStoragePath('app/moderation-scan');
 
         if (! $apply) {
