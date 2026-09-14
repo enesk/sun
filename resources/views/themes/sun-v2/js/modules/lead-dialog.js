@@ -59,9 +59,11 @@ export function initLeadDialog() {
     const apiBase = (dialog.dataset.leadApi || '').replace(/\/$/, '');
     const token = dialog.dataset.leadToken || '';
     const company = dialog.dataset.company || '';
+    // Funnel-Feld firmenprofil ist Text: Profil-Link des Betriebs, nie vom Nutzer
     let companyKey = null;
     try {
-        companyKey = JSON.parse(dialog.dataset.companyKey || 'null');
+        const profile = JSON.parse(dialog.dataset.companyKey || 'null');
+        companyKey = profile ? String(profile.url || profile.slug || '') : null;
     } catch {
         companyKey = null;
     }
