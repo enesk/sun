@@ -186,11 +186,39 @@ zusammen mit laufender Arbeit an #18. Produktion steht auf `0b7445e`.
 | Lokale Checkliste (Abschnitt 1) | 14.09.2026 | grün | Sebastian |
 | Security-Review (Abschnitt 2) | 14.09.2026 | 1 Befund, behoben, Tests grün | Sebastian |
 | Footprint-Ausgangswert Prod (Abschnitt 3) | 14.09.2026 | 12.090 Treffer elektrikerportal | Sebastian |
-| Rich Results Test Städteseite | | | |
-| Rich Results Test Profil | | | |
-| DB-Dump (Pfad, Größe) | | | |
-| Migrationen alle Tenants | | | |
-| Footprint-Grep nach Cleanup = 0 | | | |
-| Live-Probe elektrikerportal.com | | | |
-| Sitemap generiert + eingereicht | | | |
-| URL-Prüfung 5 Profile + 3 Städte | | | |
+| Commit + Push | 14.09.2026 | `92aa436` auf `origin/main` | Dimitri |
+| DB-Dump (Pfad, Größe) | 14.09.2026 15:44–16:04 | `/home/sanitaerfinden/backups/pre-seo-hardening-202609141544/`, 24 Dateien (sun + 23 Tenants), 602 MB, alle `OK`; zweiter, paralleler Dump `…-202609141546/` (736 MB) | Dimitri |
+| Code auf Produktion | 14.09.2026 16:05 | `git pull --ff-only` auf `92aa436`, keine Composer-/npm-Änderungen | Dimitri |
+| Migrationen alle Tenants | 14.09.2026 | zentral „No pending migrations“, `tenants:migrate --pretend` für alle 23 Tenants „Nothing to migrate“ | Dimitri |
+| Seeder | 14.09.2026 | `SeoTemplateSeeder` 7 Templates, `CityContentTemplateSeeder` 1 Vorlage/4 FAQ, `CityDistrictsSeeder` 50 Städte (jeweils nur elektrikerportal) | Dimitri |
+| Assets + Caches | 14.09.2026 16:20 | `public/build` lokal auf `92aa436` gebaut und per rsync übertragen (11 Manifest-Einträge), `config:cache`, `route:clear`, `view:clear`, `filament:optimize`, Reload von `php8.5-fpm`, Horizon neu gestartet | Dimitri |
+| Footprint-Cleanup Tenant 30 | 14.09.2026 | Trockenlauf 22.160 geprüft, 14.995 betroffen, 0 manuell; Stichproben sauber; `--apply` 14.995 bereinigt, Originale in `company_description_backups` | Dimitri |
+| Footprint-Grep nach Cleanup = 0 | 14.09.2026 | Tenant 30: 29.432 Firmen, **0 Treffer** über `description`, `meta_description`, `short_description` ✅ | Dimitri |
+| Weitere Bereinigung Tenant 30 | 14.09.2026 | `companies:foreign:cleanup --write` 284 deaktiviert; `cities:state:repair --write` 9 korrigiert; `cities:placeholder:cleanup --write` Ort „None“ entfernt (212 Firmen gelöst) | Dimitri |
+| Bewertungs-Scan Tenant 30 | 14.09.2026 | **nicht angewendet**, nur Trockenlauf: 956 Treffer, davon 559 nur „Text länger als 1500 Zeichen“ (echte ausführliche Bewertungen). Heuristik wird in einem eigenen Ticket nachgeschärft | Dimitri |
+| Live-Probe elektrikerportal.com | 14.09.2026 16:25 | Startseite 200 ohne „None“; 5 Profile (meiste Bewertungen) 200, `tel:+49…`, 0× `about:invalid`, `Electrician` + `BreadcrumbList`, keine Footprints; `/staedte/hamburg`, `berlin`, `stuttgart` mit Title-Template, Brotkrume, `ItemList` + `FAQPage` + `BreadcrumbList`; Filter-URLs `noindex, follow` + Canonical wie in Abschnitt 1 ✅ | Dimitri |
+| Schema-Prüfung Live (validator.schema.org) | 14.09.2026 | `/staedte/hamburg`: BreadcrumbList, ItemList, FAQPage, 0 Fehler/0 Warnungen; `/1280-mb-elektro-berlin`: Electrician, BreadcrumbList, 0/0 ✅ | Dimitri |
+| Rich Results Test Google | | offen, Handarbeit (keine Schnittstelle) – Live-URLs siehe unten | |
+| Andere Portale | 14.09.2026 | sanitaerfinden.com, malerfinder.de, firmenfreund.de, kfzwerkstatt.io, zahnarzt.firmenfreund.de: 200; Laravel-Log seit Migrationsende 0 Fehler | Dimitri |
+| Sitemap generiert | 14.09.2026 16:22 | `tenants:generate-sitemap --tenant=30`: Index + `sitemap-misc.xml` (5.493) + `sitemap-companies-1.xml` (29.148), 0× `/firmen?` ✅ | Dimitri |
+| Sitemap in Search Console eingereicht | | offen, Handarbeit Enes (kein Dienstkonto) | |
+| URL-Prüfung 5 Profile + 3 Städte | | offen, Handarbeit Enes (Google bietet dafür keine API) | |
+
+**URLs für die URL-Prüfung** (Profile mit den meisten Bewertungen):
+- https://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro
+- https://elektrikerportal.com/1280-mb-elektro-berlin
+- https://elektrikerportal.com/25348-elektro-ehrhardt-e-k
+- https://elektrikerportal.com/15112-eckhard-schnepf
+- https://elektrikerportal.com/20745-engels-f
+- https://elektrikerportal.com/staedte/hamburg
+- https://elektrikerportal.com/staedte/berlin
+- https://elektrikerportal.com/staedte/stuttgart
+
+**Hinweise aus dem Deploy:**
+- Beim Pull (14:05 UTC) warf eine Städteseite im Default-Theme einmal `Undefined variable $cityHeading`,
+  und bis zum Ende von `tenants:migrate` (14:13 UTC) fehlte `city_content_templates` (17 Fehler).
+  Beides lag im Zeitfenster zwischen Code und Migration, danach trat kein Fehler mehr auf.
+  Beim Rollout-Deploy anderer Stände deshalb: Pull, sofort migrieren, dann Caches.
+- `php artisan view:cache` bricht lokal an `components/city/faq.blade.php` ab (`x-sun.icon`
+  gibt es nur im Theme sun-v2). Das ist kein Laufzeitfehler, weil die Komponente nur von
+  sun-v2 eingebunden wird. Auf Produktion deshalb `view:clear` statt `view:cache`.

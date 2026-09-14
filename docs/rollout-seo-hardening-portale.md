@@ -61,7 +61,7 @@ Ausgangswert auf Produktion, 14.09.2026, nur lesend (Regex-Treffer der Muster au
 
 | Prod-ID | Portal | Firmen | Treffer | Welle |
 | ---: | --- | ---: | ---: | --- |
-| 30 | elektrikerportal.com | 29.432 | 12.090 | Pilot |
+| 30 | elektrikerportal.com | 29.432 | 12.090 → **0** (14.995 Texte bereinigt am 14.09.2026) | Pilot, erledigt |
 | 44 | kfzwerkstatt.io | 48.256 | 22.679 | 1 |
 | 33 | malerfinder.de | 23.193 | 324 | 1 |
 | 37 | geruestbauer.gmbh | 4.444 | 13 | 1 |
@@ -117,6 +117,16 @@ und URL-Prüfung von 3 Städteseiten. Der Code ist ab dem Deploy überall aktiv.
   Vorlage in Filament (Dashboard → Stadt-Vorlagen) anlegen oder im Seeder
   ergänzen, bevor die Städteseiten zur Indexierung eingereicht werden. Das ist
   Redaktionsarbeit und gehört nicht zum Deploy.
+- **Local Hub nur im Theme sun-v2:** `x-city.intro` und `x-city.faq` bindet bisher nur
+  `themes/sun-v2/views/pages/cities/show.blade.php` ein. Portale auf `default`/`starter`
+  zeigen auch mit Vorlage weder Intro noch FAQ. Entweder das Portal auf sun-v2
+  umstellen oder die Komponenten in die anderen Themes übernehmen (dann
+  `x-sun.icon` in `components/city/faq.blade.php` ersetzen).
+- **Bewertungs-Scan nicht blind anwenden:** Auf elektrikerportal lieferte
+  `moderation:scan-existing-reviews` 956 Treffer, davon 559 nur wegen
+  `max_length` 1500 (echte, ausführliche Google-Bewertungen). Mit `--apply`
+  wären sie verschwunden, und das Rating hätte sich verschoben. Deshalb dort nicht
+  angewendet. Erst nach dem Nachschärfen der Heuristik (eigenes Ticket) je Portal laufen lassen.
 - **Bewertungen:** Mit #13 und #17 sind neue Bewertungen `pending` und nur
   globale Admins moderieren. Für Portale mit vielen Bewertungen einplanen, wer
   die Queue abarbeitet. `reviews:approve-all` gibt nur noch `pending` ohne
