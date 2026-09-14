@@ -51,7 +51,13 @@
 <link rel="icon" href="{{ asset($currentTenant->getAttribute('branding.favicon_path')) }}">
 @endif
 
+{{-- CSS eingebettet statt verlinkt: keine render-blockierende Anfrage (~8 KB gzip) --}}
+@if(app()->isProduction() && ! \Illuminate\Support\Facades\Vite::isRunningHot())
+<style>{!! \Illuminate\Support\Facades\Vite::content('resources/views/themes/sun-v2/css/app.css') !!}</style>
+@vite(['resources/views/themes/sun-v2/js/app.js'])
+@else
 @vite(['resources/views/themes/sun-v2/css/app.css', 'resources/views/themes/sun-v2/js/app.js'])
+@endif
 @stack('styles')
 
 @include('partials.analytics')

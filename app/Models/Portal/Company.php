@@ -3,15 +3,16 @@
 namespace App\Models\Portal;
 
 use App\Models\User;
+use App\Services\CompanyUrlService;
+use App\Services\Seo\StructuredDataService;
 use Database\Factories\Portal\CompanyFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Services\CompanyUrlService;
-use App\Services\Seo\StructuredDataService;
 use Illuminate\Support\Str;
+use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -25,6 +26,7 @@ class Company extends Model implements HasMedia
     {
         return CompanyFactory::new();
     }
+
     protected $fillable = [
         'user_id',
         'name',
@@ -186,7 +188,7 @@ class Company extends Model implements HasMedia
      */
     public function getUrlSlugAttribute(): string
     {
-        return $this->id . '-' . $this->slug;
+        return $this->id.'-'.$this->slug;
     }
 
     /**
@@ -278,10 +280,12 @@ class Company extends Model implements HasMedia
             if ($cover) {
                 return $cover->getUrl('banner');
             }
+
             return null;
         }
 
         $mediaUrl = $this->getFirstMediaUrl('cover', 'banner');
+
         return $mediaUrl ?: null;
     }
 
@@ -291,16 +295,13 @@ class Company extends Model implements HasMedia
      */
     public function getCardImageUrlAttribute(): ?string
     {
-        if ($this->relationLoaded('media')) {
-            $gallery = $this->media->where('collection_name', 'gallery');
-            if ($gallery->isNotEmpty()) {
-                return $gallery->first()->getUrl('medium');
-            }
-        } else {
-            $firstGallery = $this->getFirstMediaUrl('gallery', 'medium');
-            if ($firstGallery) {
-                return $firstGallery;
-            }
+        $media = $this->relationLoaded('media')
+            ? $this->media->where('collection_name', 'gallery')->first()
+            : $this->getFirstMedia('gallery');
+
+        if ($media) {
+            // Kleine WebP-Fassung fuer Karten, solange sie nicht nachgeneriert ist 'medium'
+            return $media->getUrl($media->hasGeneratedConversion('card') ? 'card' : 'medium');
         }
 
         return $this->logo_url;
@@ -335,6 +336,13 @@ class Company extends Model implements HasMedia
             ->height(400)
             ->sharpen(5)
             ->nonQueued();
+
+        $this->addMediaConversion('card')
+            ->fit(Fit::Crop, 480, 270)
+            ->format('webp')
+            ->quality(75)
+            ->nonQueued()
+            ->performOnCollections('gallery');
 
         $this->addMediaConversion('banner')
             ->width(1200)
