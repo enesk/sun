@@ -56,8 +56,10 @@
 
     @include('partials.analytics')
 
-    {{-- Auto Ads --}}
-    <x-ad-slot position="auto_ads" />
+    {{-- Auto Ads: auf Ratgeber-Routen nicht ausliefern (Vorgabe #100) --}}
+    @if(\App\View\Components\AdSlot::autoAdsAllowedHere())
+        <x-ad-slot position="auto_ads" />
+    @endif
 </head>
 <body class="min-h-screen flex flex-col bg-base-100 text-base-content antialiased @if(\App\View\Components\AdSlot::hasSlotsForPosition('mobile_sticky_bottom')) pb-[60px] lg:pb-0 @endif">
 

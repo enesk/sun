@@ -25,6 +25,21 @@ class AdSlot extends Component
     ];
 
     /**
+     * Routes that never deliver the auto_ads position.
+     * Auto Ads place themselves and add an anchor banner that pads the body,
+     * which pushes CLS above the 0.1 target on the article pages (Vorgabe #100).
+     */
+    private const AUTO_ADS_BLOCKED_ROUTES = [
+        'portal.blog.index',
+        'portal.blog.search',
+        'portal.blog.editorial',
+        'portal.blog.category',
+        'portal.blog.tag',
+        'portal.blog.show',
+        'ratgeber.preview',
+    ];
+
+    /**
      * CLS container dimensions per position.
      * Format: [desktop => [min-width, min-height], mobile => [min-width, min-height] | 'hidden']
      */
@@ -109,10 +124,10 @@ class AdSlot extends Component
             $mobileH = is_array($dims['mobile']) ? ($dims['mobile'][1] ?? '') : '';
 
             if ($desktopW && $desktopW !== $mobileW) {
-                $classes[] = 'lg:' . $desktopW;
+                $classes[] = 'lg:'.$desktopW;
             }
             if ($desktopH && $desktopH !== $mobileH) {
-                $classes[] = 'lg:' . $desktopH;
+                $classes[] = 'lg:'.$desktopH;
             }
         }
 
@@ -141,6 +156,36 @@ class AdSlot extends Component
         }
 
         return app($key);
+    }
+
+    /**
+     * Whether the auto_ads position may be delivered on the current route.
+     */
+    public static function autoAdsAllowedHere(): bool
+    {
+        $routeName = request()->route()?->getName();
+
+        if ($routeName === null) {
+            return true;
+        }
+
+        return ! in_array($routeName, self::AUTO_ADS_BLOCKED_ROUTES, true);
+    }
+
+    /**
+     * Extract the AdSense publisher id (ca-pub-…) from an ad code snippet.
+     */
+    public static function publisherIdFrom(?string $code): ?string
+    {
+        if ($code === null || $code === '') {
+            return null;
+        }
+
+        if (preg_match('/ca-pub-\\d{10,}/', $code, $matches) === 1) {
+            return $matches[0];
+        }
+
+        return null;
     }
 
     /**

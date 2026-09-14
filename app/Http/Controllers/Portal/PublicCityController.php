@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Portal\Category;
 use App\Models\Portal\City;
 use App\Models\Portal\Company;
+use App\Services\CompanyListingFilters;
+use App\Themes\ThemeManager;
 use App\Support\TenantCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -49,7 +51,7 @@ class PublicCityController extends Controller
         // Firmen in dieser Stadt mit Filtern
         $query = Company::active()
             ->where('city_id', $city->id)
-            ->with(['categories', 'city', 'media']);
+            ->with(['categories', 'city', 'media', 'openingHours']);
 
         // Freitext-Suche
         if ($request->filled('q')) {
@@ -64,8 +66,13 @@ class PublicCityController extends Controller
             }
         }
 
+        // Sterne, bewertet, jetzt geoeffnet (wie in der Suche)
+        app(CompanyListingFilters::class)->apply($query, $request);
+
         // Premium oben, dann Sortierung
-        $sort = $request->get('sort', 'name');
+        // Voreinstellung je Theme (config/themes/<slug>.php -> city.default_sort), sonst Name
+        $themeSlug = app(ThemeManager::class)->active()?->slug;
+        $sort = $request->get('sort', config("themes.{$themeSlug}.city.default_sort", 'name'));
         $query->orderByDesc('is_premium');
 
         $query = match ($sort) {

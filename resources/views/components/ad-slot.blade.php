@@ -1,6 +1,22 @@
 @foreach($slots as $slot)
     @if($position === 'auto_ads')
+        {{-- Kein CLS-Container: das Skript fuegt ausserhalb ein (Vorgabe #100, 3.2) --}}
         {!! $slot->code !!}
+        @php
+            $autoAdsPublisherId = \App\View\Components\AdSlot::publisherIdFrom($slot->code);
+        @endphp
+        @if($autoAdsPublisherId)
+            @once
+                {{-- Seitenweiser Opt-out fuer den unteren Overlay/Anker-Banner --}}
+                <script>
+                    (window.adsbygoogle = window.adsbygoogle || []).push({
+                        google_ad_client: @json($autoAdsPublisherId),
+                        enable_page_level_ads: true,
+                        overlays: { bottom: false }
+                    });
+                </script>
+            @endonce
+        @endif
     @else
         @php
             $deviceClasses = \App\View\Components\AdSlot::deviceClasses($slot->device_visibility ?? []);

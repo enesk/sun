@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'auto_ads' => 'Auto Ads (Head-Bereich)',
+    'auto_ads' => 'Auto Ads (automatische Platzierung)',
     'header_below' => 'Header – unter Navigation',
     'sidebar_sticky' => 'Sidebar sticky',
     'after_breadcrumb' => 'Detailsseite - unter Breadcrumb',
@@ -20,5 +20,6 @@ return [
     'listing_detail_sidebar' => 'Detailseite Sidebar',
     'listing_between_results' => 'Zwischen Suchergebnissen',
     'footer_above' => 'Über Footer',
+    'home_content' => 'Startseite - zwischen Ratgeber und Eintragen (Theme sun-v2)',
     'mobile_sticky_bottom' => 'Mobile Sticky-Banner',
 ];

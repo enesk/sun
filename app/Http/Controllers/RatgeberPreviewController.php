@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 /**
  * Vorschau eines Artikelentwurfs im echten Frontend-Template (#20).
  *
- * Die Route ist signiert und nur fuer Redaktions-Accounts erreichbar
+ * Die Route ist signiert und nur fuer Administratoren erreichbar
  * (EnsureContentPreviewAccess). Gerendert wird derselbe View wie unter
  * `portal.blog.show` — der Pruefer beurteilt damit genau das, was der Leser
  * spaeter sieht, einschliesslich Typografie, Kurzantwort, Key-Facts,

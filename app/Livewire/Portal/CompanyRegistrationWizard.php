@@ -6,6 +6,7 @@ use App\Constants\TenancyPermissionConstants;
 use App\Models\Portal\Category;
 use App\Models\Portal\City;
 use App\Models\Portal\Company;
+use App\Services\NewCompanyNotifier;
 use App\Services\TenantPermissionService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -20,24 +21,34 @@ class CompanyRegistrationWizard extends Component
 
     // Step-Management
     public int $currentStep = 1;
+
     public int $totalSteps = 5;
 
     // Step 1: Firmendaten
     public string $name = '';
+
     public string $description = '';
+
     public array $selectedCategories = [];
 
     // Step 2: Adresse
     public string $street = '';
+
     public string $house_no = '';
+
     public string $zipcode = '';
+
     public ?int $city_id = null;
+
     public string $citySearch = '';
+
     public array $citySuggestions = [];
 
     // Step 3: Kontakt
     public string $tel = '';
+
     public string $email = '';
+
     public string $website = '';
 
     // Step 4: Logo
@@ -45,15 +56,47 @@ class CompanyRegistrationWizard extends Component
 
     // UI State
     public string $categoryFilter = '';
+
     public bool $submitted = false;
+
     public ?Company $createdCompany = null;
+
     public ?string $selectedCityName = null;
 
-    public function mount(): void
+    public function mount(string $prefillName = '', string $prefillPlace = ''): void
     {
         if (Auth::check() && Auth::user()->email) {
             $this->email = Auth::user()->email;
         }
+
+        // Vorbelegung aus der Betriebssuche auf /eintragen (Theme sun-v2)
+        $this->name = mb_substr(trim($prefillName), 0, 255);
+
+        $place = trim($prefillPlace);
+        if ($place === '') {
+            return;
+        }
+
+        if (preg_match('/(?<!\d)(\d{5})(?!\d)/', $place, $match)) {
+            $this->zipcode = $match[1];
+        }
+
+        $this->citySearch = $place;
+        $city = $this->zipcode !== ''
+            ? City::where('zipcode', $this->zipcode)->first()
+            : City::where('name', $place)->first();
+        if ($city) {
+            $this->selectCity($city->id);
+        }
+    }
+
+    /**
+     * Portale ohne gepflegte Kategorien (z. B. Elektriker) koennen sonst
+     * keinen Betrieb eintragen, weil Schritt 1 mindestens eine verlangt.
+     */
+    public function hasCategories(): bool
+    {
+        return Category::query()->exists();
     }
 
     protected function rules(): array
@@ -62,7 +105,7 @@ class CompanyRegistrationWizard extends Component
             1 => [
                 'name' => ['required', 'string', 'min:3', 'max:255'],
                 'description' => ['nullable', 'string', 'max:5000'],
-                'selectedCategories' => ['required', 'array', 'min:1', 'max:5'],
+                'selectedCategories' => $this->hasCategories() ? ['required', 'array', 'min:1', 'max:5'] : ['array', 'max:5'],
                 'selectedCategories.*' => ['integer', 'exists:categories,id'],
             ],
             2 => [
@@ -128,6 +171,7 @@ class CompanyRegistrationWizard extends Component
     {
         if (strlen($value) < 2) {
             $this->citySuggestions = [];
+
             return;
         }
 
@@ -183,6 +227,7 @@ class CompanyRegistrationWizard extends Component
     {
         if (! Auth::check()) {
             $this->redirect(route('login'));
+
             return;
         }
 
@@ -231,7 +276,7 @@ class CompanyRegistrationWizard extends Component
         if ($this->logo) {
             $this->createdCompany
                 ->addMedia($this->logo->getRealPath())
-                ->usingFileName('logo.' . $this->logo->getClientOriginalExtension())
+                ->usingFileName('logo.'.$this->logo->getClientOriginalExtension())
                 ->toMediaCollection('logo');
         }
 
@@ -240,7 +285,7 @@ class CompanyRegistrationWizard extends Component
         if ($tenant) {
             $permissionService = app(TenantPermissionService::class);
             $currentRoles = $permissionService->getTenantUserRoles($tenant, Auth::user());
-            if (!in_array(TenancyPermissionConstants::ROLE_COMPANY_OWNER, $currentRoles)) {
+            if (! in_array(TenancyPermissionConstants::ROLE_COMPANY_OWNER, $currentRoles)) {
                 $permissionService->assignTenantUserRole(
                     $tenant,
                     Auth::user(),
@@ -248,6 +293,8 @@ class CompanyRegistrationWizard extends Component
                 );
             }
         }
+
+        app(NewCompanyNotifier::class)->notify($this->createdCompany, Auth::user());
 
         $this->submitted = true;
 
@@ -258,11 +305,11 @@ class CompanyRegistrationWizard extends Component
     {
         $categories = collect();
         if ($this->currentStep === 1) {
-            $query = Category::roots()->ordered()->with(['children' => fn($q) => $q->ordered()]);
+            $query = Category::roots()->ordered()->with(['children' => fn ($q) => $q->ordered()]);
             if ($this->categoryFilter !== '') {
                 $query->where(function ($q) {
-                    $q->where('name', 'like', '%' . $this->categoryFilter . '%')
-                      ->orWhereHas('children', fn($c) => $c->where('name', 'like', '%' . $this->categoryFilter . '%'));
+                    $q->where('name', 'like', '%'.$this->categoryFilter.'%')
+                        ->orWhereHas('children', fn ($c) => $c->where('name', 'like', '%'.$this->categoryFilter.'%'));
                 });
             }
             $categories = $query->get();

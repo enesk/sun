@@ -254,7 +254,7 @@ class GetCompanies extends Command
                 $elapsed = round(microtime(true) - $startTime);
                 $cityName = $this->getCityName($city);
                 $cityZip = $this->getCityZipcode($city);
-                $this->line("[{$cityIndex}/{$cityCount}] {$cityName} ({$cityZip}) — {$elapsed}s elapsed, {$this->apiCalls} API-Calls, ~{$this->estimateCost()}");
+                $this->line("[{$cityIndex}/{$cityCount}] {$cityName} ({$cityZip}) — {$elapsed}s elapsed, {$this->apiCalls} API-Calls, {$this->estimateCost()}");
 
                 $searchTerm = match ($this->country) {
                     'ch' => "{$query} in {$cityZip} {$cityName}, Schweiz",
@@ -533,12 +533,24 @@ class GetCompanies extends Command
 
         if ($keyRejected) {
             $this->apiKeyRejected = true;
-            $this->error('  Google lehnt GOOGLE_PLACES_API_KEY ab: '.Str::limit($message, 200));
+            $this->error('  Google lehnt GOOGLE_PLACES_API_KEY ab: '.$this->ohneSchluessel($message));
 
             return;
         }
 
-        $this->warn("  API-Fehler {$label}: HTTP {$response->status()} — ".Str::limit($message, 200));
+        $this->warn("  API-Fehler {$label}: HTTP {$response->status()} — ".$this->ohneSchluessel($message));
+    }
+
+    /**
+     * Google gibt den Schluessel in der Fehlermeldung zurueck ("Consumer
+     * 'api_key:AIza…' has been suspended") — er darf nicht in Konsole oder Log
+     * landen.
+     */
+    private function ohneSchluessel(string $message): string
+    {
+        $maskiert = (string) preg_replace('/AIzaSy[A-Za-z0-9_-]{10,}/', 'AIzaSy…', $message);
+
+        return Str::limit($maskiert, 200);
     }
 
     /**
@@ -936,7 +948,7 @@ class GetCompanies extends Command
             match ($type) {
                 'route' => $data['street'] = $component['long_name'],
                 'street_number' => $data['house_no'] = $component['long_name'],
-                'zipcode' => $data['zipcode'] = $component['long_name'],
+                'postal_code' => $data['zipcode'] = $component['long_name'],
                 'locality' => $data['city'] = $component['long_name'],
                 'administrative_area_level_1' => $data['state'] = $component['long_name'],
                 'administrative_area_level_2' => $data['district'] = $component['long_name'],

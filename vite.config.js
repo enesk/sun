@@ -13,6 +13,8 @@ export default defineConfig({
                 'resources/css/filament/admin/theme.css',
                 'resources/css/filament/dashboard/theme.css',
                 'resources/css/content/theme.css',
+                'resources/views/themes/sun-v2/css/app.css',
+                'resources/views/themes/sun-v2/js/app.js',
             ],
             refresh: true,
         }),

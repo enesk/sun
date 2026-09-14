@@ -1,0 +1,10 @@
+{
+    "name": "sun v2",
+    "slug": "sun-v2",
+    "version": "2.0.0",
+    "author": "Team",
+    "description": "Neues Portal-Layout (Figtree, Markenfarbe als --brand, ohne DaisyUI). Zuerst für das Elektriker-Portal; bisher ist nur die Startseite umgestellt, alle anderen Seiten kommen aus dem Default-Theme.",
+    "screenshot": "screenshot.png",
+    "supports": ["companies", "categories", "reviews", "search"],
+    "options": {}
+}

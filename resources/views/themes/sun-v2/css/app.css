@@ -1,0 +1,223 @@
+/*
+ * Theme sun-v2 — Portal-Layout "sun v2" (zuerst fuer das Elektriker-Portal)
+ * ------------------------------------------------------------------
+ * Gestaltungsquelle: Vorlage sun-v2.html (Tailwind 3.4, Figtree, --brand).
+ *
+ * Eigener Vite-Einstieg, bewusst ohne DaisyUI und ohne resources/css/app.css:
+ * die Vorlage bringt eigene .btn-, .card- und .input-Klassen mit, die mit
+ * DaisyUI kollidieren wuerden. Tailwind scannt deshalb nur die Views dieses
+ * Themes (source(none) + @source), nicht das ganze Projekt.
+ *
+ * Das Projekt faehrt Tailwind 4. Damit die Darstellung 1:1 der mit Tailwind 3
+ * gebauten Vorlage entspricht, sind die Farbskalen unten auf die Hex-Werte
+ * von Tailwind 3 festgenagelt (Tailwind 4 rechnet in oklch) und die Tailwind-3-
+ * Voreinstellungen fuer Rahmenfarbe und Button-Cursor zurueckgeholt.
+ */
+
+@import 'tailwindcss' source(none);
+
+@source '../views';
+/* Werbeplaetze: <x-ad-slot> rendert Klassen aus Komponente und View */
+@source '../../../components/ad-slot.blade.php';
+@source '../../../../../app/View/Components/AdSlot.php';
+
+/* ── Schrift: Figtree, lokal ausgeliefert (keine Anfrage an Google) ── */
+@font-face {
+    font-family: 'Figtree';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('../fonts/figtree-latin-ext.woff2') format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+    font-family: 'Figtree';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('../fonts/figtree-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@theme {
+    --font-sans: Figtree, system-ui, -apple-system, Segoe UI, sans-serif;
+
+    /* Tailwind-3-Werte, siehe Kopfkommentar */
+    --color-zinc-50: #fafafa;
+    --color-zinc-100: #f4f4f5;
+    --color-zinc-200: #e4e4e7;
+    --color-zinc-300: #d4d4d8;
+    --color-zinc-400: #a1a1aa;
+    --color-zinc-500: #71717a;
+    --color-zinc-600: #52525b;
+    --color-zinc-700: #3f3f46;
+    --color-zinc-800: #27272a;
+    --color-zinc-900: #18181b;
+    --color-amber-500: #f59e0b;
+    --color-emerald-500: #10b981;
+    --color-emerald-700: #047857;
+
+    /* Markenfarbe: --brand setzt das Layout am <html> aus dem Tenant-Branding */
+    --color-brand: var(--brand-600);
+    --color-brand-50: var(--brand-50);
+    --color-brand-100: var(--brand-100);
+    --color-brand-200: var(--brand-200);
+    --color-brand-700: var(--brand-700);
+    --color-brand-800: var(--brand-800);
+}
+
+@layer base {
+    :root {
+        --brand: #1d4ed8;
+        --brand-50: color-mix(in oklab, var(--brand) 8%, #fff);
+        --brand-100: color-mix(in oklab, var(--brand) 16%, #fff);
+        --brand-200: color-mix(in oklab, var(--brand) 32%, #fff);
+        --brand-600: var(--brand);
+        --brand-700: color-mix(in oklab, var(--brand) 85%, #000);
+        --brand-800: color-mix(in oklab, var(--brand) 70%, #000);
+    }
+
+    /* Tailwind-3-Voreinstellungen */
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-zinc-200, #e5e7eb);
+    }
+
+    button:not(:disabled),
+    [role='button']:not(:disabled) {
+        cursor: pointer;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+        color: #9ca3af;
+    }
+
+    html {
+        font-size: 125%;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
+
+    @media (min-width: 768px) {
+        html {
+            font-size: 150%;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        ::after,
+        ::before {
+            transition-duration: 0.01ms !important;
+            animation-duration: 0.01ms !important;
+        }
+    }
+}
+
+@layer components {
+    .card,
+    .card-interactive {
+        @apply rounded-2xl border border-zinc-200 bg-white;
+    }
+
+    .card-interactive {
+        @apply transition-colors hover:border-zinc-300;
+
+        &:focus-within {
+            border-color: var(--brand-600);
+        }
+    }
+
+    .btn,
+    .btn-primary,
+    .btn-secondary,
+    .btn-ghost {
+        @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 text-base font-semibold transition-colors;
+
+        &:focus-visible {
+            @apply outline-hidden ring-2 ring-offset-2;
+            --tw-ring-color: var(--brand-600);
+        }
+    }
+
+    .btn-primary {
+        @apply text-white;
+        background-color: var(--brand-600);
+
+        &:hover {
+            background-color: var(--brand-700);
+        }
+    }
+
+    .btn-secondary {
+        @apply border border-zinc-300 bg-white text-zinc-900 hover:bg-zinc-50;
+    }
+
+    .btn-ghost {
+        color: var(--brand-600);
+
+        &:hover {
+            background-color: var(--brand-50);
+        }
+    }
+
+    .input {
+        @apply min-h-11 w-full rounded-xl border border-zinc-300 bg-white px-4 text-base text-zinc-900 placeholder:text-zinc-400;
+
+        &:focus {
+            @apply outline-hidden ring-2;
+            border-color: var(--brand-600);
+            --tw-ring-color: var(--brand-200);
+        }
+    }
+
+    .pill,
+    .pill-brand {
+        @apply inline-flex items-center gap-1 rounded-full bg-zinc-100 px-3 py-1 text-sm font-medium text-zinc-700;
+    }
+
+    .pill-brand {
+        background-color: var(--brand-50);
+        color: var(--brand-700);
+    }
+
+    .pill-link {
+        @apply inline-flex min-h-11 items-center gap-1 rounded-full border border-zinc-200 bg-white px-4 py-1 text-sm font-medium text-zinc-700 transition-colors md:min-h-0 md:px-3;
+
+        &:hover {
+            border-color: var(--brand-600);
+            color: var(--brand-600);
+        }
+    }
+
+    .section {
+        @apply py-12 md:py-16;
+    }
+
+    .container-portal {
+        @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+    }
+
+    .icon {
+        @apply size-5 shrink-0;
+    }
+
+    .scroll-snap {
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+
+        & > * {
+            scroll-snap-align: start;
+        }
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+}

@@ -40,6 +40,12 @@ return [
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect' => env('GOOGLE_CALLBACK', '/auth/google/callback'),
         'places_api_key' => env('GOOGLE_PLACES_API_KEY'),
+        // Preis je 1000 Place-Details-Aufrufe in USD. Ein Aufruf mit der
+        // FieldMask addressComponents liegt in der Essentials-Stufe (#124);
+        // der Satz ist vor dem ersten echten Lauf in der Google-Preisliste
+        // gegenzupruefen. Nicht zu verwechseln mit den 25 USD, die
+        // GetCompanies::estimateCost() fuer Enterprise+Atmosphere ansetzt.
+        'places_details_rate_usd' => (float) env('GOOGLE_PLACES_DETAILS_RATE_USD', 5.00),
     ],
 
     'github' => [

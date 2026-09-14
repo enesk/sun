@@ -7,6 +7,8 @@ use App\Models\Portal\Category;
 use App\Models\Portal\City;
 use App\Models\Portal\Company;
 use App\Models\Portal\Job;
+use App\Services\CompanyListingFilters;
+use App\Services\CompanyLocationSearch;
 use App\Services\CompanyUrlService;
 use App\Services\TrackingService;
 use App\Support\TenantCache;
@@ -24,7 +26,7 @@ class CompanyController extends Controller
     public function index(Request $request): View
     {
         $query = Company::active()
-            ->with(['categories', 'city', 'media']);
+            ->with(['categories', 'city', 'media', 'openingHours']);
 
         // Freitext-Suche
         if ($request->filled('q')) {
@@ -47,10 +49,19 @@ class CompanyController extends Controller
             }
         }
 
+        // Ort oder PLZ, mit Umkreis sobald der Ort Koordinaten hat
+        $location = new CompanyLocationSearch;
+        if ($request->filled('ort')) {
+            $location->apply($query, (string) $request->input('ort'), $request->integer('umkreis') ?: null);
+        }
+
         // Premium-Filter
         if ($request->boolean('premium')) {
             $query->premium();
         }
+
+        // Sterne, bewertet, jetzt geoeffnet
+        app(CompanyListingFilters::class)->apply($query, $request);
 
         // Premium-Einträge immer oben, dann benutzerdefinierte Sortierung
         $sort = $request->get('sort', 'name');
@@ -95,13 +106,12 @@ class CompanyController extends Controller
             );
         }
 
-        return view('pages.companies.index', compact(
-            'companies',
-            'categories',
-            'cities',
-            'totalCompanies',
-            'sort',
-        ));
+        return view('pages.companies.index', [
+            ...compact('companies', 'categories', 'cities', 'totalCompanies', 'sort'),
+            'searchOrigin' => $location->origin(),
+            'searchRadius' => $location->radius(),
+            'distanceByCity' => $location->distances(),
+        ]);
     }
 
     public function show(string $companySlug): View|RedirectResponse
