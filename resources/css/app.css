@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import 'tailwindcss' source(none);
 @import './colors.css';
 @import './portal.css';
 @import './dashboard.css';
@@ -13,11 +13,17 @@
 /* Sources */
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
-/* Tenant-Speicher nie durchsuchen: auf Produktion liegen dort Hunderttausende
-   Mediendateien, der Build haengt sonst minutenlang im Verzeichnislesen. */
-@source not '../../storage/tenant*';
-@source not '../../storage/app';
-@source not '../../public/storage*';
+/* Keine automatische Quellsuche (source(none)): auf Produktion liegen unter
+   storage/tenant…/app/public/media Hunderttausende Ordner, vite build hing
+   dort. Gescannt werden nur die Pfade hier. */
+@source '../../app';
+@source '../../config';
+@source '../../routes';
+@source '../../lang';
+@source '../../database';
+@source '../../public/js';
+@source '../../public/css';
+@source '../../public/vendor';
 @source '../**/*.blade.php';
 @source '../**/*.js';
 @source '../../vendor/filament/**/*.blade.php';
