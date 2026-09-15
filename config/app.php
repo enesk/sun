@@ -98,7 +98,10 @@ return [
     |
     */
 
-    'fallback_locale' => 'en',
+    // 'de', weil die Portal-Texte (lang/de/portal.php, Vorhaben #1) nur auf
+    // Deutsch existieren und die Locale weiter 'en' ist. Alles, was es in
+    // 'en' gibt (Admin, Validierung), loest unveraendert auf.
+    'fallback_locale' => 'de',
 
     /*
     |--------------------------------------------------------------------------

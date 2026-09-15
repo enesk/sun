@@ -57,6 +57,17 @@ class CompanySignup extends Component
 
     public bool $resent = false;
 
+    /**
+     * Feldnamen fuer :attribute, falls eine Regel ohne eigene Meldung greift
+     * (max, string, ...). Einzige Quelle ist portal.signup.attributes.
+     *
+     * @return array<string, string>
+     */
+    protected function validationAttributes(): array
+    {
+        return (array) __('portal.signup.attributes');
+    }
+
     public function next(): void
     {
         $this->step === 1 ? $this->submitCompany() : $this->submitAccount();
@@ -81,19 +92,19 @@ class CompanySignup extends Component
             'tel' => ['required', 'string', 'max:50', 'regex:/\d{5,}/'],
             'web' => ['nullable', 'url', 'max:255'],
         ], [
-            'firma.required' => 'Wie heißt dein Betrieb?',
-            'firma.min' => 'Wie heißt dein Betrieb?',
-            'strasse.required' => 'Ohne Adresse findet dich niemand auf der Stadtseite.',
-            'plz.required' => 'Bitte gib die PLZ ein.',
-            'plz.regex' => 'Die PLZ hat fünf Ziffern.',
-            'ort.required' => 'Bitte gib den Ort ein.',
-            'tel.required' => 'Ohne Telefonnummer kann dich niemand erreichen.',
-            'tel.regex' => 'Die Nummer sieht unvollständig aus.',
-            'web.url' => 'Die Adresse sieht nicht wie eine Website aus.',
+            'firma.required' => __('portal.errors.signup.name_required'),
+            'firma.min' => __('portal.errors.signup.name_required'),
+            'strasse.required' => __('portal.errors.signup.street_required'),
+            'plz.required' => __('portal.errors.signup.zip_required'),
+            'plz.regex' => __('portal.errors.signup.zip_format'),
+            'ort.required' => __('portal.errors.signup.city_required'),
+            'tel.required' => __('portal.errors.signup.phone_required'),
+            'tel.regex' => __('portal.errors.signup.phone_format'),
+            'web.url' => __('portal.errors.signup.website_format'),
         ]);
 
         if (! $this->resolveCity()) {
-            $this->addError('ort', 'PLZ und Ort passen nicht zusammen – bitte prüfen.');
+            $this->addError('ort', __('portal.errors.signup.city_mismatch'));
 
             return;
         }
@@ -115,7 +126,8 @@ class CompanySignup extends Component
             $key = 'company-signup:'.request()->ip();
 
             if (RateLimiter::tooManyAttempts($key, 5)) {
-                $this->addError('email', 'Zu viele Versuche. Bitte versuch es in '.(int) ceil(RateLimiter::availableIn($key) / 60).' Minuten noch einmal.');
+                $minutes = (int) ceil(RateLimiter::availableIn($key) / 60);
+                $this->addError('email', trans_choice('portal.errors.signup.throttled', $minutes, ['minuten' => $minutes]));
 
                 return;
             }
@@ -126,13 +138,13 @@ class CompanySignup extends Component
                 'password' => ['required', 'string', 'min:8'],
                 'agb' => ['accepted'],
             ], [
-                'name.required' => 'Wie heißt du?',
-                'email.required' => 'Ohne E-Mail kannst du dich später nicht anmelden.',
-                'email.email' => 'Die E-Mail-Adresse sieht unvollständig aus.',
-                'email.unique' => 'Mit dieser E-Mail gibt es schon ein Konto – melde dich an.',
-                'password.required' => 'Das Passwort braucht mindestens 8 Zeichen.',
-                'password.min' => 'Das Passwort braucht mindestens 8 Zeichen.',
-                'agb.accepted' => 'Bitte bestätige AGB und Datenschutzhinweise.',
+                'name.required' => __('portal.errors.signup.person_required'),
+                'email.required' => __('portal.errors.signup.email_required'),
+                'email.email' => __('portal.errors.signup.email_format'),
+                'email.unique' => __('portal.errors.signup.email_taken'),
+                'password.required' => __('portal.errors.signup.password_min'),
+                'password.min' => __('portal.errors.signup.password_min'),
+                'agb.accepted' => __('portal.errors.signup.terms_required'),
             ]);
 
             RateLimiter::hit($key, 3600);
@@ -141,7 +153,7 @@ class CompanySignup extends Component
         $city = $this->resolveCity();
         if (! $city) {
             $this->back();
-            $this->addError('ort', 'PLZ und Ort passen nicht zusammen – bitte prüfen.');
+            $this->addError('ort', __('portal.errors.signup.city_mismatch'));
 
             return;
         }

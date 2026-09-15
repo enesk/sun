@@ -38,10 +38,11 @@ return [
 
     // Kacheln "Was steht an?". 'query' ist der Suchbegriff fuer die
     // Firmensuche; die Betriebszahl je Kachel ist dieselbe Volltextsuche.
+    // 'intro' (optional): Teilsatz fuer die Einleitung der Stadtseite, :anzahl = Betriebe mit der Leistung
     'services' => [
         ['label' => 'Elektroinstallation', 'query' => 'Elektroinstallation', 'icon' => 'plug'],
-        ['label' => 'Notdienst', 'query' => 'Notdienst', 'icon' => 'bolt'],
-        ['label' => 'Wallbox & E-Auto', 'query' => 'Wallbox', 'icon' => 'car'],
+        ['label' => 'Notdienst', 'query' => 'Notdienst', 'icon' => 'bolt', 'intro' => ':anzahl davon fahren Notdienst'],
+        ['label' => 'Wallbox & E-Auto', 'query' => 'Wallbox', 'icon' => 'car', 'intro' => ':anzahl montieren Wallboxen'],
         ['label' => 'Photovoltaik', 'query' => 'Photovoltaik', 'icon' => 'sun'],
         ['label' => 'Smart Home', 'query' => 'Smart Home', 'icon' => 'home'],
         ['label' => 'Sicherungskasten', 'query' => 'Sicherungskasten', 'icon' => 'fuse-box'],

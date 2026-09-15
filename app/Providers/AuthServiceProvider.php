@@ -32,7 +32,7 @@ class AuthServiceProvider extends ServiceProvider
     public function boot(): void
     {
         VerifyEmail::toMailUsing(function ($notifiable, $url) {
-            return (new \App\Mail\User\VerifyEmail($url))
+            return (new \App\Mail\User\VerifyEmail($url, $notifiable->name ?? null))
                 ->to($notifiable->email);
         });
 

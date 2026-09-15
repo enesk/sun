@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\Tenants\Pages;
 
 use App\Filament\Admin\Resources\Tenants\TenantResource;
+use App\Support\Tenancy\TenantTerms;
 use App\Themes\ThemeManager;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
@@ -84,6 +85,7 @@ class EditTenant extends EditRecord
         // Keys that should store their value as-is (not flattened further)
         $compositeKeys = [
             ThemeManager::TENANT_THEME_OPTIONS_KEY, // 'theme.options'
+            TenantTerms::ATTRIBUTE, // 'terms', gelesen als Array ueber tenant('terms')
         ];
 
         foreach ($data as $key => $value) {

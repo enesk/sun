@@ -11,6 +11,8 @@ use App\Filament\Admin\Resources\Tenants\RelationManagers\SubscriptionsRelationM
 use App\Filament\Admin\Resources\Tenants\RelationManagers\UsersRelationManager;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Support\Tenancy\TenantTerms;
+use App\Support\Tenancy\TenantVertical;
 use App\Themes\ThemeManager;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\EditAction;
@@ -28,6 +30,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\HtmlString;
 
 class TenantResource extends Resource
 {
@@ -71,6 +74,13 @@ class TenantResource extends Resource
                                     ->maxLength(255)
                                     ->unique(ignoreRecord: true)
                                     ->helperText(__('Die Domain über die der Tenant erreichbar ist (z.B. firmenfreund.de)')),
+                                Select::make(TenantVertical::ATTRIBUTE)
+                                    ->label(__('Vertikale'))
+                                    ->options(TenantVertical::options())
+                                    ->default(TenantVertical::DEFAULT)
+                                    ->selectablePlaceholder(false)
+                                    ->required()
+                                    ->helperText(__('Legt die Grundformulierungen der Portaltexte fest, z. B. „Termin anfragen“ statt „Angebot anfragen“. Einzelne Texte des Tenants gehen weiterhin vor.')),
                                 Select::make('created_by')
                                     ->getSearchResultsUsing(fn (string $search): array => User::where('name', 'like', "%{$search}%")->limit(20)->pluck('name', 'id')->toArray())
                                     ->getOptionLabelUsing(fn ($value): ?string => User::find($value)?->name)
@@ -141,6 +151,11 @@ class TenantResource extends Resource
                                     ->rows(2)
                                     ->default(TenantConfigConstants::DEFAULTS[TenantConfigConstants::FOOTER_TEXT])
                                     ->helperText(__('Platzhalter: {year}, {tenant_name}')),
+
+                                Section::make(__('Branchenbegriffe'))
+                                    ->description(__('Werden automatisch in alle Portaltexte des Tenants eingesetzt.'))
+                                    ->schema(static::termsSectionSchema())
+                                    ->columns(2),
                             ]),
 
                         Tabs\Tab::make(__('Kontakt & Social Media'))
@@ -229,6 +244,67 @@ class TenantResource extends Resource
                     ])
                     ->columnSpanFull(),
             ]);
+    }
+
+    /**
+     * Ein Feld je Key aus TenantTerms (#12) plus Live-Vorschau.
+     */
+    protected static function termsSectionSchema(): array
+    {
+        $fields = [];
+
+        foreach (TenantTerms::keys() as $key) {
+            $fields[] = TextInput::make(TenantTerms::ATTRIBUTE . '.' . $key)
+                ->label(__(TenantTerms::label($key)))
+                ->helperText(__('Beispiel: :example', ['example' => TenantTerms::examples()[$key]]))
+                ->placeholder(TenantTerms::defaults()[$key])
+                ->default(TenantTerms::defaults()[$key])
+                ->required()
+                ->maxLength(TenantTerms::MAX_LENGTH)
+                ->rules(TenantTerms::rulesFor())
+                ->live(onBlur: true);
+        }
+
+        $fields[] = Placeholder::make('terms_preview')
+            ->label(__('Vorschau'))
+            ->columnSpanFull()
+            ->content(fn ($get): HtmlString => static::termsPreview(
+                TenantTerms::resolve(
+                    (array) $get(TenantTerms::ATTRIBUTE),
+                    ['portal' => (string) $get('name')],
+                ),
+            ));
+
+        return $fields;
+    }
+
+    /**
+     * Zwei Beispielsaetze ueber denselben Translator wie im Frontend, nur mit
+     * den Formularwerten als Replacements. Solange lang/de/portal.php den Key
+     * noch nicht fuehrt, dient ein Mustersatz als Vorlage.
+     *
+     * @param  array<string, string>  $terms
+     */
+    protected static function termsPreview(array $terms): HtmlString
+    {
+        $samples = [
+            'portal.home.hero_title' => 'Finde :branche_akk in deiner Nähe',
+            'portal.search.empty' => 'Leider keine :branche_plural gefunden – auf :portal findest du weitere :betrieb_plural in der Umgebung',
+        ];
+
+        $lines = [];
+
+        foreach ($samples as $key => $fallback) {
+            $line = __($key, $terms);
+
+            if ($line === $key) {
+                $line = __($fallback, $terms);
+            }
+
+            $lines[] = e($line);
+        }
+
+        return new HtmlString(implode('<br>', $lines));
     }
 
     protected static function themeTabSchema(): array

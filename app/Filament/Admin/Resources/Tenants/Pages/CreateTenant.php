@@ -4,6 +4,7 @@ namespace App\Filament\Admin\Resources\Tenants\Pages;
 
 use App\Events\Tenant\TenantCreated;
 use App\Filament\Admin\Resources\Tenants\TenantResource;
+use App\Support\Tenancy\TenantTerms;
 use App\Themes\ThemeManager;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -50,6 +51,7 @@ class CreateTenant extends CreateRecord
     {
         $compositeKeys = [
             ThemeManager::TENANT_THEME_OPTIONS_KEY,
+            TenantTerms::ATTRIBUTE,
         ];
 
         foreach ($data as $key => $value) {

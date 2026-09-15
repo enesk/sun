@@ -27,13 +27,12 @@ class SeoTemplateSeeder extends Seeder
      */
     private const TEMPLATES = [
         'elektriker' => [
-            TenantConfigConstants::SEO_TRADE_PLURAL => 'Elektriker',
-            TenantConfigConstants::SEO_CITY_TITLE => 'Die {count} besten Elektriker in {city} ({year}) | Empfehlungen & Notdienst',
-            TenantConfigConstants::SEO_CITY_DESCRIPTION => 'Vergleiche {count} Elektriker in {city}: Bewertungen, Kontakt, Öffnungszeiten und Notdienst. Kostenlos anfragen.',
-            TenantConfigConstants::SEO_CITY_HEADING => 'Die {count} besten Elektriker in {city}',
-            TenantConfigConstants::SEO_CITY_FALLBACK_TITLE => 'Elektriker in {city} finden ({year}) | Kontakt & Notdienst',
-            TenantConfigConstants::SEO_CITY_FALLBACK_DESCRIPTION => 'Elektriker in {city} finden: Bewertungen, Kontakt, Öffnungszeiten und Notdienst. Kostenlos anfragen.',
-            TenantConfigConstants::SEO_CITY_FALLBACK_HEADING => 'Elektriker in {city} finden',
+            TenantConfigConstants::SEO_CITY_TITLE => 'Die {count} besten {trade} in {city} ({year}) | Empfehlungen & Notdienst',
+            TenantConfigConstants::SEO_CITY_DESCRIPTION => 'Vergleiche {count} {trade} in {city}: Bewertungen, Kontakt, Öffnungszeiten und Notdienst. Kostenlos anfragen.',
+            TenantConfigConstants::SEO_CITY_HEADING => 'Die {count} besten {trade} in {city}',
+            TenantConfigConstants::SEO_CITY_FALLBACK_TITLE => '{trade} in {city} finden ({year}) | Kontakt & Notdienst',
+            TenantConfigConstants::SEO_CITY_FALLBACK_DESCRIPTION => '{trade} in {city} finden: Bewertungen, Kontakt, Öffnungszeiten und Notdienst. Kostenlos anfragen.',
+            TenantConfigConstants::SEO_CITY_FALLBACK_HEADING => '{trade} in {city} finden',
         ],
     ];
 

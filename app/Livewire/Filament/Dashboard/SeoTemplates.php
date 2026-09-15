@@ -67,7 +67,7 @@ class SeoTemplates extends Component implements HasForms
                 Section::make([
                     TextInput::make('trade_plural')
                         ->label('Branchenbezeichnung (Plural)')
-                        ->helperText('Wert für {trade}. Leer = Bezeichnung aus dem Theme, sonst "Firmen".')
+                        ->helperText('Wert für {trade}. Leer = Branchenbegriff (Plural) aus den Branchenbegriffen des Portals.')
                         ->maxLength(80),
                 ])->heading('Allgemein'),
 

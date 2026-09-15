@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Services\SubscriptionService;
+use App\Support\Tenancy\TenantTerms;
+use App\Support\Tenancy\TenantVertical;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -53,6 +55,34 @@ class Tenant extends Model implements TenantWithDatabase
             'created_by',
             'domain'
         ];
+    }
+
+    /**
+     * Branchenbegriffe aus der data-Spalte, immer vollstaendig (#2): fehlende
+     * Keys fallen auf TenantTerms::defaults() zurueck, `portal` auf den Namen.
+     * Greift nur beim Lesen — gespeichert wird weiter der Rohwert.
+     *
+     * @return array<string, string>
+     */
+    public function getTermsAttribute(mixed $value): array
+    {
+        if (is_string($value)) {
+            $value = json_decode($value, true);
+        }
+
+        return TenantTerms::resolve(
+            is_array($value) ? $value : null,
+            ['portal' => (string) ($this->attributes['name'] ?? '')],
+        );
+    }
+
+    /**
+     * Vertikale aus der data-Spalte (#14), immer ein gueltiger Wert:
+     * fehlend oder unbekannt ergibt TenantVertical::DEFAULT.
+     */
+    public function getVerticalAttribute(mixed $value): string
+    {
+        return TenantVertical::resolve($value);
     }
 
     public function getTenantKeyName(): string

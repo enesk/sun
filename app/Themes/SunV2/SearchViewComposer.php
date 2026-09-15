@@ -22,10 +22,11 @@ use Illuminate\View\View;
  */
 final class SearchViewComposer
 {
+    /** Sortierschluessel => Sprachschluessel des Labels (lang/de/portal.php) */
     public const SORTS = [
-        'rating' => 'Bewertung',
-        'newest' => 'Neueste',
-        'az' => 'Name',
+        'rating' => 'portal.layout.filters.sort_rating',
+        'newest' => 'portal.layout.filters.sort_newest',
+        'az' => 'portal.layout.filters.sort_name',
     ];
 
     private const FILTER_KEYS = ['q', 'ort', 'umkreis', 'sort', 'city', 'min_rating', 'rated', 'open_now'];
@@ -54,13 +55,15 @@ final class SearchViewComposer
         $sortKey = array_key_exists($filters['sort'], self::SORTS) ? $filters['sort'] : 'az';
         $place = $filters['city'] ?: $filters['ort'];
 
+        $sortLabels = self::sortLabels();
+
         $view->with('search', [
             'filters' => $filters,
-            'heading' => $this->heading($companies->total(), $filters['q'], $place, $config),
+            'heading' => $this->heading($companies->total(), $filters['q'], $place),
             'crumb' => $this->crumb($filters['q'], $place),
             'subtitle' => $this->subtitle($sortKey, $origin, $radius),
-            'sortLabel' => self::SORTS[$sortKey],
-            'sortLinks' => collect(self::SORTS)->map(fn (string $label, string $key): array => [
+            'sortLabel' => $sortLabels[$sortKey],
+            'sortLinks' => collect($sortLabels)->map(fn (string $label, string $key): array => [
                 'label' => $label,
                 'url' => $this->url(['sort' => $key]),
                 'active' => $key === $sortKey,
@@ -75,9 +78,20 @@ final class SearchViewComposer
             // Leerer Zustand: nur die einschraenkenden Filter entfernen, Suchbegriff und Ort bleiben
             'hasNarrowingFilters' => $filters['city'] !== '' || $filters['min_rating'] !== '' || $filters['rated'] !== '' || $filters['open_now'] !== '',
             'relaxUrl' => $this->url(['city' => null, 'min_rating' => null, 'rated' => null, 'open_now' => null]),
-            'placeholder' => $config['placeholder'],
             'seo' => $config['seo'],
         ]);
+    }
+
+    /**
+     * Uebersetzte Sortierlabels, bei jedem Aufruf frisch — nie in einer
+     * Konstante oder statischen Variable halten, sonst traegt ein
+     * Tenant-Wechsel im selben Prozess die Begriffe des Vorgaengers weiter.
+     *
+     * @return array<string, string>
+     */
+    public static function sortLabels(): array
+    {
+        return array_map(fn (string $key): string => __($key), self::SORTS);
     }
 
     /**
@@ -107,35 +121,28 @@ final class SearchViewComposer
 
     /**
      * H1 und Title-Kern: "6 Elektriker für „Test“", "12 Elektriker in Hamburg".
-     *
-     * @param  array<string, mixed>  $config
+     * Einzahl/Mehrzahl waehlt trans_choice() am Rohwert, :anzahl ist formatiert.
      */
-    private function heading(int $total, string $term, string $place, array $config): string
+    private function heading(int $total, string $term, string $place): string
     {
-        $noun = $total === 1 ? $config['branch_singular'] : $config['branch_plural'];
-        $count = number_format($total, 0, ',', '.');
-
-        if ($total === 0) {
-            return match (true) {
-                $term !== '' && $place !== '' => "Keine {$noun} für „{$term}“ in {$place} gefunden",
-                $term !== '' => "Keine {$noun} für „{$term}“ gefunden",
-                $place !== '' => "Keine {$noun} in {$place} gefunden",
-                default => "Keine {$noun} gefunden",
-            };
-        }
-
-        return match (true) {
-            $term !== '' && $place !== '' => "{$count} {$noun} für „{$term}“ in {$place}",
-            $term !== '' => "{$count} {$noun} für „{$term}“",
-            $place !== '' => "{$count} {$noun} in {$place}",
-            default => "{$count} {$noun}",
+        $variant = match (true) {
+            $term !== '' && $place !== '' => 'term_place',
+            $term !== '' => 'term',
+            $place !== '' => 'place',
+            default => 'all',
         };
+
+        return trans_choice("portal.search.heading.{$variant}", $total, [
+            'anzahl' => number_format($total, 0, ',', '.'),
+            'begriff' => $term,
+            'ort' => $place,
+        ]);
     }
 
     private function crumb(string $term, string $place): ?string
     {
         return match (true) {
-            $term !== '' => "Suche „{$term}“",
+            $term !== '' => __('portal.layout.breadcrumb.search', ['begriff' => $term]),
             $place !== '' => $place,
             default => null,
         };
@@ -143,10 +150,10 @@ final class SearchViewComposer
 
     private function subtitle(string $sortKey, ?City $origin, ?int $radius): string
     {
-        $parts = ['Sortiert nach '.self::SORTS[$sortKey]];
+        $parts = [__('portal.search.subtitle_sort', ['sortierung' => __(self::SORTS[$sortKey])])];
 
         if ($origin && $radius) {
-            $parts[] = "Umkreis {$radius} km um {$origin->name}";
+            $parts[] = __('portal.search.subtitle_radius', ['km' => $radius, 'ort' => $origin->name]);
         }
 
         return implode(' · ', $parts);
@@ -168,10 +175,10 @@ final class SearchViewComposer
         ];
 
         return [
-            $toggle('Ab 4 Sterne', 'min_rating', '4'),
-            $toggle('Jetzt geöffnet', 'open_now', '1'),
+            $toggle(__('portal.layout.filters.min_rating'), 'min_rating', '4'),
+            $toggle(__('portal.layout.filters.open_now'), 'open_now', '1'),
             $toggle($quickTerm, 'q', $quickTerm),
-            $toggle('Mit Bewertungen', 'rated', '1'),
+            $toggle(__('portal.layout.filters.rated'), 'rated', '1'),
         ];
     }
 

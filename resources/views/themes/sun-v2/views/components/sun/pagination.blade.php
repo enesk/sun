@@ -1,11 +1,11 @@
 {{-- Seitennavigation der Vorlage: Text-Buttons aussen, Kreise mit Seitenzahlen in der Mitte. --}}
 @props(['paginator', 'pages'])
 @if($pages !== [])
-<nav aria-label="Seiten" class="mt-4 flex flex-wrap items-center justify-center sm:justify-between gap-3">
+<nav aria-label="{{ __('portal.layout.pagination.label') }}" class="mt-4 flex flex-wrap items-center justify-center sm:justify-between gap-3">
   @if($paginator->onFirstPage())
-    <span class="btn-ghost opacity-40 pointer-events-none" aria-disabled="true">Zurück</span>
+    <span class="btn-ghost opacity-40 pointer-events-none" aria-disabled="true">{{ __('portal.layout.pagination.previous') }}</span>
   @else
-    <a href="{{ $paginator->previousPageUrl() }}" class="btn-ghost" rel="prev">Zurück</a>
+    <a href="{{ $paginator->previousPageUrl() }}" class="btn-ghost" rel="prev">{{ __('portal.layout.pagination.previous') }}</a>
   @endif
   <ul class="order-first sm:order-none w-full sm:w-auto flex items-center justify-center gap-1">
     @foreach($pages as $page)
@@ -19,9 +19,9 @@
     @endforeach
   </ul>
   @if($paginator->hasMorePages())
-    <a href="{{ $paginator->nextPageUrl() }}" class="btn-ghost" rel="next">Weiter</a>
+    <a href="{{ $paginator->nextPageUrl() }}" class="btn-ghost" rel="next">{{ __('portal.layout.pagination.next') }}</a>
   @else
-    <span class="btn-ghost opacity-40 pointer-events-none" aria-disabled="true">Weiter</span>
+    <span class="btn-ghost opacity-40 pointer-events-none" aria-disabled="true">{{ __('portal.layout.pagination.next') }}</span>
   @endif
 </nav>
 @endif

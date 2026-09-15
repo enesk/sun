@@ -14,7 +14,7 @@
 @endphp
 
 @section('title', $search['heading'].' | '.($currentTenant->name ?? config('app.name')))
-@section('meta_description', $search['heading'].' – mit Bewertungen, Öffnungszeiten und direkter Telefonnummer.')
+@section('meta_description', __('portal.search.meta_description', ['ueberschrift' => $search['heading']]))
 
 @section('content')
 
@@ -22,34 +22,34 @@
 <form action="{{ route('portal.companies.index') }}" method="get" role="search" class="sticky top-16 z-30 bg-white border-b border-zinc-200 py-3">
   <input type="hidden" name="sort" value="{{ $filters['sort'] ?: 'rating' }}">
   <div class="container-portal grid gap-3 grid-cols-[1fr_auto] sm:grid-cols-[1fr_1fr_auto] lg:grid-cols-[1fr_1fr_auto_auto]">
-    <label class="sr-only" for="q">Was suchst du?</label>
+    <label class="sr-only" for="q">{{ __('portal.layout.search_form.what_label') }}</label>
     <div class="relative">
       <x-sun.icon name="search" class="icon absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
-      <input id="q" name="q" class="input pl-10" value="{{ $filters['q'] }}" placeholder="{{ $search['placeholder'] }}">
+      <input id="q" name="q" class="input pl-10" value="{{ $filters['q'] }}" placeholder="{{ __('portal.layout.search_form.placeholder') }}">
     </div>
     <div class="hidden sm:block relative">
-      <label class="sr-only" for="ort">Wo?</label>
+      <label class="sr-only" for="ort">{{ __('portal.layout.search_form.where_label') }}</label>
       <x-sun.icon name="map-pin" class="icon absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
-      <input id="ort" name="ort" class="input pl-10" value="{{ $filters['ort'] }}" placeholder="Ort oder PLZ">
+      <input id="ort" name="ort" class="input pl-10" value="{{ $filters['ort'] }}" placeholder="{{ __('portal.layout.search_form.where_placeholder') }}">
     </div>
-    <select name="umkreis" class="input hidden lg:block lg:w-32" aria-label="Umkreis">
+    <select name="umkreis" class="input hidden lg:block lg:w-32" aria-label="{{ __('portal.layout.search_form.radius_label') }}">
       @foreach(\App\Services\CompanyLocationSearch::RADII as $km)
-        <option value="{{ $km }}" @selected((int) ($filters['umkreis'] ?: \App\Services\CompanyLocationSearch::DEFAULT_RADIUS) === $km)>{{ $km }} km</option>
+        <option value="{{ $km }}" @selected((int) ($filters['umkreis'] ?: \App\Services\CompanyLocationSearch::DEFAULT_RADIUS) === $km)>{{ __('portal.layout.search_form.radius_option', ['km' => $km]) }}</option>
       @endforeach
     </select>
-    <button type="submit" class="btn-primary px-4 sm:px-5">Finden</button>
+    <button type="submit" class="btn-primary px-4 sm:px-5">{{ __('portal.layout.search_form.submit') }}</button>
   </div>
 </form>
 
 <div class="container-portal pt-6 pb-12 md:pb-16">
 
-  <nav aria-label="Brotkrumen" class="text-sm text-zinc-500 flex items-center gap-1.5">
-    <a href="{{ route('home') }}" class="hover:text-brand hidden sm:inline">Start</a><x-sun.icon name="chevron-right" class="hidden sm:block size-4 text-zinc-400" />
+  <nav aria-label="{{ __('portal.layout.breadcrumb.label') }}" class="text-sm text-zinc-500 flex items-center gap-1.5">
+    <a href="{{ route('home') }}" class="hover:text-brand hidden sm:inline">{{ __('portal.layout.breadcrumb.home') }}</a><x-sun.icon name="chevron-right" class="hidden sm:block size-4 text-zinc-400" />
     @if($search['crumb'])
-      <a href="{{ route('portal.companies.index') }}" class="hover:text-brand">{{ config('themes.sun-v2.search.branch_plural') }}</a><x-sun.icon name="chevron-right" class="size-4 text-zinc-400" />
+      <a href="{{ route('portal.companies.index') }}" class="hover:text-brand">{{ __('portal.search.crumb') }}</a><x-sun.icon name="chevron-right" class="size-4 text-zinc-400" />
       <span class="text-zinc-900">{{ $search['crumb'] }}</span>
     @else
-      <span class="text-zinc-900">{{ config('themes.sun-v2.search.branch_plural') }}</span>
+      <span class="text-zinc-900">{{ __('portal.search.crumb') }}</span>
     @endif
   </nav>
 
@@ -59,9 +59,9 @@
   @endif
 
   <!-- ========== FILTERLEISTE (horizontal scrollbar auf Mobile) ========== -->
-  <div class="mt-5 -mx-4 px-4 sm:mx-0 sm:px-0 flex gap-2 overflow-x-auto scroll-snap pb-1" role="group" aria-label="Filter">
-    <button type="button" class="pill-link whitespace-nowrap" data-disclosure="filter" aria-expanded="false" aria-controls="filter-sort">Sortierung: {{ $search['sortLabel'] }} <x-sun.icon name="chevron-down" class="size-4" /></button>
-    <button type="button" @class(['pill-link whitespace-nowrap', 'border-brand text-brand' => $filters['city'] !== '']) data-disclosure="filter" aria-expanded="false" aria-controls="filter-city">{{ $filters['city'] ?: 'Stadt' }} <x-sun.icon name="chevron-down" class="size-4" /></button>
+  <div class="mt-5 -mx-4 px-4 sm:mx-0 sm:px-0 flex gap-2 overflow-x-auto scroll-snap pb-1" role="group" aria-label="{{ __('portal.layout.filters.label') }}">
+    <button type="button" class="pill-link whitespace-nowrap" data-disclosure="filter" aria-expanded="false" aria-controls="filter-sort">{{ __('portal.layout.filters.sort', ['sortierung' => $search['sortLabel']]) }} <x-sun.icon name="chevron-down" class="size-4" /></button>
+    <button type="button" @class(['pill-link whitespace-nowrap', 'border-brand text-brand' => $filters['city'] !== '']) data-disclosure="filter" aria-expanded="false" aria-controls="filter-city">{{ $filters['city'] ?: __('portal.layout.filters.city') }} <x-sun.icon name="chevron-down" class="size-4" /></button>
     @foreach($search['toggles'] as $toggle)
       <a href="{{ $toggle['url'] }}" @class(['pill-link whitespace-nowrap', 'border-brand text-brand' => $toggle['active']]) aria-pressed="{{ $toggle['active'] ? 'true' : 'false' }}" role="button">{{ $toggle['label'] }}</a>
     @endforeach
@@ -73,7 +73,7 @@
   </div>
   <div id="filter-city" hidden class="mt-3 flex flex-wrap gap-2">
     @if($filters['city'] !== '')
-      <a href="{{ $search['resetCityUrl'] }}" class="pill-link whitespace-nowrap text-brand">Alle Städte</a>
+      <a href="{{ $search['resetCityUrl'] }}" class="pill-link whitespace-nowrap text-brand">{{ __('portal.layout.filters.all_cities') }}</a>
     @endif
     @foreach($search['cityLinks']['chips'] as $chip)
       <a href="{{ $chip['url'] }}" @class(['pill-link whitespace-nowrap', 'border-brand text-brand' => $chip['active']])>{{ $chip['label'] }} <span class="text-zinc-400 font-normal">{{ number_format($chip['count'], 0, ',', '.') }}</span></a>
@@ -89,7 +89,7 @@
 
         @if($loop->iteration === 3 && $betweenAd)
           <div class="rounded-2xl bg-zinc-100 overflow-hidden" style="min-height:280px">
-            <span class="block text-xs text-zinc-400 px-3 pt-2">Anzeige</span>
+            <span class="block text-xs text-zinc-400 px-3 pt-2">{{ __('portal.layout.ad_label') }}</span>
             <x-ad-slot position="listing_between_results" />
           </div>
         @endif
@@ -105,19 +105,19 @@
       <aside class="hidden xl:block">
         <div class="sticky top-36 flex flex-col gap-4">
           <div class="card overflow-hidden">
-            <div class="aspect-[4/3] bg-zinc-100 relative" role="img" aria-label="Karte mit {{ count($search['pins']['items']) }} Ergebnissen">
+            <div class="aspect-[4/3] bg-zinc-100 relative" role="img" aria-label="{{ trans_choice('portal.search.map_label', count($search['pins']['items']), ['anzahl' => count($search['pins']['items'])]) }}">
               <x-sun.icon name="map-lines" class="absolute inset-0 size-full text-zinc-200" viewBox="0 0 400 300" />
               @foreach($search['pins']['items'] as $pin)
                 <span class="absolute size-8 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand text-white text-xs font-bold flex items-center justify-center ring-4 ring-white" style="left:{{ $pin['left'] }}%;top:{{ $pin['top'] }}%">{{ $pin['number'] }}</span>
               @endforeach
             </div>
             <div class="p-4">
-              <a href="https://www.openstreetmap.org/#map=11/{{ round($center['lat'], 4) }}/{{ round($center['lng'], 4) }}" class="btn-secondary w-full" target="_blank" rel="noopener noreferrer">Karte öffnen</a>
+              <a href="https://www.openstreetmap.org/#map=11/{{ round($center['lat'], 4) }}/{{ round($center['lng'], 4) }}" class="btn-secondary w-full" target="_blank" rel="noopener noreferrer">{{ __('portal.search.map_open') }}</a>
             </div>
           </div>
           @if($skyscraperAd)
             <div class="rounded-2xl bg-zinc-100 overflow-hidden" style="min-height:600px">
-              <span class="block text-xs text-zinc-400 px-3 pt-2">Anzeige</span>
+              <span class="block text-xs text-zinc-400 px-3 pt-2">{{ __('portal.layout.ad_label') }}</span>
               <x-ad-slot position="sidebar_sticky" />
             </div>
           @endif
@@ -129,13 +129,13 @@
   <!-- ========== STÄDTE-CHIPS ========== -->
   @if($search['cityLinks']['chips'] !== [])
     <section class="mt-12 md:mt-16">
-      <h2 class="text-2xl font-semibold text-zinc-900">Ergebnisse nach Stadt eingrenzen</h2>
+      <h2 class="text-2xl font-semibold text-zinc-900">{{ __('portal.search.cities_heading') }}</h2>
       <div class="mt-4 flex flex-wrap gap-2">
         @foreach($search['cityLinks']['chips'] as $chip)
           <a href="{{ $chip['url'] }}" @class(['pill-link whitespace-nowrap', 'border-brand text-brand' => $chip['active']])>{{ $chip['label'] }} <span class="text-zinc-400 font-normal">{{ number_format($chip['count'], 0, ',', '.') }}</span></a>
         @endforeach
         @if($search['cityLinks']['more'] > 0)
-          <a href="{{ route('portal.cities.index') }}" class="pill-link whitespace-nowrap text-brand">{{ $search['cityLinks']['more'] }} weitere Städte</a>
+          <a href="{{ route('portal.cities.index') }}" class="pill-link whitespace-nowrap text-brand">{{ trans_choice('portal.search.cities_more', $search['cityLinks']['more'], ['anzahl' => number_format($search['cityLinks']['more'], 0, ',', '.')]) }}</a>
         @endif
       </div>
     </section>

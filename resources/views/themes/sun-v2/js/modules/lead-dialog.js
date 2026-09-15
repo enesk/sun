@@ -1,14 +1,13 @@
 /*
- * Anfrage-Dialog "Angebot anfragen" auf dem Firmenprofil (Vorlage sun-v2--profil.html).
+ * Anfrage-Dialog auf dem Firmenprofil (Vorlage sun-v2--profil.html).
  *
  * Headless an die oeffentliche Funnel-Runtime-API des Leadsystems angebunden:
  * Dialog oeffnet -> POST /sessions, "Weiter" -> PATCH /answers, "Angebot
- * anfragen" -> POST /submit. Die Sitzung rueckt nur vor, wenn die Pruefung des
+ * anfragen" (portal.profile.request_cta) -> POST /submit. Die Sitzung rueckt nur vor, wenn die Pruefung des
  * Servers besteht; 422-Fehler landen direkt unter den Feldern.
  */
 
-const TITLES = { 1: 'Was brauchst du?', 2: 'Wo und wann?', 3: 'Wie erreichen wir dich?', done: 'Danke!' };
-const TEL_HINT = 'Der Betrieb ruft dich zurück – darum brauchen wir die Nummer.';
+// Texte kommen fertig uebersetzt aus data-texts (partials/sun/lead-dialog, portal.request.*)
 const SESSION_KEY = 'wl_session';
 
 class ApiError extends Error {
@@ -58,7 +57,6 @@ export function initLeadDialog() {
 
     const apiBase = (dialog.dataset.leadApi || '').replace(/\/$/, '');
     const token = dialog.dataset.leadToken || '';
-    const company = dialog.dataset.company || '';
     // Funnel-Feld firmenprofil ist Text: Profil-Link des Betriebs, nie vom Nutzer
     let companyKey = null;
     try {
@@ -73,6 +71,7 @@ export function initLeadDialog() {
     const prevButton = form.querySelector('[data-prev]');
     const errorBox = form.querySelector('[data-lead-error]');
     const telHint = document.getElementById('telHint');
+    const texts = JSON.parse(dialog.dataset.texts);
 
     let current = 1;
     let sessionToken = sessionStorage.getItem(SESSION_KEY);
@@ -88,7 +87,7 @@ export function initLeadDialog() {
                 body: payload ? JSON.stringify(payload) : undefined,
             });
         } catch {
-            throw new ApiError(0, 'Keine Verbindung. Bitte prüfe dein Internet und versuch es noch einmal.');
+            throw new ApiError(0, texts.errors.offline);
         }
 
         const json = await response.json().catch(() => ({}));
@@ -141,17 +140,17 @@ export function initLeadDialog() {
             el.classList.add('hidden');
         });
         form.querySelectorAll('.border-red-500').forEach((el) => el.classList.remove('border-red-500'));
-        telHint.textContent = TEL_HINT;
+        telHint.textContent = texts.telHint;
         telHint.classList.remove('text-red-600');
         telHint.classList.add('text-zinc-500');
     }
 
     function showGeneralError(error) {
         const messages = {
-            429: 'Gerade kommen sehr viele Anfragen an. Bitte warte einen Moment und versuch es dann noch einmal.',
-            403: 'Anfragen sind von dieser Seite aus gerade nicht möglich. Bitte ruf den Betrieb direkt an.',
+            429: texts.errors.rateLimited,
+            403: texts.errors.forbidden,
         };
-        errorBox.textContent = messages[error.status] || error.message || 'Das hat nicht geklappt. Bitte versuch es noch einmal.';
+        errorBox.textContent = messages[error.status] || error.message || texts.errors.generic;
         errorBox.classList.remove('hidden');
     }
 
@@ -193,10 +192,10 @@ export function initLeadDialog() {
         current = step;
         steps.forEach((el) => el.classList.toggle('hidden', el.dataset.step !== String(step)));
         body.scrollTop = 0;
-        document.getElementById('leadTitle').textContent = TITLES[step];
-        document.getElementById('leadStep').textContent = step === 'done' ? `Anfrage an ${company}` : `Schritt ${step} von 3`;
+        document.getElementById('leadTitle').textContent = texts.titles[step];
+        document.getElementById('leadStep').textContent = texts.steps[step];
         prevButton.classList.toggle('hidden', step === 1 || step === 'done');
-        nextButton.textContent = step === 3 ? 'Angebot anfragen' : (step === 'done' ? 'Schließen' : 'Weiter');
+        nextButton.textContent = step === 3 ? texts.submit : (step === 'done' ? texts.close : texts.next);
         form.querySelector('[data-privacy]').classList.toggle('hidden', step === 'done');
     }
 
@@ -207,7 +206,7 @@ export function initLeadDialog() {
         show(1);
 
         if (!token || !apiBase) {
-            showGeneralError({ status: 0, message: 'Anfragen sind gerade nicht möglich. Bitte ruf den Betrieb direkt an.' });
+            showGeneralError({ status: 0, message: texts.errors.unavailable });
 
             return;
         }
@@ -258,7 +257,7 @@ export function initLeadDialog() {
 
             if (missing.length) {
                 missing.forEach((input) => input.classList.add('border-red-500'));
-                telHint.textContent = 'Gib Name und Telefonnummer an, damit der Betrieb dich erreichen kann.';
+                telHint.textContent = texts.errors.contactMissing;
                 telHint.classList.add('text-red-600');
                 telHint.classList.remove('text-zinc-500');
 
@@ -267,7 +266,7 @@ export function initLeadDialog() {
         }
 
         if (!sessionToken) {
-            showGeneralError({ status: 0, message: 'Anfragen sind gerade nicht möglich. Bitte ruf den Betrieb direkt an.' });
+            showGeneralError({ status: 0, message: texts.errors.unavailable });
 
             return;
         }

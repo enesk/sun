@@ -8,14 +8,14 @@
 @php
     $sections = $legal['sections'];
     $supportEmail = $legal['contact']['email'];
-    $reportUrl = $supportEmail !== '' ? 'mailto:'.$supportEmail.'?subject='.rawurlencode('Inhalt melden') : null;
+    $reportUrl = $supportEmail !== '' ? 'mailto:'.$supportEmail.'?subject='.rawurlencode(__('portal.legal.report')) : null;
     $prose = 'mt-3 [&_p]:mt-3 [&_p:first-child]:mt-0 [&_a]:text-brand [&_a]:break-words [&_a:hover]:underline [&_strong]:font-semibold [&_strong]:text-zinc-900 [&_ul]:mt-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:mt-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mt-1 [&_h3]:mt-5 [&_h3]:font-semibold [&_h3]:text-zinc-900 [&_table]:mt-3 [&_td]:py-1 [&_td]:pr-4';
 @endphp
 <div class="container-portal pt-6 pb-12 md:pb-16">
   <div class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_16rem] xl:items-start">
 
     <article class="min-w-0 max-w-3xl">
-      <nav aria-label="Brotkrumen" class="text-sm text-zinc-500 flex items-center gap-1.5">
+      <nav aria-label="{{ __('portal.layout.breadcrumb.label') }}" class="text-sm text-zinc-500 flex items-center gap-1.5">
         @foreach($crumbs as [$label, $url])
           @if($url)
             <a href="{{ $url }}" class="hover:text-brand">{{ $label }}</a><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" />
@@ -26,7 +26,7 @@
       </nav>
 
       <h1 class="mt-4 text-3xl md:text-4xl font-bold tracking-tight text-zinc-900">{{ $title }}</h1>
-      <p class="mt-3 text-zinc-500">{{ implode(' · ', array_filter([$subtitle, $legal['stand'] ? 'Stand: '.$legal['stand'] : null])) }}</p>
+      <p class="mt-3 text-zinc-500">{{ implode(' · ', array_filter([$subtitle, $legal['stand'] ? __('portal.legal.as_of', ['datum' => $legal['stand']]) : null])) }}</p>
 
       <!-- Kontaktkarte -->
       @if($legal['contact']['address'] !== [] || $supportEmail !== '')
@@ -51,7 +51,7 @@
       @if($sections !== [])
         <!-- Inhalt (nur Mobile/Tablet) -->
         <nav class="card p-5 mt-6 xl:hidden" aria-labelledby="toc">
-          <h2 id="toc" class="font-semibold text-zinc-900">Inhalt</h2>
+          <h2 id="toc" class="font-semibold text-zinc-900">{{ __('portal.legal.toc') }}</h2>
           <ol class="mt-1 divide-y divide-zinc-100">
             @foreach($sections as $section)
               <li><a href="#{{ $section['id'] }}" class="flex items-start gap-2 min-h-11 py-2 hover:text-brand"><span class="text-zinc-400 tabular-nums">{{ $loop->iteration }}.</span><span>{{ $section['title'] }}</span></a></li>
@@ -73,15 +73,15 @@
             @if($reportUrl && str_starts_with(mb_strtolower($section['title']), 'haftung') && ! isset($reportShown))
               @php($reportShown = true)
               <div class="mt-5 rounded-2xl bg-brand-50 p-5">
-                <p class="font-semibold text-zinc-900">Fehlerhaften Eintrag melden</p>
-                <p class="mt-1">Stimmt eine Angabe zu deinem Betrieb nicht oder soll ein Eintrag entfernt werden? Schreib uns – wir kümmern uns in der Regel innerhalb von zwei Werktagen.</p>
-                <a href="{{ $reportUrl }}" class="mt-4 btn-secondary">Inhalt melden</a>
+                <p class="font-semibold text-zinc-900">{{ __('portal.legal.report_heading') }}</p>
+                <p class="mt-1">{{ __('portal.legal.report_text') }}</p>
+                <a href="{{ $reportUrl }}" class="mt-4 btn-secondary">{{ __('portal.legal.report') }}</a>
               </div>
             @endif
           </section>
         @empty
           @if($legal['intro'] === '')
-            <p class="text-zinc-500">Dieser Text wird noch eingerichtet.</p>
+            <p class="text-zinc-500">{{ __('portal.legal.pending') }}</p>
           @endif
         @endforelse
       </div>
@@ -91,7 +91,7 @@
           <a href="{{ $url }}" class="text-brand hover:underline">{{ $label }}</a>
         @endforeach
         @if($reportUrl)
-          <a href="{{ $reportUrl }}" class="text-brand hover:underline">Inhalt melden</a>
+          <a href="{{ $reportUrl }}" class="text-brand hover:underline">{{ __('portal.legal.report') }}</a>
         @endif
       </div>
     </article>
@@ -99,8 +99,8 @@
     @if($sections !== [])
       <!-- Inhalt (Desktop) -->
       <aside class="hidden xl:block">
-        <nav class="card p-5 sticky top-24" aria-label="Inhalt (Seitenleiste)">
-          <p class="font-semibold text-zinc-900">Auf dieser Seite</p>
+        <nav class="card p-5 sticky top-24" aria-label="{{ __('portal.legal.toc_sidebar_label') }}">
+          <p class="font-semibold text-zinc-900">{{ __('portal.legal.toc_sidebar') }}</p>
           <ol class="mt-2 flex flex-col gap-1 text-sm">
             @foreach($sections as $section)
               <li><a href="#{{ $section['id'] }}" class="block py-1 hover:text-brand">{{ $section['title'] }}</a></li>

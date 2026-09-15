@@ -39,10 +39,9 @@ final class NewCompanyNotifier
             'address' => $company->full_address ?: null,
             'tel' => $company->tel ?: null,
             'website' => $company->website ?: null,
-            'status' => $company->is_active ? 'online' : 'wartet auf Freischaltung',
+            'is_active' => (bool) $company->is_active,
             'owner' => (string) $owner->name,
             'owner_email' => (string) $owner->email,
-            'portal' => (string) (tenant()?->getAttribute('name') ?? config('app.name')),
             'edit_url' => route('verwaltung.companies.edit', $company->id),
             'created_at' => $company->created_at?->timezone('Europe/Berlin')->format('d.m.Y H:i'),
         ];

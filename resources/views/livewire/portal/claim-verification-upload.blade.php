@@ -12,7 +12,7 @@
                  x-on:drop.prevent="handleDrop($event)"
                  :class="{ 'claim-verify-dropzone--active': dragover }"
                  role="region"
-                 aria-label="Dokumente hochladen">
+                 aria-label="{{ __('portal.claim.upload.region_label') }}">
 
                 <input type="file"
                        wire:model="documents"
@@ -30,10 +30,10 @@
                         </svg>
                     </div>
                     <p class="claim-verify-dropzone__text">
-                        <strong>Dateien hierher ziehen</strong> oder klicken zum Auswählen
+                        <strong>{{ __('portal.claim.upload.drop_title') }}</strong> {{ __('portal.claim.upload.drop_text') }}
                     </p>
                     <p class="claim-verify-dropzone__hint" id="upload-hint">
-                        PDF, JPG oder PNG — max. 10 MB pro Datei — max. 5 Dateien
+                        {{ __('portal.claim.upload.hint') }}
                     </p>
                 </label>
             </div>
@@ -44,14 +44,14 @@
                     <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0; color: var(--portal-primary, #3B82F6);">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <span class="claim-verify-info__title" style="margin: 0;">Welche Dokumente werden akzeptiert?</span>
+                    <span class="claim-verify-info__title" style="margin: 0;">{{ __('portal.claim.upload.accepted.heading') }}</span>
                 </summary>
                 <ul class="claim-verify-info__list" style="margin-top: 0.5rem;">
-                    <li>Gewerbeanmeldung</li>
-                    <li>Handelsregisterauszug</li>
-                    <li>Handwerkskarte</li>
-                    <li>IHK-/HWK-Bescheinigung</li>
-                    <li>Geschäftsbrief/Rechnung mit Firmenname + Adresse</li>
+                    <li>{{ __('portal.claim.upload.accepted.trade_registration') }}</li>
+                    <li>{{ __('portal.claim.upload.accepted.commercial_register') }}</li>
+                    <li>{{ __('portal.claim.upload.accepted.craft_card') }}</li>
+                    <li>{{ __('portal.claim.upload.accepted.chamber_certificate') }}</li>
+                    <li>{{ __('portal.claim.upload.accepted.business_letter') }}</li>
                 </ul>
             </details>
 
@@ -60,12 +60,12 @@
                 <div class="claim-verify-progress__bar">
                     <div class="claim-verify-progress__fill"></div>
                 </div>
-                <p class="claim-verify-progress__text">Dateien werden hochgeladen...</p>
+                <p class="claim-verify-progress__text">{{ __('portal.claim.upload.uploading') }}</p>
             </div>
 
             {{-- Datei-Liste --}}
             @if(count($documents) > 0)
-                <div class="claim-verify-files" role="list" aria-label="Hochgeladene Dateien">
+                <div class="claim-verify-files" role="list" aria-label="{{ __('portal.claim.upload.files_label') }}">
                     @foreach($documents as $index => $doc)
                         <div class="claim-verify-file" role="listitem" wire:key="doc-{{ $index }}">
                             <div class="claim-verify-file__icon">
@@ -86,7 +86,7 @@
                             <button type="button"
                                     wire:click="removeDocument({{ $index }})"
                                     class="claim-verify-file__remove"
-                                    aria-label="Datei entfernen: {{ $doc->getClientOriginalName() }}">
+                                    aria-label="{{ __('portal.claim.verification.remove_label', ['datei' => $doc->getClientOriginalName()]) }}">
                                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
@@ -109,16 +109,16 @@
             {{-- Optionaler Kommentar --}}
             <div class="claim-verify-comment">
                 <label for="claim-comment" class="claim-verify-comment__label">
-                    Optionaler Kommentar
+                    {{ __('portal.claim.upload.comment_label') }}
                 </label>
                 <textarea wire:model="comment"
                           id="claim-comment"
                           rows="3"
-                          placeholder="Z.B. Ich bin der Inhaber seit 2018, die Gewerbeanmeldung ist auf meinen Namen ausgestellt..."
+                          placeholder="{{ __('portal.claim.upload.comment_placeholder') }}"
                           class="claim-verify-comment__input"
                           maxlength="1000"></textarea>
                 <p class="claim-verify-comment__hint">
-                    Hilft uns bei der Prüfung — ist aber nicht verpflichtend.
+                    {{ __('portal.claim.upload.comment_hint') }}
                 </p>
             </div>
 
@@ -128,8 +128,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                 </svg>
                 <span>
-                    Ihre Dokumente werden verschlüsselt übertragen und nach 90 Tagen automatisch gelöscht.
-                    <a href="{{ route('portal.datenschutz') }}" class="claim-verify-dsgvo__link">Datenschutzerklärung</a>
+                    {{ __('portal.claim.upload.privacy') }}
+                    <a href="{{ route('portal.datenschutz') }}" class="claim-verify-dsgvo__link">{{ __('portal.claim.upload.privacy_link') }}</a>
                 </span>
             </div>
 
@@ -142,13 +142,13 @@
                     class="claim-verify-submit"
                     {{ count($documents) === 0 ? 'disabled' : '' }}>
                 <span wire:loading.remove wire:target="submit">
-                    Dokumente einreichen
+                    {{ __('portal.claim.upload.submit') }}
                     <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                     </svg>
                 </span>
                 <span wire:loading wire:target="submit">
-                    Wird eingereicht...
+                    {{ __('portal.claim.upload.submitting') }}
                 </span>
             </button>
         </div>
@@ -166,14 +166,16 @@
                 </svg>
             </div>
 
-            <h2 class="claim-verify-success__title">Ihre Unterlagen sind eingereicht!</h2>
+            <h2 class="claim-verify-success__title">{{ __('portal.claim.upload.success.heading') }}</h2>
             <p class="claim-verify-success__text">
-                Wir prüfen Ihre Dokumente innerhalb von <strong>48 Stunden</strong>. Sie erhalten eine E-Mail, sobald die Prüfung abgeschlossen ist.
+                {!! strtr(e(__('portal.claim.upload.success.text', ['dauer' => '[[dauer]]'])), [
+                    '[[dauer]]' => '<strong>'.e(__('portal.claim.upload.success.duration')).'</strong>',
+                ]) !!}
             </p>
 
             {{-- Was passiert als Nächstes? --}}
             <div class="claim-verify-success__next">
-                <h3 class="claim-verify-success__next-title">Was passiert jetzt?</h3>
+                <h3 class="claim-verify-success__next-title">{{ __('portal.claim.upload.success.next_heading') }}</h3>
                 <div class="claim-verify-success__next-steps">
                     <div class="claim-verify-success__step">
                         <div class="claim-verify-success__step-icon claim-verify-success__step-icon--done">
@@ -181,7 +183,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
                             </svg>
                         </div>
-                        <span>Dokumente hochgeladen</span>
+                        <span>{{ __('portal.claim.upload.success.step_uploaded') }}</span>
                     </div>
                     <div class="claim-verify-success__step">
                         <div class="claim-verify-success__step-icon claim-verify-success__step-icon--active">
@@ -189,18 +191,18 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                         </div>
-                        <span>Prüfung durch unser Team (bis 48h)</span>
+                        <span>{{ __('portal.claim.upload.success.step_review') }}</span>
                     </div>
                     <div class="claim-verify-success__step">
                         <div class="claim-verify-success__step-icon">3</div>
-                        <span>Firma wird Ihnen zugewiesen + Trial startet</span>
+                        <span>{{ __('portal.claim.upload.success.step_assigned') }}</span>
                     </div>
                 </div>
             </div>
 
             {{-- CTA: Zurück zum Portal --}}
             <a href="{{ route('home') }}" class="claim-verify-success__cta">
-                Zurück zum Portal
+                {{ __('portal.claim.upload.success.back') }}
                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                 </svg>

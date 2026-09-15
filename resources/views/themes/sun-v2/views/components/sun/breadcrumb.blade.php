@@ -6,7 +6,7 @@
     app(\App\Services\Seo\SeoService::class)->forBreadcrumbs($items);
 @endphp
 @if(count($items) > 1)
-  <nav aria-label="Brotkrumen" class="text-sm text-zinc-500 flex items-center gap-1.5 flex-wrap">
+  <nav aria-label="{{ __('portal.layout.breadcrumb.label') }}" class="text-sm text-zinc-500 flex items-center gap-1.5 flex-wrap">
     @foreach($items as $item)
       @if($loop->last)
         <span class="text-zinc-900" aria-current="page">{{ $item['label'] }}</span>

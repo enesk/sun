@@ -24,7 +24,7 @@
     $loginFailed = $panel === 'login' && ($errors->has('email') || $errors->has('password'));
 @endphp
 
-@section('title', 'Anmelden | '.($currentTenant->name ?? config('app.name')))
+@section('title', __('portal.auth.login.title').' | '.($currentTenant->name ?? config('app.name')))
 @section('meta_robots', 'noindex, follow')
 @section('footer_compact', '1')
 
@@ -37,30 +37,30 @@
 
       <!-- Anmelden -->
       <div data-panel="login" @class(['hidden' => $panel !== 'login'])>
-        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-zinc-900">Anmelden</h1>
+        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-zinc-900">{{ __('portal.auth.login.title') }}</h1>
         <p class="mt-2 text-zinc-500">{{ $sunLogin['intro'] }}</p>
 
         <form method="POST" action="{{ route('login') }}" class="mt-6">
           @csrf
-          <label for="email" class="block text-sm font-medium text-zinc-700 mb-1">E-Mail</label>
+          <label for="email" class="block text-sm font-medium text-zinc-700 mb-1">{{ __('portal.signup.account.email_label') }}</label>
           <input id="email" name="email" type="email" value="{{ $panel === 'login' ? old('email') : '' }}" @class(['input', 'border-red-500' => $loginFailed]) autocomplete="username" inputmode="email" required @if($panel === 'login') autofocus @endif>
 
           <div class="mt-4 flex items-center justify-between gap-4">
-            <label for="pass" class="text-sm font-medium text-zinc-700">Passwort</label>
-            <a href="{{ route('password.request') }}" class="text-sm text-brand font-medium hover:underline" data-goto="reset">Vergessen?</a>
+            <label for="pass" class="text-sm font-medium text-zinc-700">{{ __('portal.signup.account.password_label') }}</label>
+            <a href="{{ route('password.request') }}" class="text-sm text-brand font-medium hover:underline" data-goto="reset">{{ __('portal.auth.login.forgot') }}</a>
           </div>
           <div class="relative mt-1">
             <input id="pass" name="password" type="password" @class(['input pr-12', 'border-red-500' => $loginFailed]) autocomplete="current-password" required>
-            <button type="button" class="absolute right-1 top-1/2 -translate-y-1/2 size-10 rounded-lg text-zinc-400 hover:text-zinc-700 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" data-toggle-pass aria-label="Passwort anzeigen"><x-sun.icon name="eye" class="size-5" /></button>
+            <button type="button" class="absolute right-1 top-1/2 -translate-y-1/2 size-10 rounded-lg text-zinc-400 hover:text-zinc-700 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" data-toggle-pass aria-label="{{ __('portal.signup.account.password_show') }}"><x-sun.icon name="eye" class="size-5" /></button>
           </div>
 
           @if($loginFailed)
-            <p class="mt-3 text-sm text-red-600" role="alert">E-Mail oder Passwort stimmt nicht. Prüf beides noch mal.</p>
+            <p class="mt-3 text-sm text-red-600" role="alert">{{ __('portal.auth.login.failed') }}</p>
           @endif
 
           <label class="mt-4 flex items-center gap-3 cursor-pointer">
             <input type="checkbox" name="remember" class="size-5 rounded border-zinc-300 text-brand focus:ring-brand" @checked(old('remember', true))>
-            <span class="text-sm text-zinc-700">Angemeldet bleiben</span>
+            <span class="text-sm text-zinc-700">{{ __('portal.auth.login.remember') }}</span>
           </label>
 
           @if(config('app.recaptcha_enabled'))
@@ -73,37 +73,37 @@
             @endpush
           @endif
 
-          <button type="submit" class="mt-6 btn-primary w-full">Anmelden</button>
+          <button type="submit" class="mt-6 btn-primary w-full">{{ __('portal.auth.login.submit') }}</button>
         </form>
 
-        <p class="mt-6 pt-6 border-t border-zinc-200 text-sm text-zinc-500 text-center">Noch kein Konto? <a href="{{ route('portal.companies.create') }}" class="text-brand font-medium hover:underline">Betrieb kostenlos eintragen</a></p>
+        <p class="mt-6 pt-6 border-t border-zinc-200 text-sm text-zinc-500 text-center">{{ __('portal.auth.login.no_account') }} <a href="{{ route('portal.companies.create') }}" class="text-brand font-medium hover:underline">{{ __('portal.auth.login.signup') }}</a></p>
       </div>
 
       <!-- Passwort zurücksetzen -->
       <div data-panel="reset" @class(['hidden' => $panel !== 'reset'])>
-        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-zinc-900">Passwort zurücksetzen</h1>
-        <p class="mt-2 text-zinc-500">Gib deine E-Mail ein, wir schicken dir einen Link zum Neuvergeben.</p>
+        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-zinc-900">{{ __('portal.auth.reset.title') }}</h1>
+        <p class="mt-2 text-zinc-500">{{ __('portal.auth.reset.text') }}</p>
 
         <form method="POST" action="{{ route('password.email') }}" class="mt-6">
           @csrf
-          <label for="reset-email" class="block text-sm font-medium text-zinc-700 mb-1">E-Mail</label>
+          <label for="reset-email" class="block text-sm font-medium text-zinc-700 mb-1">{{ __('portal.signup.account.email_label') }}</label>
           <input id="reset-email" name="email" type="email" value="{{ $panel === 'reset' ? old('email') : '' }}" @class(['input', 'border-red-500' => $panel === 'reset' && $errors->has('email')]) autocomplete="username" inputmode="email" required>
           @if($panel === 'reset' && $errors->has('email'))
             <p class="mt-1 text-sm text-red-600" role="alert">{{ $errors->first('email') }}</p>
           @else
-            <p class="mt-1 text-sm text-zinc-500">Die Adresse, mit der du dich registriert hast.</p>
+            <p class="mt-1 text-sm text-zinc-500">{{ __('portal.auth.reset.email_hint') }}</p>
           @endif
-          <button type="submit" class="mt-6 btn-primary w-full">Link senden</button>
-          <a href="{{ route('login') }}" class="mt-2 btn-ghost w-full" data-goto="login">Zurück zur Anmeldung</a>
+          <button type="submit" class="mt-6 btn-primary w-full">{{ __('portal.auth.reset.submit') }}</button>
+          <a href="{{ route('login') }}" class="mt-2 btn-ghost w-full" data-goto="login">{{ __('portal.auth.reset.back') }}</a>
         </form>
       </div>
 
       <!-- Link gesendet -->
       <div data-panel="sent" @class(['text-center py-4 flex-col items-center gap-3', 'flex' => $panel === 'sent', 'hidden' => $panel !== 'sent'])>
         <span class="size-14 rounded-full bg-brand-50 text-brand flex items-center justify-center"><x-sun.icon name="mail" class="size-6" /></span>
-        <h1 class="text-lg font-semibold text-zinc-900">Schau in dein Postfach</h1>
-        <p class="text-zinc-500">Falls ein Konto mit dieser Adresse existiert, ist der Link unterwegs. Er gilt 60 Minuten.</p>
-        <a href="{{ route('login') }}" class="btn-ghost w-full mt-2" data-goto="login">Zurück zur Anmeldung</a>
+        <h1 class="text-lg font-semibold text-zinc-900">{{ __('portal.auth.sent.title') }}</h1>
+        <p class="text-zinc-500">{{ __('portal.auth.sent.text', ['minuten' => config('auth.passwords.'.config('auth.defaults.passwords').'.expire')]) }}</p>
+        <a href="{{ route('login') }}" class="btn-ghost w-full mt-2" data-goto="login">{{ __('portal.auth.reset.back') }}</a>
       </div>
     </div>
 
@@ -116,7 +116,7 @@
           <li class="flex items-start gap-3"><x-sun.icon name="check" class="icon text-brand mt-0.5" /><span>{{ $benefit }}</span></li>
         @endforeach
       </ul>
-      <p class="mt-6 text-sm text-zinc-500">Probleme beim Anmelden? <a href="mailto:{{ $sunLogin['support_email'] }}" class="text-brand hover:underline">{{ $sunLogin['support_email'] }}</a></p>
+      <p class="mt-6 text-sm text-zinc-500">{{ __('portal.auth.login.problems') }} <a href="mailto:{{ $sunLogin['support_email'] }}" class="text-brand hover:underline">{{ $sunLogin['support_email'] }}</a></p>
     </div>
   </div>
 </div>
@@ -146,7 +146,7 @@
   card.querySelector('[data-toggle-pass]')?.addEventListener('click', event => {
     const isHidden = pass.type === 'password';
     pass.type = isHidden ? 'text' : 'password';
-    event.currentTarget.setAttribute('aria-label', isHidden ? 'Passwort verbergen' : 'Passwort anzeigen');
+    event.currentTarget.setAttribute('aria-label', isHidden ? @js(__('portal.signup.account.password_hide')) : @js(__('portal.signup.account.password_show')));
   });
 })();
 </script>

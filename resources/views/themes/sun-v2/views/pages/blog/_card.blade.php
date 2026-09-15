@@ -12,7 +12,7 @@
     <h3 class="text-lg font-semibold text-zinc-900 leading-snug">{{ $post->title }}</h3>
     <p class="text-sm text-zinc-500 line-clamp-2">{{ $post->excerpt_or_truncated }}</p>
     @if($post->reading_time_minutes)
-      <span class="text-sm text-zinc-500 mt-auto pt-1">{{ $post->reading_time_minutes }} Min. Lesezeit</span>
+      <span class="text-sm text-zinc-500 mt-auto pt-1">{{ __('portal.layout.reading_time', ['minuten' => $post->reading_time_minutes]) }}</span>
     @endif
   </div>
 </a>

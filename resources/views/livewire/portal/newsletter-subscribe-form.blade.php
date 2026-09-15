@@ -4,22 +4,22 @@
             <svg class="w-6 h-6 text-green-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
             </svg>
-            <p class="text-sm font-medium">Vielen Dank! Sie erhalten ab sofort unseren Newsletter.</p>
+            <p class="text-sm font-medium">{{ __('portal.newsletter.success') }}</p>
         </div>
     @else
-        <form wire:submit="subscribe" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto" aria-label="Newsletter-Anmeldung">
-            <label for="footer-newsletter-email" class="sr-only">E-Mail-Adresse</label>
+        <form wire:submit="subscribe" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto" aria-label="{{ __('portal.newsletter.form_label') }}">
+            <label for="footer-newsletter-email" class="sr-only">{{ __('portal.newsletter.email_label') }}</label>
             <input
                 wire:model="email"
                 type="email"
                 id="footer-newsletter-email"
                 required
-                placeholder="Ihre E-Mail-Adresse"
+                placeholder="{{ __('portal.newsletter.email_placeholder') }}"
                 class="footer-newsletter__input w-full sm:w-[320px]"
                 autocomplete="email"
             >
             <button type="submit" class="footer-newsletter__submit ripple" wire:loading.attr="disabled">
-                <span wire:loading.remove>Abonnieren</span>
+                <span wire:loading.remove>{{ __('portal.newsletter.submit') }}</span>
                 <span wire:loading>…</span>
             </button>
         </form>

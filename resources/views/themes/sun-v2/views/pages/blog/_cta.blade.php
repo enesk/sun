@@ -6,9 +6,9 @@
       <p class="mt-2 text-zinc-700 leading-relaxed">{{ $sunBlog['cta']['text'] }}</p>
     </div>
     <form action="{{ route('portal.companies.index') }}" method="get" role="search" class="mt-5 lg:mt-0 lg:w-80 shrink-0 grid gap-3">
-      <label class="sr-only" for="cta-ort">Ort oder PLZ</label>
-      <input id="cta-ort" name="ort" class="input" placeholder="Ort oder PLZ" autocomplete="postal-code">
-      <button type="submit" class="btn-primary">{{ config('themes.sun-v2.search.branch_singular') }} finden</button>
+      <label class="sr-only" for="cta-ort">{{ __('portal.layout.search_form.where_placeholder') }}</label>
+      <input id="cta-ort" name="ort" class="input" placeholder="{{ __('portal.layout.search_form.where_placeholder') }}" autocomplete="postal-code">
+      <button type="submit" class="btn-primary">{{ __('portal.blog.cta.button') }}</button>
     </form>
   </div>
 </section>

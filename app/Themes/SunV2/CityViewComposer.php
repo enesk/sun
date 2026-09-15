@@ -51,25 +51,25 @@ final class CityViewComposer
         $stats = $this->stats($city, $config['services']);
         $sortKey = $filters['sort'] !== '' ? $filters['sort'] : $config['city']['default_sort'];
         $sortKey = array_key_exists($sortKey, SearchViewComposer::SORTS) ? $sortKey : 'az';
-        $plural = $config['search']['branch_plural'];
+        $sortLabels = SearchViewComposer::sortLabels();
         $total = $companies->total();
 
         $view->with('citySun', [
             'filters' => $filters,
             // H1 aus demselben Template wie der Title (#10); nur ein leeres Filterergebnis sagt das offen
-            'heading' => $total === 0
-                ? "Keine {$plural} in {$city->name} gefunden"
-                : ($data['cityHeading'] ?? number_format($total, 0, ',', '.')." {$plural} in {$city->name}"),
-            'intro' => $this->intro($city, $stats, (int) $city->companies_count),
-            'sortLabel' => SearchViewComposer::SORTS[$sortKey],
-            'sortLinks' => collect(SearchViewComposer::SORTS)->map(fn (string $label, string $key): array => [
+            'heading' => $total > 0 && filled($data['cityHeading'] ?? null)
+                ? $data['cityHeading']
+                : trans_choice('portal.city.heading', $total, ['anzahl' => number_format($total, 0, ',', '.'), 'stadt' => $city->name]),
+            'intro' => $this->intro($city, $stats, $config['services'], (int) $city->companies_count),
+            'sortLabel' => $sortLabels[$sortKey],
+            'sortLinks' => collect($sortLabels)->map(fn (string $label, string $key): array => [
                 'label' => $label,
                 'url' => $this->url($city, ['sort' => $key]),
                 'active' => $key === $sortKey,
             ])->values()->all(),
             'toggles' => [
-                $this->toggle($city, $filters, 'Ab 4 Sterne', 'min_rating', '4'),
-                $this->toggle($city, $filters, 'Jetzt geöffnet', 'open_now', '1'),
+                $this->toggle($city, $filters, __('portal.layout.filters.min_rating'), 'min_rating', '4'),
+                $this->toggle($city, $filters, __('portal.layout.filters.open_now'), 'open_now', '1'),
                 $this->toggle($city, $filters, $config['search']['quick_term'], 'q', $config['search']['quick_term']),
             ],
             'hasFilters' => collect($filters)->except('sort')->filter()->isNotEmpty(),
@@ -87,7 +87,6 @@ final class CityViewComposer
             'nearby' => $this->nearby($city),
             'posts' => $this->posts($city),
             'seo' => $this->seo($city, $config['city']['seo'], filled($data['localHub']['intro_html'] ?? null)),
-            'searchPlaceholder' => $config['search']['placeholder'],
         ]);
     }
 
@@ -153,31 +152,37 @@ final class CityViewComposer
 
     /**
      * Einleitung der Vorlage aus echten Zahlen; Teilsaetze ohne Wert entfallen.
+     * Satzbau aus portal.city.intro.*, die Leistungs-Teilsaetze aus
+     * config('themes.sun-v2.services.*.intro') in Config-Reihenfolge.
      *
      * @param  array{avg: float, reviews: int, services: array<string, int>}  $stats
+     * @param  array<int, array{label: string, query: string, icon: string, intro?: string}>  $services
      */
-    private function intro(City $city, array $stats, int $count): ?string
+    private function intro(City $city, array $stats, array $services, int $count): ?string
     {
         if ($count === 0) {
             return null;
         }
 
         $number = fn (int $value): string => number_format($value, 0, ',', '.');
-        $wallbox = (int) ($stats['services']['Wallbox'] ?? 0);
-        $emergency = (int) ($stats['services']['Notdienst'] ?? 0);
 
-        $first = "In {$city->name} sind {$number($count)} Elektrobetriebe eingetragen";
-        $extras = array_filter([
-            $wallbox > 0 ? "{$number($wallbox)} davon montieren Wallboxen" : null,
-            $emergency > 0 ? "{$number($emergency)} fahren Notdienst" : null,
-        ]);
-        $sentence = $first.($extras ? ', '.implode(' und ', $extras) : '').'.';
+        $extras = collect($services)
+            ->filter(fn (array $service): bool => filled($service['intro'] ?? null) && (int) ($stats['services'][$service['query']] ?? 0) > 0)
+            ->map(fn (array $service): string => strtr($service['intro'], [':anzahl' => $number((int) $stats['services'][$service['query']])]))
+            ->values()
+            ->all();
+
+        $sentence = trans_choice('portal.city.intro.companies', $count, ['anzahl' => $number($count), 'stadt' => $city->name])
+            .($extras ? ', '.implode(' und ', $extras) : '').'.';
 
         if ($stats['reviews'] > 0 && $stats['avg'] > 0) {
-            $sentence .= ' Der Durchschnitt liegt bei '.number_format($stats['avg'], 1, ',', '')." Sternen aus {$number($stats['reviews'])} Bewertungen.";
+            $sentence .= ' '.trans_choice('portal.city.intro.rating', $stats['reviews'], [
+                'schnitt' => number_format($stats['avg'], 1, ',', ''),
+                'bewertungen' => $number($stats['reviews']),
+            ]);
         }
 
-        return $sentence.' Such nach Leistung – oder ruf direkt an.';
+        return $sentence.' '.__('portal.city.intro.cta');
     }
 
     /**

@@ -9,9 +9,14 @@ use App\Services\PaymentProviders\PaymentService;
 use App\Services\PaymentProviders\Stripe\StripeProvider;
 use App\Services\UserVerificationService;
 use App\Services\VerificationProviders\TwilioProvider;
+use App\Support\Translation\TenantOverrideLoader;
+use App\Support\Translation\TenantTranslator;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
+use Illuminate\Contracts\Translation\Loader;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Translation\FileLoader;
+use Illuminate\Translation\Translator;
 use Jeffgreco13\FilamentBreezy\Livewire\PersonalInfo;
 use Jeffgreco13\FilamentBreezy\Livewire\UpdatePassword;
 use Livewire\Livewire;
@@ -27,6 +32,28 @@ class AppServiceProvider extends ServiceProvider
             $this->app->register(\Laravel\Telescope\TelescopeServiceProvider::class);
             $this->app->register(TelescopeServiceProvider::class);
         }
+
+        // Tenant-Overrides aus tenant_texts ueber die Sprachdateien legen (#4).
+        // extend statt singleton: der deferred TranslationServiceProvider
+        // wuerde eine eigene Bindung beim ersten Aufloesen ueberschreiben.
+        // lang/ zusaetzlich zu resources/lang laden: Laravel nimmt nur einen
+        // Sprachpfad, und resources/lang existiert — lang/de/portal.php (#7)
+        // waere sonst nie sichtbar.
+        $this->app->extend('translation.loader', function (Loader $loader) {
+            if ($loader instanceof FileLoader && ! in_array(base_path('lang'), $loader->paths(), true)) {
+                $loader->addPath(base_path('lang'));
+            }
+
+            return new TenantOverrideLoader($loader);
+        });
+
+        // Branchenbegriffe automatisch in alle Texte einsetzen (#5).
+        $this->app->extend('translator', function (Translator $translator) {
+            $tenantTranslator = new TenantTranslator($translator->getLoader(), $translator->getLocale());
+            $tenantTranslator->setFallback($translator->getFallback());
+
+            return $tenantTranslator;
+        });
 
         // Robots/Canonical je Anfrage (#7)
         $this->app->scoped(\App\Services\Seo\SeoService::class);

@@ -49,11 +49,11 @@ final class OpeningStatus
         $todayHours = $hours->get($today);
 
         if ($todayHours && $time >= $todayHours->opens_at && $time < $todayHours->closes_at) {
-            return new self(true, 'Jetzt geöffnet · bis '.self::clock($todayHours->closes_at));
+            return new self(true, __('portal.layout.opening.open_until', ['zeit' => self::clock($todayHours->closes_at)]));
         }
 
         if ($todayHours && $time < $todayHours->opens_at) {
-            return new self(false, 'Geschlossen · öffnet heute '.self::clock($todayHours->opens_at));
+            return new self(false, __('portal.layout.opening.opens_today', ['zeit' => self::clock($todayHours->opens_at)]));
         }
 
         for ($offset = 1; $offset <= 7; $offset++) {
@@ -61,7 +61,7 @@ final class OpeningStatus
             $next = $hours->get($day);
 
             if ($next) {
-                return new self(false, 'Geschlossen · öffnet '.self::DAY_SHORT[$day].' '.self::clock($next->opens_at));
+                return new self(false, __('portal.layout.opening.opens_on', ['tag' => self::DAY_SHORT[$day], 'zeit' => self::clock($next->opens_at)]));
             }
         }
 

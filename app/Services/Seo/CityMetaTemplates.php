@@ -7,8 +7,8 @@ namespace App\Services\Seo;
 use App\Constants\TenantConfigConstants;
 use App\Models\Portal\City;
 use App\Models\Portal\Company;
+use App\Support\Tenancy\TenantTerms;
 use App\Support\TenantCache;
-use App\Themes\ThemeManager;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 
@@ -29,7 +29,7 @@ final class CityMetaTemplates
      */
     public const PLACEHOLDERS = [
         '{count}' => 'Anzahl aktiver Betriebe in der Stadt (nur in den Templates ab 3 Betrieben sinnvoll).',
-        '{trade}' => 'Branchenbezeichnung im Plural, z. B. "Elektriker".',
+        '{trade}' => 'Branchenbegriff im Plural (Branchenbegriffe des Tenants), z. B. "Elektriker".',
         '{city}' => 'Name der Stadt.',
         '{year}' => 'Aktuelles Jahr.',
         '{portal}' => 'Name des Portals.',
@@ -63,8 +63,6 @@ final class CityMetaTemplates
     private const COUNT_TTL_SECONDS = 6 * 3600;
 
     private const TIMEZONE = 'Europe/Berlin';
-
-    public function __construct(private readonly ThemeManager $themes) {}
 
     /**
      * Vorrang: city_contents.meta_title/meta_description der Stadt, dann das
@@ -121,7 +119,9 @@ final class CityMetaTemplates
     }
 
     /**
-     * {trade}: Tenant-Einstellung, sonst Plural aus der Theme-Config, sonst "Firmen".
+     * {trade}: ausdrueckliche SEO-Einstellung (Dashboard "SEO-Templates"),
+     * sonst der Branchenbegriff branche_plural aus tenant('terms') (#19),
+     * ohne Tenant der Default aus TenantTerms.
      */
     public function tradePlural(): string
     {
@@ -131,9 +131,9 @@ final class CityMetaTemplates
             return trim((string) $value);
         }
 
-        $theme = $this->themes->active()?->slug;
+        $terms = tenancy()->initialized ? (array) tenant(TenantTerms::ATTRIBUTE) : TenantTerms::defaults();
 
-        return (string) (config("themes.{$theme}.search.branch_plural") ?: 'Firmen');
+        return (string) ($terms['branche_plural'] ?? TenantTerms::defaults()['branche_plural']);
     }
 
     /**

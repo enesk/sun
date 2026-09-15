@@ -39,7 +39,6 @@ final class ProfileViewComposer
 
         /** @var Company $company */
         $company = $view->getData()['company'];
-        $config = config('themes.sun-v2.search');
         $cityName = $company->city?->getAttribute('name');
 
         $view->with('profile', [
@@ -55,7 +54,7 @@ final class ProfileViewComposer
             // E.164 fuer tel:-Links und JSON-LD, null wenn nicht normalisierbar
             'phone' => PhoneNumber::toE164($company->tel),
             'phoneDisplay' => PhoneNumber::display($company->tel),
-            'cityLabel' => $cityName ? "{$config['branch_plural']} in {$cityName}" : null,
+            'cityLabel' => $cityName ? __('portal.profile.subtitle', ['stadt' => $cityName]) : null,
             'cityUrl' => $company->city
                 ? CityUrl::show($company->city)
                 : route('portal.companies.index'),
@@ -85,10 +84,10 @@ final class ProfileViewComposer
     private function facts(Company $company): array
     {
         return array_values(array_filter([
-            $company->city ? ['label' => 'Standort', 'value' => (string) $company->city->getAttribute('name')] : null,
-            $company->rating_count > 0 ? ['label' => 'Bewertungen', 'value' => number_format($company->rating_count, 0, ',', '.')] : null,
-            $company->categories->isNotEmpty() ? ['label' => 'Leistungen', 'value' => (string) $company->categories->count()] : null,
-            $company->created_at ? ['label' => 'Am Portal seit', 'value' => $company->created_at->format('Y')] : null,
+            $company->city ? ['label' => __('portal.profile.facts.location'), 'value' => (string) $company->city->getAttribute('name')] : null,
+            $company->rating_count > 0 ? ['label' => __('portal.profile.facts.reviews'), 'value' => number_format($company->rating_count, 0, ',', '.')] : null,
+            $company->categories->isNotEmpty() ? ['label' => __('portal.profile.facts.services'), 'value' => (string) $company->categories->count()] : null,
+            $company->created_at ? ['label' => __('portal.profile.facts.member_since'), 'value' => $company->created_at->format('Y')] : null,
         ]));
     }
 

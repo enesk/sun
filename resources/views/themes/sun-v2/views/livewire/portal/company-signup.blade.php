@@ -1,6 +1,7 @@
 {{--
     "Trag deinen Betrieb ein" – zwei Schritte in einer Karte (Vorlage elektrikerportal-firma-eintragen (1).html).
     Logik: App\Livewire\Portal\CompanySignup. Validiert erst beim Weiterklicken, Hinweistext statt nur roter Rahmen.
+    Alle Texte aus portal.signup.* (#11), Meldungen aus portal.errors.signup.*.
 --}}
 @php
     $hint = 'mt-1 text-sm';
@@ -10,10 +11,10 @@
       x-data x-on:signup-step.window="$el.scrollIntoView({ block: 'start', behavior: 'smooth' })">
 
   <!-- Fortschritt -->
-  <ol class="flex items-center gap-3 text-sm" aria-label="Fortschritt">
-    <li class="flex items-center gap-2" @if($step === 1) aria-current="step" @endif><span class="size-7 rounded-full bg-brand text-white font-semibold flex items-center justify-center shrink-0">1</span><span class="font-medium text-zinc-900">Betrieb</span></li>
+  <ol class="flex items-center gap-3 text-sm" aria-label="{{ __('portal.signup.progress.label') }}">
+    <li class="flex items-center gap-2" @if($step === 1) aria-current="step" @endif><span class="size-7 rounded-full bg-brand text-white font-semibold flex items-center justify-center shrink-0">1</span><span class="font-medium text-zinc-900">{{ __('portal.signup.progress.business') }}</span></li>
     <li class="flex-1 h-px bg-zinc-200" aria-hidden="true"></li>
-    <li @class(['flex items-center gap-2', 'text-zinc-500' => $step < 2]) @if($step === 2) aria-current="step" @endif><span @class(['size-7 rounded-full font-semibold flex items-center justify-center shrink-0', 'bg-brand text-white' => $step === 2, 'bg-zinc-100' => $step < 2])>2</span><span @class(['font-medium text-zinc-900' => $step === 2])>Konto</span></li>
+    <li @class(['flex items-center gap-2', 'text-zinc-500' => $step < 2]) @if($step === 2) aria-current="step" @endif><span @class(['size-7 rounded-full font-semibold flex items-center justify-center shrink-0', 'bg-brand text-white' => $step === 2, 'bg-zinc-100' => $step < 2])>2</span><span @class(['font-medium text-zinc-900' => $step === 2])>{{ __('portal.signup.progress.account') }}</span></li>
   </ol>
 
   {{-- Honeypot --}}
@@ -22,33 +23,33 @@
   @if($step === 1)
     <!-- ===== SCHRITT 1: BETRIEB ===== -->
     <div class="mt-6 pt-6 border-t border-zinc-200">
-      <label for="firma" class="block text-sm font-medium text-zinc-700 mb-1">Name des Betriebs</label>
-      <input id="firma" wire:model="firma" class="input @error('firma') border-red-500 @enderror" placeholder="z. B. Elektro Beck" autocomplete="organization" required>
+      <label for="firma" class="block text-sm font-medium text-zinc-700 mb-1">{{ __('portal.signup.business.name_label') }}</label>
+      <input id="firma" wire:model="firma" class="input @error('firma') border-red-500 @enderror" autocomplete="organization" required>
       @error('firma')<p class="{{ $hint }} text-red-600">{{ $message }}</p>@enderror
 
-      <label for="strasse" class="block mt-4 text-sm font-medium text-zinc-700 mb-1">Straße und Hausnummer</label>
+      <label for="strasse" class="block mt-4 text-sm font-medium text-zinc-700 mb-1">{{ __('portal.signup.business.street_label') }}</label>
       <input id="strasse" wire:model="strasse" class="input @error('strasse') border-red-500 @enderror" autocomplete="street-address" required>
       @error('strasse')<p class="{{ $hint }} text-red-600">{{ $message }}</p>@enderror
 
       <div class="mt-4 grid grid-cols-[7rem_minmax(0,1fr)] gap-3">
         <div>
-          <label for="plz" class="block text-sm font-medium text-zinc-700 mb-1">PLZ</label>
+          <label for="plz" class="block text-sm font-medium text-zinc-700 mb-1">{{ __('portal.signup.business.zip_label') }}</label>
           <input id="plz" wire:model="plz" class="input @error('plz') border-red-500 @enderror" inputmode="numeric" maxlength="5" autocomplete="postal-code" required>
         </div>
         <div>
-          <label for="ort" class="block text-sm font-medium text-zinc-700 mb-1">Ort</label>
+          <label for="ort" class="block text-sm font-medium text-zinc-700 mb-1">{{ __('portal.signup.business.city_label') }}</label>
           <input id="ort" wire:model="ort" class="input @error('ort') border-red-500 @enderror" autocomplete="address-level2" required>
         </div>
       </div>
       @error('plz')<p class="{{ $hint }} text-red-600">{{ $message }}</p>@enderror
       @error('ort')<p class="{{ $hint }} text-red-600">{{ $message }}</p>@enderror
 
-      <label for="tel" class="block mt-4 text-sm font-medium text-zinc-700 mb-1">Telefonnummer</label>
+      <label for="tel" class="block mt-4 text-sm font-medium text-zinc-700 mb-1">{{ __('portal.signup.business.phone_label') }}</label>
       <input id="tel" type="tel" wire:model="tel" class="input @error('tel') border-red-500 @enderror" inputmode="tel" autocomplete="tel" required aria-describedby="telHint">
-      <p id="telHint" @class([$hint, 'text-red-600' => $errors->has('tel'), 'text-zinc-500' => ! $errors->has('tel')])>{{ $errors->first('tel') ?: 'Diese Nummer sehen Kund:innen auf deinem Profil.' }}</p>
+      <p id="telHint" @class([$hint, 'text-red-600' => $errors->has('tel'), 'text-zinc-500' => ! $errors->has('tel')])>{{ $errors->first('tel') ?: __('portal.signup.business.phone_hint') }}</p>
 
-      <label for="web" class="block mt-4 text-sm font-medium text-zinc-700 mb-1">Website <span class="text-zinc-500 font-normal">(optional)</span></label>
-      <input id="web" type="url" wire:model="web" class="input @error('web') border-red-500 @enderror" placeholder="https://" autocomplete="url">
+      <label for="web" class="block mt-4 text-sm font-medium text-zinc-700 mb-1">{{ __('portal.signup.business.website_label') }} <span class="text-zinc-500 font-normal">{{ __('portal.signup.business.optional') }}</span></label>
+      <input id="web" type="url" wire:model="web" class="input @error('web') border-red-500 @enderror" placeholder="{{ __('portal.signup.business.website_placeholder') }}" autocomplete="url">
       @error('web')<p class="{{ $hint }} text-red-600">{{ $message }}</p>@enderror
     </div>
   @else
@@ -60,43 +61,47 @@
           <p class="font-semibold text-zinc-900 leading-snug">{{ $firma }}</p>
           <p class="text-sm text-zinc-500">{{ trim($plz.' '.$ort) }}</p>
         </div>
-        <button type="button" wire:click="back" class="text-sm text-brand font-medium hover:underline shrink-0">Ändern</button>
+        <button type="button" wire:click="back" class="text-sm text-brand font-medium hover:underline shrink-0">{{ __('portal.signup.account.change') }}</button>
       </div>
 
       @if($guest)
-        <label for="name" class="block mt-5 text-sm font-medium text-zinc-700 mb-1">Dein Name</label>
+        <label for="name" class="block mt-5 text-sm font-medium text-zinc-700 mb-1">{{ __('portal.signup.account.name_label') }}</label>
         <input id="name" wire:model="name" class="input @error('name') border-red-500 @enderror" autocomplete="name" required>
         @error('name')<p class="{{ $hint }} text-red-600">{{ $message }}</p>@enderror
 
-        <label for="email" class="block mt-4 text-sm font-medium text-zinc-700 mb-1">E-Mail</label>
+        <label for="email" class="block mt-4 text-sm font-medium text-zinc-700 mb-1">{{ __('portal.signup.account.email_label') }}</label>
         <input id="email" type="email" wire:model="email" class="input @error('email') border-red-500 @enderror" autocomplete="email" inputmode="email" required aria-describedby="emailHint">
         <p id="emailHint" @class([$hint, 'text-red-600' => $errors->has('email'), 'text-zinc-500' => ! $errors->has('email')])>
-          {{ $errors->first('email') ?: 'Damit meldest du dich an und verwaltest deinen Eintrag.' }}
-          @if($errors->has('email') && str_contains($errors->first('email'), 'melde dich an'))<a href="{{ route('login') }}" class="underline">Anmelden</a>@endif
+          {{ $errors->first('email') ?: __('portal.signup.account.email_hint') }}
+          @if($errors->has('email') && $errors->first('email') === __('portal.errors.signup.email_taken'))<a href="{{ route('login') }}" class="underline">{{ __('portal.signup.login') }}</a>@endif
         </p>
 
-        <label for="pass" class="block mt-4 text-sm font-medium text-zinc-700 mb-1">Passwort</label>
+        <label for="pass" class="block mt-4 text-sm font-medium text-zinc-700 mb-1">{{ __('portal.signup.account.password_label') }}</label>
         <div class="relative" x-data="{ show: false }">
           <input id="pass" :type="show ? 'text' : 'password'" type="password" wire:model="password" class="input pr-12 @error('password') border-red-500 @enderror" autocomplete="new-password" required aria-describedby="passHint">
-          <button type="button" x-on:click="show = !show" :aria-label="show ? 'Passwort verbergen' : 'Passwort anzeigen'" class="absolute right-1 top-1/2 -translate-y-1/2 size-10 rounded-lg text-zinc-400 hover:text-zinc-700 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" aria-label="Passwort anzeigen"><x-sun.icon name="eye" class="size-5" /></button>
+          <button type="button" x-on:click="show = !show" :aria-label="show ? @js(__('portal.signup.account.password_hide')) : @js(__('portal.signup.account.password_show'))" class="absolute right-1 top-1/2 -translate-y-1/2 size-10 rounded-lg text-zinc-400 hover:text-zinc-700 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" aria-label="{{ __('portal.signup.account.password_show') }}"><x-sun.icon name="eye" class="size-5" /></button>
         </div>
-        <p id="passHint" @class([$hint, 'text-red-600' => $errors->has('password'), 'text-zinc-500' => ! $errors->has('password')])>{{ $errors->first('password') ?: 'Mindestens 8 Zeichen.' }}</p>
+        <p id="passHint" @class([$hint, 'text-red-600' => $errors->has('password'), 'text-zinc-500' => ! $errors->has('password')])>{{ $errors->first('password') ?: __('portal.signup.account.password_hint') }}</p>
 
         <label @class(['mt-5 flex items-start gap-3 cursor-pointer', 'text-red-600' => $errors->has('agb')])>
           <input type="checkbox" wire:model="agb" class="mt-1 size-5 rounded border-zinc-300 text-brand focus:ring-brand" required>
-          <span @class(['text-sm', 'text-zinc-700' => ! $errors->has('agb')])>Ich akzeptiere die <a href="{{ route('terms-of-service') }}" class="underline">AGB</a> und habe die <a href="{{ route('portal.datenschutz') }}" class="underline">Datenschutzhinweise</a> gelesen.</span>
+          {{-- Text escapen, erst danach die Links einsetzen: der Satz ist per tenant_texts ueberschreibbar (#17) --}}
+          <span @class(['text-sm', 'text-zinc-700' => ! $errors->has('agb')])>{!! strtr(e(__('portal.signup.account.terms', ['agb' => '[[agb]]', 'datenschutz' => '[[datenschutz]]'])), [
+            '[[agb]]' => '<a href="'.e(route('terms-of-service')).'" class="underline">'.e(__('portal.signup.account.terms_link')).'</a>',
+            '[[datenschutz]]' => '<a href="'.e(route('portal.datenschutz')).'" class="underline">'.e(__('portal.signup.account.privacy_link')).'</a>',
+          ]) !!}</span>
         </label>
         @error('agb')<p class="{{ $hint }} text-red-600">{{ $message }}</p>@enderror
       @else
-        <p class="mt-5 text-zinc-700">Angemeldet als <span class="font-medium text-zinc-900">{{ auth()->user()->name }}</span>. Der Eintrag kommt in dein bestehendes Konto.</p>
+        <p class="mt-5 text-zinc-700">{{ __('portal.signup.account.logged_in_as', ['name' => auth()->user()->name]) }}</p>
       @endif
     </div>
   @endif
 
-  <button type="submit" class="mt-6 btn-primary w-full" wire:loading.attr="disabled" wire:target="next">{{ $step === 2 ? ($guest ? 'Konto anlegen' : 'Eintrag anlegen') : 'Weiter' }}</button>
-  <p class="mt-3 text-sm text-zinc-500 text-center">{{ $step === 2 ? 'Kostenlos, keine Kreditkarte nötig.' : 'Kostenlos, ohne Laufzeit.' }}</p>
+  <button type="submit" class="mt-6 btn-primary w-full" wire:loading.attr="disabled" wire:target="next">{{ $step === 2 ? __($guest ? 'portal.signup.submit_guest' : 'portal.signup.submit_user') : __('portal.signup.next') }}</button>
+  <p class="mt-3 text-sm text-zinc-500 text-center">{{ __($step === 2 ? 'portal.signup.note_step_two' : 'portal.signup.note_step_one') }}</p>
   @if($guest)
-    <p class="mt-4 pt-4 border-t border-zinc-200 text-sm text-zinc-500 text-center">Schon ein Konto? <a href="{{ route('login') }}" class="text-brand font-medium hover:underline">Anmelden</a></p>
+    <p class="mt-4 pt-4 border-t border-zinc-200 text-sm text-zinc-500 text-center">{{ __('portal.signup.has_account') }} <a href="{{ route('login') }}" class="text-brand font-medium hover:underline">{{ __('portal.signup.login') }}</a></p>
   @endif
 
   @if($done)
@@ -106,14 +111,14 @@
         <div class="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md p-6 text-center flex flex-col items-center gap-3 shadow-lg" style="padding-bottom:max(1.5rem,env(safe-area-inset-bottom))">
           <span class="size-14 rounded-full bg-brand-50 text-brand flex items-center justify-center"><x-sun.icon name="check" class="size-7" /></span>
           @if(auth()->user()?->hasVerifiedEmail())
-            <h2 id="doneTitle" class="text-lg font-semibold text-zinc-900">Eintrag angelegt</h2>
-            <p class="text-zinc-500">Wir prüfen den Eintrag und schalten ihn meist innerhalb eines Werktags frei.</p>
-            <a href="{{ route('portal.owner.dashboard') }}" class="btn-primary w-full mt-2">Profil vervollständigen</a>
+            <h2 id="doneTitle" class="text-lg font-semibold text-zinc-900">{{ __('portal.signup.done.heading') }}</h2>
+            <p class="text-zinc-500">{{ __('portal.signup.done.text') }}</p>
+            <a href="{{ route('portal.owner.dashboard') }}" class="btn-primary w-full mt-2">{{ __('portal.signup.done.complete_profile') }}</a>
           @else
-            <h2 id="doneTitle" class="text-lg font-semibold text-zinc-900">Bestätige deine E-Mail</h2>
-            <p class="text-zinc-500">Wir haben dir einen Link geschickt. Danach prüfen wir den Eintrag und schalten ihn meist innerhalb eines Werktags frei.</p>
-            <a href="{{ route('portal.owner.dashboard') }}" class="btn-primary w-full mt-2">Profil vervollständigen</a>
-            <button type="button" wire:click="resendVerification" wire:loading.attr="disabled" class="btn-ghost w-full" @disabled($resent)>{{ $resent ? 'E-Mail ist unterwegs' : 'E-Mail noch mal senden' }}</button>
+            <h2 id="doneTitle" class="text-lg font-semibold text-zinc-900">{{ __('portal.signup.done.verify_heading') }}</h2>
+            <p class="text-zinc-500">{{ __('portal.signup.done.verify_text') }}</p>
+            <a href="{{ route('portal.owner.dashboard') }}" class="btn-primary w-full mt-2">{{ __('portal.signup.done.complete_profile') }}</a>
+            <button type="button" wire:click="resendVerification" wire:loading.attr="disabled" class="btn-ghost w-full" @disabled($resent)>{{ __($resent ? 'portal.signup.done.resent' : 'portal.signup.done.resend') }}</button>
           @endif
         </div>
       </div>

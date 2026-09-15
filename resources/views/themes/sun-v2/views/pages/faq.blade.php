@@ -10,8 +10,8 @@
     $contactEmail = (string) (tenant()?->getAttribute(\App\Constants\TenantConfigConstants::CONTACT_EMAIL) ?: config('mail.from.address'));
 @endphp
 
-@section('title', 'Häufige Fragen | '.$portalName)
-@section('meta_description', 'Antworten auf häufige Fragen rund um '.$portalName.': Suche, Bewertungen, Firmeneinträge und Kontakt.')
+@section('title', __('portal.faq.title').' | '.$portalName)
+@section('meta_description', __('portal.faq.meta_description'))
 @section('canonical', route('portal.faqs.index'))
 
 @if($faqs->isNotEmpty())
@@ -33,20 +33,20 @@
 @section('content')
 <div class="container-portal pt-6 pb-12 md:pb-16">
   <div class="max-w-3xl">
-    <nav aria-label="Brotkrumen" class="text-sm text-zinc-500 flex items-center gap-1.5">
-      <a href="{{ route('home') }}" class="hover:text-brand">Start</a><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" /><span class="text-zinc-900">Häufige Fragen</span>
+    <nav aria-label="{{ __('portal.layout.breadcrumb.label') }}" class="text-sm text-zinc-500 flex items-center gap-1.5">
+      <a href="{{ route('home') }}" class="hover:text-brand">{{ __('portal.layout.breadcrumb.home') }}</a><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" /><span class="text-zinc-900">{{ __('portal.faq.title') }}</span>
     </nav>
 
-    <h1 class="mt-4 text-3xl md:text-4xl font-bold tracking-tight text-zinc-900">Häufige Fragen</h1>
-    <p class="mt-3 text-zinc-500">Kurze Antworten zu Suche, Bewertungen und Firmeneinträgen auf {{ $portalName }}.</p>
+    <h1 class="mt-4 text-3xl md:text-4xl font-bold tracking-tight text-zinc-900">{{ __('portal.faq.title') }}</h1>
+    <p class="mt-3 text-zinc-500">{{ __('portal.faq.intro') }}</p>
 
     @if($faqs->isEmpty())
       <div class="card p-6 md:p-10 mt-6">
         <div class="flex flex-col sm:flex-row sm:items-start gap-5">
           <span class="size-14 shrink-0 rounded-2xl bg-brand-50 text-brand flex items-center justify-center" aria-hidden="true"><x-sun.icon name="search-x" class="size-7" /></span>
           <div class="flex-1 min-w-0">
-            <h2 class="text-2xl font-semibold text-zinc-900">Noch keine Fragen</h2>
-            <p class="mt-2 text-zinc-700 leading-relaxed">Hier stehen bald die häufigsten Fragen. Bis dahin helfen wir dir gern direkt weiter.</p>
+            <h2 class="text-2xl font-semibold text-zinc-900">{{ __('portal.faq.empty.heading') }}</h2>
+            <p class="mt-2 text-zinc-700 leading-relaxed">{{ __('portal.faq.empty.text') }}</p>
           </div>
         </div>
       </div>
@@ -66,8 +66,8 @@
 
     @if($contactEmail !== '')
       <div class="mt-6 rounded-2xl bg-brand-50 p-5 md:p-6">
-        <p class="font-semibold text-zinc-900">Deine Frage ist nicht dabei?</p>
-        <p class="mt-1">Schreib uns – wir melden uns in der Regel innerhalb von zwei Werktagen.</p>
+        <p class="font-semibold text-zinc-900">{{ __('portal.faq.contact.heading') }}</p>
+        <p class="mt-1">{{ __('portal.faq.contact.text') }}</p>
         <a href="mailto:{{ $contactEmail }}" class="mt-4 btn-secondary"><x-sun.icon name="mail" class="icon" />{{ $contactEmail }}</a>
       </div>
     @endif

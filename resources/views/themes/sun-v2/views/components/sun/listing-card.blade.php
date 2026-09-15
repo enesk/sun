@@ -16,7 +16,7 @@
         <div class="flex flex-wrap items-start justify-between gap-2">
           <h2 class="text-lg font-semibold text-zinc-900 leading-snug"><a href="{{ $company->portal_url }}" class="hover:text-brand">{{ $company->name }}</a></h2>
           @if($company->is_premium)
-            <span class="pill-brand shrink-0">Premium</span>
+            <span class="pill-brand shrink-0">{{ __('portal.layout.card.premium') }}</span>
           @endif
         </div>
         <div class="mt-1">
@@ -24,10 +24,10 @@
             <div class="flex items-center gap-1.5">
               <x-sun.stars :rating="$company->rating" />
               <span class="text-sm font-medium text-zinc-700">{{ $rating }}</span><span class="text-sm text-zinc-500">({{ $company->rating_count }})</span>
-              <span class="sr-only">{{ $rating }} von 5 Sternen bei {{ $company->rating_count }} Bewertungen</span>
+              <span class="sr-only">{{ trans_choice('portal.layout.card.rating_sr', $company->rating_count, ['wertung' => $rating, 'anzahl' => number_format($company->rating_count, 0, ',', '.')]) }}</span>
             </div>
           @else
-            <span class="text-sm text-zinc-500">Noch keine Bewertungen</span>
+            <span class="text-sm text-zinc-500">{{ __('portal.layout.card.no_reviews') }}</span>
           @endif
         </div>
       </div>
@@ -36,7 +36,7 @@
       @if($company->full_address)
         <p class="text-sm text-zinc-500 flex items-start gap-1.5">
           <span class="mt-0.5"><x-sun.icon name="map-pin" class="size-4 shrink-0" stroke-linecap="butt" stroke-linejoin="miter" /></span>
-          <span>{{ $company->full_address }}@if($distance !== null)<span class="text-zinc-400"> · {{ number_format($distance, 0, ',', '.') }} km</span>@endif</span>
+          <span>{{ $company->full_address }}@if($distance !== null)<span class="text-zinc-400"> · {{ __('portal.layout.card.distance', ['km' => number_format($distance, 0, ',', '.')]) }}</span>@endif</span>
         </p>
       @endif
       @if($company->categories->isNotEmpty())
@@ -57,7 +57,7 @@
     </div>
   </div>
   <div class="flex lg:flex-col gap-2 lg:w-44 shrink-0">
-    <x-phone-link :number="$company->tel" class="btn-primary flex-1" fallback-class="flex-1 self-center text-sm text-zinc-700 lg:text-center"><x-sun.icon name="phone" class="icon" />Anrufen</x-phone-link>
-    <a href="{{ $company->portal_url }}" class="btn-secondary flex-1">Profil</a>
+    <x-phone-link :number="$company->tel" class="btn-primary flex-1" fallback-class="flex-1 self-center text-sm text-zinc-700 lg:text-center"><x-sun.icon name="phone" class="icon" />{{ __('portal.layout.card.call') }}</x-phone-link>
+    <a href="{{ $company->portal_url }}" class="btn-secondary flex-1">{{ __('portal.layout.card.profile_short') }}</a>
   </div>
 </article>

@@ -5,6 +5,7 @@ namespace App\Mail\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -19,6 +20,7 @@ class VerifyEmail extends Mailable implements ShouldQueue
      */
     public function __construct(
         public string $url,
+        public ?string $name = null,
     ) {
         //
     }
@@ -28,6 +30,14 @@ class VerifyEmail extends Mailable implements ShouldQueue
      */
     public function envelope(): Envelope
     {
+        // Auf einem Portal (z. B. nach /eintragen) Texte und Absender aus portal.mail.* (#11)
+        if (tenancy()->initialized) {
+            return new Envelope(
+                from: new Address((string) config('mail.from.address'), __('portal.mail.from_name')),
+                subject: __('portal.mail.verify_email.subject'),
+            );
+        }
+
         return new Envelope(
             subject: 'E-Mail-Adresse bestätigen',
         );
@@ -39,7 +49,7 @@ class VerifyEmail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            view: 'emails.user.verify-email',
+            view: tenancy()->initialized ? 'emails.portal.verify-email' : 'emails.user.verify-email',
         );
     }
 
