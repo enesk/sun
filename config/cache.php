@@ -13,6 +13,10 @@ return [
     | using this caching library. This connection is used when another is
     | not explicitly specified when executing a given caching function.
     |
+    | Standard ist bewusst "file" (#22): SetTenantStorageUrl lenkt den Pfad je
+    | Tenant um, TenantOverrideLoader und TenantText::forgetFor() bauen darauf.
+    | Gelesen wird CACHE_DRIVER, nicht CACHE_STORE.
+    |
     */
 
     'default' => env('CACHE_DRIVER', 'file'),
@@ -45,8 +49,10 @@ return [
         'database' => [
             'driver' => 'database',
             'table' => 'cache',
-            'connection' => null,
-            'lock_connection' => null,
+            // Fest auf die Central-Verbindung: nach der Tenant-Initialisierung ist die
+            // Default-Verbindung die Tenant-DB, und die hat keine cache-Tabelle (#22).
+            'connection' => env('DB_CONNECTION', 'central'),
+            'lock_connection' => env('DB_CONNECTION', 'central'),
         ],
 
         'file' => [
