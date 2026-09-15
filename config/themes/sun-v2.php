@@ -167,7 +167,7 @@ return [
     ],
 
     'footer' => [
-        'operator' => 'Ein Portal von Enes Kul – Webentwicklung & IT-Dienstleistungen',
+        'operator' => 'Made with love in Rastatt',
     ],
 
 ];
