@@ -10,19 +10,24 @@
 <form class="card p-5 md:p-8" novalidate wire:submit="next"
       x-data x-on:signup-step.window="$el.scrollIntoView({ block: 'start', behavior: 'smooth' })">
 
-  <!-- Fortschritt -->
+  <!-- Fortschritt (nur fuer Gaeste: Angemeldete tragen nach Schritt 1 direkt ein) -->
+  @if($guest)
   <ol class="flex items-center gap-3 text-sm" aria-label="{{ __('portal.signup.progress.label') }}">
     <li class="flex items-center gap-2" @if($step === 1) aria-current="step" @endif><span class="size-7 rounded-full bg-brand text-white font-semibold flex items-center justify-center shrink-0">1</span><span class="font-medium text-zinc-900">{{ __('portal.signup.progress.business') }}</span></li>
     <li class="flex-1 h-px bg-zinc-200" aria-hidden="true"></li>
     <li @class(['flex items-center gap-2', 'text-zinc-500' => $step < 2]) @if($step === 2) aria-current="step" @endif><span @class(['size-7 rounded-full font-semibold flex items-center justify-center shrink-0', 'bg-brand text-white' => $step === 2, 'bg-zinc-100' => $step < 2])>2</span><span @class(['font-medium text-zinc-900' => $step === 2])>{{ __('portal.signup.progress.account') }}</span></li>
   </ol>
+  @endif
 
   {{-- Honeypot --}}
   <div class="sr-only" aria-hidden="true"><input type="text" wire:model="website_url" tabindex="-1" autocomplete="off"></div>
 
   @if($step === 1)
     <!-- ===== SCHRITT 1: BETRIEB ===== -->
-    <div class="mt-6 pt-6 border-t border-zinc-200">
+    <div @class(['mt-6 pt-6 border-t border-zinc-200' => $guest])>
+      @unless($guest)
+        <p class="mb-5 text-zinc-700">{{ __('portal.signup.account.logged_in_as', ['name' => auth()->user()->name]) }}</p>
+      @endunless
       <label for="firma" class="block text-sm font-medium text-zinc-700 mb-1">{{ __('portal.signup.business.name_label') }}</label>
       <input id="firma" wire:model="firma" class="input @error('firma') border-red-500 @enderror" autocomplete="organization" required>
       @error('firma')<p class="{{ $hint }} text-red-600">{{ $message }}</p>@enderror
@@ -98,7 +103,7 @@
     </div>
   @endif
 
-  <button type="submit" class="mt-6 btn-primary w-full" wire:loading.attr="disabled" wire:target="next">{{ $step === 2 ? __($guest ? 'portal.signup.submit_guest' : 'portal.signup.submit_user') : __('portal.signup.next') }}</button>
+  <button type="submit" class="mt-6 btn-primary w-full" wire:loading.attr="disabled" wire:target="next">{{ __($guest ? ($step === 2 ? 'portal.signup.submit_guest' : 'portal.signup.next') : 'portal.signup.submit_user') }}</button>
   <p class="mt-3 text-sm text-zinc-500 text-center">{{ __($step === 2 ? 'portal.signup.note_step_two' : 'portal.signup.note_step_one') }}</p>
   @if($guest)
     <p class="mt-4 pt-4 border-t border-zinc-200 text-sm text-zinc-500 text-center">{{ __('portal.signup.has_account') }} <a href="{{ route('login') }}" class="text-brand font-medium hover:underline">{{ __('portal.signup.login') }}</a></p>

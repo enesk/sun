@@ -21,8 +21,8 @@ use Livewire\Component;
  * "Trag deinen Betrieb ein" (/eintragen, Theme sun-v2): zwei Schritte in
  * einer Karte. Schritt 1 Betrieb, Schritt 2 Konto; beide validieren erst
  * beim Weiterklicken. Der Eintrag entsteht inaktiv und wird in der
- * Verwaltung freigeschaltet (Firmenliste, Status). Angemeldete ueberspringen
- * die Kontofelder.
+ * Verwaltung freigeschaltet (Firmenliste, Status). Angemeldete sehen nur
+ * Schritt 1 und tragen damit direkt ein.
  */
 class CompanySignup extends Component
 {
@@ -105,6 +105,13 @@ class CompanySignup extends Component
 
         if (! $this->resolveCity()) {
             $this->addError('ort', __('portal.errors.signup.city_mismatch'));
+
+            return;
+        }
+
+        // Angemeldete haben schon ein Konto: kein zweiter Schritt, direkt eintragen.
+        if (Auth::check()) {
+            $this->submitAccount();
 
             return;
         }
