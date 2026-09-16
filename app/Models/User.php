@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-use Stancl\Tenancy\Database\Concerns\CentralConnection;
-
 use App\Content\Concerns\InteractsWithContentPanel;
 use App\Notifications\Auth\QueuedVerifyEmail;
 use App\Services\OrderService;
@@ -25,6 +23,7 @@ use Laragear\TwoFactor\TwoFactorAuthentication;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\OneTimePasswords\Models\Concerns\HasOneTimePasswords;
 use Spatie\Permission\Traits\HasRoles;
+use Stancl\Tenancy\Database\Concerns\CentralConnection;
 
 class User extends Authenticatable implements FilamentUser, HasTenants, MustVerifyEmail, TwoFactorAuthenticatable
 {
@@ -184,7 +183,8 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
 
     public function sendEmailVerificationNotification()
     {
-        $this->notify(new QueuedVerifyEmail);
+        // Link jetzt bauen, solange die Domain des Requests bekannt ist.
+        $this->notify(QueuedVerifyEmail::for($this));
     }
 
     public function address(): HasOne
@@ -287,6 +287,6 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
 
     public function shouldShowOnboarding(): bool
     {
-        return $this->hasClaimedCompany() && !$this->hasOnboardingDismissed();
+        return $this->hasClaimedCompany() && ! $this->hasOnboardingDismissed();
     }
 }

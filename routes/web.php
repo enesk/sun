@@ -60,6 +60,12 @@ Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $requ
     $request->fulfill();
 
     $user = $request->user();
+
+    // Auf einer Portal-Domain zurueck ins Portal statt auf die SaaSykit-Dankeseite.
+    if (! in_array($request->getHost(), config('tenancy.central_domains'), true)) {
+        return redirect('/');
+    }
+
     if ($user->hasVerifiedEmail()) {
         return redirect()->route('registration.thank-you');
     }
@@ -155,7 +161,6 @@ Route::get('/terms-of-service', function () {
 Route::get('/privacy-policy', function () {
     return view('pages.privacy-policy');
 })->name('privacy-policy')->middleware('sitemapped');
-
 
 // Product checkout routes
 
