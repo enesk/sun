@@ -43,6 +43,7 @@ class OwnerDashboardController extends Controller
             'page_views_change' => $trackingSummary['page_views_change'],
             'contact_clicks' => $trackingSummary['contact_clicks'],
             'contact_clicks_change' => $trackingSummary['contact_clicks_change'],
+            'search_impressions' => $trackingSummary['search_impressions'],
         ];
 
         $recentReviews = $company->reviews()
@@ -64,15 +65,37 @@ class OwnerDashboardController extends Controller
         return view('pages.dashboard.edit', compact('company'));
     }
 
-    public function reviews()
+    public function reviews(Request $request)
     {
         $company = $this->getCompany();
 
-        $reviews = $company->reviews()
-            ->latest()
-            ->paginate(10);
+        $filter = in_array($request->input('filter'), ['published', 'pending', 'unanswered'], true)
+            ? $request->input('filter')
+            : 'all';
 
-        return view('pages.dashboard.reviews', compact('company', 'reviews'));
+        $reviews = $company->reviews()
+            ->when($filter === 'published', fn ($query) => $query->approved())
+            ->when($filter === 'pending', fn ($query) => $query->whereIn('moderation_status', ModerationStatus::openValues()))
+            ->when($filter === 'unanswered', fn ($query) => $query->approved()->where(
+                fn ($query) => $query->whereNull('owner_response')->orWhere('owner_response', '')
+            ))
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        // Zaehler fuer Filter, Zusammenfassung und Premium-Karte aus der geladenen Collection
+        $approved = $company->reviews->where('moderation_status', Review::STATUS_APPROVED);
+        $counts = [
+            'all' => $company->reviews->count(),
+            'published' => $approved->count(),
+            'pending' => $company->reviews->whereIn('moderation_status', ModerationStatus::openValues())->count(),
+            'unanswered' => $approved->filter(fn (Review $review) => empty($review->owner_response))->count(),
+        ];
+        $distribution = collect([5, 4, 3, 2, 1])
+            ->mapWithKeys(fn (int $stars) => [$stars => $approved->filter(fn (Review $review) => (int) round((float) $review->rating) === $stars)->count()])
+            ->all();
+
+        return view('pages.dashboard.reviews', compact('company', 'reviews', 'filter', 'counts', 'distribution'));
     }
 
     public function stats(Request $request)
@@ -86,15 +109,14 @@ class OwnerDashboardController extends Controller
 
         $summary = $statsService->getCompanySummary($company->id, $period);
 
-        // Premium-User bekommen Trend, Referrer, Suchbegriffe, Wochen-Trend
-        // Free-User sehen nur KPIs — keine unnötigen Queries
-        $trend = collect();
+        // Den Tagesverlauf sehen alle. Premium-User bekommen zusaetzlich Referrer,
+        // Suchbegriffe und Wochen-Trend — Free-User keine unnötigen Queries
+        $trend = $statsService->getDailyTrend($company->id, $period);
         $referrers = collect();
         $searchQueries = collect();
         $weekly = collect();
 
         if ($company->is_premium) {
-            $trend = $statsService->getDailyTrend($company->id, $period);
             $referrers = $statsService->getTopReferrers($company->id, $period);
             $searchQueries = $statsService->getTopSearchQueries($company->id, $period);
             $weekly = $statsService->getWeeklyTrend($company->id);

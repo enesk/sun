@@ -1,0 +1,148 @@
+/*
+ * Markdown-Editor (EasyMDE) im Look von sun-v2: Rahmen und Rundung wie .input,
+ * Leiste in zinc, aktive Knoepfe in der Markenfarbe. Groessen in rem, damit
+ * die Portal-Skalierung (125 % / 150 %) greift.
+ */
+.EasyMDEContainer {
+    font-family: inherit;
+}
+
+.EasyMDEContainer .editor-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.125rem;
+    padding: 0.25rem;
+    border: 1px solid #d4d4d8;
+    border-bottom: 0;
+    border-radius: 0.75rem 0.75rem 0 0;
+    background: #fafafa;
+    opacity: 1;
+}
+
+.EasyMDEContainer .editor-toolbar button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    /* 2.25rem = 45 px mobil, 54 px ab md (Portal-Skalierung) */
+    min-width: 2.25rem;
+    height: 2.25rem;
+    margin: 0;
+    padding: 0 0.5rem;
+    border: 0;
+    border-radius: 0.5rem;
+    color: #3f3f46;
+    font-size: 1rem;
+}
+
+.EasyMDEContainer .editor-toolbar button:hover,
+.EasyMDEContainer .editor-toolbar button.active {
+    border: 0;
+    background: var(--brand-50);
+    color: var(--brand-700);
+}
+
+.EasyMDEContainer .editor-toolbar button:focus-visible {
+    outline: 2px solid var(--brand-600);
+    outline-offset: 2px;
+}
+
+.EasyMDEContainer .editor-toolbar i.separator {
+    width: 0;
+    height: 1.5rem;
+    margin: 0 0.25rem;
+    border-left: 1px solid #d4d4d8;
+    border-right: 0;
+}
+
+.EasyMDEContainer .md-editor-label {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.EasyMDEContainer .CodeMirror {
+    border: 1px solid #d4d4d8;
+    border-radius: 0 0 0.75rem 0.75rem;
+    padding: 0.5rem 0.75rem;
+    color: #18181b;
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: 1.625;
+}
+
+.EasyMDEContainer .CodeMirror-focused {
+    border-color: var(--brand-600);
+    box-shadow: 0 0 0 2px var(--brand-200);
+}
+
+.EasyMDEContainer .CodeMirror .cm-header-1,
+.EasyMDEContainer .CodeMirror .cm-header-2 {
+    font-size: 1.25rem;
+    line-height: 1.4;
+}
+
+.EasyMDEContainer .CodeMirror .cm-header-3,
+.EasyMDEContainer .CodeMirror .cm-header-4 {
+    font-size: 1.125rem;
+}
+
+.EasyMDEContainer .CodeMirror .cm-formatting,
+.EasyMDEContainer .CodeMirror .cm-formatting-list {
+    color: #a1a1aa;
+}
+
+/* Zeichen fuer Fett, Kursiv und Ueberschriften nur in der Cursor-Zeile zeigen;
+   Listenzeichen bleiben sichtbar, sie tragen die Aufzaehlung. */
+.EasyMDEContainer .CodeMirror-line:not(.md-active) .cm-formatting-strong,
+.EasyMDEContainer .CodeMirror-line:not(.md-active) .cm-formatting-em,
+.EasyMDEContainer .CodeMirror-line:not(.md-active) .cm-formatting-header {
+    display: none;
+}
+
+.EasyMDEContainer .CodeMirror-line:not(.md-active) .cm-formatting-list-ul {
+    color: #3f3f46;
+}
+
+.EasyMDEContainer .CodeMirror .CodeMirror-placeholder {
+    color: #9ca3af;
+}
+
+.EasyMDEContainer .md-editor-preview {
+    padding: 0.75rem 1rem;
+    background: #fff;
+    color: #3f3f46;
+    line-height: 1.625;
+}
+
+.EasyMDEContainer .md-editor-preview h1,
+.EasyMDEContainer .md-editor-preview h2,
+.EasyMDEContainer .md-editor-preview h3 {
+    margin: 1rem 0 0.25rem;
+    color: #18181b;
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.EasyMDEContainer .md-editor-preview p {
+    margin: 0 0 0.75rem;
+}
+
+.EasyMDEContainer .md-editor-preview ul,
+.EasyMDEContainer .md-editor-preview ol {
+    margin: 0 0 0.75rem;
+    padding-left: 1.25rem;
+}
+
+.EasyMDEContainer .md-editor-preview ul {
+    list-style: disc;
+}
+
+.EasyMDEContainer .md-editor-preview ol {
+    list-style: decimal;
+}
+
+.EasyMDEContainer .md-editor-preview strong {
+    color: #18181b;
+    font-weight: 600;
+}

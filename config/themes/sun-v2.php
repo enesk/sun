@@ -143,15 +143,6 @@ return [
         ],
     ],
 
-    // Anfrage-Dialog auf dem Firmenprofil: headless an die oeffentliche
-    // Funnel-Runtime-API des Leadsystems (partials/sun/lead-dialog,
-    // js/modules/lead-dialog.js). Der Funnel-Token ist oeffentlich (kein
-    // Schluessel), kommt aber je Umgebung aus dem Seeder des Leadsystems.
-    'lead' => [
-        'api_url' => 'https://leads.widimedia.com/api/public/v1',
-        'funnel_token' => env('LEADS_ELEKTRIKER_FUNNEL_TOKEN'),
-    ],
-
     // Anmeldung /login (App\Themes\SunV2\LoginViewComposer).
     // :companies ist die Zahl aktiver Betriebe, :portal der Portalname.
     'login' => [

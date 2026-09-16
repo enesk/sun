@@ -4,8 +4,9 @@
     App\Themes\SunV2\ProfileViewComposer.
 
     Der Anfrage-Button (data-open-lead, Text portal.profile.request_cta) oeffnet den
-    Anfrage-Dialog partials/sun/lead-dialog, angebunden an die Funnel-Runtime-API des
-    Leadsystems. Alle festen Texte kommen aus lang/de/portal.php (profile.*, layout.*).
+    Anfrage-Dialog partials/sun/lead-dialog, gerendert aus dem Funnel des Portals
+    ($profile['leadFunnel']). Ohne Funnel steht dort "Jetzt anrufen", ohne gueltige
+    Telefonnummer gar kein Knopf. Alle festen Texte kommen aus lang/de/portal.php (profile.*, layout.*).
 --}}
 @extends('layouts.sun')
 
@@ -15,6 +16,8 @@
     $ratingLabel = number_format((float) $company->rating, 1, ',', '');
     $reviewsCount = trans_choice('portal.layout.card.reviews_count', $company->rating_count, ['anzahl' => number_format($company->rating_count, 0, ',', '.')]);
     $requestCta = __('portal.profile.request_cta');
+    // Ohne veroeffentlichten Funnel kein Anfrage-Dialog, stattdessen "Jetzt anrufen" (#26)
+    $leadFunnel = $profile['leadFunnel'];
 @endphp
 
 @section('title', ($company->city ? __('portal.profile.meta_title', ['firma' => $company->name, 'stadt' => $company->city->name]) : $company->name).' | '.($currentTenant->name ?? config('app.name')))
@@ -101,7 +104,11 @@
           </ul>
           <div class="mt-5 pt-5 border-t border-zinc-200 flex flex-wrap items-center gap-3">
             <p class="text-sm text-zinc-500 flex-1 min-w-48">{{ __('portal.profile.services.cta_text', ['firma' => $company->name]) }}</p>
-            <button type="button" class="btn-secondary" data-open-lead>{{ $requestCta }}</button>
+            @if($leadFunnel)
+              <button type="button" class="btn-secondary" data-open-lead>{{ $requestCta }}</button>
+            @elseif($profile['phone'])
+              <a href="tel:{{ $profile['phone'] }}" class="btn-secondary"><x-sun.icon name="phone" class="icon" />{{ __('portal.request.call_now') }}</a>
+            @endif
           </div>
         </section>
       @endif
@@ -240,8 +247,12 @@
     <aside class="hidden lg:flex flex-col gap-4 lg:sticky lg:top-20">
       <div class="card p-5">
         <p class="text-sm text-zinc-500">{{ __('portal.profile.sidebar.lead_text', ['firma' => $company->name]) }}</p>
-        <button type="button" class="mt-3 btn-primary w-full" data-open-lead><x-sun.icon name="mail" class="icon" />{{ $requestCta }}</button>
-        <x-phone-link :number="$company->tel" class="mt-2 btn-secondary w-full" fallback-class="mt-2 block text-center text-sm font-medium text-zinc-700"><x-sun.icon name="phone" class="icon" />{{ $profile['phoneDisplay'] }}</x-phone-link>
+        @if($leadFunnel)
+          <button type="button" class="mt-3 btn-primary w-full" data-open-lead><x-sun.icon name="mail" class="icon" />{{ $requestCta }}</button>
+          <x-phone-link :number="$company->tel" class="mt-2 btn-secondary w-full" fallback-class="mt-2 block text-center text-sm font-medium text-zinc-700"><x-sun.icon name="phone" class="icon" />{{ $profile['phoneDisplay'] }}</x-phone-link>
+        @elseif($profile['phone'])
+          <a href="tel:{{ $profile['phone'] }}" class="mt-3 btn-primary w-full" aria-label="{{ __('portal.layout.card.call_label', ['telefon' => $profile['phoneDisplay']]) }}"><x-sun.icon name="phone" class="icon" />{{ __('portal.request.call_now') }}</a>
+        @endif
         @if($company->website)
           <a href="{{ $company->website }}" rel="nofollow noopener" target="_blank" class="mt-2 btn-ghost w-full"><x-sun.icon name="globe" class="icon" stroke-linecap="butt" stroke-linejoin="miter" />{{ __('portal.profile.sidebar.website') }}</a>
         @endif
@@ -297,10 +308,18 @@
 </div>
 
 <!-- ================= MOBILE: STICKY BOTTOM BAR ================= -->
+@if($leadFunnel || $profile['phone'])
 <div class="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-zinc-200 p-3 flex gap-2 lg:hidden" style="padding-bottom:max(.75rem,env(safe-area-inset-bottom))">
-  <x-phone-link :number="$company->tel" :fallback="false" class="btn-secondary size-11 min-h-11 px-0 shrink-0" aria-label="{{ __('portal.layout.card.call_label', ['telefon' => $profile['phoneDisplay']]) }}"><x-sun.icon name="phone" class="icon" /></x-phone-link>
-  <button type="button" class="btn-primary flex-1 whitespace-nowrap" data-open-lead>{{ $requestCta }}</button>
+  @if($leadFunnel)
+    <x-phone-link :number="$company->tel" :fallback="false" class="btn-secondary size-11 min-h-11 px-0 shrink-0" aria-label="{{ __('portal.layout.card.call_label', ['telefon' => $profile['phoneDisplay']]) }}"><x-sun.icon name="phone" class="icon" /></x-phone-link>
+    <button type="button" class="btn-primary flex-1 whitespace-nowrap" data-open-lead>{{ $requestCta }}</button>
+  @else
+    <a href="tel:{{ $profile['phone'] }}" class="btn-primary flex-1 whitespace-nowrap" aria-label="{{ __('portal.layout.card.call_label', ['telefon' => $profile['phoneDisplay']]) }}"><x-sun.icon name="phone" class="icon" />{{ __('portal.request.call_now') }}</a>
+  @endif
 </div>
+@endif
 
-@include('partials.sun.lead-dialog', ['company' => $company])
+@if($leadFunnel)
+  @include('partials.sun.lead-dialog', ['company' => $company, 'funnel' => $leadFunnel])
+@endif
 @endsection

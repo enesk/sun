@@ -1,0 +1,2 @@
+{{-- Auswahl-Pille im Stil der Vorlage; $inputType radio|checkbox --}}
+<label class="cursor-pointer"><input type="{{ $inputType }}" name="{{ $name }}" value="{{ $option->value }}" class="peer sr-only" @checked($checked ?? false)><span class="pill-link peer-checked:bg-brand-50 peer-checked:text-brand-700 peer-checked:border-brand peer-focus-visible:ring-2 peer-focus-visible:ring-brand">{{ $option->label }}</span></label>

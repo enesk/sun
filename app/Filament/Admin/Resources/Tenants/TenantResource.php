@@ -225,6 +225,14 @@ class TenantResource extends Resource
                                             ->helperText(__('Kostenpflichtige Premium-Einträge verfügbar')),
                                     ]),
 
+                                Section::make(__('Anfrage-Dialog'))
+                                    ->schema([
+                                        TextInput::make(Tenant::LEAD_FUNNEL_TOKEN)
+                                            ->label(__('Anfrage-Funnel (Token)'))
+                                            ->maxLength(255)
+                                            ->helperText(__('Öffentlicher Token des Funnels im Leadsystem. Ohne Token zeigt das Firmenprofil keinen Anfrage-Dialog.')),
+                                    ]),
+
                                 Section::make(__('Analytics'))
                                     ->schema([
                                         TextInput::make(TenantConfigConstants::GOOGLE_ANALYTICS_ID)

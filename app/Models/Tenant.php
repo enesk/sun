@@ -28,6 +28,8 @@ class Tenant extends Model implements TenantWithDatabase
         Concerns\TenantRun,
         Concerns\InvalidatesResolverCache;
 
+    public const LEAD_FUNNEL_TOKEN = 'lead_funnel_token';
+
     protected $guarded = [];
 
     protected static function booted(): void
@@ -83,6 +85,18 @@ class Tenant extends Model implements TenantWithDatabase
     public function getVerticalAttribute(mixed $value): string
     {
         return TenantVertical::resolve($value);
+    }
+
+    /**
+     * Oeffentlicher Funnel-Token des Leadsystems (`public_token`) fuer den
+     * Anfrage-Dialog (#24), gespeichert in der data-Spalte. Null bedeutet:
+     * kein Funnel, kein Dialog.
+     */
+    public function leadFunnelToken(): ?string
+    {
+        $token = trim((string) $this->getAttribute(self::LEAD_FUNNEL_TOKEN));
+
+        return $token === '' ? null : $token;
     }
 
     public function getTenantKeyName(): string

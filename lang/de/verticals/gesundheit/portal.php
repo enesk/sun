@@ -26,10 +26,4 @@ return [
         ],
     ],
 
-    'request' => [
-        'where' => [
-            'when_label' => 'Wann passt dir ein Termin?',
-        ],
-    ],
-
 ];

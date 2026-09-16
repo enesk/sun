@@ -2,9 +2,15 @@
  * Anfrage-Dialog auf dem Firmenprofil (Vorlage sun-v2--profil.html).
  *
  * Headless an die oeffentliche Funnel-Runtime-API des Leadsystems angebunden:
- * Dialog oeffnet -> POST /sessions, "Weiter" -> PATCH /answers, "Angebot
- * anfragen" (portal.profile.request_cta) -> POST /submit. Die Sitzung rueckt nur vor, wenn die Pruefung des
- * Servers besteht; 422-Fehler landen direkt unter den Feldern.
+ * Dialog oeffnet -> POST /sessions, "Weiter" -> PATCH /answers, Ende der Strecke
+ * -> POST /submit. Welcher Schritt folgt, entscheidet allein der Server
+ * (current_step bzw. phase 'done' der Antwort); Bedingungen werden hier nie
+ * ausgewertet. 422-Fehler landen direkt unter den Feldern.
+ *
+ * Markup (partials/sun/lead-dialog): je Schritt ein [data-step="<position>"],
+ * darin je Frage ein Element mit data-question-key und data-question-type,
+ * Fehlerausgabe in [data-error-for="<key>"]. Titel des Schritts optional in
+ * data-step-title, der Kontaktschritt am Dialog in data-contact-step.
  */
 
 // Texte kommen fertig uebersetzt aus data-texts (partials/sun/lead-dialog, portal.request.*)
@@ -18,31 +24,47 @@ class ApiError extends Error {
     }
 }
 
-function answersFromStep(form, step, companyKey) {
-    const data = new FormData(form);
+function fieldsOf(question) {
+    return question.matches('input, textarea, select')
+        ? [question]
+        : [...question.querySelectorAll('input, textarea, select')];
+}
 
-    if (step === 1) {
-        // Firmenprofil, auf dem die Anfrage gestellt wird: kein Funnel-Feld,
-        // das Leadsystem legt unbekannte Schluessel unveraendert als Antwort ab
-        return { leistung: data.get('leistung'), beschreibung: data.get('beschreibung'), firmenprofil: companyKey };
-    }
+// Antworten eines Schritts je Frage-Schluessel, Wertform nach Fragetyp
+function answersFromStep(stepElement) {
+    const answers = {};
 
-    if (step === 2) {
-        return { plz: data.get('plz'), wann: data.get('wann'), objekt: data.get('objekt') };
-    }
+    stepElement.querySelectorAll('[data-question-key]').forEach((question) => {
+        const fields = fieldsOf(question);
+        const key = question.dataset.questionKey;
 
-    const answers = {
-        firmenprofil: companyKey,
-        name: data.get('name'),
-        telefon: data.get('tel'),
-        erreichbar: data.getAll('erreichbar[]'),
-        email: data.get('email') || null,
-    };
+        switch (question.dataset.questionType) {
+            case 'info':
+                return;
+            case 'single_choice':
+            case 'image_choice':
+                answers[key] = fields.find((field) => field.checked)?.value ?? null;
 
-    // Einwilligung: true oder weglassen
-    if (data.get('weitere') === '1') {
-        answers.weitere_betriebe = true;
-    }
+                return;
+            case 'multi_choice':
+                answers[key] = fields.filter((field) => field.checked).map((field) => field.value);
+
+                return;
+            case 'consent':
+                answers[key] = fields.some((field) => field.checked);
+
+                return;
+            case 'number':
+            case 'slider': {
+                const value = fields[0]?.value.trim() ?? '';
+                answers[key] = value === '' ? null : Number(value);
+
+                return;
+            }
+            default:
+                answers[key] = fields[0]?.value.trim() || null;
+        }
+    });
 
     return answers;
 }
@@ -66,16 +88,24 @@ export function initLeadDialog() {
         companyKey = null;
     }
     const steps = [...form.querySelectorAll('[data-step]')];
+    const questionSteps = steps.filter((el) => el.dataset.step !== 'done');
+    const firstStep = questionSteps[0]?.dataset.step;
+    const submitStep = dialog.dataset.contactStep || questionSteps[questionSteps.length - 1]?.dataset.step;
     const body = form.querySelector('[data-lead-body]');
     const nextButton = form.querySelector('[data-next]');
     const prevButton = form.querySelector('[data-prev]');
     const errorBox = form.querySelector('[data-lead-error]');
-    const telHint = document.getElementById('telHint');
     const texts = JSON.parse(dialog.dataset.texts);
 
-    let current = 1;
+    // Besuchte Schritte im Browser; letzter Eintrag ist der sichtbare Schritt
+    let history = [firstStep];
+    // Schritt, auf dem die Sitzung beim Server steht
+    let serverStep = null;
     let sessionToken = sessionStorage.getItem(SESSION_KEY);
     let busy = false;
+
+    const current = () => history[history.length - 1];
+    const stepElement = (step) => steps.find((el) => el.dataset.step === String(step));
 
     async function api(method, path, payload) {
         let response;
@@ -121,9 +151,50 @@ export function initLeadDialog() {
         const state = await api('POST', `/funnels/${token}/sessions${query ? `?${query}` : ''}`,
             sessionToken ? { session_token: sessionToken } : {});
         sessionToken = state.session_token;
+        serverStep = String(state.current_step);
         sessionStorage.setItem(SESSION_KEY, sessionToken);
 
         return state;
+    }
+
+    function forgetSession() {
+        sessionToken = null;
+        serverStep = null;
+        sessionStorage.removeItem(SESSION_KEY);
+    }
+
+    function patchAnswers(step) {
+        return api('PATCH', `/funnels/${token}/sessions/${sessionToken}/answers`, {
+            answers: { ...answersFromStep(stepElement(step)), firmenprofil: companyKey },
+        });
+    }
+
+    /*
+     * Der Server fuehrt current_step nur vorwaerts. Steht der Browser nach
+     * "Zurueck" (oder einer fortgesetzten Sitzung) woanders, startet eine frische
+     * Sitzung und die Antworten der besuchten Schritte davor gehen erneut hin.
+     * Die Sitzung traegt danach nur Antworten des tatsaechlichen Wegs.
+     */
+    async function syncServer() {
+        forgetSession();
+        await startSession();
+
+        for (const [index, step] of history.slice(0, -1).entries()) {
+            try {
+                const state = await patchAnswers(step);
+                serverStep = String(state.current_step);
+            } catch (error) {
+                if (error.status === 422) {
+                    history = history.slice(0, index + 1);
+                    show(step);
+                }
+                throw error;
+            }
+        }
+
+        if (serverStep !== current()) {
+            throw new ApiError(0, texts.errors.generic);
+        }
     }
 
     function setBusy(value) {
@@ -140,9 +211,7 @@ export function initLeadDialog() {
             el.classList.add('hidden');
         });
         form.querySelectorAll('.border-red-500').forEach((el) => el.classList.remove('border-red-500'));
-        telHint.textContent = texts.telHint;
-        telHint.classList.remove('text-red-600');
-        telHint.classList.add('text-zinc-500');
+        form.querySelectorAll('[aria-invalid]').forEach((el) => el.removeAttribute('aria-invalid'));
     }
 
     function showGeneralError(error) {
@@ -158,52 +227,56 @@ export function initLeadDialog() {
         let first = null;
 
         Object.entries(errors).forEach(([key, list]) => {
-            const field = key.split('.')[0];
+            // Server meldet answers.<key> bzw. answers.<key>.<index>
+            const field = key.replace(/^answers\./, '').split('.')[0];
             const message = Array.isArray(list) ? list[0] : String(list);
-            const input = form.querySelector(`[name="${field === 'telefon' ? 'tel' : field}"]`)
-                || form.querySelector(`[name="${field}[]"]`);
+            const question = form.querySelector(`[data-question-key="${CSS.escape(field)}"]`);
+            const target = form.querySelector(`[data-error-for="${CSS.escape(field)}"]`);
+            const inputs = question ? fieldsOf(question) : [];
 
-            if (field === 'telefon') {
-                telHint.textContent = message;
-                telHint.classList.add('text-red-600');
-                telHint.classList.remove('text-zinc-500');
+            if (target) {
+                target.textContent = message;
+                target.classList.remove('hidden');
             } else {
-                const target = form.querySelector(`[data-error-for="${field}"]`);
-                if (target) {
-                    target.textContent = message;
-                    target.classList.remove('hidden');
-                } else {
-                    errorBox.textContent = message;
-                    errorBox.classList.remove('hidden');
+                errorBox.textContent = message;
+                errorBox.classList.remove('hidden');
+            }
+
+            inputs.forEach((input) => {
+                input.setAttribute('aria-invalid', 'true');
+                if (input.classList.contains('input')) {
+                    input.classList.add('border-red-500');
                 }
-            }
+            });
 
-            if (input && input.classList.contains('input')) {
-                input.classList.add('border-red-500');
-            }
-
-            first = first || input;
+            first = first || inputs[0];
         });
 
         first?.scrollIntoView({ block: 'center', behavior: 'smooth' });
     }
 
     function show(step) {
-        current = step;
-        steps.forEach((el) => el.classList.toggle('hidden', el.dataset.step !== String(step)));
+        const done = step === 'done';
+        const element = stepElement(step);
+        steps.forEach((el) => el.classList.toggle('hidden', el !== element));
         body.scrollTop = 0;
-        document.getElementById('leadTitle').textContent = texts.titles[step];
-        document.getElementById('leadStep').textContent = texts.steps[step];
-        prevButton.classList.toggle('hidden', step === 1 || step === 'done');
-        nextButton.textContent = step === 3 ? texts.submit : (step === 'done' ? texts.close : texts.next);
-        form.querySelector('[data-privacy]').classList.toggle('hidden', step === 'done');
+        document.getElementById('leadTitle').textContent = done
+            ? texts.titles.done
+            : (element?.dataset.stepTitle || texts.titles?.[step] || '');
+        document.getElementById('leadStep').textContent = done
+            ? texts.steps.done
+            : String(texts.step || '').replace(':schritt', history.length);
+        prevButton.classList.toggle('hidden', done || history.length < 2);
+        nextButton.textContent = done ? texts.close : (step === submitStep ? texts.submit : texts.next);
+        form.querySelector('[data-privacy]').classList.toggle('hidden', done);
     }
 
     async function open() {
         dialog.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
         clearErrors();
-        show(1);
+        history = [firstStep];
+        show(firstStep);
 
         if (!token || !apiBase) {
             showGeneralError({ status: 0, message: texts.errors.unavailable });
@@ -217,8 +290,7 @@ export function initLeadDialog() {
         } catch (error) {
             // Abgelaufene Sitzung aus dem Speicher: einmal frisch starten
             if (sessionToken && error.status !== 429) {
-                sessionToken = null;
-                sessionStorage.removeItem(SESSION_KEY);
+                forgetSession();
                 try {
                     await startSession();
                 } catch (retry) {
@@ -237,33 +309,48 @@ export function initLeadDialog() {
         document.body.style.overflow = '';
     }
 
+    async function submit() {
+        const step = current();
+        await api('POST', `/funnels/${token}/sessions/${sessionToken}/submit`, {
+            answers: { ...answersFromStep(stepElement(step)), firmenprofil: companyKey },
+            website: form.querySelector('[name="website"]')?.value ?? '',
+        });
+        forgetSession();
+        history.push('done');
+        show('done');
+    }
+
+    async function advance() {
+        if (serverStep !== current()) {
+            await syncServer();
+        }
+
+        const state = await patchAnswers(current());
+        serverStep = String(state.current_step);
+
+        // Kein weiterer Schritt: Strecke absenden
+        if (state.phase === 'done') {
+            await submit();
+
+            return;
+        }
+
+        history.push(serverStep);
+        show(serverStep);
+    }
+
     async function next() {
         if (busy) {
             return;
         }
 
-        if (current === 'done') {
+        if (current() === 'done') {
             close();
 
             return;
         }
 
         clearErrors();
-
-        if (current === 3) {
-            const name = form.querySelector('#name');
-            const tel = form.querySelector('#tel');
-            const missing = [name, tel].filter((input) => !input.value.trim());
-
-            if (missing.length) {
-                missing.forEach((input) => input.classList.add('border-red-500'));
-                telHint.textContent = texts.errors.contactMissing;
-                telHint.classList.add('text-red-600');
-                telHint.classList.remove('text-zinc-500');
-
-                return;
-            }
-        }
 
         if (!sessionToken) {
             showGeneralError({ status: 0, message: texts.errors.unavailable });
@@ -274,22 +361,16 @@ export function initLeadDialog() {
         setBusy(true);
 
         try {
-            if (current === 3) {
-                await api('POST', `/funnels/${token}/sessions/${sessionToken}/submit`, {
-                    answers: answersFromStep(form, 3, companyKey),
-                    website: form.querySelector('[name="website"]')?.value ?? '',
-                });
-                sessionStorage.removeItem(SESSION_KEY);
-                sessionToken = null;
-                show('done');
-
-                return;
+            try {
+                await advance();
+            } catch (error) {
+                // Sitzung unterwegs abgelaufen: einmal mit frischer Sitzung wiederholen
+                if (error.status !== 404) {
+                    throw error;
+                }
+                serverStep = null;
+                await advance();
             }
-
-            await api('PATCH', `/funnels/${token}/sessions/${sessionToken}/answers`, {
-                answers: answersFromStep(form, current, companyKey),
-            });
-            show(current + 1);
         } catch (error) {
             if (error.status === 422) {
                 showValidation(error.validation || {});
@@ -309,8 +390,12 @@ export function initLeadDialog() {
         }
     });
     prevButton.addEventListener('click', () => {
+        if (history.length < 2) {
+            return;
+        }
         clearErrors();
-        show(current - 1);
+        history.pop();
+        show(current());
     });
     nextButton.addEventListener('click', next);
     form.addEventListener('submit', (event) => {

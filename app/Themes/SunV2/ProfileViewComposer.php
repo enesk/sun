@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Themes\SunV2;
 
+use App\Dto\Leads\FunnelDefinition;
 use App\Models\Portal\Company;
 use App\Models\Portal\CompanyOpeningHour;
 use App\Models\Portal\Review;
+use App\Services\Leads\FunnelDefinitionClient;
 use App\Support\Breadcrumb;
 use App\Support\CityUrl;
 use App\Support\PhoneNumber;
@@ -20,7 +22,9 @@ use Illuminate\View\View;
 /**
  * Firmenprofil im Theme sun-v2 (Vorlage sun-v2--profil.html): Schnellfakten,
  * Oeffnungszeiten je Wochentag, Bewertungsverteilung, Kartenlink und weitere
- * Betriebe am selben Ort.
+ * Betriebe am selben Ort. Dazu der Anfrage-Funnel des Portals (#26): ohne
+ * veroeffentlichten Funnel zeigt das Profil statt "Angebot anfragen" nur
+ * "Jetzt anrufen".
  *
  * Die Firma selbst laedt CompanyController::renderCompanyShow() fuer alle
  * Themes; hier kommt nur dazu, was die Vorlage zusaetzlich zeigt.
@@ -29,7 +33,10 @@ final class ProfileViewComposer
 {
     private const DAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
 
-    public function __construct(private readonly ThemeManager $themes) {}
+    public function __construct(
+        private readonly ThemeManager $themes,
+        private readonly FunnelDefinitionClient $funnels,
+    ) {}
 
     public function compose(View $view): void
     {
@@ -61,6 +68,7 @@ final class ProfileViewComposer
             'breadcrumb' => Breadcrumb::forCompany($company),
             'nearby' => $this->nearby($company),
             'nearbyCount' => $this->nearbyCount($company),
+            'leadFunnel' => $this->leadFunnel(),
         ]);
     }
 
@@ -213,5 +221,12 @@ final class ProfileViewComposer
         return (int) Cache::remember(TenantCache::key("sun-v2.profile.city_count.{$company->city_id}"), 3600, fn (): int => Company::active()
             ->where('city_id', $company->city_id)
             ->count());
+    }
+
+    private function leadFunnel(): ?FunnelDefinition
+    {
+        $token = tenant()?->leadFunnelToken();
+
+        return $token === null ? null : $this->funnels->get($token);
     }
 }
