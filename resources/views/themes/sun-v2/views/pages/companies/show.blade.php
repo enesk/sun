@@ -39,7 +39,12 @@
       <!-- Kopf-Karte -->
       <section class="card p-5 md:p-8" aria-labelledby="firma">
         <div class="flex flex-col sm:flex-row sm:items-start gap-4 md:gap-6">
-          <span class="size-20 md:size-24 rounded-2xl bg-brand-50 text-brand-700 font-bold text-2xl md:text-3xl flex items-center justify-center shrink-0" aria-hidden="true">{{ $profile['initials'] }}</span>
+          @if($profile['logo'])
+            <img src="{{ $profile['logo'] }}" alt="{{ __('portal.profile.logo_alt', ['firma' => $company->name]) }}" width="96" height="96" loading="lazy"
+                 class="size-20 md:size-24 rounded-2xl border border-zinc-200 bg-white object-contain p-1 shrink-0" />
+          @else
+            <span class="size-20 md:size-24 rounded-2xl bg-brand-50 text-brand-700 font-bold text-2xl md:text-3xl flex items-center justify-center shrink-0" aria-hidden="true">{{ $profile['initials'] }}</span>
+          @endif
           <div class="min-w-0 flex-1">
             @if($company->is_premium || $company->is_verified)
               <div class="flex flex-wrap items-center gap-2">
@@ -336,7 +341,11 @@
         @foreach($profile['nearby'] as $other)
           <article class="card-interactive p-5 flex flex-col gap-3 min-w-[85%] sm:min-w-[60%] md:min-w-[45%] xl:min-w-0">
             <div class="flex items-start gap-3">
-              <span class="size-12 rounded-2xl bg-brand-50 text-brand-700 font-bold flex items-center justify-center shrink-0" aria-hidden="true">{{ \App\Themes\SunV2\ProfileViewComposer::initials($other->name) }}</span>
+              @if($other->logo_thumb_url)
+                <img src="{{ $other->logo_thumb_url }}" alt="" width="48" height="48" loading="lazy" class="size-12 rounded-2xl border border-zinc-200 bg-white object-contain p-0.5 shrink-0" />
+              @else
+                <span class="size-12 rounded-2xl bg-brand-50 text-brand-700 font-bold flex items-center justify-center shrink-0" aria-hidden="true">{{ \App\Themes\SunV2\ProfileViewComposer::initials($other->name) }}</span>
+              @endif
               <div class="min-w-0">
                 <h3 class="text-lg font-semibold text-zinc-900 leading-snug"><a href="{{ $other->portal_url }}" class="hover:text-brand">{{ $other->name }}</a></h3>
                 @if($other->rating_count > 0)

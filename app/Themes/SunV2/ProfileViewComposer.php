@@ -55,6 +55,8 @@ final class ProfileViewComposer
 
         $view->with('profile', [
             'initials' => self::initials($company->name),
+            // Logo aus der Media Library, sonst Spalte logo_path; ohne Logo bleiben die Initialen
+            'logo' => $company->logo_url,
             'status' => OpeningStatus::for($company),
             'facts' => $this->facts($company),
             'paragraphs' => self::paragraphs((string) $company->description),
