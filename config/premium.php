@@ -111,16 +111,19 @@ return [
     ],
 
     /*
-     * SaasyKit verlangt je Plan einen PlanPrice. Dieser Referenzbetrag (Cent,
-     * brutto) wird nur beim ersten Anlegen gesetzt; massgeblich fuer Anzeige
-     * und Checkout sind die Werte der Tenant-Konfiguration.
+     * Bruttopreise in Cent, fuer alle Portale gleich (#38, Pro/Premium von
+     * Enes am 17.09.2026 auf 49/79 EUR gesetzt, Jahr = 10 Monate). Einzige
+     * Quelle der Betraege: PremiumPricingSeeder schreibt sie in die
+     * Portal-Preise und in den SaasyKit-PlanPrice und legt die passenden
+     * Stripe-Preise an. PremiumPlansSeeder nutzt sie nur beim
+     * ersten Anlegen eines PlanPrice.
      */
     'reference_prices_cents' => [
-        'pro_monthly' => 1990,
-        'pro_yearly' => 19900,
-        'premium_monthly' => 3990,
-        'premium_yearly' => 39900,
-        'featured_monthly' => 2990,
+        'pro_monthly' => 4900,
+        'pro_yearly' => 49000,
+        'premium_monthly' => 7900,
+        'premium_yearly' => 79000,
+        'featured_monthly' => 3900,
     ],
 
     'trial_days' => 30,

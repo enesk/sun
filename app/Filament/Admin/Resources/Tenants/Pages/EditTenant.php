@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\Tenants\Pages;
 
 use App\Filament\Admin\Resources\Tenants\TenantResource;
+use App\Support\Tenancy\TenantPremiumPricing;
 use App\Support\Tenancy\TenantTerms;
 use App\Themes\ThemeManager;
 use Filament\Actions\DeleteAction;
@@ -86,6 +87,7 @@ class EditTenant extends EditRecord
         $compositeKeys = [
             ThemeManager::TENANT_THEME_OPTIONS_KEY, // 'theme.options'
             TenantTerms::ATTRIBUTE, // 'terms', gelesen als Array ueber tenant('terms')
+            TenantPremiumPricing::ATTRIBUTE, // 'premium_pricing', gelesen als Array (#38)
         ];
 
         foreach ($data as $key => $value) {

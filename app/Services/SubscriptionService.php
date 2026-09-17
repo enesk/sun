@@ -131,6 +131,14 @@ class SubscriptionService
             return true;
         }
 
+        // Ein Portal-Tenant (mit Domain) buendelt viele Betriebe, jeder bucht sein
+        // eigenes Premium-Abo. Die Regel "ein Abo je Tenant" wuerde nach der
+        // ersten Buchung alle anderen Betriebe sperren; ob ein Betrieb schon ein
+        // Abo hat, prueft CompanyPlanService::currentSubscription().
+        if (filled(Tenant::query()->whereKey($tenantId)->value('domain'))) {
+            return true;
+        }
+
         $notDeadSubscriptions = $this->findAllSubscriptionsThatAreNotDead($tenantId);
 
         return count($notDeadSubscriptions) === 0;
