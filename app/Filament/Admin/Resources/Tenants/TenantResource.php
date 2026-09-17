@@ -231,6 +231,12 @@ class TenantResource extends Resource
                                             ->label(__('Anfrage-Funnel (Token)'))
                                             ->maxLength(255)
                                             ->helperText(__('Öffentlicher Token des Funnels im Leadsystem. Ohne Token zeigt das Firmenprofil keinen Anfrage-Dialog.')),
+                                        TextInput::make(Tenant::LEAD_WEBHOOK_SECRET)
+                                            ->label(__('Anfrage-Webhook (Secret)'))
+                                            ->password()
+                                            ->revealable()
+                                            ->maxLength(255)
+                                            ->helperText(fn (): string => __('Secret des Webhooks „lead.created“ im Leadsystem. Adresse dort: https://<Portal-Domain>/webhooks/leads. Ohne Secret nimmt das Portal keine Anfragen an.')),
                                     ]),
 
                                 Section::make(__('Analytics'))

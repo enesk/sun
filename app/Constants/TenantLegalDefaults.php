@@ -130,7 +130,7 @@ IMPRESSUM_HTML;
     public const DATENSCHUTZ = <<<'DATENSCHUTZ_HTML'
 
     <h1>Datenschutzerklärung</h1>
-    <p><strong>Stand:</strong> Februar 2026</p>
+    <p><strong>Stand:</strong> September 2026</p>
 
     <h2>1. Verantwortlicher</h2>
     <p>
@@ -300,7 +300,34 @@ IMPRESSUM_HTML;
         <strong>Speicherdauer:</strong> Bis zur abschließenden Bearbeitung, maximal 6 Monate.
     </p>
 
-    <h2>10. Ihre Rechte</h2>
+    <h2>10. Anfragen über den Anfrage-Dialog</h2>
+    <p>
+        Über den Anfrage-Dialog auf einem Firmenprofil können Sie eine unverbindliche Anfrage an
+        den jeweiligen Betrieb stellen. Dabei verarbeiten wir die Angaben, die Sie im Dialog
+        machen, zum Beispiel:
+    </p>
+    <ul>
+        <li>Ihre Antworten auf die Fragen des Anfrage-Dialogs</li>
+        <li>Name, Telefonnummer und/oder E-Mail-Adresse, sofern Sie diese angeben</li>
+    </ul>
+    <p>
+        Ihre Anfrage samt dieser Angaben wird an den von Ihnen ausgewählten Betrieb weitergegeben
+        und dort angezeigt. Das gilt auch dann, wenn der Betrieb sein Firmenprofil zum Zeitpunkt
+        Ihrer Anfrage noch nicht selbst verwaltet (übernommen) hat — übernimmt er es später, sieht
+        er auch zuvor eingegangene Anfragen samt Ihrer Kontaktdaten.
+    </p>
+    <p>
+        <strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. b DSGVO (Anbahnung eines Vertrags mit
+        dem angefragten Betrieb), für freiwillige Angaben, die über die Anfrage hinausgehen,
+        Art. 6 Abs. 1 lit. a DSGVO (Einwilligung).<br />
+        <strong>Empfänger:</strong> Der von Ihnen ausgewählte Betrieb.<br />
+        <strong>Speicherdauer:</strong> Ihre Anfrage wird derzeit ohne festgelegte Löschfrist
+        gespeichert, damit sie dem Betrieb auch nach einer späteren Profilübernahme noch vorliegt.
+        Sie können die Löschung jederzeit verlangen (siehe „Ihre Rechte“); wenden Sie sich dazu an
+        <a href="mailto:[BETREIBER_EMAIL]">[BETREIBER_EMAIL]</a>.
+    </p>
+
+    <h2>11. Ihre Rechte</h2>
     <p>Sie haben nach der DSGVO folgende Rechte:</p>
     <ul>
         <li><strong>Auskunftsrecht</strong> (Art. 15 DSGVO) — Welche Daten speichern wir über Sie?</li>
@@ -316,7 +343,7 @@ IMPRESSUM_HTML;
         <a href="mailto:[BETREIBER_EMAIL]">[BETREIBER_EMAIL]</a>
     </p>
 
-    <h2>11. Beschwerderecht</h2>
+    <h2>12. Beschwerderecht</h2>
     <p>
         Sie haben das Recht, sich bei einer Datenschutz-Aufsichtsbehörde über unsere Verarbeitung personenbezogener
         Daten zu beschweren. Die zuständige Aufsichtsbehörde richtet sich nach dem Bundesland des Betreibers.
@@ -324,14 +351,14 @@ IMPRESSUM_HTML;
         <a href="https://www.bfdi.bund.de" target="_blank" rel="noreferrer noopener">www.bfdi.bund.de</a>
     </p>
 
-    <h2>12. SSL/TLS-Verschlüsselung</h2>
+    <h2>13. SSL/TLS-Verschlüsselung</h2>
     <p>
         Dieses Portal nutzt aus Sicherheitsgründen eine SSL/TLS-Verschlüsselung. Eine verschlüsselte Verbindung
         erkennen Sie an dem Schloss-Symbol in der Browserzeile und daran, dass die Adresszeile mit
         https:// beginnt.
     </p>
 
-    <h2>13. Änderungen dieser Datenschutzerklärung</h2>
+    <h2>14. Änderungen dieser Datenschutzerklärung</h2>
     <p>
         Wir behalten uns vor, diese Datenschutzerklärung bei Bedarf anzupassen, um sie an geänderte Rechtslagen
         oder bei Änderungen unserer Datenverarbeitungen anzupassen. Die jeweils aktuelle Version finden Sie

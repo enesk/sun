@@ -11,24 +11,25 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
+use Stancl\Tenancy\Database\Concerns;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
 use Stancl\Tenancy\Database\TenantCollection;
 use Stancl\Tenancy\Events;
-use Stancl\Tenancy\Database\Concerns;
 
 class Tenant extends Model implements TenantWithDatabase
 {
-    use HasFactory;
-    use HasDatabase;
-
     use Concerns\CentralConnection,
         Concerns\GeneratesIds,
         Concerns\HasDataColumn,
         Concerns\HasInternalKeys,
-        Concerns\TenantRun,
-        Concerns\InvalidatesResolverCache;
+        Concerns\InvalidatesResolverCache,
+        Concerns\TenantRun;
+    use HasDatabase;
+    use HasFactory;
 
     public const LEAD_FUNNEL_TOKEN = 'lead_funnel_token';
+
+    public const LEAD_WEBHOOK_SECRET = 'lead_webhook_secret';
 
     protected $guarded = [];
 
@@ -55,7 +56,7 @@ class Tenant extends Model implements TenantWithDatabase
             'uuid',
             'is_name_auto_generated',
             'created_by',
-            'domain'
+            'domain',
         ];
     }
 
@@ -99,6 +100,27 @@ class Tenant extends Model implements TenantWithDatabase
         return $token === '' ? null : $token;
     }
 
+    /**
+     * Secret des Anfrage-Webhooks im Leadsystem (#31), verschluesselt in der
+     * data-Spalte. Null bedeutet: der Webhook-Empfang ist fuer dieses Portal aus.
+     */
+    public function leadWebhookSecret(): ?string
+    {
+        $secret = trim((string) $this->getAttribute(self::LEAD_WEBHOOK_SECRET));
+
+        return $secret === '' ? null : $secret;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            self::LEAD_WEBHOOK_SECRET => 'encrypted',
+        ];
+    }
+
     public function getTenantKeyName(): string
     {
         return 'uuid';
@@ -124,6 +146,7 @@ class Tenant extends Model implements TenantWithDatabase
         'deleting' => Events\DeletingTenant::class,
         'deleted' => Events\TenantDeleted::class,
     ];
+
     public function invitations(): HasMany
     {
         return $this->hasMany(Invitation::class);

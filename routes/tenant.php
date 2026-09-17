@@ -9,6 +9,7 @@ use App\Http\Controllers\Portal\CompanyController;
 use App\Http\Controllers\Portal\CompanyRegistrationController;
 use App\Http\Controllers\Portal\LlmsTxtController;
 use App\Http\Controllers\Portal\OwnerDashboardController;
+use App\Http\Controllers\Portal\OwnerInquiryController;
 use App\Http\Controllers\Portal\OwnerJobController;
 use App\Http\Controllers\Portal\PortalHomeController;
 use App\Http\Controllers\Portal\PublicBlogController;
@@ -119,6 +120,16 @@ Route::middleware([
         ->name('portal.indexnow-key');
 });
 
+// Anfragen aus dem Leadsystem (#31): ohne Session und CSRF, Signatur prueft der Controller.
+Route::middleware([
+    App\Providers\TenancyServiceProvider::TENANCY_INITIALIZER,
+    Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
+    'throttle:120,1',
+])->group(function () {
+    Route::post('/webhooks/leads', App\Http\Controllers\Webhooks\LeadWebhookController::class)
+        ->name('portal.webhooks.leads');
+});
+
 Route::middleware([
     'web',
     'universal',
@@ -194,6 +205,11 @@ Route::middleware([
             Route::get('/statistiken/api', [OwnerDashboardController::class, 'statsApi'])->name('stats.api');
             Route::get('/einstellungen', [OwnerDashboardController::class, 'settings'])->name('settings');
             Route::get('/premium', [OwnerDashboardController::class, 'premium'])->name('premium');
+
+            // Anfragen aus dem Leadsystem (#33); Zugriff ueber CompanyInquiryPolicy
+            Route::get('/anfragen', [OwnerInquiryController::class, 'index'])->name('inquiries.index');
+            Route::get('/anfragen/{inquiry}', [OwnerInquiryController::class, 'show'])->whereNumber('inquiry')->name('inquiries.show');
+            Route::patch('/anfragen/{inquiry}/status', [OwnerInquiryController::class, 'updateStatus'])->whereNumber('inquiry')->name('inquiries.status');
 
             // Stellenanzeigen (#179, #181 Premium-Gate)
             // Index: Soft-Lock im Controller (zeigt locked-View für Free-User)

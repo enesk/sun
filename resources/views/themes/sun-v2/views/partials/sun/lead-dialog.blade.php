@@ -87,7 +87,7 @@
         <button type="button" class="btn-ghost hidden px-3" data-prev>{{ __('portal.request.back') }}</button>
         <button type="button" class="btn-primary flex-1 whitespace-nowrap" data-next>{{ $leadTexts['next'] }}</button>
       </div>
-      <p class="px-5 pb-5 -mt-2 text-xs text-zinc-500" data-step-footer data-privacy>{{ __('portal.request.privacy') }} <a href="{{ route('portal.datenschutz') }}" class="underline">{{ __('portal.request.privacy_link') }}</a></p>
+      <p class="px-5 pb-5 -mt-2 text-xs text-zinc-500" data-step-footer data-privacy>{{ __('portal.request.privacy', $firma) }} <a href="{{ route('portal.datenschutz') }}" class="underline">{{ __('portal.request.privacy_link') }}</a></p>
     </form>
   </div>
 </div>

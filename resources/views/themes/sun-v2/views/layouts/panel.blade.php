@@ -26,6 +26,9 @@
     $navItems = [
         ['route' => 'portal.owner.dashboard', 'icon' => 'home', 'label' => __('portal.owner.nav.overview'), 'active' => request()->routeIs('portal.owner.dashboard')],
         ['route' => 'portal.owner.edit', 'icon' => 'pencil', 'label' => __('portal.owner.nav.edit'), 'active' => request()->routeIs('portal.owner.edit')],
+        // Zahl an "Anfragen": neue Anfragen, ein Zaehlquery ueber den Index (company_id, status).
+        // rescue(): ohne tenants:migrate fehlt die Tabelle, das Menue soll dann nicht die Seite kippen.
+        ['route' => 'portal.owner.inquiries.index', 'icon' => 'inbox', 'label' => __('portal.owner.nav.inquiries'), 'active' => request()->routeIs('portal.owner.inquiries.*'), 'badge' => $panelCompany ? rescue(fn () => $panelCompany->inquiries()->withStatus(\App\Constants\CompanyInquiryStatus::NEW)->count(), 0, false) : 0, 'badge_class' => 'pill-brand'],
         // Zahl an "Bewertungen": veroeffentlichte Bewertungen ohne Antwort
         ['route' => 'portal.owner.reviews', 'icon' => 'star', 'label' => __('portal.owner.nav.reviews'), 'active' => request()->routeIs('portal.owner.reviews*'), 'badge' => $panelCompany?->reviews->filter(fn ($review) => $review->isApproved() && empty($review->owner_response))->count()],
         ['route' => 'portal.owner.stats', 'icon' => 'chart', 'label' => __('portal.owner.nav.stats'), 'active' => request()->routeIs('portal.owner.stats*')],
@@ -92,7 +95,7 @@
            class="flex items-center gap-3 min-h-11 px-4 rounded-xl text-base font-medium whitespace-nowrap transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 {{ $item['active'] ? 'bg-brand-50 text-brand-700' : 'text-zinc-700 hover:bg-zinc-100' }}"
            @if($item['active']) aria-current="page" @endif>
           <x-sun.icon :name="$item['icon']" class="icon" />{{ $item['label'] }}
-          @if(! empty($item['badge']))<span class="ml-auto pill text-xs py-0.5">{{ $item['badge'] }}</span>@endif
+          @if(! empty($item['badge']))<span class="ml-auto {{ $item['badge_class'] ?? 'pill' }} text-xs py-0.5">{{ $item['badge'] }}</span>@endif
         </a>
       @endforeach
     </nav>

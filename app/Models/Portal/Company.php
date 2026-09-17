@@ -134,6 +134,11 @@ class Company extends Model implements HasMedia
         return $this->hasMany(Job::class);
     }
 
+    public function inquiries(): HasMany
+    {
+        return $this->hasMany(CompanyInquiry::class);
+    }
+
     public function activeJobs(): HasMany
     {
         return $this->hasMany(Job::class)->where('is_active', true)->where('expires_at', '>', now());
