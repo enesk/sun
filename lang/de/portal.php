@@ -1405,7 +1405,7 @@ return [
         'benefits' => [
             'free' => 'Kostenlos',
             'gdpr' => 'DSGVO-konform',
-            'premium_trial' => '30 Tage Premium gratis',
+            'premium_trial' => 'Premium-Pakete jederzeit buchbar',
         ],
 
         'no_company' => [

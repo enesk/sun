@@ -110,6 +110,17 @@ class PlanCheckout extends Component
             return;
         }
 
+        // Mindestlaufzeit 12 Monate, Kuendigung nur mit 3 Monaten Frist zum
+        // Laufzeitende (Vorgabe Enes, 17.09.2026).
+        if (! $plans->canCancelNow($current)) {
+            $this->error = __('Eine Kündigung ist erst wieder bis zum :frist möglich, zum Laufzeitende am :ende.', [
+                'frist' => $plans->cancellationDeadline($current)->addMonths((int) config('premium.contract.term_months', 12))->format('d.m.Y'),
+                'ende' => $plans->termEndsAt($current)->addMonths((int) config('premium.contract.term_months', 12))->format('d.m.Y'),
+            ]);
+
+            return;
+        }
+
         $cancelled = $subscriptions->cancelSubscription(
             $current,
             $payments->getPaymentProviderBySlug($current->paymentProvider->slug),
@@ -117,7 +128,7 @@ class PlanCheckout extends Component
         );
 
         $this->message = $cancelled
-            ? __('Ihr Abo endet zum :datum. Bis dahin bleiben alle Funktionen aktiv.', ['datum' => $current->ends_at?->format('d.m.Y')])
+            ? __('Ihr Vertrag endet zum :datum. Bis dahin bleiben alle Funktionen aktiv.', ['datum' => $plans->termEndsAt($current)->format('d.m.Y')])
             : null;
         $this->error = $cancelled ? null : __('Die Kündigung ist fehlgeschlagen. Bitte versuchen Sie es später erneut.');
     }

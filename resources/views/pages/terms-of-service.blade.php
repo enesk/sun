@@ -17,6 +17,28 @@
         By accessing or using the Service, you agree to be bound by these Terms. If you disagree with any part of the terms, then you do not have permission to access the Service.
         <p class="mb-6">
 
+        {{-- Premium-Eintraege der Branchenportale (Vorgabe Enes, 17.09.2026).
+             Rechtlich noch nicht freigegeben, siehe Ticket #39. --}}
+        <x-heading.h2 class="text-xl mb-2">
+        Besondere Bedingungen für Premium-Einträge auf den Branchenportalen
+        </x-heading.h2>
+
+        <p class="mb-6">
+        <strong>Geltungsbereich.</strong> Die kostenpflichtigen Einträge (Pro, Premium und die Top-Platzierung) auf den Branchenportalen richten sich
+        ausschließlich an Unternehmer im Sinne des § 14 BGB, an juristische Personen des öffentlichen Rechts und an öffentlich-rechtliche Sondervermögen.
+        Ein Vertragsschluss mit Verbrauchern im Sinne des § 13 BGB ist ausgeschlossen.
+        </p>
+
+        <p class="mb-6">
+        <strong>Preise.</strong> Alle Preise verstehen sich zuzüglich 19 % Umsatzsteuer. Bei jährlicher Zahlweise sind zwei Monatsbeiträge im Jahrespreis bereits berücksichtigt.
+        </p>
+
+        <p class="mb-6">
+        <strong>Laufzeit und Kündigung.</strong> Die Vertragslaufzeit beläuft sich auf 12 Monate. Der Vertrag verlängert sich automatisch um die Vertragsdauer,
+        sofern er nicht mindestens drei Monate vor Ablauf des jeweils vereinbarten Vertragszeitraums gekündigt wird. Die monatliche Zahlweise ändert die
+        Vertragslaufzeit nicht, sie betrifft nur den Abrechnungszeitraum. Das Recht zur außerordentlichen Kündigung aus wichtigem Grund bleibt unberührt.
+        </p>
+
         <x-heading.h2 class="text-xl mb-2">
         Communications
         </x-heading.h2>

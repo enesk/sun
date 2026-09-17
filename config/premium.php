@@ -118,6 +118,7 @@ return [
      * Stripe-Preise an. PremiumPlansSeeder nutzt sie nur beim
      * ersten Anlegen eines PlanPrice.
      */
+    // Nettobetraege in Cent, zuzueglich Umsatzsteuer.
     'reference_prices_cents' => [
         'pro_monthly' => 4900,
         'pro_yearly' => 49000,
@@ -126,7 +127,23 @@ return [
         'featured_monthly' => 3900,
     ],
 
-    'trial_days' => 30,
+    // 0 = keine kostenlose Testphase. Der Rabatt steckt im Jahrespreis
+    // (10 Monatspreise, also 2 Monate geschenkt).
+    'trial_days' => 0,
+
+    /*
+     * Vertragskonditionen (Vorgabe Enes, 17.09.2026). Die Betraege in
+     * reference_prices_cents sind NETTO, die Umsatzsteuer kommt im Checkout
+     * dazu. Mindestlaufzeit 12 Monate, danach Verlaengerung um dieselbe Dauer,
+     * Kuendigung nur mit 3 Monaten Frist zum Laufzeitende. Das Angebot richtet
+     * sich ausschliesslich an Unternehmer (§ 14 BGB).
+     */
+    'contract' => [
+        'term_months' => 12,
+        'notice_months' => 3,
+        'vat_percent' => 19,
+        'business_only' => true,
+    ],
 
     /*
      * Statistik-Tracking (#15): Rohevents in company_events, naechtliche

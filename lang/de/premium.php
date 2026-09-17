@@ -51,7 +51,7 @@ return [
         'per_month' => '/ Monat',
         'per_year' => '/ Jahr',
         'free' => '0 €',
-        'vat' => 'inkl. MwSt.',
+        'vat' => 'zzgl. 19 % USt.',
         'free_months' => '{1} :count Monat gratis|[2,*] :count Monate gratis',
         'unavailable' => 'Bald verfügbar',
     ],
@@ -71,6 +71,9 @@ return [
         'cta_current' => 'Dein aktuelles Paket',
         'cta_manage' => 'Paket verwalten',
         'trial' => ':tage Tage kostenlos testen, danach monatlich kündbar.',
+        'terms' => 'Alle Preise verstehen sich zuzüglich 19 % Umsatzsteuer. Die Vertragslaufzeit beläuft sich auf 12 Monate. Der Vertrag verlängert sich automatisch um die Vertragsdauer, sofern er nicht mindestens drei Monate vor Ablauf des jeweils vereinbarten Vertragszeitraums gekündigt wird.',
+        'yearly_saving' => 'Bei jährlicher Zahlung sind zwei Monate geschenkt.',
+        'business_only' => 'Das Angebot richtet sich ausschließlich an Unternehmer im Sinne des § 14 BGB.',
         'compare_title' => 'Alle Funktionen im Vergleich',
         'compare_feature' => 'Funktion',
         'addon' => [

@@ -116,6 +116,8 @@
     @endforeach
   </section>
 
+  <p class="mt-6 text-sm leading-relaxed text-zinc-500">{{ __('premium.pricing.business_only') }} {{ __('premium.pricing.yearly_saving') }} {{ __('premium.pricing.terms') }}</p>
+
   {{-- Add-on Top-Platzierung --}}
   <section class="mt-8 md:mt-10 rounded-2xl bg-brand-50 p-5 md:p-8 lg:grid lg:grid-cols-[1fr_22rem] lg:gap-8 items-start" aria-labelledby="sec-addon">
     <div>

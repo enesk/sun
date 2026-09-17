@@ -111,6 +111,43 @@ class CompanyPlanService
     }
 
     /**
+     * Ende der laufenden Vertragsperiode: Vertragsbeginn plus so viele volle
+     * Laufzeiten (12 Monate), dass das Ende in der Zukunft liegt.
+     */
+    public function termEndsAt(Subscription $subscription): Carbon
+    {
+        $months = max(1, (int) config('premium.contract.term_months', 12));
+        $start = Carbon::parse($subscription->created_at ?? now());
+        $end = $start->copy()->addMonths($months);
+
+        while ($end->isPast()) {
+            $end = $end->addMonths($months);
+        }
+
+        return $end;
+    }
+
+    /**
+     * Letzter Tag, an dem fristgerecht zum Ende der laufenden Periode
+     * gekuendigt werden kann (3 Monate vorher).
+     */
+    public function cancellationDeadline(Subscription $subscription): Carbon
+    {
+        return $this->termEndsAt($subscription)
+            ->copy()
+            ->subMonths(max(0, (int) config('premium.contract.notice_months', 3)));
+    }
+
+    /**
+     * Nur innerhalb der Frist kuendbar; danach laeuft der Vertrag um eine
+     * weitere Laufzeit weiter.
+     */
+    public function canCancelNow(Subscription $subscription): bool
+    {
+        return now()->lessThanOrEqualTo($this->cancellationDeadline($subscription));
+    }
+
+    /**
      * Uebernimmt Stufe und Laufzeit aus der Subscription (created/updated,
      * Planwechsel, Verlaengerung). Bei past_due bleibt die bisherige Laufzeit
      * stehen, damit die Grace Period greift.

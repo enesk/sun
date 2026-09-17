@@ -77,7 +77,7 @@ class PremiumPlansSeeder extends Seeder
             $tier = PlanTier::forPlanSlug($planSlug);
             $isYearly = str_ends_with($priceKey, '_yearly');
             $product = $tier !== null ? $products[$tier->value] : $products['featured'];
-            $hasTrial = $tier !== null;
+            $hasTrial = $tier !== null && (int) config('premium.trial_days') > 0;
 
             $plan = Plan::updateOrCreate(
                 ['slug' => $planSlug],
@@ -93,8 +93,8 @@ class PremiumPlansSeeder extends Seeder
                     'trial_interval_id' => $hasTrial ? $intervals['day']->id : null,
                     'trial_interval_count' => $hasTrial ? (int) config('premium.trial_days') : 0,
                     'description' => $isYearly
-                        ? 'Jährliche Abrechnung.'
-                        : 'Monatliche Abrechnung. Jederzeit kündbar.',
+                        ? 'Jährliche Abrechnung, Vertragslaufzeit 12 Monate.'
+                        : 'Monatliche Abrechnung, Vertragslaufzeit 12 Monate.',
                 ]
             );
 

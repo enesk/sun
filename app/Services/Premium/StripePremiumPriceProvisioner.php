@@ -66,7 +66,8 @@ class StripePremiumPriceProvisioner
             'unit_amount' => $grossCents,
             'currency' => strtolower($currency),
             'recurring' => ['interval' => $interval, 'interval_count' => 1],
-            'tax_behavior' => 'inclusive',
+            // Nettopreis: die Umsatzsteuer kommt im Checkout dazu (Stripe Tax).
+            'tax_behavior' => 'exclusive',
             'lookup_key' => self::lookupKey($priceKey, $grossCents),
             'nickname' => $name,
             'metadata' => ['sun_price_key' => $priceKey],
