@@ -52,7 +52,7 @@
         <a href="{{ $changeUrl }}" class="btn-secondary">{{ __('premium.plan.downgrade') }}</a>
       @endif
       @if($subscription)
-        <a href="{{ route('verwaltung.subscriptions.show', $subscription->uuid) }}" class="btn-secondary">{{ __('premium.plan.billing') }}</a>
+        <a href="{{ route('portal.owner.subscription') }}" class="btn-secondary">{{ __('premium.subscription.title') }}</a>
       @endif
       <a href="{{ route('portal.premium.pricing') }}" class="btn-ghost">{{ __('premium.plan.compare') }}</a>
       @if($canCancel)

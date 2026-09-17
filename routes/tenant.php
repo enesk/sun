@@ -242,6 +242,8 @@ Route::middleware([
             Route::get('/premium', [OwnerDashboardController::class, 'premium'])->name('premium');
             // Mein Plan und Upsell-Banner (#17)
             Route::get('/mein-plan', [OwnerDashboardController::class, 'plan'])->name('plan');
+            // Abo-Details und Kuendigung im Panel statt in der Verwaltung
+            Route::get('/abo', [OwnerDashboardController::class, 'subscription'])->name('subscription');
             Route::post('/upsell-hinweis/ausblenden', [OwnerDashboardController::class, 'dismissUpsellBanner'])->name('upsell-banner.dismiss');
 
             // Anfragen aus dem Leadsystem (#33); Zugriff ueber CompanyInquiryPolicy

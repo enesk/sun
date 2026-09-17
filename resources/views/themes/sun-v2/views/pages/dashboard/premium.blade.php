@@ -48,12 +48,10 @@
             <p class="mt-4 text-base text-zinc-700">{{ __('portal.owner.premium.active.canceled_text', ['datum' => $subscription->ends_at?->format('d.m.Y') ?? '']) }}</p>
           @endif
           <div class="mt-5 flex flex-wrap gap-2">
-            <a href="{{ route('verwaltung.subscriptions.show', $subscription->uuid) }}" class="btn-secondary">{{ __('portal.owner.premium.active.details') }}</a>
-            @if($canDiscardCancellation)
-              <a href="{{ route('verwaltung.subscriptions.index') }}" class="btn-secondary">{{ __('portal.owner.premium.active.discard_cancel') }}</a>
-            @endif
-            @if($canCancel)
-              <a href="{{ route('verwaltung.subscriptions.cancel', $subscription->uuid) }}" class="btn-ghost text-zinc-600 hover:bg-zinc-100">{{ __('portal.owner.premium.active.cancel') }}</a>
+            <a href="{{ route('portal.owner.subscription') }}" class="btn-secondary">{{ __('premium.subscription.title') }}</a>
+            <a href="{{ route('portal.owner.plan') }}" class="btn-secondary">{{ __('premium.plan.title') }}</a>
+            @if($canDiscardCancellation || $canCancel)
+              <a href="{{ route('portal.owner.subscription') }}#kuendigen" class="btn-ghost text-zinc-600 hover:bg-zinc-100">{{ $canDiscardCancellation ? __('premium.subscription.discard') : __('premium.plan.cancel') }}</a>
             @endif
           </div>
         @endif

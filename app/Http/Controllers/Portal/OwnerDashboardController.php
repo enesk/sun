@@ -72,6 +72,7 @@ class OwnerDashboardController extends Controller
     public function edit()
     {
         $company = $this->getCompany();
+
         return view('pages.dashboard.edit', compact('company'));
     }
 
@@ -202,6 +203,7 @@ class OwnerDashboardController extends Controller
     public function settings()
     {
         $company = $this->getCompany();
+
         return view('pages.dashboard.settings', compact('company'));
     }
 
@@ -297,6 +299,16 @@ class OwnerDashboardController extends Controller
         $company = $this->getCompany();
 
         return view('pages.dashboard.plan', compact('company'));
+    }
+
+    /**
+     * Abo-Details und Kuendigung im Betriebsbereich statt in der Verwaltung.
+     */
+    public function subscription()
+    {
+        $company = $this->getCompany();
+
+        return view('pages.dashboard.subscription', compact('company'));
     }
 
     /**
