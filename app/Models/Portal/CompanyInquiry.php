@@ -21,6 +21,7 @@ use Stancl\Tenancy\Database\Concerns\TenantConnection;
  * @property CompanyInquiryStatus $status
  * @property list<array{key: string, label: string, value: mixed, value_label: string|null}> $answers
  * @property bool $contact_visible
+ * @property \Illuminate\Support\Carbon|null $contact_purged_at
  * @property-read Company|null $company
  */
 class CompanyInquiry extends Model
@@ -61,6 +62,7 @@ class CompanyInquiry extends Model
             'score' => 'integer',
             'received_at' => 'datetime',
             'read_at' => 'datetime',
+            'contact_purged_at' => 'datetime',
         ];
     }
 
@@ -72,6 +74,18 @@ class CompanyInquiry extends Model
     public function scopeWithStatus(Builder $query, CompanyInquiryStatus $status): Builder
     {
         return $query->where('status', $status);
+    }
+
+    /** Faellig fuer leads:inquiries:purge-contacts; Stichtag ist der Eingang. */
+    public function scopeDueForPurge(Builder $query, int $months): Builder
+    {
+        return $query->whereNull('contact_purged_at')
+            ->where('received_at', '<', now()->subMonths($months));
+    }
+
+    public function isPurged(): bool
+    {
+        return $this->contact_purged_at !== null;
     }
 
     public function markRead(): void

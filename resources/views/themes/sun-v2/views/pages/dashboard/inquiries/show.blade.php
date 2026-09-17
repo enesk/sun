@@ -6,6 +6,8 @@
     - Alle Antworten als Label/Wert-Liste, Mehrfachauswahl kommagetrennt.
     - Kontakt mit tel: (E.164, deutsche Nummern ohne Laendervorwahl bekommen +49)
       und mailto:. contact_visible ist fuer ein spaeteres Premium-Gate vorbereitet.
+    - Nach Ablauf der Aufbewahrung (leads:inquiries:purge-contacts) sind Kontakt
+      und Antworten leer; statt der Leer-Hinweise steht dann der Loeschhinweis.
     - Statuswechsel als Formular ohne JavaScript, ein Knopf je Status.
 --}}
 @extends('layouts.panel')
@@ -15,6 +17,9 @@
 
     $received = $inquiry->received_at ?? $inquiry->created_at;
     $showContact = (bool) $inquiry->contact_visible;
+    $purgedNote = $inquiry->isPurged()
+        ? __('portal.owner.inquiries.show.purged', ['monate' => (int) config('leads.exclusive.retention_months', 12)])
+        : null;
     $name = $showContact && filled($inquiry->contact_name) ? $inquiry->contact_name : __('portal.owner.inquiries.unknown_name');
 
     $display = function (array $answer): string {
@@ -66,7 +71,7 @@
     <section class="card p-5 md:p-6 min-w-0" aria-labelledby="sec-angaben">
       <h2 id="sec-angaben" class="text-2xl font-semibold text-zinc-900">{{ __('portal.owner.inquiries.show.answers') }}</h2>
       @if($answers->isEmpty())
-        <p class="mt-3 text-base text-zinc-500">{{ __('portal.owner.inquiries.show.no_answers') }}</p>
+        <p class="mt-3 text-base text-zinc-500">{{ $purgedNote ?? __('portal.owner.inquiries.show.no_answers') }}</p>
       @else
         <dl class="mt-4 divide-y divide-zinc-200">
           @foreach($answers as $answer)
@@ -84,7 +89,9 @@
       {{-- Kontakt --}}
       <section class="card p-5 md:p-6" aria-labelledby="sec-kontakt">
         <h2 id="sec-kontakt" class="text-lg font-semibold text-zinc-900">{{ __('portal.owner.inquiries.show.contact') }}</h2>
-        @if(! $showContact)
+        @if($purgedNote)
+          <p class="mt-2 text-base text-zinc-500">{{ $purgedNote }}</p>
+        @elseif(! $showContact)
           <p class="mt-2 text-base text-zinc-500">{{ __('portal.owner.inquiries.show.contact_hidden') }}</p>
         @elseif(blank($inquiry->contact_name) && blank($inquiry->contact_email) && blank($inquiry->contact_phone))
           <p class="mt-2 text-base text-zinc-500">{{ __('portal.owner.inquiries.show.no_contact') }}</p>

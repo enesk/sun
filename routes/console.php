@@ -51,6 +51,9 @@ Schedule::command('tenants:run premium:purge-verification-documents')->dailyAt('
 // Exklusive Anfragen (#9): Kontaktdaten nach 12 Monaten loeschen, je Tenant
 Schedule::command('tenants:run leads:purge-contacts')->dailyAt('01:30')->withoutOverlapping()->onOneServer();
 
+// Webhook-Anfragen (#32 Premium): Kontaktdaten und Antworten nach 12 Monaten loeschen, je Tenant
+Schedule::command('tenants:run leads:inquiries:purge-contacts')->dailyAt('01:45')->withoutOverlapping()->onOneServer();
+
 Schedule::command('import:cleanup')->dailyAt('02:00');
 
 /*
