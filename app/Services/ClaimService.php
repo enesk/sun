@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Constants\TenancyPermissionConstants;
+use App\Mail\ClaimApproved;
+use App\Mail\ClaimRejected;
 use App\Mail\ClaimRequestNotification;
 use App\Models\Portal\ClaimRequest;
 use App\Models\Portal\Company;
@@ -33,6 +35,7 @@ class ClaimService
                 'user_id' => $user->id,
                 'company_id' => $company->id,
             ]);
+
             return false;
         }
 
@@ -49,6 +52,7 @@ class ClaimService
                 'owned_company_id' => $ownedCompany->id,
                 'requested_company_id' => $company->id,
             ]);
+
             return false;
         }
 
@@ -64,6 +68,7 @@ class ClaimService
                 'existing_company_id' => $existingPendingOther->company_id,
                 'requested_company_id' => $company->id,
             ]);
+
             return false;
         }
 
@@ -117,6 +122,7 @@ class ClaimService
                 'company_id' => $company->id,
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -148,6 +154,8 @@ class ClaimService
         // Firma zwischenzeitlich von jemand anderem geclaimed?
         if ($company->user_id !== null && $company->user_id !== $user->id) {
             $claimRequest->reject($reviewerId, 'Firma wurde zwischenzeitlich von jemand anderem übernommen.');
+            $this->notifyClaimRejected($claimRequest);
+
             return false;
         }
 
@@ -173,6 +181,18 @@ class ClaimService
             // 4. First-Claim markieren (nicht-kritisch, außerhalb Transaction)
             $user->markFirstClaim();
 
+            // 5. Antragsteller benachrichtigen (nicht-kritisch: Freigabe steht schon)
+            if ($tenant instanceof Tenant && filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
+                try {
+                    Mail::to($user->email)->send(new ClaimApproved($claimRequest, $tenant));
+                } catch (\Exception $e) {
+                    Log::warning('ClaimService: Failed to send claim approved email', [
+                        'claim_request_id' => $claimRequest->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
             Log::info('ClaimService: Claim approved', [
                 'claim_request_id' => $claimRequest->id,
                 'user_id' => $user->id,
@@ -186,6 +206,7 @@ class ClaimService
                 'claim_request_id' => $claimRequest->id,
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -201,6 +222,9 @@ class ClaimService
 
         $claimRequest->reject($reviewerId, $reason);
 
+        // Antragsteller benachrichtigen (nicht-kritisch: die Ablehnung steht schon)
+        $this->notifyClaimRejected($claimRequest);
+
         Log::info('ClaimService: Claim rejected', [
             'claim_request_id' => $claimRequest->id,
             'user_id' => $claimRequest->user_id,
@@ -209,6 +233,29 @@ class ClaimService
         ]);
 
         return true;
+    }
+
+    /**
+     * Ablehnung an den Antragsteller melden. Scheitert der Versand, bleibt die
+     * Ablehnung bestehen — es gibt nur einen Log-Eintrag.
+     */
+    private function notifyClaimRejected(ClaimRequest $claimRequest): void
+    {
+        $tenant = tenant();
+        $user = User::find($claimRequest->user_id);
+
+        if (!$tenant instanceof Tenant || !$user || !filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
+            return;
+        }
+
+        try {
+            Mail::to($user->email)->send(new ClaimRejected($claimRequest, $tenant));
+        } catch (\Exception $e) {
+            Log::warning('ClaimService: Failed to send claim rejected email', [
+                'claim_request_id' => $claimRequest->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
@@ -300,6 +347,7 @@ class ClaimService
                 'user_id' => $user->id,
                 'company_id' => $company->id,
             ]);
+
             return false;
         }
 
@@ -338,6 +386,7 @@ class ClaimService
                 'company_id' => $company->id,
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
