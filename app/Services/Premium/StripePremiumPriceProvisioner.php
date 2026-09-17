@@ -19,9 +19,15 @@ class StripePremiumPriceProvisioner
 {
     public function __construct(private readonly StripeClient $stripe) {}
 
-    public static function lookupKey(string $priceKey, int $grossCents): string
+    /**
+     * Der Zusatz 'net' trennt die Nettopreise (tax_behavior exclusive, seit
+     * #39) von den frueher angelegten Bruttopreisen: Stripe laesst das
+     * Steuerverhalten eines bestehenden Price nicht mehr aendern, deshalb
+     * braucht es einen neuen lookup_key und damit einen neuen Price.
+     */
+    public static function lookupKey(string $priceKey, int $netCents): string
     {
-        return "sun_{$priceKey}_{$grossCents}";
+        return "sun_{$priceKey}_{$netCents}_net";
     }
 
     public static function productId(string $planSlug): string
