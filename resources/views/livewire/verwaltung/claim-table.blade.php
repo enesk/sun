@@ -342,7 +342,9 @@
                     <div class="dash-slideover__footer">
                         {{-- Reject Section --}}
                         <div class="dash-claim-detail__reject-section">
-                            <select wire:model="rejectionReasonKey"
+                            {{-- .live: ohne das kommt die Auswahl erst beim naechsten Request an,
+                                 und der Ablehnen-Knopf bliebe dauerhaft deaktiviert --}}
+                            <select wire:model.live="rejectionReasonKey"
                                     class="dash-select dash-btn-sm"
                                     style="width: 100%; min-height: auto; padding: 0.5rem 2rem 0.5rem 0.75rem; font-size: 0.8125rem;"
                                     aria-label="Ablehnungsgrund wählen">
@@ -353,7 +355,7 @@
                             </select>
 
                             @if($rejectionReasonKey === 'other')
-                                <textarea wire:model="rejectionReason"
+                                <textarea wire:model.live.debounce.400ms="rejectionReason"
                                           rows="2"
                                           placeholder="Bitte beschreiben Sie den Ablehnungsgrund..."
                                           class="dash-textarea"
@@ -365,7 +367,7 @@
                             <button wire:click="rejectClaim({{ $detailClaim->id }})"
                                     wire:confirm="Claim-Antrag wirklich ablehnen? Der Antragsteller wird per E-Mail benachrichtigt."
                                     class="dash-btn dash-btn-danger"
-                                    @if(empty($rejectionReasonKey)) disabled @endif>
+                                    @if(empty($rejectionReasonKey) || ($rejectionReasonKey === 'other' && empty(trim($rejectionReason)))) disabled @endif>
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
                                 </svg>
