@@ -10,7 +10,7 @@
   </p>
   @if($priceCents !== null)
     <p class="mt-2 text-2xl font-bold text-zinc-900">{{ money($priceCents, $currency) }}<span class="text-base font-medium text-zinc-500"> {{ __('/ Monat je Platzierung') }}</span></p>
-    <p class="text-xs text-zinc-500">{{ __('inkl. MwSt.') }}</p>
+    <p class="text-xs text-zinc-500">{{ __('premium.price.vat') }}</p>
   @endif
 
   @if($message)

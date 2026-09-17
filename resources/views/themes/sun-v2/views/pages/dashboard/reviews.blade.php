@@ -172,7 +172,6 @@
           <p class="pill-brand"><x-sun.icon name="sparkles" class="size-4 shrink-0" />{{ __('portal.owner.reviews.premium.badge') }}</p>
           <h2 class="mt-3 text-2xl font-semibold text-zinc-900">{{ trans_choice('portal.owner.reviews.premium.title', $counts['unanswered'], ['anzahl' => $counts['unanswered']]) }}</h2>
           <p class="mt-2 text-base text-zinc-700">{{ __('portal.owner.reviews.premium.text') }}</p>
-          <p class="mt-4 text-3xl font-bold text-zinc-900">{{ __('portal.owner.reviews.premium.price') }}<span class="text-base font-medium text-zinc-500"> {{ __('portal.owner.reviews.premium.period') }}</span></p>
           <a href="{{ route('portal.owner.premium') }}" class="btn-primary mt-4 w-full">{{ __('portal.owner.reviews.premium.cta') }}</a>
           <p class="mt-2 text-sm text-zinc-500 text-center">{{ __('portal.owner.reviews.premium.note') }}</p>
         </section>

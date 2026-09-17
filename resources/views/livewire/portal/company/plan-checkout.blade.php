@@ -38,7 +38,7 @@
         @elseif($billing === 'monthly' && $plan['monthly'] !== null)
           <p class="mt-1 text-3xl font-bold text-zinc-900">{{ money($plan['monthly'], $currency) }}<span class="text-base font-medium text-zinc-500"> {{ __('/ Monat') }}</span></p>
         @endif
-        <p class="text-xs text-zinc-500">{{ __('inkl. MwSt.') }}</p>
+        <p class="text-xs text-zinc-500">{{ __('premium.price.vat') }}</p>
 
         @if($currentSlug === $slug)
           <p class="btn-secondary mt-3 w-full pointer-events-none">{{ __('Aktuelles Paket') }}</p>
