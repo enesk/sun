@@ -3,8 +3,10 @@
     Logik unveraendert in App\Livewire\Portal\Dashboard\ProfileEditForm.
 
     Abweichungen von der Vorlage:
-    - Beschreibung bleibt fuer alle bearbeitbar, wie bisher im Code. Premium-gesperrt sind nur
-      Titelbild und Fotos (so prueft es save()).
+    - Beschreibung bleibt fuer alle bearbeitbar, wie bisher im Code. Premium-gesperrt ist nur
+      das Titelbild. Fotos: Anzahl je Plan aus dem Entitlement-Service ($galleryLimit, #13);
+      Fotos ueber dem Limit bleiben gespeichert und sind als nicht sichtbar markiert.
+    - Video (#13): Feld nur mit Feature video_embed ($canVideo).
     - "Leistungen & Oeffnungszeiten" fehlt: dafuer gibt es im Formular keine Felder.
     - Ort ist die vorhandene Stadtsuche (city_id), kein freies Textfeld.
     - "Noch offen" rechnet mit denselben acht Feldern wie die Uebersicht, live aus dem Formular.
@@ -187,7 +189,29 @@
         </div>
       </section>
 
-      {{-- Titelbild und Fotos: mit Premium bearbeitbar, sonst sichtbar gesperrt --}}
+      {{-- Fotos (#13, Sortierung #14): Markup in livewire/portal/company/dashboard/gallery --}}
+      @include('livewire.portal.company.dashboard.gallery')
+
+      {{-- Video (#13): nur mit Feature video_embed --}}
+      <section class="card p-5 md:p-6" aria-labelledby="sec-video">
+        <h2 id="sec-video" class="text-2xl font-semibold text-zinc-900 flex flex-wrap items-center gap-2">
+          {{ __('portal.owner.edit.video.title') }}
+          @unless($canVideo)
+            <span class="pill-brand text-xs"><x-sun.icon name="lock" class="size-3.5 shrink-0" />{{ __('portal.owner.edit.locked.badge') }}</span>
+          @endunless
+        </h2>
+        @if($canVideo)
+          <label class="mt-4 block text-sm font-medium text-zinc-700 mb-1" for="video_url">{{ __('portal.owner.edit.video.label') }} <span class="font-normal text-zinc-500">{{ __('portal.owner.edit.optional') }}</span></label>
+          <input id="video_url" type="url" wire:model.blur="video_url" class="{{ $fieldClass('video_url') }}" placeholder="https://www.youtube.com/watch?v=…">
+          @error('video_url') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+          <p class="mt-1 text-sm text-zinc-500">{{ __('portal.owner.edit.video.hint') }}</p>
+        @else
+          <p class="mt-1 text-base text-zinc-500">{{ __('portal.owner.edit.video.locked') }}</p>
+          <a href="{{ route('portal.owner.premium') }}" class="btn-secondary mt-4 w-full sm:w-auto"><x-sun.icon name="lock" class="size-4 shrink-0" />{{ __('portal.owner.edit.locked.unlock') }}</a>
+        @endif
+      </section>
+
+      {{-- Titelbild: mit Premium bearbeitbar, sonst sichtbar gesperrt --}}
       @if($ownerIsPremium)
         <section class="card p-5 md:p-6" aria-labelledby="sec-titelbild">
           <h2 id="sec-titelbild" class="text-2xl font-semibold text-zinc-900">{{ __('portal.owner.edit.cover.title') }}</h2>
@@ -213,49 +237,12 @@
           <p class="mt-1 text-sm text-brand-700" wire:loading wire:target="cover">{{ __('portal.owner.edit.uploading') }}</p>
           @error('cover') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
         </section>
-
-        <section class="card p-5 md:p-6" aria-labelledby="sec-fotos">
-          <h2 id="sec-fotos" class="text-2xl font-semibold text-zinc-900">{{ __('portal.owner.edit.gallery.title') }} <span class="text-base font-normal text-zinc-500">{{ __('portal.owner.edit.gallery.count', ['anzahl' => count($existingGallery)]) }}</span></h2>
-          @if(count($existingGallery) > 0)
-            <ul class="mt-4 grid grid-cols-3 sm:grid-cols-4 gap-2">
-              @foreach($existingGallery as $image)
-                <li class="relative aspect-square overflow-hidden rounded-xl bg-zinc-100" wire:key="gallery-{{ $image['id'] }}">
-                  <img src="{{ $image['url'] }}" alt="" class="size-full object-cover" loading="lazy">
-                  <button type="button" wire:click="removeGalleryImage({{ $image['id'] }})" wire:confirm="{{ __('portal.owner.edit.gallery.confirm_delete') }}"
-                          class="absolute top-1 right-1 inline-flex size-11 items-center justify-center rounded-full bg-white/90 text-zinc-700 hover:text-red-600 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand"
-                          aria-label="{{ __('portal.owner.edit.gallery.delete') }}">
-                    <x-sun.icon name="x" class="icon" />
-                  </button>
-                </li>
-              @endforeach
-            </ul>
-          @endif
-          @if(count($existingGallery) < 20)
-            <label for="gallery-upload" class="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-zinc-300 p-6 text-center transition-colors hover:border-brand focus-within:ring-2 focus-within:ring-brand">
-              <x-sun.icon name="upload" class="icon text-zinc-400" />
-              <span class="mt-2 text-base font-medium text-zinc-900">{{ __('portal.owner.edit.gallery.upload') }}</span>
-              <span class="text-sm text-zinc-500">{{ __('portal.owner.edit.gallery.hint', ['anzahl' => 20 - count($existingGallery)]) }}</span>
-              <input type="file" id="gallery-upload" wire:model="galleryUploads" class="sr-only" accept="image/jpeg,image/png,image/webp" multiple>
-            </label>
-            <p class="mt-1 text-sm text-brand-700" wire:loading wire:target="galleryUploads">{{ __('portal.owner.edit.uploading') }}</p>
-          @else
-            <p class="mt-3 text-sm text-zinc-500">{{ __('portal.owner.edit.gallery.full') }}</p>
-          @endif
-          @error('galleryUploads') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-          @error('galleryUploads.*') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-        </section>
       @else
         <section class="card border-brand-200 p-5 md:p-6" aria-labelledby="sec-fotos-gesperrt">
           <p class="pill-brand mb-3"><x-sun.icon name="sparkles" class="size-4 shrink-0" />{{ __('portal.owner.edit.locked.badge') }}</p>
           <h2 id="sec-fotos-gesperrt" class="text-2xl font-semibold text-zinc-900">{{ __('portal.owner.edit.locked.photos_title') }}</h2>
           <div class="mt-4 aspect-[3/1] rounded-xl bg-zinc-100" aria-hidden="true"></div>
-          <div class="mt-2 grid grid-cols-3 sm:grid-cols-4 gap-2" aria-hidden="true">
-            <div class="aspect-square rounded-xl bg-zinc-100"></div><div class="aspect-square rounded-xl bg-zinc-100"></div><div class="aspect-square rounded-xl bg-zinc-100"></div><div class="aspect-square rounded-xl bg-zinc-100 hidden sm:block"></div>
-          </div>
           <p class="mt-3 text-sm text-zinc-500">{{ __('portal.owner.edit.locked.photos_hint') }}</p>
-          @if(count($existingGallery) > 0)
-            <p class="mt-1 text-sm text-zinc-700">{{ trans_choice('portal.owner.edit.locked.photos_stored', count($existingGallery), ['anzahl' => count($existingGallery)]) }}</p>
-          @endif
           <a href="{{ route('portal.owner.premium') }}" class="btn-secondary mt-4 w-full sm:w-auto"><x-sun.icon name="lock" class="size-4 shrink-0" />{{ __('portal.owner.edit.locked.unlock') }}</a>
         </section>
       @endif

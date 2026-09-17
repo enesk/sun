@@ -82,6 +82,15 @@ return [
             'replace_placeholders' => true,
         ],
 
+        // Manuelle Eingriffe ins Premium-Modul aus Filament (#18)
+        'premium-admin' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/premium-admin.log'),
+            'level' => 'info',
+            'days' => 730,
+            'replace_placeholders' => true,
+        ],
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),

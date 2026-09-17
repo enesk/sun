@@ -2,19 +2,20 @@
     Bewertungen im Betriebsbereich, Theme sun-v2 (Vorlage bewertungen-elektrikerportal.html).
     Daten: OwnerDashboardController::reviews(). Texte: lang/de/portal.php (owner.reviews.*).
 
-    Abweichungen von der Vorlage, weil das Backend fehlt:
-    - Bewertungslink ist die Firmenseite mit Sprung zu #bewertungen (keine Kurz-URL /b/…).
+    Bewertungslink /bewerten/{slug}, QR-Code und Widget (#12): $reviewLink aus dem Controller,
+    Tools in livewire:portal.company.dashboard.reviews. Antworten nur mit Feature review_replies ($canReply).
+
+    Abweichung von der Vorlage, weil das Backend fehlt:
     - "Melden" oeffnet eine E-Mail an die Kontaktadresse des Portals; ohne Adresse entfaellt es.
 --}}
 @extends('layouts.panel')
 
 @php
     $supportEmail = $currentTenant?->getAttribute(\App\Constants\TenantConfigConstants::CONTACT_EMAIL);
-    $reviewLink = "{$company->portal_url}#bewertungen";
     $filters = ['all', 'published', 'pending', 'unanswered'];
     $maxCount = max(1, max($distribution));
     // Antwort-Vorschau fuer Basis-Eintraege nur unter der ersten veroeffentlichten Bewertung
-    $previewReviewId = $company->is_premium ? null : $reviews->first(fn ($review) => $review->isApproved())?->id;
+    $previewReviewId = $canReply ? null : $reviews->first(fn ($review) => $review->isApproved())?->id;
 @endphp
 
 @section('title', __('portal.owner.reviews.title'))
@@ -101,8 +102,8 @@
             <p class="mt-2 text-sm text-red-600">{{ __('portal.owner.reviews.rejected_reason', ['grund' => $review->moderation_note]) }}</p>
           @endif
 
-          {{-- Vorhandene Antwort (Premium) --}}
-          @if($company->is_premium && $review->isApproved() && ! empty($review->owner_response))
+          {{-- Vorhandene Antwort (review_replies) --}}
+          @if($canReply && $review->isApproved() && ! empty($review->owner_response))
             <div class="mt-4 rounded-xl bg-zinc-50 p-4">
               <p class="text-sm font-semibold text-zinc-900 flex items-center gap-2">
                 <x-sun.icon name="reply" class="size-4 shrink-0" />{{ __('portal.owner.reviews.your_reply') }}
@@ -131,25 +132,26 @@
             </div>
           @endif
 
-          {{-- Antwortformular (Premium, noch keine Antwort) --}}
-          @if($company->is_premium && $review->isApproved() && empty($review->owner_response))
+          {{-- Antwortformular (review_replies): eine Antwort je Bewertung, bestehende wird bearbeitet --}}
+          @if($canReply && $review->isApproved())
             <form id="antwort-{{ $review->id }}" action="{{ route('portal.owner.reviews.respond', $review->id) }}" method="POST" class="mt-4" hidden>
               @csrf
               <label for="antwort-text-{{ $review->id }}" class="block text-sm font-medium text-zinc-700 mb-1">{{ __('portal.owner.reviews.reply_label') }}</label>
               <textarea id="antwort-text-{{ $review->id }}" name="owner_response" rows="3" maxlength="1000" required
-                        class="input py-3" placeholder="{{ __('portal.owner.reviews.reply_placeholder') }}"></textarea>
+                        class="input py-3" placeholder="{{ __('portal.owner.reviews.reply_placeholder') }}">{{ $review->owner_response }}</textarea>
               <p class="mt-1 text-sm text-zinc-500">{{ __('portal.owner.reviews.reply_hint') }}</p>
-              <button type="submit" class="btn-primary mt-3">{{ __('portal.owner.reviews.reply_save') }}</button>
+              <button type="submit" class="btn-primary mt-3">{{ empty($review->owner_response) ? __('portal.owner.reviews.reply_save') : __('portal.owner.reviews.reply_update') }}</button>
             </form>
           @endif
 
           <div class="mt-3 -mx-3 flex flex-wrap items-center gap-1">
             @if($review->isApproved())
-              @if(! $company->is_premium)
+              @if(! $canReply)
                 <a href="{{ route('portal.owner.premium') }}" class="btn-ghost"><x-sun.icon name="reply" class="icon" />{{ __('portal.owner.reviews.reply') }} <span class="pill-brand text-xs ml-1">{{ __('portal.owner.reviews.premium.badge') }}</span></a>
               @elseif(empty($review->owner_response))
                 <button type="button" class="btn-ghost" data-disclosure="antwort-{{ $review->id }}" aria-controls="antwort-{{ $review->id }}" aria-expanded="false"><x-sun.icon name="reply" class="icon" />{{ __('portal.owner.reviews.reply') }}</button>
               @else
+                <button type="button" class="btn-ghost" data-disclosure="antwort-{{ $review->id }}" aria-controls="antwort-{{ $review->id }}" aria-expanded="false"><x-sun.icon name="pencil" class="icon" />{{ __('portal.owner.reviews.edit_reply') }}</button>
                 <button type="button" class="btn-ghost text-zinc-500 hover:bg-zinc-100" data-disclosure="antwort-loeschen-{{ $review->id }}" aria-controls="antwort-loeschen-{{ $review->id }}" aria-expanded="false"><x-sun.icon name="x" class="icon" />{{ __('portal.owner.reviews.delete_reply') }}</button>
               @endif
             @endif
@@ -165,7 +167,7 @@
 
     {{-- Rechte Spalte --}}
     <aside class="space-y-4 md:space-y-6 lg:sticky lg:top-24">
-      @unless($company->is_premium)
+      @unless($canReply)
         <section id="premium" class="rounded-2xl bg-brand-50 border-2 border-brand p-5 md:p-6">
           <p class="pill-brand"><x-sun.icon name="sparkles" class="size-4 shrink-0" />{{ __('portal.owner.reviews.premium.badge') }}</p>
           <h2 class="mt-3 text-2xl font-semibold text-zinc-900">{{ trans_choice('portal.owner.reviews.premium.title', $counts['unanswered'], ['anzahl' => $counts['unanswered']]) }}</h2>
@@ -186,6 +188,8 @@
           </button>
         </div>
       </section>
+
+      <livewire:portal.company.dashboard.reviews />
 
       @if($supportEmail)
         <section class="card p-5 md:p-6">

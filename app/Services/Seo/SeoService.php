@@ -98,6 +98,27 @@ final class SeoService
     }
 
     /**
+     * Preisseite /premium (#17): ohne Parameter indexierbar; die Auswahl von
+     * Stadt/Branche (?stadt=, ?branche=) liefert noindex mit Canonical auf
+     * die parameterlose Seite. Title und Description setzt pricingMeta().
+     */
+    public function forPricingPage(Request $request): void
+    {
+        $this->set($request->query() === [] ? self::INDEX : self::NOINDEX, route('portal.premium.pricing'));
+    }
+
+    /**
+     * @return array{title: string, description: string}
+     */
+    public function pricingMeta(string $portalName): array
+    {
+        return [
+            'title' => __('premium.pricing.meta_title', ['portal' => $portalName]),
+            'description' => __('premium.pricing.meta_description', ['portal' => $portalName]),
+        ];
+    }
+
+    /**
      * BreadcrumbList aus den Eintraegen der sichtbaren Brotkrumen (#9).
      * Aufgerufen von der Komponente x-sun.breadcrumb selbst, damit JSON-LD und
      * Navigation garantiert dieselbe Liste lesen.

@@ -2,9 +2,13 @@
 
 namespace App\Livewire\Portal\Dashboard;
 
+use App\Enums\PremiumFeature;
+use App\Livewire\Concerns\HasEntitlements;
 use App\Models\Portal\Category;
 use App\Models\Portal\City;
 use App\Models\Portal\Company;
+use App\Services\Premium\CompanyProfileContentService;
+use App\Support\VideoEmbed;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -13,6 +17,7 @@ use Livewire\WithFileUploads;
 
 class ProfileEditForm extends Component
 {
+    use HasEntitlements;
     use WithFileUploads;
 
     // Company data
@@ -27,6 +32,7 @@ class ProfileEditForm extends Component
     public string $email = '';
     public string $website = '';
     public array $selectedCategories = [];
+    public string $video_url = '';
 
     // File uploads
     public $logo;
@@ -42,6 +48,11 @@ class ProfileEditForm extends Component
     public ?string $currentLogoUrl = null;
     public ?string $currentCoverUrl = null;
     public array $existingGallery = [];
+    // Galerie-Limit aus dem Entitlement-Service (#13), null = unbegrenzt
+    public ?int $galleryLimit = null;
+    public bool $canVideo = false;
+
+    private ?Company $ownerCompany = null;
     public int $companyId = 0;
 
     public function mount(): void
@@ -59,6 +70,8 @@ class ProfileEditForm extends Component
         $this->email = $company->email ?? '';
         $this->website = $company->website ?? '';
         $this->selectedCategories = $company->categories->pluck('id')->toArray();
+        $this->video_url = (string) ($company->video_url ?? '');
+        $this->canVideo = $this->can(PremiumFeature::VideoEmbed);
         $this->currentLogoUrl = $company->getFirstMediaUrl('logo', 'medium') ?: null;
         $this->currentCoverUrl = $company->getFirstMediaUrl('cover', 'banner') ?: null;
         $this->loadExistingGallery($company);
@@ -84,8 +97,13 @@ class ProfileEditForm extends Component
             'selectedCategories.*' => ['integer', 'exists:categories,id'],
             'logo' => ['nullable', 'image', 'max:2048'],
             'cover' => ['nullable', 'image', 'max:5120'],
-            'galleryUploads' => ['nullable', 'array', 'max:20'],
-            'galleryUploads.*' => ['image', 'max:5120'],
+            'galleryUploads' => ['nullable', 'array', 'max:'.max(1, $this->remainingGallerySlots() ?? PHP_INT_MAX)],
+            'galleryUploads.*' => ['image', 'max:'.(int) config('premium.profile.gallery_max_kb', 5120)],
+            'video_url' => ['nullable', 'string', 'max:500', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (filled($value) && ! VideoEmbed::isValid((string) $value)) {
+                    $fail('Bitte geben Sie einen Link zu einem YouTube- oder Vimeo-Video ein.');
+                }
+            }],
         ];
     }
 
@@ -107,7 +125,7 @@ class ProfileEditForm extends Component
             'logo.max' => 'Das Logo darf maximal 2 MB groß sein.',
             'cover.image' => 'Das Titelbild muss ein Bild sein (JPEG, PNG, WebP).',
             'cover.max' => 'Das Titelbild darf maximal 5 MB groß sein.',
-            'galleryUploads.max' => 'Maximal 20 Bilder erlaubt.',
+            'galleryUploads.max' => 'Für Ihr Paket sind nicht mehr so viele Fotos möglich.',
             'galleryUploads.*.image' => 'Nur Bilder erlaubt (JPEG, PNG, WebP).',
             'galleryUploads.*.max' => 'Jedes Bild darf maximal 5 MB groß sein.',
         ];
@@ -154,7 +172,7 @@ class ProfileEditForm extends Component
 
         $company = $this->getCompany();
 
-        $company->update([
+        $data = [
             'name' => $this->name,
             'description' => $this->description ?: null,
             'street' => $this->street,
@@ -164,7 +182,14 @@ class ProfileEditForm extends Component
             'tel' => $this->tel ?: null,
             'email' => $this->email,
             'website' => $this->website ?: null,
-        ]);
+        ];
+
+        // Video nur mit Freischaltung (#13); ein gespeicherter Link bleibt nach Downgrade erhalten
+        if ($this->can(PremiumFeature::VideoEmbed)) {
+            $data['video_url'] = trim($this->video_url) ?: null;
+        }
+
+        $company->update($data);
 
         $company->categories()->sync($this->selectedCategories);
 
@@ -186,20 +211,15 @@ class ProfileEditForm extends Component
             $this->currentCoverUrl = $company->fresh()->getFirstMediaUrl('cover', 'banner') ?: null;
         }
 
-        // Gallery uploads (Premium only)
-        if (!empty($this->galleryUploads) && $company->is_premium) {
-            $currentCount = $company->getMedia('gallery')->count();
-            $maxAllowed = 20;
+        // Galerie: Limit je Plan ueber den Entitlement-Service (#13)
+        if (! empty($this->galleryUploads)) {
+            $contents = app(CompanyProfileContentService::class);
+            $added = $contents->addGalleryPhotos($company, $this->galleryUploads);
 
-            foreach ($this->galleryUploads as $galleryImage) {
-                if ($currentCount >= $maxAllowed) {
-                    break;
-                }
-                $company->addMedia($galleryImage->getRealPath())
-                    ->usingFileName('gallery_' . uniqid() . '.' . $galleryImage->getClientOriginalExtension())
-                    ->toMediaCollection('gallery');
-                $currentCount++;
+            if ($added < count($this->galleryUploads)) {
+                $this->dispatch('toast', type: 'error', message: __('portal.owner.edit.gallery.limit_reached', ['max' => (int) $contents->galleryLimit($company)]));
             }
+
             $this->galleryUploads = [];
             $this->loadExistingGallery($company->fresh());
         }
@@ -259,14 +279,61 @@ class ProfileEditForm extends Component
         }
     }
 
+    /**
+     * Neue Reihenfolge der Galerie (#14, Drag-Sort). Die ersten N Fotos
+     * sind oeffentlich sichtbar; fremde oder unbekannte IDs werden ignoriert.
+     *
+     * @param  array<int, int|string>  $orderedIds
+     */
+    public function reorderGallery(array $orderedIds): void
+    {
+        $company = $this->getCompany();
+        $gallery = $company->getMedia('gallery')->keyBy(fn ($media) => (int) $media->getKey());
+        $ownIds = $gallery->keys()->all();
+        $ids = array_values(array_intersect(array_map('intval', $orderedIds), $ownIds));
+
+        // Nicht uebergebene Fotos behalten ihre relative Reihenfolge am Ende
+        $ids = [...$ids, ...array_values(array_diff($ownIds, $ids))];
+
+        if ($ids === [] || $ids === $ownIds) {
+            return;
+        }
+
+        // Ueber die geladenen Modelle speichern, damit die Tenant-Verbindung greift
+        foreach ($ids as $position => $id) {
+            $media = $gallery->get($id);
+
+            if ((int) $media->order_column !== $position + 1) {
+                $media->order_column = $position + 1;
+                $media->save();
+            }
+        }
+
+        $this->loadExistingGallery($company->fresh());
+    }
+
+    /**
+     * Alle gespeicherten Fotos; ueber dem Limit liegende sind als
+     * nicht sichtbar markiert (visible = false).
+     */
     private function loadExistingGallery(Company $company): void
     {
-        $this->existingGallery = $company->getMedia('gallery')->map(fn ($media) => [
-            'id' => $media->id,
-            'url' => $media->getUrl('medium'),
-            'name' => $media->file_name,
-            'size' => $media->human_readable_size,
-        ])->toArray();
+        $contents = app(CompanyProfileContentService::class);
+
+        $this->galleryLimit = $contents->galleryLimit($company);
+        $this->existingGallery = $contents->galleryOverview($company);
+    }
+
+    private function remainingGallerySlots(): ?int
+    {
+        return $this->galleryLimit === null
+            ? null
+            : max(0, $this->galleryLimit - count($this->existingGallery));
+    }
+
+    protected function entitlementCompany(): ?Company
+    {
+        return $this->ownerCompany ??= Company::ownedBy(Auth::id())->first();
     }
 
     private function getCompany(): Company
@@ -288,6 +355,7 @@ class ProfileEditForm extends Component
             'categories' => $this->categories(),
             'currentLogo' => $this->currentLogoUrl,
             'currentCover' => $this->currentCoverUrl,
+            'gallerySlots' => $this->remainingGallerySlots(),
         ]);
     }
 }

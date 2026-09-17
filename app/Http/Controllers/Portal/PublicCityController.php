@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Portal\Category;
 use App\Models\Portal\City;
 use App\Models\Portal\Company;
+use App\Models\Portal\CompanyEvent;
 use App\Services\CompanyListingFilters;
+use App\Services\Premium\CompanyStatsRecorder;
 use App\Services\Content\CityContentResolver;
 use App\Services\Seo\CityMetaTemplates;
 use App\Services\Seo\SeoService;
@@ -67,6 +69,7 @@ class PublicCityController extends Controller
         }
 
         // Kategorie-Filter
+        $category = null;
         if ($request->filled('category')) {
             $category = Category::where('slug', $request->category)->first();
             if ($category) {
@@ -81,7 +84,10 @@ class PublicCityController extends Controller
         // Voreinstellung je Theme (config/themes/<slug>.php -> city.default_sort), sonst Name
         $themeSlug = app(ThemeManager::class)->active()?->slug;
         $sort = $request->get('sort', config("themes.{$themeSlug}.city.default_sort", 'name'));
-        $query->orderByDesc('is_premium');
+        // Top-Platzierungen (#6) vor Premium
+        $query->withFeaturedSlot($city->id, $category?->id)
+            ->orderFeaturedFirst($city->id, $category?->id)
+            ->orderByDesc('is_premium');
 
         $query = match ($sort) {
             'rating' => $query->orderByDesc('rating')->orderByDesc('rating_count'),
@@ -130,6 +136,9 @@ class PublicCityController extends Controller
         // auf Seite 1 ohne Parameter zusaetzlich die ItemList der sichtbaren Betriebe (#9)
         // und das FAQPage-Schema aus denselben Fragen wie im HTML (#12)
         $seo->forCityPage($request, $city, $companies, $localHub);
+
+        // Betriebsstatistik (#15): eine Impression je Karte, als ein Batch
+        app(CompanyStatsRecorder::class)->listImpressions($companies->pluck('id'), $request, $city->id, CompanyEvent::SOURCE_CITY);
 
         return view('pages.cities.show', compact(
             'city',

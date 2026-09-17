@@ -2,6 +2,9 @@
 
 namespace App\Models\Portal;
 
+use App\Enums\PremiumFeature;
+use App\Services\Premium\CompanyEntitlementService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -45,10 +48,6 @@ class Job extends Model
     // ── Auto-Expire Dauer ──
 
     public const EXPIRES_AFTER_DAYS = 30;
-
-    // ── Limit pro Firma ──
-
-    public const MAX_ACTIVE_PER_COMPANY = 1;
 
     protected $fillable = [
         'company_id',
@@ -154,6 +153,20 @@ class Job extends Model
         return $query->whereFullText(['jobs.title', 'jobs.description'], $term);
     }
 
+    /**
+     * Top-Jobs zuerst (#13): Anzeigen von Betrieben mit Feature job_highlight.
+     * Joint companies und waehlt is_top_job (1/0) mit aus.
+     */
+    public function scopeTopJobsFirst(Builder $query): Builder
+    {
+        [$sql, $bindings] = app(CompanyEntitlementService::class)->featureSql(PremiumFeature::JobHighlight);
+
+        return $query->leftJoin('companies', 'jobs.company_id', '=', 'companies.id')
+            ->select('jobs.*')
+            ->selectRaw("{$sql} AS is_top_job", $bindings)
+            ->orderByDesc('is_top_job');
+    }
+
     public function scopePublished($query)
     {
         return $query->whereNotNull('jobs.published_at')
@@ -215,6 +228,19 @@ class Job extends Model
         return 'bis ' . number_format($this->salary_max, 0, ',', '.') . ' EUR ' . $label;
     }
 
+    /**
+     * Hervorgehobene Anzeige ("Top-Job", #13). Nutzt den Wert aus
+     * scopeTopJobsFirst(), sonst den Entitlement-Service.
+     */
+    public function getIsTopJobAttribute(): bool
+    {
+        if (array_key_exists('is_top_job', $this->attributes)) {
+            return (bool) $this->attributes['is_top_job'];
+        }
+
+        return app(CompanyEntitlementService::class)->can($this->company, PremiumFeature::JobHighlight);
+    }
+
     public function getLocationDisplayAttribute(): string
     {
         if ($this->location) {
@@ -265,17 +291,5 @@ class Job extends Model
     public function incrementApplicationsCount(): void
     {
         $this->increment('applications_count');
-    }
-
-    /**
-     * Prüft ob die Firma noch einen aktiven Job erstellen darf.
-     */
-    public static function canCompanyCreateJob(int $companyId): bool
-    {
-        $activeCount = static::where('company_id', $companyId)
-            ->active()
-            ->count();
-
-        return $activeCount < self::MAX_ACTIVE_PER_COMPANY;
     }
 }

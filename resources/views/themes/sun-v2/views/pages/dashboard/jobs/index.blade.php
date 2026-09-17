@@ -1,6 +1,7 @@
 {{--
     Stellenanzeigen im Betriebsbereich, Theme sun-v2.
-    Daten: OwnerJobController::index() (nur Premium, sonst jobs.locked). Texte: lang/de/portal.php (owner.jobs.*).
+    Daten: OwnerJobController::index() (mit Feature job_postings, sonst jobs.locked). Texte: lang/de/portal.php (owner.jobs.*).
+    Limit aktiver Anzeigen je Plan: $jobLimit (null = unbegrenzt), $limitMessage mit Upsell (#13).
 --}}
 @extends('layouts.panel')
 
@@ -19,11 +20,12 @@
     @endif
   </div>
 
-  {{-- Limit erreicht --}}
-  @if(! $canCreate && $activeJobs->isNotEmpty())
-    <div class="card mt-6 flex items-start gap-3 p-4 md:p-5" role="note">
+  {{-- Limit erreicht: Upsell-Hinweis (#13) --}}
+  @if(! $canCreate && $limitMessage)
+    <div class="card mt-6 flex flex-wrap items-start gap-3 p-4 md:p-5" role="note">
       <x-sun.icon name="info" class="icon mt-0.5 text-amber-500" />
-      <p class="text-base text-zinc-700">{{ trans_choice('portal.owner.jobs.limit', \App\Models\Portal\Job::MAX_ACTIVE_PER_COMPANY, ['anzahl' => $activeJobs->count(), 'max' => \App\Models\Portal\Job::MAX_ACTIVE_PER_COMPANY]) }}</p>
+      <p class="min-w-0 flex-1 text-base text-zinc-700">{{ $limitMessage }}</p>
+      <a href="{{ route('portal.owner.premium') }}" class="btn-secondary w-full sm:w-auto"><x-sun.icon name="sparkles" class="icon" />{{ __('portal.owner.jobs.limit_upsell_cta') }}</a>
     </div>
   @endif
 

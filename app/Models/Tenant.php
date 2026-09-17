@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\SubscriptionService;
+use App\Support\Tenancy\TenantPremiumPricing;
 use App\Support\Tenancy\TenantTerms;
 use App\Support\Tenancy\TenantVertical;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -109,6 +110,14 @@ class Tenant extends Model implements TenantWithDatabase
         $secret = trim((string) $this->getAttribute(self::LEAD_WEBHOOK_SECRET));
 
         return $secret === '' ? null : $secret;
+    }
+
+    /**
+     * Premium-Preise dieses Portals (#2) aus der data-Spalte.
+     */
+    public function premiumPricing(): TenantPremiumPricing
+    {
+        return TenantPremiumPricing::for($this);
     }
 
     /**

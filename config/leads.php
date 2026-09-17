@@ -37,4 +37,19 @@ return [
         'system_field_keys' => ['firmenprofil'],
     ],
 
+    /*
+     * Exklusive Anfragen (#9): Pro/Premium-Betriebe mit freiem Kontingent
+     * bekommen die Anfrage direkt, ohne Leadsystem.
+     */
+    'exclusive' => [
+
+        // Fragen, die nur auf dem Marktplatz-Weg Sinn ergeben (Opt-in fuer
+        // weitere Betriebe). Bei exklusiven Anfragen blendet der Dialog sie aus.
+        'marketplace_only_keys' => ['weitere_betriebe'],
+
+        // Kontaktdaten und Freitexte werden nach so vielen Monaten geloescht
+        // (leads:purge-contacts, taeglich je Portal).
+        'retention_months' => 12,
+    ],
+
 ];

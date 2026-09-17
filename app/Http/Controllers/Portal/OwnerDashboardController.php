@@ -3,18 +3,26 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Enums\ModerationStatus;
+use App\Enums\PremiumFeature;
 use App\Http\Controllers\Controller;
 use App\Models\Portal\Company;
 use App\Models\Portal\Review;
 use App\Models\Subscription;
+use App\Services\Premium\CompanyEntitlementService;
+use App\Services\Premium\CompanyStatsRecorder;
+use App\Services\Premium\LeadQuotaService;
+use App\Services\Premium\ReviewInviteService;
 use App\Services\StatisticsService;
 use App\Services\SubscriptionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 
 class OwnerDashboardController extends Controller
 {
+    public const UPSELL_BANNER_SESSION_KEY = 'premium.upsell_banner_dismissed';
+
     private function getCompany(): Company
     {
         return Company::ownedBy(Auth::id())
@@ -54,8 +62,10 @@ class OwnerDashboardController extends Controller
 
         $profileCompletion = $this->calculateProfileCompletion($company);
 
+        $leadQuota = app(LeadQuotaService::class)->summary($company);
+
         return view('pages.dashboard.index', compact(
-            'company', 'stats', 'recentReviews', 'profileCompletion'
+            'company', 'stats', 'recentReviews', 'profileCompletion', 'leadQuota'
         ));
     }
 
@@ -95,7 +105,24 @@ class OwnerDashboardController extends Controller
             ->mapWithKeys(fn (int $stars) => [$stars => $approved->filter(fn (Review $review) => (int) round((float) $review->rating) === $stars)->count()])
             ->all();
 
-        return view('pages.dashboard.reviews', compact('company', 'reviews', 'filter', 'counts', 'distribution'));
+        $canReply = app(CompanyEntitlementService::class)->can($company, PremiumFeature::ReviewReplies);
+        $reviewLink = app(ReviewInviteService::class)->inviteUrl($company);
+
+        return view('pages.dashboard.reviews', compact('company', 'reviews', 'filter', 'counts', 'distribution', 'canReply', 'reviewLink'));
+    }
+
+    /**
+     * QR-Code zum Bewertungslink als SVG-Download (#12).
+     */
+    public function reviewQrCode(ReviewInviteService $invites): Response
+    {
+        $company = $this->getCompany();
+
+        return response($invites->qrSvg($company), 200, [
+            'Content-Type' => 'image/svg+xml',
+            'Content-Disposition' => 'attachment; filename="'.$invites->qrFilename($company).'"',
+            'Cache-Control' => 'private, no-store',
+        ]);
     }
 
     public function stats(Request $request)
@@ -178,7 +205,10 @@ class OwnerDashboardController extends Controller
         return view('pages.dashboard.settings', compact('company'));
     }
 
-    public function respondToReview(Request $request, int $review)
+    /**
+     * Speichert oder aendert die eine Antwort des Betriebs (#12, Feature review_replies).
+     */
+    public function respondToReview(Request $request, int $review, CompanyEntitlementService $entitlements, CompanyStatsRecorder $stats)
     {
         $company = $this->getCompany();
 
@@ -189,8 +219,7 @@ class OwnerDashboardController extends Controller
         // Verify review belongs to this company
         abort_unless($review->company_id === $company->id, 403);
 
-        // Premium gate
-        abort_unless($company->is_premium, 403, 'Premium-Abo erforderlich.');
+        abort_unless($entitlements->can($company, PremiumFeature::ReviewReplies), 403, 'Antworten auf Bewertungen sind in Ihrem Paket nicht enthalten.');
 
         // Only respond to approved reviews
         abort_unless($review->isApproved(), 422);
@@ -199,9 +228,15 @@ class OwnerDashboardController extends Controller
             'owner_response' => ['required', 'string', 'max:1000'],
         ]);
 
+        $isNewReply = empty($review->owner_response);
+
         $review->respondAsOwner($validated['owner_response']);
 
-        return back()->with('success', 'Ihre Antwort wurde gespeichert.');
+        if ($isNewReply) {
+            $stats->reviewReply((int) $company->id, $request);
+        }
+
+        return back()->with('success', __('portal.owner.reviews.reply_saved'));
     }
 
     public function deleteReviewResponse(int $review)
@@ -221,7 +256,7 @@ class OwnerDashboardController extends Controller
             'owner_response_at' => null,
         ]);
 
-        return back()->with('success', 'Ihre Antwort wurde gelöscht.');
+        return back()->with('success', __('portal.owner.reviews.reply_deleted'));
     }
 
     public function premium()
@@ -251,6 +286,27 @@ class OwnerDashboardController extends Controller
         return view('pages.dashboard.premium', compact(
             'company', 'subscription', 'canCancel', 'canDiscardCancellation'
         ));
+    }
+
+    /**
+     * Mein Plan (#17): Inhalt liefert die Livewire-Komponente
+     * portal.company.dashboard.plan.
+     */
+    public function plan()
+    {
+        $company = $this->getCompany();
+
+        return view('pages.dashboard.plan', compact('company'));
+    }
+
+    /**
+     * Upsell-Banner fuer Free-Betriebe bis zum Ende der Session ausblenden (#17).
+     */
+    public function dismissUpsellBanner(Request $request)
+    {
+        $request->session()->put(self::UPSELL_BANNER_SESSION_KEY, true);
+
+        return back();
     }
 
     private function calculateProfileCompletion(Company $company): array

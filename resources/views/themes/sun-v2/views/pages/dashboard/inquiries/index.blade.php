@@ -6,6 +6,7 @@
     Liste: mobil Karten, ab md eine Tabelle mit Datum, Name, Anliegen, Status.
     Anliegen = erste inhaltliche Antwort (Kontaktfelder zaehlen nicht).
     Neue Anfragen stehen fett mit Punkt in der Markenfarbe.
+    Oben stehen die exklusiven Anfragen (#9, Livewire Portal\Company\Dashboard\Leads).
 --}}
 @extends('layouts.panel')
 
@@ -44,6 +45,9 @@
       <p class="mt-1 text-base text-zinc-500">{{ __('portal.owner.inquiries.intro', ['firma' => $company->name]) }}</p>
     </div>
   </div>
+
+  {{-- Exklusive Anfragen (#9), darunter die Anfragen aus dem Leadsystem --}}
+  @livewire('portal.company.dashboard.leads')
 
   @if($total > 0)
     <nav aria-label="{{ __('portal.owner.inquiries.filter_label') }}" class="mt-6 -mx-4 px-4 flex gap-2 overflow-x-auto pb-1 md:mx-0 md:px-0">

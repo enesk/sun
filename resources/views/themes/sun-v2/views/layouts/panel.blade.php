@@ -33,6 +33,7 @@
         ['route' => 'portal.owner.reviews', 'icon' => 'star', 'label' => __('portal.owner.nav.reviews'), 'active' => request()->routeIs('portal.owner.reviews*'), 'badge' => $panelCompany?->reviews->filter(fn ($review) => $review->isApproved() && empty($review->owner_response))->count()],
         ['route' => 'portal.owner.stats', 'icon' => 'chart', 'label' => __('portal.owner.nav.stats'), 'active' => request()->routeIs('portal.owner.stats*')],
         ['route' => 'portal.owner.jobs.index', 'icon' => 'briefcase', 'label' => __('portal.owner.nav.jobs'), 'active' => request()->routeIs('portal.owner.jobs.*')],
+        ['route' => 'portal.owner.plan', 'icon' => 'euro', 'label' => __('premium.plan.title'), 'active' => request()->routeIs('portal.owner.plan')],
         ['route' => 'portal.owner.settings', 'icon' => 'settings', 'label' => __('portal.owner.nav.settings'), 'active' => request()->routeIs('portal.owner.settings')],
     ];
 @endphp
@@ -120,6 +121,8 @@
     @if(session('error'))
       <p class="card mb-4 p-4 text-base text-red-600" role="alert">{{ session('error') }}</p>
     @endif
+    {{-- Zahlung fehlgeschlagen / Kontingent erschoepft (#17) --}}
+    <x-premium.plan-alerts :company="$panelCompany" />
 
     @yield('content')
   </main>

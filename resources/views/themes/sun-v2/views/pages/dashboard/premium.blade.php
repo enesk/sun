@@ -3,7 +3,7 @@
     Daten: OwnerDashboardController::premium(). Texte: lang/de/portal.php (owner.premium.*).
 
     - Zahlweise Monatlich/Jaehrlich ohne JavaScript: zwei Radios, Preis und Checkout-Link
-      schalten per :has() um. Checkout wie bisher ueber tenant.checkout.subscription.
+      schalten per :has() um. Buchung ueber Livewire PlanCheckout (#5), das den Betrieb an die Subscription bindet.
     - Preise und Testphase stehen in den Texten (wie im alten View), Stand der Plaene
       premium-monthly 9,90 € / premium-yearly 99 €, je 30 Tage Test.
     - Vorschaukarten nutzen die Daten der Firma (Name, Sterne, Adresse, Kategorien).
@@ -160,33 +160,13 @@
         </table>
       </div>
 
-      <aside class="rounded-2xl bg-brand-50 border-2 border-brand p-5 md:p-6 lg:sticky lg:top-24">
-        <p class="pill-brand"><x-sun.icon name="sparkles" class="size-4 shrink-0" />{{ __('portal.owner.edit.locked.badge') }}</p>
-        <fieldset class="mt-4 grid grid-cols-2 gap-2 p-1 rounded-xl bg-white border border-zinc-200">
-          <legend class="sr-only">{{ __('portal.owner.premium.plan.billing') }}</legend>
-          <label class="flex min-h-11 cursor-pointer items-center justify-center rounded-lg text-sm font-semibold text-zinc-700 hover:bg-zinc-50 has-checked:bg-brand has-checked:text-white has-focus-visible:ring-2 has-focus-visible:ring-brand">
-            <input type="radio" name="billing" value="monthly" id="billing-monthly" class="sr-only" checked>{{ __('portal.owner.premium.plan.monthly') }}
-          </label>
-          <label class="flex min-h-11 cursor-pointer items-center justify-center gap-1 rounded-lg px-1 text-center text-sm font-semibold text-zinc-700 hover:bg-zinc-50 has-checked:bg-brand has-checked:text-white has-focus-visible:ring-2 has-focus-visible:ring-brand">
-            <input type="radio" name="billing" value="yearly" id="billing-yearly" class="sr-only">{{ __('portal.owner.premium.plan.yearly') }}<span class="font-normal opacity-80">{{ __('portal.owner.premium.plan.yearly_hint') }}</span>
-          </label>
-        </fieldset>
-        <div class="group-has-[#billing-yearly:checked]/billing:hidden">
-          <p class="mt-4 text-4xl font-bold text-zinc-900">{{ __('portal.owner.premium.plan.monthly_price') }}<span class="text-base font-medium text-zinc-500"> {{ __('portal.owner.premium.plan.per_month') }}</span></p>
-          <p class="mt-1 text-sm text-zinc-500">{{ __('portal.owner.premium.plan.monthly_note') }}</p>
+      {{-- Buchung, Planwechsel und Kuendigung: Livewire PlanCheckout (#5) --}}
+      <aside class="lg:sticky lg:top-24">
+        @livewire('portal.company.plan-checkout', ['company' => $company])
+        {{-- Top-Platzierung als Add-on (#6) --}}
+        <div class="mt-4">
+          @livewire('portal.company.featured-placement-booking', ['company' => $company])
         </div>
-        <div class="hidden group-has-[#billing-yearly:checked]/billing:block">
-          <p class="mt-4 text-4xl font-bold text-zinc-900">{{ __('portal.owner.premium.plan.yearly_price') }}<span class="text-base font-medium text-zinc-500"> {{ __('portal.owner.premium.plan.per_year') }}</span></p>
-          <p class="mt-1 text-sm text-zinc-500">{{ __('portal.owner.premium.plan.yearly_note') }}</p>
-        </div>
-        <ul class="mt-4 space-y-2 text-base text-zinc-700">
-          @foreach(__('portal.owner.premium.plan.points') as $point)
-            <li class="flex gap-2"><x-sun.icon name="check" class="icon text-brand mt-0.5" />{{ $point }}</li>
-          @endforeach
-        </ul>
-        <a href="{{ route('tenant.checkout.subscription', 'premium-monthly') }}" class="btn-primary mt-5 w-full group-has-[#billing-yearly:checked]/billing:hidden">{{ __('portal.owner.premium.cta') }}</a>
-        <a href="{{ route('tenant.checkout.subscription', 'premium-yearly') }}" class="btn-primary mt-5 w-full hidden group-has-[#billing-yearly:checked]/billing:inline-flex">{{ __('portal.owner.premium.cta') }}</a>
-        <p class="mt-2 text-sm text-zinc-500 text-center">{{ __('portal.owner.premium.plan.after_note') }}</p>
       </aside>
     </section>
 

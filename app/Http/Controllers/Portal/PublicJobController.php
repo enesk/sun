@@ -55,12 +55,10 @@ class PublicJobController extends Controller
         }
 
         // ── Sortierung ──
-        // Premium-Firmen-Jobs zuerst (analog zu Companies)
+        // Top-Jobs (Feature job_highlight, #13) zuerst
         $sort = $request->get('sort', 'newest');
 
-        $query->leftJoin('companies', 'jobs.company_id', '=', 'companies.id')
-            ->select('jobs.*')
-            ->orderByDesc('companies.is_premium');
+        $query->topJobsFirst();
 
         $query = match ($sort) {
             'az' => $query->orderBy('jobs.title'),

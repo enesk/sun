@@ -6,6 +6,7 @@
     - Name und E-Mail ohne "Ändern", Handynummer-Zeile entfaellt (kein Feld am Konto).
     - Passwort "Ändern" fuehrt zum vorhandenen Zuruecksetzen per E-Mail (password.request).
     - Benachrichtigungen werden nicht gespeichert: Schalter deaktiviert, Hinweis "kommt bald".
+      Ausnahme: Monatsbericht (#16), eigene Livewire-Komponente monthly-report-setting.
     - Eintrag verstecken / loeschen: Buttons deaktiviert, Hinweis "kommt bald".
 --}}
 @extends('layouts.panel')
@@ -51,6 +52,11 @@
       <p class="mt-1 text-base text-zinc-500">{{ __('portal.owner.settings.notifications.intro', ['email' => $user->email]) }}</p>
       <ul class="mt-2 divide-y divide-zinc-200">
         @foreach(__('portal.owner.settings.notifications.items') as $key => $item)
+          @if($key === 'report')
+            {{-- Monatsbericht ist schaltbar (#16) --}}
+            <livewire:portal.company.dashboard.monthly-report-setting />
+            @continue
+          @endif
           <li class="flex items-start justify-between gap-4 py-4">
             <div>
               <p class="font-medium text-zinc-900" id="notify-{{ $key }}">{{ $item['title'] }}</p>
@@ -91,6 +97,9 @@
         <p class="mt-3 text-sm text-zinc-500">{{ __('portal.owner.settings.plan.hint') }}</p>
       @endunless
     </section>
+
+    {{-- Verifiziert-Badge (#11) --}}
+    <livewire:portal.company.dashboard.verification />
 
     {{-- Eintrag loeschen: ruhig, ohne rote Box --}}
     <section class="mt-4 md:mt-6 card p-5 md:p-6" aria-labelledby="sec-loeschen">

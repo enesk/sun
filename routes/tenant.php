@@ -7,17 +7,23 @@ use App\Http\Controllers\Portal\BlogFeedController;
 use App\Http\Controllers\Portal\CategoryController;
 use App\Http\Controllers\Portal\CompanyController;
 use App\Http\Controllers\Portal\CompanyRegistrationController;
+use App\Http\Controllers\Portal\ExclusiveLeadController;
 use App\Http\Controllers\Portal\LlmsTxtController;
 use App\Http\Controllers\Portal\OwnerDashboardController;
 use App\Http\Controllers\Portal\OwnerInquiryController;
 use App\Http\Controllers\Portal\OwnerJobController;
 use App\Http\Controllers\Portal\PortalHomeController;
+use App\Http\Controllers\Portal\PremiumPricingController;
 use App\Http\Controllers\Portal\PublicBlogController;
 use App\Http\Controllers\Portal\PublicCityController;
 use App\Http\Controllers\Portal\PublicFaqController;
 use App\Http\Controllers\Portal\PublicJobController;
+use App\Http\Controllers\Portal\ReviewInviteController;
+use App\Http\Controllers\Portal\ReviewWidgetController;
 use App\Http\Controllers\Portal\StaticPageController;
+use App\Http\Controllers\Portal\StatsBeaconController;
 use App\Http\Controllers\Portal\TrackingController;
+use App\Http\Controllers\Portal\VerificationDocumentController;
 use App\Http\Controllers\RatgeberPreviewController;
 use App\Http\Controllers\Verwaltung\VerwaltungAdController;
 use App\Http\Controllers\Verwaltung\VerwaltungBlogController;
@@ -130,6 +136,20 @@ Route::middleware([
         ->name('portal.webhooks.leads');
 });
 
+// Bewertungs-Widget (#12): ohne Session und CSRF, CORS und Rahmen setzt der Controller.
+Route::middleware([
+    App\Providers\TenancyServiceProvider::TENANCY_INITIALIZER,
+    Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
+    'throttle:240,1',
+])->group(function () {
+    Route::get('/widget/{companySlug}.js', [ReviewWidgetController::class, 'script'])
+        ->where('companySlug', '\d+-[a-z0-9\-]+')
+        ->name('portal.reviews.widget.script');
+    Route::get('/widget/{companySlug}', [ReviewWidgetController::class, 'show'])
+        ->where('companySlug', '\d+-[a-z0-9\-]+')
+        ->name('portal.reviews.widget');
+});
+
 Route::middleware([
     'web',
     'universal',
@@ -158,6 +178,9 @@ Route::middleware([
     Route::get('/jobs/{slug}', [PublicJobController::class, 'show'])->name('portal.jobs.show');
     Route::post('/jobs/{slug}/bewerben', [PublicJobController::class, 'apply'])->name('portal.jobs.apply');
 
+    // Preisseite fuer Betriebe (#17)
+    Route::get('/premium', PremiumPricingController::class)->name('portal.premium.pricing');
+
     // FAQ (#198)
     Route::get('/faq', [PublicFaqController::class, 'index'])->name('portal.faqs.index');
 
@@ -180,6 +203,17 @@ Route::middleware([
     // Autorenprofil der Redaktion (#18)
     Route::get('/autor/{slug}', [AuthorController::class, 'show'])->name('portal.author.show');
 
+    // Bewertungslink (#12): fuehrt zum geoeffneten Bewertungsformular im Profil
+    Route::get('/bewerten/{companySlug}', ReviewInviteController::class)
+        ->where('companySlug', '\d+-.+')
+        ->name('portal.reviews.invite');
+
+    // Verifizierungsnachweis (#11): signiert, nur fuer Administratoren
+    Route::get('/pruefung/nachweise/{verification}', VerificationDocumentController::class)
+        ->whereNumber('verification')
+        ->middleware(['auth', 'signed'])
+        ->name('portal.verifications.document');
+
     // Städteseiten (#213)
     Route::get('/staedte', [PublicCityController::class, 'index'])->name('portal.cities.index');
     Route::get('/staedte/{slug}', [PublicCityController::class, 'show'])->name('portal.cities.show');
@@ -201,10 +235,14 @@ Route::middleware([
             Route::get('/bewertungen', [OwnerDashboardController::class, 'reviews'])->name('reviews');
             Route::post('/bewertungen/{review}/antwort', [OwnerDashboardController::class, 'respondToReview'])->name('reviews.respond');
             Route::delete('/bewertungen/{review}/antwort', [OwnerDashboardController::class, 'deleteReviewResponse'])->name('reviews.delete-response');
+            Route::get('/bewertungen/qr-code.svg', [OwnerDashboardController::class, 'reviewQrCode'])->name('reviews.qr-code');
             Route::get('/statistiken', [OwnerDashboardController::class, 'stats'])->name('stats');
             Route::get('/statistiken/api', [OwnerDashboardController::class, 'statsApi'])->name('stats.api');
             Route::get('/einstellungen', [OwnerDashboardController::class, 'settings'])->name('settings');
             Route::get('/premium', [OwnerDashboardController::class, 'premium'])->name('premium');
+            // Mein Plan und Upsell-Banner (#17)
+            Route::get('/mein-plan', [OwnerDashboardController::class, 'plan'])->name('plan');
+            Route::post('/upsell-hinweis/ausblenden', [OwnerDashboardController::class, 'dismissUpsellBanner'])->name('upsell-banner.dismiss');
 
             // Anfragen aus dem Leadsystem (#33); Zugriff ueber CompanyInquiryPolicy
             Route::get('/anfragen', [OwnerInquiryController::class, 'index'])->name('inquiries.index');
@@ -344,6 +382,21 @@ Route::middleware([
     // Tracking: Contact Click (AJAX POST aus dem Frontend)
     Route::post('/tracking/contact-click', [TrackingController::class, 'contactClick'])
         ->name('portal.tracking.contact-click');
+
+    // Betriebsstatistik (#15): Klick-Beacon aus resources/js/stats-beacon.js
+    Route::post('/stats/beacon', StatsBeaconController::class)
+        ->middleware('throttle:120,1')
+        ->name('portal.stats.beacon');
+
+    // Exklusive Anfragen aus dem Profil-Dialog (#9): Weg beim Oeffnen, Absenden
+    Route::get('/anfrage/{company}/weg', [ExclusiveLeadController::class, 'route'])
+        ->whereNumber('company')
+        ->middleware('throttle:60,1')
+        ->name('portal.leads.route');
+    Route::post('/anfrage/{company}', [ExclusiveLeadController::class, 'store'])
+        ->whereNumber('company')
+        ->middleware('throttle:10,1')
+        ->name('portal.leads.store');
 
     // PROF-1: Änderung vorschlagen — Landingpage
     Route::get('/firma/{slug}/aenderung-vorschlagen', [CompanyController::class, 'suggestEdit'])

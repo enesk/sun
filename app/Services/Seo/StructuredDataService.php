@@ -7,6 +7,8 @@ namespace App\Services\Seo;
 use App\Models\Portal\City;
 use App\Models\Portal\Company;
 use App\Models\Portal\CompanyOpeningHour;
+use App\Models\Portal\CompanyService;
+use App\Services\Premium\CompanyProfileContentService;
 use App\Support\CityUrl;
 use App\Support\PhoneNumber;
 use App\Support\TenantCache;
@@ -210,6 +212,7 @@ final class StructuredDataService
             'geo' => $this->geo($company),
             'aggregateRating' => $this->aggregateRating($company),
             'openingHoursSpecification' => $this->openingHours($company),
+            'makesOffer' => $this->offers($company),
         ]);
     }
 
@@ -345,6 +348,38 @@ final class StructuredDataService
         }
 
         return $groups === [] ? null : array_values($groups);
+    }
+
+    /**
+     * Leistungskatalog als Offer (#13), nur mit Feature service_catalog.
+     * Der Ab-Preis steht als PriceSpecification mit minPrice; ohne Preis
+     * entfaellt die Preisangabe.
+     *
+     * @return list<array<string, mixed>>|null
+     */
+    private function offers(Company $company): ?array
+    {
+        $services = app(CompanyProfileContentService::class)->visibleServices($company);
+
+        if ($services->isEmpty()) {
+            return null;
+        }
+
+        $currency = (string) config('premium.currency', 'EUR');
+
+        return $services->map(fn (CompanyService $service): array => $this->withoutEmpty([
+            '@type' => 'Offer',
+            'itemOffered' => $this->withoutEmpty([
+                '@type' => 'Service',
+                'name' => $service->name,
+                'description' => $service->description,
+            ]),
+            'priceSpecification' => $service->price_from === null ? null : [
+                '@type' => 'PriceSpecification',
+                'minPrice' => round($service->price_from / 100, 2),
+                'priceCurrency' => $currency,
+            ],
+        ]))->values()->all();
     }
 
     /**

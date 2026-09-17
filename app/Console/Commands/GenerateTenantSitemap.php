@@ -76,6 +76,7 @@ class GenerateTenantSitemap extends Command
             $miscSitemap->add(Url::create("{$baseUrl}/firmen")->setPriority(0.9)->setChangeFrequency(Url::CHANGE_FREQUENCY_DAILY));
             $miscSitemap->add(Url::create("{$baseUrl}/kategorien")->setPriority(0.8)->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY));
             $miscSitemap->add(Url::create("{$baseUrl}/eintragen")->setPriority(0.6)->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY));
+            $miscSitemap->add(Url::create("{$baseUrl}/premium")->setPriority(0.5)->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY));
             $miscSitemap->add(Url::create("{$baseUrl}/impressum")->setPriority(0.3)->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY));
             $miscSitemap->add(Url::create("{$baseUrl}/datenschutz")->setPriority(0.3)->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY));
 

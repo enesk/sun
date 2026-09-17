@@ -50,6 +50,19 @@ final class Breadcrumb
     }
 
     /**
+     * Startseite > Preise (#17)
+     *
+     * @return array<int, array{label: string, url: string}>
+     */
+    public static function forPricing(): array
+    {
+        return [
+            self::home(),
+            ['label' => __('premium.pricing.crumb'), 'url' => route('portal.premium.pricing')],
+        ];
+    }
+
+    /**
      * @return array{label: string, url: string}
      */
     private static function home(): array

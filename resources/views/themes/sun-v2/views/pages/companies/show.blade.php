@@ -27,7 +27,7 @@
 @section('body_class', 'pb-24 lg:pb-0')
 
 @section('content')
-<div class="container-portal pt-6 pb-12 md:pb-16">
+<div class="container-portal pt-6 pb-12 md:pb-16" data-stats-company="{{ $company->id }}" data-stats-source="profile">
 
   <x-sun.breadcrumb :items="$profile['breadcrumb']" />
 
@@ -51,7 +51,10 @@
                 @endif
               </div>
             @endif
-            <h1 id="firma" class="mt-2 text-3xl md:text-4xl font-bold tracking-tight text-zinc-900">{{ $company->name }}</h1>
+            <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">
+              <h1 id="firma" class="text-3xl md:text-4xl font-bold tracking-tight text-zinc-900">{{ $company->name }}</h1>
+              <x-company.verified-badge :company="$company" />
+            </div>
             @if($profile['cityLabel'])
               <p class="mt-1 text-zinc-500">{{ __('portal.profile.subtitle', ['stadt' => $company->city->name]) }}</p>
             @endif
@@ -86,12 +89,14 @@
       </section>
 
       <!-- Ad-Slot unter dem Kopf (nur Mobile/Tablet, Desktop hat die rechte Spalte) -->
+      @unlesspremiumFeature($company, \App\Enums\PremiumFeature::AdFree)
       @if(\App\View\Components\AdSlot::hasSlotsForPosition('after_company_card'))
         <div class="rounded-2xl bg-zinc-100 overflow-hidden lg:hidden" style="min-height:250px">
           <span class="block text-xs text-zinc-400 px-3 pt-2">{{ __('portal.layout.ad_label') }}</span>
           <x-ad-slot position="after_company_card" />
         </div>
       @endif
+      @endpremiumFeature
 
       <!-- Leistungen -->
       @if($company->categories->isNotEmpty())
@@ -111,6 +116,23 @@
             @endif
           </div>
         </section>
+      @endif
+
+      <!-- Profil-Ausbau (#14): nur mit Inhalt; Freischaltung prueft der CompanyController -->
+      @if($profileServices->isNotEmpty())
+        @include('portal.companies.partials.services', ['services' => $profileServices])
+      @endif
+
+      @if($profileGallery->isNotEmpty())
+        @include('portal.companies.partials.gallery', ['photos' => $profileGallery])
+      @endif
+
+      @if($profileReferences->isNotEmpty())
+        @include('portal.companies.partials.references', ['references' => $profileReferences])
+      @endif
+
+      @if($profileVideo)
+        @include('portal.companies.partials.video', ['video' => $profileVideo, 'posterFallback' => $profileGallery->first()?->getUrl('medium')])
       @endif
 
       <!-- Über die Firma -->
@@ -254,19 +276,21 @@
           <a href="tel:{{ $profile['phone'] }}" class="mt-3 btn-primary w-full" aria-label="{{ __('portal.layout.card.call_label', ['telefon' => $profile['phoneDisplay']]) }}"><x-sun.icon name="phone" class="icon" />{{ __('portal.request.call_now') }}</a>
         @endif
         @if($company->website)
-          <a href="{{ $company->website }}" rel="nofollow noopener" target="_blank" class="mt-2 btn-ghost w-full"><x-sun.icon name="globe" class="icon" stroke-linecap="butt" stroke-linejoin="miter" />{{ __('portal.profile.sidebar.website') }}</a>
+          <a href="{{ $company->website }}" rel="nofollow noopener" target="_blank" class="mt-2 btn-ghost w-full" data-stats-event="website_click"><x-sun.icon name="globe" class="icon" stroke-linecap="butt" stroke-linejoin="miter" />{{ __('portal.profile.sidebar.website') }}</a>
         @endif
         <p class="mt-3 text-sm text-zinc-500 text-center">{{ __('portal.profile.sidebar.free_note') }}</p>
         @if($company->full_address)
           <address class="not-italic mt-4 pt-4 border-t border-zinc-200 text-sm text-zinc-500 leading-relaxed">{{ trim("{$company->street} {$company->house_no}") }}<br>{{ trim("{$company->zipcode} {$company->city?->name}") }}<br><a href="{{ $profile['mapsUrl'] }}" class="text-brand hover:underline" target="_blank" rel="noopener">{{ __('portal.profile.location.show_on_map') }}</a></address>
         @endif
       </div>
+      @unlesspremiumFeature($company, \App\Enums\PremiumFeature::AdFree)
       @if(\App\View\Components\AdSlot::hasSlotsForPosition('listing_detail_sidebar'))
         <div class="rounded-2xl bg-zinc-100 overflow-hidden" style="min-height:600px">
           <span class="block text-xs text-zinc-400 px-3 pt-2">{{ __('portal.layout.ad_label') }}</span>
           <x-ad-slot position="listing_detail_sidebar" />
         </div>
       @endif
+      @endpremiumFeature
     </aside>
   </div>
 
@@ -309,7 +333,7 @@
 
 <!-- ================= MOBILE: STICKY BOTTOM BAR ================= -->
 @if($leadFunnel || $profile['phone'])
-<div class="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-zinc-200 p-3 flex gap-2 lg:hidden" style="padding-bottom:max(.75rem,env(safe-area-inset-bottom))">
+<div class="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-zinc-200 p-3 flex gap-2 lg:hidden" data-stats-company="{{ $company->id }}" data-stats-source="profile" style="padding-bottom:max(.75rem,env(safe-area-inset-bottom))">
   @if($leadFunnel)
     <x-phone-link :number="$company->tel" :fallback="false" class="btn-secondary size-11 min-h-11 px-0 shrink-0" aria-label="{{ __('portal.layout.card.call_label', ['telefon' => $profile['phoneDisplay']]) }}"><x-sun.icon name="phone" class="icon" /></x-phone-link>
     <button type="button" class="btn-primary flex-1 whitespace-nowrap" data-open-lead>{{ $requestCta }}</button>

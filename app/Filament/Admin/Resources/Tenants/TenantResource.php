@@ -11,6 +11,7 @@ use App\Filament\Admin\Resources\Tenants\RelationManagers\SubscriptionsRelationM
 use App\Filament\Admin\Resources\Tenants\RelationManagers\UsersRelationManager;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Support\Tenancy\TenantPremiumPricing;
 use App\Support\Tenancy\TenantTerms;
 use App\Support\Tenancy\TenantVertical;
 use App\Themes\ThemeManager;
@@ -225,6 +226,12 @@ class TenantResource extends Resource
                                             ->helperText(__('Kostenpflichtige Premium-Einträge verfügbar')),
                                     ]),
 
+                                Section::make(__('Premium-Preise'))
+                                    ->description(__('Stripe-Preis-IDs und angezeigte Bruttopreise dieses Portals. Fehlt ein Abo-Preis, zeigt die Preisseite „Bald verfügbar“.'))
+                                    ->schema(static::premiumPricingSectionSchema())
+                                    ->columns(2)
+                                    ->collapsed(),
+
                                 Section::make(__('Anfrage-Dialog'))
                                     ->schema([
                                         TextInput::make(Tenant::LEAD_FUNNEL_TOKEN)
@@ -258,6 +265,37 @@ class TenantResource extends Resource
                     ])
                     ->columnSpanFull(),
             ]);
+    }
+
+    /**
+     * Je Preis-Key aus config('premium.price_plans') eine Stripe-Preis-ID und
+     * ein Bruttopreis (#2). Eingabe in Euro, gespeichert in Cent.
+     */
+    protected static function premiumPricingSectionSchema(): array
+    {
+        $fields = [];
+
+        foreach (TenantPremiumPricing::keys() as $key) {
+            $label = TenantPremiumPricing::label($key);
+            $base = TenantPremiumPricing::ATTRIBUTE . '.' . $key;
+
+            $fields[] = TextInput::make($base . TenantPremiumPricing::STRIPE_SUFFIX)
+                ->label(__(':plan – Stripe-Preis-ID', ['plan' => $label]))
+                ->placeholder('price_…')
+                ->maxLength(255)
+                ->rules(['nullable', 'starts_with:price_']);
+
+            $fields[] = TextInput::make($base . TenantPremiumPricing::GROSS_SUFFIX)
+                ->label(__(':plan – Bruttopreis', ['plan' => $label]))
+                ->numeric()
+                ->minValue(0)
+                ->step(0.01)
+                ->suffix('€')
+                ->formatStateUsing(fn (mixed $state): ?string => is_numeric($state) ? number_format((int) $state / 100, 2, '.', '') : null)
+                ->dehydrateStateUsing(fn (mixed $state): ?int => is_numeric($state) ? (int) round((float) $state * 100) : null);
+        }
+
+        return $fields;
     }
 
     /**

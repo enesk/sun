@@ -2,6 +2,7 @@
 
 namespace App\Models\Portal;
 
+use App\Enums\PlanTier;
 use App\Models\User;
 use App\Services\CompanyUrlService;
 use App\Services\Seo\StructuredDataService;
@@ -52,6 +53,7 @@ class Company extends Model implements HasMedia
         'social_instagram',
         'social_linkedin',
         'social_youtube',
+        'video_url',
     ];
 
     protected $casts = [
@@ -61,6 +63,12 @@ class Company extends Model implements HasMedia
         'is_verified' => 'boolean',
         'is_active' => 'boolean',
         'google_added_at' => 'datetime',
+        'plan_tier' => PlanTier::class,
+        'plan_started_at' => 'datetime',
+        'plan_ends_at' => 'datetime',
+        'plan_grace_until' => 'datetime',
+        'verified_at' => 'datetime',
+        'monthly_report_opted_out_at' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -139,6 +147,45 @@ class Company extends Model implements HasMedia
         return $this->hasMany(CompanyInquiry::class);
     }
 
+    // Exklusive Anfragen aus dem Profil-Dialog (#9)
+    public function leads(): HasMany
+    {
+        return $this->hasMany(CompanyLead::class);
+    }
+
+    public function featuredPlacements(): HasMany
+    {
+        return $this->hasMany(FeaturedPlacement::class);
+    }
+
+    public function verifications(): HasMany
+    {
+        return $this->hasMany(CompanyVerification::class);
+    }
+
+    public function leadQuotaUsages(): HasMany
+    {
+        return $this->hasMany(LeadQuotaUsage::class);
+    }
+
+    // Profil-Ausbau (#13)
+
+    /**
+     * @return HasMany<CompanyReference, $this>
+     */
+    public function references(): HasMany
+    {
+        return $this->hasMany(CompanyReference::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    /**
+     * @return HasMany<CompanyService, $this>
+     */
+    public function services(): HasMany
+    {
+        return $this->hasMany(CompanyService::class)->orderBy('sort_order')->orderBy('id');
+    }
+
     public function activeJobs(): HasMany
     {
         return $this->hasMany(Job::class)->where('is_active', true)->where('expires_at', '>', now());
@@ -183,6 +230,52 @@ class Company extends Model implements HasMedia
                 ->from('category_company')
                 ->where('category_id', $categoryId);
         });
+    }
+
+    /**
+     * Aktive Top-Platzierungen (#6) zuerst, nach Slot; die bisherige Sortierung
+     * haengt der Aufrufer danach an. Gilt nur fuer die gebuchte Stadt: ohne
+     * Stadt bleibt die Reihenfolge unveraendert, ohne Branche zaehlt jede
+     * Platzierung des Betriebs in dieser Stadt.
+     */
+    public function scopeOrderFeaturedFirst($query, ?int $cityId, ?int $categoryId = null)
+    {
+        if ($cityId === null) {
+            return $query;
+        }
+
+        $slot = $this->featuredSlotSubquery($cityId, $categoryId);
+
+        return $query->orderByRaw("COALESCE(({$slot->toSql()}), 255)", $slot->getBindings());
+    }
+
+    /**
+     * Liefert den aktiven Top-Platzierungs-Slot (#6) als Spalte featured_slot
+     * mit, damit die Listenkarte (#7) ohne Einzelabfrage das Badge setzt.
+     * Gleiche Regeln wie orderFeaturedFirst; ohne Stadt bleibt die Spalte weg.
+     */
+    public function scopeWithFeaturedSlot($query, ?int $cityId, ?int $categoryId = null)
+    {
+        if ($cityId === null) {
+            return $query;
+        }
+
+        if ($query->getQuery()->columns === null) {
+            $query->select('companies.*');
+        }
+
+        return $query->selectSub($this->featuredSlotSubquery($cityId, $categoryId), 'featured_slot');
+    }
+
+    private function featuredSlotSubquery(int $cityId, ?int $categoryId): \Illuminate\Database\Query\Builder
+    {
+        return FeaturedPlacement::query()
+            ->selectRaw('MIN(featured_placements.slot)')
+            ->whereColumn('featured_placements.company_id', 'companies.id')
+            ->active()
+            ->where('featured_placements.city_id', $cityId)
+            ->when($categoryId !== null, fn ($sub) => $sub->where('featured_placements.category_id', $categoryId))
+            ->toBase();
     }
 
     // ── URL ──
@@ -300,16 +393,38 @@ class Company extends Model implements HasMedia
      */
     public function getCardImageUrlAttribute(): ?string
     {
-        $media = $this->relationLoaded('media')
-            ? $this->media->where('collection_name', 'gallery')->first()
-            : $this->getFirstMedia('gallery');
+        return $this->card_photo_url ?? $this->logo_url;
+    }
 
-        if ($media) {
-            // Kleine WebP-Fassung fuer Karten, solange sie nicht nachgeneriert ist 'medium'
-            return $media->getUrl($media->hasGeneratedConversion('card') ? 'card' : 'medium');
+    /**
+     * Erstes Galerie-Bild ohne Logo-Fallback, z.B. fuer die Listenkarte (#7).
+     */
+    public function getCardPhotoUrlAttribute(): ?string
+    {
+        $media = $this->firstGalleryMedia();
+
+        if (! $media) {
+            return null;
         }
 
-        return $this->logo_url;
+        // Kleine WebP-Fassung fuer Karten, solange sie nicht nachgeneriert ist 'medium'
+        return $media->getUrl($media->hasGeneratedConversion('card') ? 'card' : 'medium');
+    }
+
+    /**
+     * Erstes Galerie-Bild als Vorschau (150 px), z.B. als Avatar der Listenkarte (#7).
+     */
+    public function getCardPhotoThumbUrlAttribute(): ?string
+    {
+        return $this->firstGalleryMedia()?->getUrl('thumb');
+    }
+
+    // Nutzt die eager-geladene media-Relation statt getMedia() (vermeidet N+1)
+    private function firstGalleryMedia(): ?Media
+    {
+        return $this->relationLoaded('media')
+            ? $this->media->where('collection_name', 'gallery')->sortBy('order_column')->first()
+            : $this->getFirstMedia('gallery');
     }
 
     // ── Methods ──

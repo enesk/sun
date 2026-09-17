@@ -74,6 +74,11 @@ class AdSlot extends Component
         ],
     ];
 
+    /**
+     * Request-Flag: auf dieser Seite keine Werbung ausliefern (werbefreies Profil, #8).
+     */
+    private const SUPPRESSED_KEY = '_ad_slots_suppressed';
+
     public function __construct(string $position)
     {
         $this->position = $position;
@@ -81,6 +86,21 @@ class AdSlot extends Component
         // Load from request-scope cache to avoid multiple queries per page
         $allSlots = $this->getAllSlots();
         $this->slots = $allSlots->get($position, collect());
+    }
+
+    /**
+     * Unterdrueckt fuer den restlichen Request alle Werbeplaetze inklusive
+     * Auto Ads und Sticky-Banner im Layout. Die Views pruefen vorher
+     * hasSlotsForPosition(), damit auch kein leerer Container entsteht.
+     */
+    public static function suppress(): void
+    {
+        app()->instance(self::SUPPRESSED_KEY, true);
+    }
+
+    public static function isSuppressed(): bool
+    {
+        return app()->bound(self::SUPPRESSED_KEY) && app(self::SUPPRESSED_KEY) === true;
     }
 
     public function shouldRender(): bool
@@ -139,6 +159,10 @@ class AdSlot extends Component
      */
     private function getAllSlots(): Collection
     {
+        if (self::isSuppressed()) {
+            return collect();
+        }
+
         $key = '_ad_slots_cache';
 
         if (! app()->bound($key)) {
@@ -163,6 +187,10 @@ class AdSlot extends Component
      */
     public static function autoAdsAllowedHere(): bool
     {
+        if (self::isSuppressed()) {
+            return false;
+        }
+
         $routeName = request()->route()?->getName();
 
         if ($routeName === null) {
@@ -193,6 +221,10 @@ class AdSlot extends Component
      */
     public static function hasSlotsForPosition(string $position): bool
     {
+        if (self::isSuppressed()) {
+            return false;
+        }
+
         try {
             return AdSlotModel::active()->forPosition($position)->exists();
         } catch (\Throwable) {

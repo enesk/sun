@@ -5,6 +5,7 @@ return [
     App\Providers\ContentServiceProvider::class,
     App\Providers\BladeProvider::class,
     App\Providers\AppServiceProvider::class,
+    App\Providers\PremiumServiceProvider::class,
     App\Providers\AuthServiceProvider::class,
     App\Providers\Filament\AdminPanelProvider::class,
     App\Providers\Filament\DashboardPanelProvider::class,

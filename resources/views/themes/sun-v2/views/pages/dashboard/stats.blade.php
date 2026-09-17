@@ -2,7 +2,10 @@
     Statistiken im Betriebsbereich, Theme sun-v2 (Vorlage statistiken-elektrikerportal.html).
     Daten: OwnerDashboardController::stats(). Texte: lang/de/portal.php (owner.stats.*).
 
-    Den Tagesverlauf sehen alle. Herkunft, Suchbegriffe und Kontaktklicks nach Typ gibt es mit
+    Kennzahlen, Verlauf, Ranking und Stadtvergleich kommen seit #16 aus der Livewire-Komponente
+    portal.company.dashboard.statistics (company_stats_daily, Feature statistics). Darunter
+    bleiben die Detailkarten aus StatisticsService (Zeitraum ?period, Standard 30 Tage).
+    Herkunft, Suchbegriffe und Kontaktklicks nach Typ gibt es mit
     Premium, Basis-Eintraege sehen dort eine als Beispiel gekennzeichnete Vorschau.
     Abweichungen von der Vorlage: "Anfrage gesendet" fehlt bei den Kontaktarten (wird nicht
     gezaehlt), dafuer stehen E-Mail und Karte drin. Kein Preis in der Premium-Karte.
@@ -10,38 +13,8 @@
 @extends('layouts.panel')
 
 @php
-    $periods = ['7d', '30d', '90d', '12m'];
     $isPremium = (bool) $company->is_premium;
     $number = fn ($value) => number_format((int) $value, 0, ',', '.');
-
-    // Balken: hoechstens 60, laengere Zeitraeume werden zu Gruppen zusammengefasst
-    $days = $trend->values();
-    $groupSize = max(1, (int) ceil($days->count() / 60));
-    $bars = $days->chunk($groupSize)->map(fn ($chunk) => [
-        'from' => \Carbon\Carbon::parse($chunk->first()['date']),
-        'to' => \Carbon\Carbon::parse($chunk->last()['date']),
-        'views' => (int) $chunk->sum('page_views'),
-    ])->values();
-    $maxBar = max(1, (int) $bars->max('views'));
-    $barWidth = $bars->count() > 0 ? 100 / $bars->count() : 100;
-    $hasViews = $bars->sum('views') > 0;
-    $firstDay = $days->isNotEmpty() ? \Carbon\Carbon::parse($days->first()['date']) : null;
-    $lastDay = $days->isNotEmpty() ? \Carbon\Carbon::parse($days->last()['date']) : null;
-    $middleDay = $days->isNotEmpty() ? \Carbon\Carbon::parse($days->get(intdiv($days->count(), 2))['date']) : null;
-
-    $change = function (?float $value) {
-        if ($value === null) {
-            return __('portal.owner.stats.kpi.no_comparison');
-        }
-
-        return __('portal.owner.stats.kpi.change', ['wert' => ($value > 0 ? '+' : '').number_format($value, 0, ',', '.')]);
-    };
-
-    $kpis = [
-        ['icon' => 'eye', 'label' => __('portal.owner.stats.kpi.views'), 'value' => $summary['page_views'], 'sub' => $change($summary['page_views_change'])],
-        ['icon' => 'phone', 'label' => __('portal.owner.stats.kpi.contact_clicks'), 'value' => $summary['contact_clicks'], 'sub' => $change($summary['contact_clicks_change'])],
-        ['icon' => 'search', 'label' => __('portal.owner.stats.kpi.impressions'), 'value' => $summary['search_impressions'], 'sub' => $change($summary['search_impressions_change'])],
-    ];
 
     // Listen fuer die drei Detailkarten: echte Werte mit Premium, sonst Beispielwerte
     $contactLabels = __('portal.owner.stats.contacts.types');
@@ -66,66 +39,16 @@
       <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-zinc-900">{{ __('portal.owner.stats.title') }}</h1>
       <p class="mt-1 text-base text-zinc-500">{{ __('portal.owner.stats.intro') }}</p>
     </div>
-    <nav class="-mx-4 px-4 flex gap-2 overflow-x-auto pb-1 md:mx-0 md:px-0" aria-label="{{ __('portal.owner.stats.period_label') }}">
-      @foreach($periods as $key)
-        <a href="{{ route('portal.owner.stats', ['period' => $key]) }}"
-           class="{{ $period === $key ? 'pill-brand' : 'pill hover:bg-zinc-200' }} whitespace-nowrap min-h-11 px-4 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
-           @if($period === $key) aria-current="page" @endif>{{ __("portal.owner.stats.periods.{$key}") }}</a>
-      @endforeach
-    </nav>
   </div>
 
-  {{-- Kennzahlen --}}
-  <section class="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4" aria-label="{{ __('portal.owner.stats.kpi.label') }}">
-    @foreach($kpis as $kpi)
-      <div class="card p-4 md:p-5">
-        <p class="text-sm text-zinc-500 flex items-center gap-2"><x-sun.icon :name="$kpi['icon']" class="size-4 shrink-0" />{{ $kpi['label'] }}</p>
-        <p class="mt-2 text-3xl font-bold text-zinc-900">{{ $number($kpi['value']) }}</p>
-        <p class="mt-1 text-sm text-zinc-500">{{ $kpi['sub'] }}</p>
-      </div>
-    @endforeach
-    <div class="card p-4 md:p-5">
-      <p class="text-sm text-zinc-500 flex items-center gap-2"><x-sun.icon name="star" class="size-4 shrink-0 fill-amber-500 text-amber-500" stroke="none" />{{ __('portal.owner.overview.kpi.rating') }}</p>
-      <p class="mt-2 text-3xl font-bold text-zinc-900">{{ $company->rating_count > 0 ? number_format((float) $company->rating, 1, ',', '') : '–' }}</p>
-      <p class="mt-1 text-sm text-zinc-500">{{ trans_choice('portal.owner.overview.kpi.rating_count', $company->rating_count, ['anzahl' => $company->rating_count]) }}</p>
-    </div>
-  </section>
+  {{-- Kennzahlen, Verlauf, Ranking und Stadtvergleich (#16) --}}
+  <div class="mt-6">
+    <livewire:portal.company.dashboard.statistics />
+  </div>
 
   <div class="mt-4 md:mt-6 grid lg:grid-cols-[1fr_20rem] gap-4 md:gap-6 items-start">
     <div class="space-y-4 md:space-y-6 min-w-0">
-
-      {{-- Aufrufe im Verlauf --}}
-      <section class="card p-5 md:p-6" aria-labelledby="sec-verlauf">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <h2 id="sec-verlauf" class="text-2xl font-semibold text-zinc-900">{{ $groupSize > 1 ? __('portal.owner.stats.chart.title_grouped', ['tage' => $groupSize]) : __('portal.owner.stats.chart.title') }}</h2>
-          @if($firstDay)
-            <p class="text-sm text-zinc-500">{{ $firstDay->format('d.m.') }} – {{ $lastDay->format('d.m.Y') }}</p>
-          @endif
-        </div>
-        <div class="mt-4">
-          @if($hasViews)
-            <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="w-full h-40 md:h-56" role="img"
-                 aria-label="{{ __('portal.owner.stats.chart.aria', ['anzahl' => $number($summary['page_views'])]) }}">
-              @foreach($bars as $i => $bar)
-                @php $height = $hasViews ? max(1, $bar['views'] / $maxBar * 100) : 1; @endphp
-                <rect x="{{ round($i * $barWidth + $barWidth * 0.1, 3) }}" y="{{ round(100 - $height, 3) }}" width="{{ round($barWidth * 0.8, 3) }}" height="{{ round($height, 3) }}" rx="0.6"
-                      fill="{{ $hasViews ? 'var(--brand-600)' : 'var(--color-zinc-200, #e4e4e7)' }}">
-                  <title>{{ $bar['from']->equalTo($bar['to']) ? $bar['from']->format('d.m.') : $bar['from']->format('d.m.').' – '.$bar['to']->format('d.m.') }}: {{ trans_choice('portal.owner.stats.chart.views', $bar['views'], ['anzahl' => $number($bar['views'])]) }}</title>
-                </rect>
-              @endforeach
-            </svg>
-          @else
-            <div class="flex min-h-40 md:min-h-56 flex-col items-center justify-center rounded-xl bg-zinc-50 p-5 text-center">
-              <p class="text-lg font-semibold text-zinc-900">{{ __('portal.owner.stats.chart.empty_title') }}</p>
-              <p class="mt-1 max-w-sm text-base text-zinc-500">{{ __('portal.owner.stats.chart.empty_text') }}</p>
-              <a href="{{ route('portal.owner.edit') }}" class="btn-secondary mt-3">{{ __('portal.owner.overview.completion.cta') }}</a>
-            </div>
-          @endif
-        </div>
-        @if($firstDay && $hasViews)
-          <div class="mt-2 flex justify-between text-xs text-zinc-500" aria-hidden="true"><span>{{ $firstDay->format('d.m.') }}</span><span>{{ $middleDay->format('d.m.') }}</span><span>{{ $lastDay->format('d.m.') }}</span></div>
-        @endif
-      </section>
+      <p class="text-sm text-zinc-500">{{ __('portal.owner.statistics.details_hint', ['zeitraum' => __("portal.owner.stats.periods.{$period}")]) }}</p>
 
       {{-- Detailkarten: Herkunft, Suchbegriffe, Kontaktarten --}}
       @foreach($details as $key => $rows)

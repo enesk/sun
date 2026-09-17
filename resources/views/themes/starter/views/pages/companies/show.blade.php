@@ -29,6 +29,7 @@
 
                     <div class="company-hero__info">
                         <h1 class="company-hero__name">{{ $company->name }}</h1>
+                        <x-company.verified-badge :company="$company" />
 
                         @if($company->rating_count > 0)
                             <div class="company-hero__rating">
@@ -536,6 +537,12 @@
             tracked[key] = true;
 
             var payload = { company_id: companyId, contact_type: type, _token: csrfToken };
+
+            // Betriebsstatistik (#15)
+            var statsEvent = type === 'phone' ? 'phone_click' : (type === 'website' ? 'website_click' : null);
+            if (statsEvent && navigator.sendBeacon) {
+                navigator.sendBeacon('/stats/beacon', new Blob([JSON.stringify({ company_id: companyId, event: statsEvent, source: 'profile', _token: csrfToken })], { type: 'application/json' }));
+            }
 
             if (navigator.sendBeacon) {
                 navigator.sendBeacon('/tracking/contact-click', new Blob([JSON.stringify(payload)], { type: 'application/json' }));

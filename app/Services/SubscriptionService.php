@@ -215,13 +215,15 @@ class SubscriptionService
             })->first();
     }
 
-    public function findNewByPlanSlugAndTenant(string $planSlug, Tenant $tenant): ?Subscription
+    public function findNewByPlanSlugAndTenant(string $planSlug, Tenant $tenant, ?int $userId = null): ?Subscription
     {
         $plan = Plan::where('slug', $planSlug)->where('is_active', true)->firstOrFail();
 
+        // In Portalen buchen mehrere Betriebe im selben Tenant (#5)
         return Subscription::where('tenant_id', $tenant->id)
             ->where('plan_id', $plan->id)
             ->where('status', SubscriptionStatus::NEW->value)
+            ->when($userId !== null, fn ($query) => $query->where('user_id', $userId))
             ->first();
     }
 

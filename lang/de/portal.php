@@ -131,7 +131,10 @@ return [
 
         'card' => [
             'premium' => 'Premium',
+            'recommended' => 'Empfohlen',
             'verified' => 'Geprüfter Eintrag',
+            'verified_business' => 'Verifizierter Betrieb',
+            'verified_business_tooltip' => 'Gewerbenachweis von uns geprüft',
             'photo_alt' => 'Foto von :firma',
             'call' => 'Anrufen',
             'call_label' => 'Anrufen: :telefon',
@@ -351,6 +354,44 @@ return [
             'heading' => 'Weitere :branche_plural in :stadt',
             'all' => 'Alle :anzahl anzeigen',
         ],
+
+        // Profil-Ausbau (#14): Partials unter resources/views/portal/companies/partials
+        'catalog' => [
+            'heading' => 'Leistungen & Preise',
+            'service' => 'Leistung',
+            'price' => 'Preis',
+            'price_from' => 'ab :preis',
+            'price_on_request' => 'Auf Anfrage',
+            'note' => 'Die Preise sind Richtwerte. Das genaue Angebot bekommst du nach deiner Anfrage.',
+        ],
+
+        'gallery' => [
+            'heading' => 'Fotos',
+            'alt' => 'Foto :nummer von :firma',
+            'open' => 'Foto :nummer vergrößern',
+        ],
+
+        'references' => [
+            'heading' => 'Referenzen',
+            'alt' => ':titel, Foto :nummer',
+            'open' => 'Fotos zu :titel ansehen',
+            'photos' => '{1} 1 Foto|[2,*] :anzahl Fotos',
+        ],
+
+        'video' => [
+            'heading' => 'Video',
+            'title' => 'Video von :firma',
+            'play' => 'Video abspielen',
+            'consent' => 'Das Video lädt erst nach deinem Klick von :anbieter. Dabei gelten die Datenschutzhinweise von :anbieter.',
+            'watch' => 'Auf :anbieter ansehen',
+        ],
+
+        'lightbox' => [
+            'label' => 'Fotoansicht',
+            'close' => 'Schließen',
+            'prev' => 'Vorheriges Foto',
+            'next' => 'Nächstes Foto',
+        ],
     ],
 
     /*
@@ -382,6 +423,11 @@ return [
         'close' => 'Schließen',
         'privacy' => 'Deine Angaben gehen an :firma – auch wenn das Profil dort erst später übernommen wird.',
         'privacy_link' => 'Datenschutz',
+
+        // Exklusiver Weg (#9): kein Opt-in, Anfrage nur an den Betrieb
+        'exclusive_hint' => 'Deine Anfrage geht direkt und ausschließlich an :firma.',
+        'privacy_exclusive' => 'Deine Angaben gehen nur an :firma und werden nicht an andere Betriebe weitergegeben.',
+        'done_exclusive' => ':firma hat deine Anfrage erhalten und meldet sich direkt bei dir.',
     ],
 
     /*
@@ -834,6 +880,8 @@ return [
         ],
 
         'card' => [
+            // Hervorgehobene Anzeige (#13, Feature job_highlight)
+            'top_job' => 'Top-Job',
             'location' => 'Ort',
             'type' => 'Anstellungsart',
             'salary' => 'Gehalt',
@@ -1465,6 +1513,13 @@ return [
                 'categories' => 'Kategorien',
                 'created' => 'Eingetragen',
             ],
+            'lead_quota' => [
+                'title' => 'Exklusive Anfragen',
+                'used' => 'Exklusive Anfragen: :genutzt von :kontingent in diesem Monat genutzt',
+                'unlimited' => 'Exklusive Anfragen: :genutzt in diesem Monat, unbegrenzt',
+                'exhausted' => 'Dein Kontingent für diesen Monat ist aufgebraucht. Weitere Anfragen erhältst du ab dem 1. des nächsten Monats.',
+                'upsell' => 'Mehr exklusive Anfragen mit einem größeren Paket',
+            ],
             'help' => [
                 'title' => 'Fragen zu deinem Eintrag?',
                 'text' => 'Schreib uns, wir helfen dir gern.',
@@ -1505,6 +1560,24 @@ return [
             'reply_save' => 'Antwort veröffentlichen',
             'your_reply' => 'Deine Antwort',
             'delete_reply' => 'Antwort löschen',
+            'edit_reply' => 'Antwort bearbeiten',
+            'reply_update' => 'Antwort speichern',
+            'reply_saved' => 'Deine Antwort wurde gespeichert.',
+            'reply_deleted' => 'Deine Antwort wurde gelöscht.',
+            'tools' => [
+                'qr_title' => 'QR-Code zum Bewertungslink',
+                'qr_text' => 'Für Visitenkarte, Rechnung oder Aushang. Der Code führt direkt zum Bewertungsformular.',
+                'qr_alt' => 'QR-Code zum Bewertungslink von :firma',
+                'qr_download' => 'QR-Code herunterladen (SVG)',
+                'widget_title' => 'Bewertungs-Widget',
+                'widget_text' => 'Zeig deine Sterne und die neuesten Bewertungen auf deiner eigenen Website. Füge den Code dort ein, wo das Widget erscheinen soll.',
+                'widget_code' => 'Einbettungscode',
+                'widget_copy' => 'Code kopieren',
+                'widget_copied' => 'Code kopiert',
+                'widget_preview' => 'Vorschau',
+                'widget_locked' => 'Das Bewertungs-Widget ist in Pro und Premium enthalten.',
+                'widget_cache' => 'Neue Bewertungen erscheinen im Widget spätestens nach einer Stunde.',
+            ],
             'delete_confirm' => 'Antwort wirklich löschen? Das lässt sich nicht rückgängig machen.',
             'delete_yes' => 'Ja, löschen',
             'report' => 'Melden',
@@ -1594,6 +1667,69 @@ return [
                     'Aufruf' => 'Jemand öffnet deine Firmenseite.',
                     'Kontaktklick' => 'Tipp auf Telefon, E-Mail, Website oder Karte.',
                     'In Suchergebnissen' => 'Dein Eintrag stand in einer Trefferliste.',
+                ],
+            ],
+        ],
+        // Statistik-Dashboard und Monatsreport (#16)
+        'statistics' => [
+            'period' => ':tage Tage',
+            'range' => 'Stand :bis, ab :von. Die Zahlen von heute kommen morgen dazu.',
+            'details_hint' => 'Details für :zeitraum',
+            'metrics' => [
+                'profile_views' => 'Profilaufrufe',
+                'phone_clicks' => 'Telefon-Klicks',
+                'website_clicks' => 'Website-Klicks',
+                'quote_requests' => 'Anfragen',
+                'list_impressions' => 'Listen-Impressionen',
+            ],
+            'chart' => [
+                'title' => ':kennzahl pro Tag',
+                'metric_label' => 'Kennzahl',
+                'aria' => 'Verlauf: :kennzahl pro Tag in den letzten :tage Tagen',
+                'table' => 'Werte als Tabelle',
+                'date' => 'Datum',
+            ],
+            'ranking' => [
+                'title' => 'Dein Platz in der Stadtliste',
+                'position' => 'Platz :platz',
+                'text' => 'von :anzahl Betrieben in :stadt, Stand heute.',
+                'empty' => 'Trag deine Stadt im Profil ein, dann siehst du hier deinen Platz.',
+            ],
+            'average' => [
+                'title' => 'Im Vergleich zu deiner Stadt',
+                'text' => 'Durchschnitt der Betriebe in deiner Stadt im selben Zeitraum. Einzelne Betriebe sind nicht erkennbar.',
+                'metric' => 'Kennzahl',
+                'you' => 'Du',
+                'city' => 'Durchschnitt',
+                'value' => 'Ø :wert',
+                'empty' => 'In deiner Stadt sind noch zu wenige Betriebe für einen Vergleich.',
+            ],
+            'locked' => [
+                'badge' => 'Pro',
+                'title' => 'Sieh, was dein Eintrag bringt',
+                'text' => 'Mit Pro siehst du Aufrufe, Klicks und Anfragen im Verlauf, deinen Platz in der Stadtliste und den Vergleich mit anderen Betrieben. Dazu kommt jeden Monat ein Bericht per E-Mail.',
+                'cta' => 'Mit Pro freischalten',
+            ],
+            'report' => [
+                'setting_title' => 'Monatsbericht',
+                'setting_text' => 'Am 1. jedes Monats: deine Zahlen aus dem Vormonat im Überblick.',
+                'setting_locked' => 'Den Monatsbericht gibt es mit Pro und Premium.',
+                'saved_on' => 'Monatsbericht ist eingeschaltet.',
+                'saved_off' => 'Monatsbericht ist ausgeschaltet.',
+                'mail' => [
+                    'subject' => 'Deine Zahlen im :monat – :firma',
+                    'preview' => 'So lief dein Eintrag im :monat.',
+                    'heading' => 'Dein Monat im Überblick',
+                    'greeting' => 'Hallo :name,',
+                    'greeting_anonymous' => 'Hallo,',
+                    'intro' => 'so lief der Eintrag von :firma im :monat.',
+                    'column_month' => ':monat',
+                    'column_change' => 'zum Vormonat',
+                    'no_change' => '–',
+                    'ranking' => 'In der Stadtliste von :stadt stehst du aktuell auf Platz :platz von :anzahl.',
+                    'cta' => 'Statistik ansehen',
+                    'unsubscribe' => 'Du bekommst diesen Bericht, weil er in deinen Einstellungen eingeschaltet ist.',
+                    'unsubscribe_link' => 'Monatsbericht abbestellen',
                 ],
             ],
         ],
@@ -1808,6 +1944,92 @@ return [
                 'cta' => 'Zum Abo',
             ],
         ],
+        // Projektreferenzen (#13), Livewire portal.company.dashboard.references
+        'references' => [
+            'title' => 'Projektreferenzen',
+            'count' => ':anzahl von :max',
+            'intro' => 'Zeig abgeschlossene Projekte mit Fotos, Ort und Jahr. Sie erscheinen als eigener Abschnitt auf deiner Firmenseite.',
+            'locked' => 'Projektreferenzen sind im Paket Premium enthalten.',
+            'stored' => '{1} 1 Referenz ist gespeichert und mit Premium wieder sichtbar.|[2,*] :anzahl Referenzen sind gespeichert und mit Premium wieder sichtbar.',
+            'add' => 'Referenz hinzufügen',
+            'edit' => 'Bearbeiten',
+            'save' => 'Referenz speichern',
+            'cancel' => 'Abbrechen',
+            'saved' => 'Die Referenz wurde gespeichert.',
+            'confirm_delete' => 'Referenz wirklich löschen?',
+            'move_up' => ':titel nach oben schieben',
+            'move_down' => ':titel nach unten schieben',
+            'limit_reached' => 'Du hast die höchstmögliche Zahl von :max Referenzen erreicht.',
+            'photos_hint' => 'JPEG, PNG oder WebP, bis 5 MB pro Foto. Noch :anzahl möglich.',
+            'photos_selected' => '{1} 1 Foto ausgewählt|[2,*] :anzahl Fotos ausgewählt',
+            'fields' => [
+                'title' => 'Titel',
+                'description' => 'Beschreibung',
+                'location' => 'Ort',
+                'year' => 'Jahr',
+                'photos' => 'Fotos hochladen',
+            ],
+            'errors' => [
+                'title_required' => 'Bitte gib einen Titel mit mindestens 3 Zeichen ein.',
+                'year' => 'Bitte gib ein gültiges Jahr ein.',
+                'photos_max' => 'Pro Referenz sind höchstens :max Fotos möglich.',
+                'photo_image' => 'Nur Bilder erlaubt (JPEG, PNG, WebP).',
+                'photo_max' => 'Jedes Foto darf höchstens 5 MB groß sein.',
+            ],
+        ],
+        // Leistungskatalog (#13), Livewire portal.company.dashboard.services
+        'services' => [
+            'title' => 'Leistungen und Preise',
+            'intro' => 'Liste deine Leistungen mit einem Ab-Preis. Sie erscheinen als Tabelle auf deiner Firmenseite.',
+            'locked' => 'Der Leistungskatalog ist in den Paketen Pro und Premium enthalten.',
+            'locked_badge' => 'Pro',
+            'stored' => '{1} 1 Leistung ist gespeichert und mit Pro oder Premium wieder sichtbar.|[2,*] :anzahl Leistungen sind gespeichert und mit Pro oder Premium wieder sichtbar.',
+            'add' => 'Leistung hinzufügen',
+            'edit' => 'Bearbeiten',
+            'save' => 'Leistung speichern',
+            'cancel' => 'Abbrechen',
+            'saved' => 'Die Leistung wurde gespeichert.',
+            'confirm_delete' => 'Leistung wirklich löschen?',
+            'limit_reached' => 'Du hast die höchstmögliche Zahl von :max Leistungen erreicht.',
+            'price_from' => 'ab :preis',
+            'price_on_request' => 'Preis auf Anfrage',
+            'fields' => [
+                'name' => 'Leistung',
+                'price_from' => 'Preis ab (€)',
+                'description' => 'Beschreibung',
+            ],
+            'errors' => [
+                'name_required' => 'Bitte gib einen Namen für die Leistung ein.',
+                'price' => 'Bitte gib einen gültigen Preis ein, z. B. 89,00.',
+            ],
+        ],
+        // Verifiziert-Badge (#11), Livewire portal.company.dashboard.verification
+        'verification' => [
+            'title' => 'Verifizierter Betrieb',
+            'intro' => 'Reichen Sie einen Gewerbenachweis ein. Nach unserer Prüfung erscheint auf Ihrem Profil und in den Ergebnislisten das Badge „Verifizierter Betrieb".',
+            'locked' => 'Das Verifiziert-Badge ist in den Paketen Pro und Premium enthalten.',
+            'locked_cta' => 'Pakete ansehen',
+            'verified' => 'Ihr Betrieb ist seit :datum verifiziert.',
+            'verified_hidden' => 'Ihr Betrieb ist verifiziert. Das Badge wird angezeigt, sobald Sie wieder ein Pro- oder Premium-Paket nutzen.',
+            'pending' => 'Ihr Nachweis vom :datum wird geprüft. Wir melden uns, sobald die Prüfung abgeschlossen ist.',
+            'rejected' => 'Ihr letzter Nachweis wurde nicht bestätigt. Grund: :grund',
+            'type_label' => 'Art des Nachweises',
+            'file_label' => 'Datei auswählen',
+            'file_hint' => 'PDF, JPG oder PNG, höchstens 10 MB',
+            'uploading' => 'Datei wird hochgeladen …',
+            'submit' => 'Nachweis einreichen',
+            'sending' => 'Wird gesendet …',
+            'success' => 'Ihr Nachweis wurde eingereicht. Wir prüfen ihn in Kürze.',
+            'already_pending' => 'Es läuft bereits eine Prüfung für Ihren Betrieb.',
+            'failed' => 'Der Nachweis konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.',
+            'errors' => [
+                'file_required' => 'Bitte wählen Sie eine Datei aus.',
+                'file_mimes' => 'Erlaubte Formate: PDF, JPG, PNG.',
+                'file_max' => 'Die Datei darf höchstens 10 MB groß sein.',
+                'type_required' => 'Bitte wählen Sie die Art des Nachweises.',
+            ],
+        ],
+
         'settings' => [
             'title' => 'Einstellungen',
             'intro' => 'Dein Konto, deine Benachrichtigungen, dein Abo.',
@@ -1858,6 +2080,9 @@ return [
             'expired_title' => 'Abgelaufen oder pausiert',
             // trans_choice() mit dem Hoechstwert, :anzahl = aktive Stellen, :max = Hoechstwert
             'limit' => '{1} Du hast schon :anzahl von :max aktiven Stellenanzeigen. Pausiere sie, um eine neue zu erstellen.|[2,*] Du hast schon :anzahl von :max aktiven Stellenanzeigen. Pausiere eine davon, um eine neue zu erstellen.',
+            // Upsell bei erreichtem Limit (#13), trans_choice() mit dem Hoechstwert
+            'limit_reached' => '{1} Dein Paket erlaubt eine aktive Stellenanzeige. Pausiere sie oder wechsle auf ein größeres Paket, um weitere Stellen zu schalten.|[2,*] Dein Paket erlaubt :max aktive Stellenanzeigen. Pausiere eine davon oder wechsle auf ein größeres Paket, um weitere Stellen zu schalten.',
+            'limit_upsell_cta' => 'Pakete ansehen',
             'empty' => [
                 'title' => 'Noch keine aktive Stellenanzeige',
                 'text' => 'Erstelle deine erste Stelle und finde Bewerber aus deiner Region.',
@@ -2051,9 +2276,38 @@ return [
             ],
             'status_saved' => 'Status gespeichert.',
         ],
+        // Exklusive Anfragen (#9), Livewire Portal\Company\Dashboard\Leads und Mail
+        'leads' => [
+            'title' => 'Exklusive Anfragen',
+            'intro' => 'Diese Anfragen gehen nur an dich – kein anderer Betrieb bekommt sie.',
+            'statuses' => [
+                'new' => 'Neu',
+                'contacted' => 'Kontaktiert',
+                'closed' => 'Abgeschlossen',
+            ],
+            'empty' => 'Noch keine exklusiven Anfragen. Sobald ein Kunde über dein Profil anfragt, steht die Anfrage hier.',
+            'exhausted' => 'Dein Kontingent für diesen Monat ist aufgebraucht. Neue Anfragen über dein Profil gehen bis zum Monatsende wieder an mehrere Betriebe.',
+            'locked' => 'Mit Pro oder Premium gehen Anfragen über dein Profil nur an dich.',
+            'locked_cta' => 'Pakete ansehen',
+            'purged' => 'Die Kontaktdaten wurden nach 12 Monaten gelöscht.',
+            'purged_name' => 'Kontaktdaten gelöscht',
+            'load_more' => 'Weitere Anfragen laden',
+            'marketplace_title' => 'Weitere Anfragen',
+            'mail' => [
+                'subject' => 'Neue exklusive Anfrage von :name',
+                'preview' => 'Eine neue Anfrage ist nur für :firma eingegangen.',
+                'heading' => 'Neue exklusive Anfrage',
+                'intro' => 'Ein Kunde hat über dein Profil eine Anfrage an :firma geschickt. Die Anfrage geht ausschließlich an dich – melde dich am besten noch heute.',
+                'cta' => 'Anfrage im Betriebsbereich öffnen',
+                'exclusive_note' => 'Die Anfrage zählt auf dein monatliches Kontingent exklusiver Anfragen.',
+            ],
+        ],
         'edit' => [
             'title' => 'Profil bearbeiten',
             'intro' => 'So sehen dich Kunden auf :portal. Was du hier speicherst, ist sofort online.',
+            // Vorlaeufiger Text, final in SUN-PREM-016 (#8)
+            'upsell_competitors' => 'Auf deinem Profil werden Wettbewerber angezeigt – mit Pro nicht mehr',
+            'upsell_competitors_cta' => 'Pro ansehen',
             'optional' => 'optional',
             'remove' => 'Entfernen',
             'uploading' => 'Wird hochgeladen …',
@@ -2114,23 +2368,40 @@ return [
             ],
             'gallery' => [
                 'title' => 'Fotos',
-                'count' => ':anzahl von 20',
+                'count' => ':anzahl von :max',
                 'upload' => 'Fotos hochladen',
                 'hint' => 'JPEG, PNG oder WebP, bis 5 MB pro Foto. Noch :anzahl möglich.',
-                'full' => 'Du hast alle 20 Plätze belegt. Lösch ein Foto, um ein neues hochzuladen.',
+                'full' => 'Dein Paket erlaubt :max Fotos, alle Plätze sind belegt. Lösch ein Foto, um ein neues hochzuladen.',
+                'more_cta' => 'Mehr Fotos freischalten',
+                'limit_reached' => 'Dein Paket erlaubt :max Fotos. Weitere Fotos wurden nicht gespeichert.',
+                'hidden' => 'Nicht sichtbar',
+                'hidden_hint' => 'Auf deiner Firmenseite erscheinen nur die ersten :max Fotos. Die übrigen bleiben gespeichert und werden mit einem größeren Paket wieder sichtbar.',
                 'delete' => 'Foto löschen',
                 'confirm_delete' => 'Foto wirklich löschen?',
+                // Sortierung (#14)
+                'sort_hint' => 'Zieh die Fotos in die gewünschte Reihenfolge oder nutz die Pfeile. Das erste Foto erscheint zuerst.',
+                'sort_hint_limit' => 'Zieh die Fotos in die gewünschte Reihenfolge oder nutz die Pfeile. Auf deiner Firmenseite erscheinen die ersten :max.',
+                'move_left' => 'Foto :nummer nach vorne schieben',
+                'move_right' => 'Foto :nummer nach hinten schieben',
+                'position' => 'Foto :nummer',
+            ],
+            // Video im Profil (#13), nur mit Feature video_embed
+            'video' => [
+                'title' => 'Video',
+                'label' => 'Link zu YouTube oder Vimeo',
+                'hint' => 'Das Video lädt auf deiner Firmenseite erst, wenn Besucher darauf klicken.',
+                'locked' => 'Zeig dein Unternehmen im Video – im Paket Premium enthalten.',
             ],
             'locked' => [
                 'badge' => 'Premium',
                 'unlock' => 'Freischalten',
-                'photos_title' => 'Titelbild und Fotos',
-                'photos_hint' => 'Bis zu 20 Fotos von deiner Arbeit und ein Titelbild für deine Firmenseite.',
+                'photos_title' => 'Titelbild',
+                'photos_hint' => 'Ein Titelbild als Banner für deine Firmenseite.',
                 'photos_stored' => '{1} 1 Foto ist gespeichert und mit Premium wieder sichtbar.|[2,*] :anzahl Fotos sind gespeichert und mit Premium wieder sichtbar.',
             ],
             'premium' => [
                 'title' => 'Zeig Kunden deine Arbeit',
-                'text' => 'Mit Premium bekommt deine Firmenseite ein Titelbild und bis zu 20 Fotos.',
+                'text' => 'Mit Premium bekommt deine Firmenseite ein Titelbild, mehr Fotos und ein Video.',
             ],
             'checklist' => [
                 'title' => 'Noch offen',
@@ -2158,6 +2429,18 @@ return [
         'email_label' => 'E-Mail-Adresse',
         'email_placeholder' => 'Ihre E-Mail-Adresse',
         'submit' => 'Abonnieren',
+    ],
+
+    /*
+    |----------------------------------------------------------------------
+    | widget.* — Bewertungs-Widget fuer fremde Websites (#12)
+    |----------------------------------------------------------------------
+    */
+    'widget' => [
+        'iframe_title' => 'Bewertungen für :firma',
+        'stars' => ':anzahl von 5 Sternen',
+        'empty' => 'Noch keine Bewertungen.',
+        'all' => 'Alle Bewertungen auf :portal',
     ],
 
 ];

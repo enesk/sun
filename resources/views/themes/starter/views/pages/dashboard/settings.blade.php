@@ -69,6 +69,9 @@
             </p>
         </div>
 
+        {{-- Verifiziert-Badge (#11) --}}
+        <livewire:portal.company.dashboard.verification />
+
         {{-- Eintrag löschen --}}
         <div class="dash-card dash-card-padded dash-card-danger">
             <h2 class="dash-card-danger-title">Gefahrenzone</h2>

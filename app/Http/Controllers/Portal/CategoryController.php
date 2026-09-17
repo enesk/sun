@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Portal\Category;
 use App\Models\Portal\City;
 use App\Models\Portal\Company;
+use App\Models\Portal\CompanyEvent;
+use App\Services\Premium\CompanyStatsRecorder;
 use App\Support\TenantCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -51,6 +53,7 @@ class CategoryController extends Controller
         }
 
         // Stadt-Filter
+        $city = null;
         if ($request->filled('city')) {
             $city = City::where('name', $request->city)->first();
             if ($city) {
@@ -60,7 +63,8 @@ class CategoryController extends Controller
 
         // Premium-Einträge immer oben, dann benutzerdefinierte Sortierung
         $sort = $request->get('sort', 'name');
-        $query->orderByDesc('is_premium');
+        // Top-Platzierungen (#6) nur mit Stadt-Filter, sonst waeren sie portalweit
+        $query->orderFeaturedFirst($city?->id, $category->id)->orderByDesc('is_premium');
 
         $query = match ($sort) {
             'rating' => $query->orderByDesc('rating')->orderByDesc('rating_count'),
@@ -99,6 +103,9 @@ class CategoryController extends Controller
             ['label' => 'Kategorien', 'url' => route('portal.categories.index')],
             ['label' => $category->name],
         ];
+
+        // Betriebsstatistik (#15): eine Impression je Karte, als ein Batch
+        app(CompanyStatsRecorder::class)->listImpressions($companies->pluck('id'), $request, null, CompanyEvent::SOURCE_CATEGORY);
 
         return view('pages.categories.show', compact(
             'category',

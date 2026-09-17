@@ -5,7 +5,7 @@
     $rating = number_format((float) $company->rating, 1, ',', '');
     $imageUrl = $company->card_image_url ?: \App\Themes\SunV2\Asset::url('images/placeholder-company.svg');
 @endphp
-<article class="relative card-interactive overflow-hidden flex flex-col min-w-[85%] sm:min-w-[60%] md:min-w-[45%] xl:min-w-0 @if($company->is_premium) border-l-4 border-l-brand @endif">
+<article class="relative card-interactive overflow-hidden flex flex-col min-w-[85%] sm:min-w-[60%] md:min-w-[45%] xl:min-w-0 @if($company->is_premium) border-l-4 border-l-brand @endif" data-stats-company="{{ $company->id }}" data-stats-source="listing">
     <img src="{{ $imageUrl }}" alt="{{ __('portal.layout.card.photo_alt', ['firma' => $company->name]) }}" width="640" height="360" class="aspect-video w-full object-cover" loading="lazy">
     <div class="p-5 flex flex-col gap-3 flex-1">
         <div class="flex items-start gap-3">
@@ -18,6 +18,7 @@
                 @else
                     <h3 class="text-lg font-semibold text-zinc-900 leading-snug"><a href="{{ $company->portal_url }}" class="hover:text-brand">{{ $company->name }}</a></h3>
                 @endif
+                <x-company.verified-badge :company="$company" size="sm" class="mt-1" />
                 @if($company->rating_count > 0)
                     <div class="flex items-center gap-1.5 mt-1">
                         <x-sun.stars :rating="$company->rating" />

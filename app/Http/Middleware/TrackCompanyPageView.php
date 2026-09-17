@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\Premium\CompanyStatsRecorder;
 use App\Services\TrackingService;
 use Closure;
 use Illuminate\Http\Request;
@@ -10,7 +11,8 @@ use Symfony\Component\HttpFoundation\Response;
 class TrackCompanyPageView
 {
     public function __construct(
-        private TrackingService $trackingService
+        private TrackingService $trackingService,
+        private CompanyStatsRecorder $statsRecorder,
     ) {}
 
     /**
@@ -42,6 +44,10 @@ class TrackCompanyPageView
 
         if ($companyId) {
             $this->trackingService->trackPageView($companyId, $request);
+
+            // Betriebsstatistik (#15): per Queue, ohne IP
+            $cityId = $request->attributes->get('tracked_company_city_id');
+            $this->statsRecorder->profileView((int) $companyId, $cityId ? (int) $cityId : null, $request);
         }
     }
 }

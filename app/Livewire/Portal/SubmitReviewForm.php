@@ -42,6 +42,12 @@ class SubmitReviewForm extends Component
         ];
     }
 
+    public function mount(): void
+    {
+        // Bewertungslink /bewerten/{slug} (#12) oeffnet das Formular direkt
+        $this->showForm = request()->boolean('bewerten');
+    }
+
     public function toggleForm(): void
     {
         $this->showForm = !$this->showForm;

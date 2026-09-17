@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Themes\SunV2;
 
 use App\Dto\Leads\FunnelDefinition;
+use App\Enums\PremiumFeature;
 use App\Models\Portal\Company;
 use App\Models\Portal\CompanyOpeningHour;
 use App\Models\Portal\Review;
 use App\Services\Leads\FunnelDefinitionClient;
+use App\Services\Premium\CompanyEntitlementService;
 use App\Support\Breadcrumb;
 use App\Support\CityUrl;
 use App\Support\PhoneNumber;
@@ -36,6 +38,7 @@ final class ProfileViewComposer
     public function __construct(
         private readonly ThemeManager $themes,
         private readonly FunnelDefinitionClient $funnels,
+        private readonly CompanyEntitlementService $entitlements,
     ) {}
 
     public function compose(View $view): void
@@ -47,6 +50,8 @@ final class ProfileViewComposer
         /** @var Company $company */
         $company = $view->getData()['company'];
         $cityName = $company->city?->getAttribute('name');
+        // Werbefreies Profil (#8): keine weiteren Betriebe, Abfrage entfaellt
+        $adFree = $this->entitlements->can($company, PremiumFeature::AdFree);
 
         $view->with('profile', [
             'initials' => self::initials($company->name),
@@ -66,8 +71,8 @@ final class ProfileViewComposer
                 ? CityUrl::show($company->city)
                 : route('portal.companies.index'),
             'breadcrumb' => Breadcrumb::forCompany($company),
-            'nearby' => $this->nearby($company),
-            'nearbyCount' => $this->nearbyCount($company),
+            'nearby' => $adFree ? new Collection : $this->nearby($company),
+            'nearbyCount' => $adFree ? 0 : $this->nearbyCount($company),
             'leadFunnel' => $this->leadFunnel(),
         ]);
     }

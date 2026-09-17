@@ -1,4 +1,11 @@
-{{-- Ergebniskarte der Suche (Vorlage elektrikerportal-suche.html). Premium mit Markenleiste links. --}}
+{{--
+    Ergebniskarte der Suche (Vorlage elektrikerportal-suche.html). Premium mit Markenleiste links.
+    Plan-Darstellung (#7), nur ueber den CompanyEntitlementService und die Spalte
+    featured_slot aus der Listen-Query (Company::withFeaturedSlot), ohne Einzelabfragen:
+    - aktive Top-Platzierung: Rahmen in Markenfarbe, Badge "Empfohlen", Logo und Foto
+    - Pro/Premium: Foto statt Initialen (Verifiziert-Badge kommt aus x-company.verified-badge)
+    - Free: unveraendert. Ohne Galeriefoto bleibt der Platzhalter.
+--}}
 @props(['company', 'distance' => null])
 @php
     $status = \App\Themes\SunV2\OpeningStatus::for($company);
@@ -7,15 +14,44 @@
     $initials = count($words) > 1
         ? mb_substr($words[0], 0, 1).mb_substr($words[1], 0, 1)
         : mb_substr($words[0] ?? '?', 0, 2);
+    $entitlements = app(\App\Services\Premium\CompanyEntitlementService::class);
+    $featured = $company->featured_slot !== null
+        && $entitlements->can($company, \App\Enums\PremiumFeature::FeaturedPlacement);
+    $paid = $featured || $entitlements->effectiveTier($company)->isAtLeast(\App\Enums\PlanTier::Pro);
+    $photoUrl = $paid ? $company->card_photo_url : null;
+    $logoUrl = $featured ? $company->logo_thumb_url : null;
+    $avatarUrl = $logoUrl ?? ($photoUrl && ! $featured ? $company->card_photo_thumb_url : null);
 @endphp
-<article class="card-interactive p-5 flex flex-col lg:flex-row lg:items-start gap-4 @if($company->is_premium) border-l-4 border-l-brand @endif">
+<article @class([
+    'card-interactive p-5 flex flex-col lg:flex-row lg:items-start gap-4',
+    'border-l-4 border-l-brand' => $company->is_premium && ! $featured,
+    'border-brand ring-1 ring-brand' => $featured,
+]) data-stats-company="{{ $company->id }}" data-stats-source="listing">
+  @if($featured && $photoUrl)
+    <div class="relative shrink-0 lg:w-44">
+      <img src="{{ $photoUrl }}" alt="{{ __('portal.layout.card.photo_alt', ['firma' => $company->name]) }}" width="640" height="360" class="aspect-video w-full rounded-xl object-cover lg:aspect-[4/3]" loading="lazy">
+      <span class="pill-brand absolute left-2 top-2 bg-white shadow-sm">
+        <x-sun.icon name="star" class="size-4 shrink-0" />{{ __('portal.layout.card.recommended') }}
+      </span>
+    </div>
+  @endif
   <div class="flex-1 min-w-0 flex flex-col gap-3">
+    @if($featured && ! $photoUrl)
+      <span class="pill-brand self-start"><x-sun.icon name="star" class="size-4 shrink-0" />{{ __('portal.layout.card.recommended') }}</span>
+    @endif
     <div class="flex items-start gap-3">
-      <span class="size-12 rounded-2xl bg-brand-50 text-brand-700 font-bold flex items-center justify-center shrink-0" aria-hidden="true">{{ mb_strtoupper($initials) }}</span>
+      @if($avatarUrl)
+        <img src="{{ $avatarUrl }}" alt="" width="48" height="48" class="size-12 rounded-2xl border border-zinc-200 bg-white {{ $logoUrl ? 'object-contain p-1' : 'object-cover' }} shrink-0" loading="lazy">
+      @else
+        <span class="size-12 rounded-2xl bg-brand-50 text-brand-700 font-bold flex items-center justify-center shrink-0" aria-hidden="true">{{ mb_strtoupper($initials) }}</span>
+      @endif
       <div class="flex-1 min-w-0">
         <div class="flex flex-wrap items-start justify-between gap-2">
-          <h2 class="text-lg font-semibold text-zinc-900 leading-snug"><a href="{{ $company->portal_url }}" class="hover:text-brand">{{ $company->name }}</a></h2>
-          @if($company->is_premium)
+          <div class="flex flex-wrap items-center gap-2 min-w-0">
+            <h2 class="text-lg font-semibold text-zinc-900 leading-snug"><a href="{{ $company->portal_url }}" class="hover:text-brand">{{ $company->name }}</a></h2>
+            <x-company.verified-badge :company="$company" size="sm" />
+          </div>
+          @if($company->is_premium && ! $featured)
             <span class="pill-brand shrink-0">{{ __('portal.layout.card.premium') }}</span>
           @endif
         </div>

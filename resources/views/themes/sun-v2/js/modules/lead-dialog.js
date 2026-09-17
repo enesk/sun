@@ -11,6 +11,14 @@
  * darin je Frage ein Element mit data-question-key und data-question-type,
  * Fehlerausgabe in [data-error-for="<key>"]. Titel des Schritts optional in
  * data-step-title, der Kontaktschritt am Dialog in data-contact-step.
+ *
+ * Exklusive Anfragen (#9): beim Oeffnen fragt der Dialog parallel zur Sitzung
+ * das Portal (data-route-url), ob die Anfrage nur an den Betrieb geht. Dann
+ * sind Fragen mit data-marketplace-only (Opt-in weitere Betriebe) ausgeblendet,
+ * und der Kontaktschritt geht mit allen Antworten an data-exclusive-url statt
+ * an das Leadsystem. Meldet das Portal beim Absenden route=marketplace
+ * (Kontingent inzwischen weg), laeuft die Anfrage still den bisherigen Weg,
+ * das Opt-in bleibt dabei ausgeblendet.
  */
 
 // Texte kommen fertig uebersetzt aus data-texts (partials/sun/lead-dialog, portal.request.*)
@@ -96,6 +104,16 @@ export function initLeadDialog() {
     const prevButton = form.querySelector('[data-prev]');
     const errorBox = form.querySelector('[data-lead-error]');
     const texts = JSON.parse(dialog.dataset.texts);
+    const routeUrl = dialog.dataset.routeUrl || '';
+    const exclusiveUrl = dialog.dataset.exclusiveUrl || '';
+    const exclusiveHint = form.querySelector('[data-exclusive-hint]');
+    const privacyText = form.querySelector('[data-privacy-text]');
+    const doneText = form.querySelector('[data-done-text]');
+    const defaultTexts = { privacy: privacyText?.textContent, done: doneText?.textContent };
+    const marketplaceOnly = [...form.querySelectorAll('[data-marketplace-only]')];
+
+    // 'exclusive' oder 'marketplace', entschieden beim Oeffnen, beim Absenden erneut geprueft
+    let route = 'marketplace';
 
     // Besuchte Schritte im Browser; letzter Eintrag ist der sichtbare Schritt
     let history = [firstStep];
@@ -107,13 +125,24 @@ export function initLeadDialog() {
     const current = () => history[history.length - 1];
     const stepElement = (step) => steps.find((el) => el.dataset.step === String(step));
 
-    async function api(method, path, payload) {
+    function api(method, path, payload) {
+        return request(`${apiBase}${path}`, method, payload);
+    }
+
+    // Eigene Endpunkte des Portals: Session-Cookie und CSRF-Token gehen mit
+    function portalApi(method, url, payload) {
+        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+        return request(url, method, payload, { 'X-CSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest' });
+    }
+
+    async function request(url, method, payload, headers = {}) {
         let response;
 
         try {
-            response = await fetch(`${apiBase}${path}`, {
+            response = await fetch(url, {
                 method,
-                headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+                headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...headers },
                 body: payload ? JSON.stringify(payload) : undefined,
             });
         } catch {
@@ -271,12 +300,82 @@ export function initLeadDialog() {
         form.querySelector('[data-privacy]').classList.toggle('hidden', done);
     }
 
+    /*
+     * Weg umschalten. revealOptIn=false beim stillen Rueckfall: der Nutzer hat
+     * den Kontaktschritt ohne Opt-in gesehen, dabei bleibt es.
+     */
+    function setRoute(value, revealOptIn = true) {
+        route = value;
+        const exclusive = value === 'exclusive';
+        exclusiveHint?.classList.toggle('hidden', !exclusive);
+        if (privacyText) {
+            privacyText.textContent = exclusive ? texts.exclusive.privacy : defaultTexts.privacy;
+        }
+        if (doneText) {
+            doneText.textContent = exclusive ? texts.exclusive.done : defaultTexts.done;
+        }
+        if (!revealOptIn) {
+            return;
+        }
+        marketplaceOnly.forEach((question) => {
+            question.classList.toggle('hidden', exclusive);
+            if (exclusive) {
+                fieldsOf(question).forEach((field) => {
+                    field.checked = false;
+                });
+            }
+        });
+    }
+
+    async function checkRoute() {
+        if (!routeUrl || !exclusiveUrl) {
+            return;
+        }
+
+        try {
+            const state = await portalApi('GET', routeUrl);
+            setRoute(state?.route === 'exclusive' ? 'exclusive' : 'marketplace');
+        } catch {
+            // Im Zweifel der bisherige Weg
+            setRoute('marketplace');
+        }
+    }
+
+    // Antworten aller besuchten Schritte, der sichtbare zuletzt
+    function collectedAnswers() {
+        return history
+            .filter((step) => step !== 'done')
+            .reduce((answers, step) => ({ ...answers, ...answersFromStep(stepElement(step)) }), {});
+    }
+
+    // true = exklusiv zugestellt; false = Portal verweist auf den Marktplatz
+    async function submitExclusive() {
+        const state = await portalApi('POST', exclusiveUrl, {
+            answers: collectedAnswers(),
+            website: form.querySelector('[name="website"]')?.value ?? '',
+        });
+
+        if (state?.route !== 'exclusive') {
+            setRoute('marketplace', false);
+
+            return false;
+        }
+
+        forgetSession();
+        history.push('done');
+        show('done');
+
+        return true;
+    }
+
     async function open() {
         dialog.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
         clearErrors();
         history = [firstStep];
+        setRoute('marketplace');
         show(firstStep);
+        const routeCheck = checkRoute();
 
         if (!token || !apiBase) {
             showGeneralError({ status: 0, message: texts.errors.unavailable });
@@ -300,6 +399,7 @@ export function initLeadDialog() {
                 showGeneralError(error);
             }
         } finally {
+            await routeCheck;
             setBusy(false);
         }
     }
@@ -321,6 +421,11 @@ export function initLeadDialog() {
     }
 
     async function advance() {
+        // Exklusiv: Kontaktdaten gehen nur an das Portal, nie an das Leadsystem
+        if (route === 'exclusive' && current() === submitStep && await submitExclusive()) {
+            return;
+        }
+
         if (serverStep !== current()) {
             await syncServer();
         }

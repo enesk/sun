@@ -2,296 +2,176 @@
 
 namespace Database\Seeders;
 
-use App\Constants\PaymentProviderConstants;
-use App\Constants\PaymentProviderPlanPriceType;
 use App\Constants\PlanType;
+use App\Enums\PlanTier;
+use App\Enums\PremiumFeature;
 use App\Models\Currency;
 use App\Models\Interval;
-use App\Models\PaymentProvider;
 use App\Models\Plan;
-use App\Models\PlanPaymentProviderData;
 use App\Models\PlanPrice;
-use App\Models\PlanPricePaymentProviderData;
 use App\Models\Product;
+use App\Support\Tenancy\TenantPremiumPricing;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Log;
-use Stripe\StripeClient;
 
+/**
+ * SaasyKit-Products und -Plans des Premium-Moduls (#2), idempotent.
+ *
+ * Stufen, Features und Limits kommen aus config/premium.php. Stripe-Preise
+ * werden hier bewusst nicht mehr angelegt: sie sind je Portal in der
+ * Tenant-Konfiguration hinterlegt (TenantPremiumPricing). Bestehende
+ * Provider-Zuordnungen bleiben unangetastet.
+ */
 class PremiumPlansSeeder extends Seeder
 {
+    private const PRODUCTS = [
+        'free' => [
+            'slug' => 'basis',
+            'description' => 'Kostenloser Firmeneintrag mit Grundfunktionen',
+            'is_default' => true,
+            'is_popular' => false,
+        ],
+        'pro' => [
+            'slug' => 'pro',
+            'description' => 'Mehr Sichtbarkeit und exklusive Anfragen für Ihren Betrieb',
+            'is_default' => false,
+            'is_popular' => false,
+        ],
+        'premium' => [
+            'slug' => 'premium',
+            'description' => 'Maximale Sichtbarkeit und alle Funktionen für Ihr Unternehmen',
+            'is_default' => false,
+            'is_popular' => true,
+        ],
+    ];
+
     public function run(): void
     {
-        $eurCurrency = Currency::where('code', 'EUR')->firstOrFail();
-        $dayInterval = Interval::where('slug', 'day')->firstOrFail();
-        $monthInterval = Interval::where('slug', 'month')->firstOrFail();
-        $yearInterval = Interval::where('slug', 'year')->firstOrFail();
+        $currency = Currency::where('code', config('premium.currency'))->firstOrFail();
+        $intervals = Interval::whereIn('slug', ['day', 'month', 'year'])->get()->keyBy('slug');
 
-        // Product 1: Basis (kostenloser Eintrag)
-        Product::updateOrCreate(
-            ['slug' => 'basis'],
-            [
-                'name' => 'Basis',
-                'description' => 'Kostenloser Firmeneintrag mit Grundfunktionen',
-                'is_default' => true,
-                'is_popular' => false,
-                'features' => [
-                    ['feature' => 'Firmeneintrag mit Kontaktdaten'],
-                    ['feature' => 'Kategorie-Zuordnung'],
-                    ['feature' => 'Bewertungen empfangen'],
-                    ['feature' => '1 Foto im Profil'],
-                    ['feature' => 'Standard-Platzierung in Suchergebnissen'],
-                ],
-                'metadata' => [
-                    'max_images' => 1,
-                    'show_statistics' => false,
-                    'priority_listing' => false,
-                    'verified_badge' => false,
-                    'hide_ads' => false,
-                    'gallery_enabled' => false,
-                    'cover_image' => false,
-                ],
-            ]
-        );
+        foreach (['day', 'month', 'year'] as $slug) {
+            if (! $intervals->has($slug)) {
+                throw new \RuntimeException("Intervall '{$slug}' fehlt — IntervalsSeeder zuerst ausführen.");
+            }
+        }
 
-        // Product 2: Premium
-        $premiumProduct = Product::updateOrCreate(
-            ['slug' => 'premium'],
+        $products = [];
+
+        foreach (PlanTier::cases() as $tier) {
+            $products[$tier->value] = $this->seedTierProduct($tier);
+        }
+
+        $products['featured'] = Product::updateOrCreate(
+            ['slug' => 'top-platzierung'],
             [
-                'name' => 'Premium',
-                'description' => 'Maximale Sichtbarkeit und erweiterte Funktionen für Ihr Unternehmen',
+                'name' => PremiumFeature::FeaturedPlacement->label(),
+                'description' => 'Ihr Betrieb unter den ersten Einträgen der Stadt- und Branchenseiten',
                 'is_default' => false,
-                'is_popular' => true,
-                'features' => [
-                    ['feature' => 'Alles aus Basis'],
-                    ['feature' => 'Top-Platzierung in Suchergebnissen'],
-                    ['feature' => 'Bis zu 10 Fotos + Bildergalerie'],
-                    ['feature' => 'Cover-/Banner-Bild im Profil'],
-                    ['feature' => 'Verifiziert-Badge'],
-                    ['feature' => 'Erweiterte Statistiken & Trends'],
-                    ['feature' => 'Keine Werbung auf dem Profil'],
-                    ['feature' => 'Prominente Logo-Darstellung'],
-                ],
-                'metadata' => [
-                    'max_images' => 10,
-                    'show_statistics' => true,
-                    'priority_listing' => true,
-                    'verified_badge' => true,
-                    'hide_ads' => true,
-                    'gallery_enabled' => true,
-                    'cover_image' => true,
-                ],
+                'is_popular' => false,
+                'features' => [['feature' => PremiumFeature::FeaturedPlacement->label()]],
+                'metadata' => ['addon' => PremiumFeature::FeaturedPlacement->value],
             ]
         );
 
-        // Plan: Premium Monatlich (9,90 €)
-        $premiumMonthly = Plan::updateOrCreate(
-            ['slug' => 'premium-monthly'],
-            [
-                'name' => 'Premium Monatlich',
-                'product_id' => $premiumProduct->id,
-                'interval_id' => $monthInterval->id,
-                'interval_count' => 1,
-                'type' => PlanType::FLAT_RATE->value,
-                'is_active' => true,
-                'is_visible' => true,
-                'has_trial' => true,
-                'trial_interval_id' => $dayInterval->id,
-                'trial_interval_count' => 30,
-                'description' => 'Premium-Eintrag mit monatlicher Abrechnung. Jederzeit kündbar.',
-            ]
-        );
+        foreach ((array) config('premium.price_plans') as $priceKey => $planSlug) {
+            $tier = PlanTier::forPlanSlug($planSlug);
+            $isYearly = str_ends_with($priceKey, '_yearly');
+            $product = $tier !== null ? $products[$tier->value] : $products['featured'];
+            $hasTrial = $tier !== null;
 
-        // Plan: Premium Jährlich (99,00 € — 2 Monate gratis)
-        $premiumYearly = Plan::updateOrCreate(
-            ['slug' => 'premium-yearly'],
-            [
-                'name' => 'Premium Jährlich',
-                'product_id' => $premiumProduct->id,
-                'interval_id' => $yearInterval->id,
-                'interval_count' => 1,
-                'type' => PlanType::FLAT_RATE->value,
-                'is_active' => true,
-                'is_visible' => true,
-                'has_trial' => true,
-                'trial_interval_id' => $dayInterval->id,
-                'trial_interval_count' => 30,
-                'description' => 'Premium-Eintrag mit jährlicher Abrechnung. Sie sparen über 20 € im Jahr.',
-            ]
-        );
-
-        // Preise in EUR (gespeichert in Cent)
-        $monthlyPrice = PlanPrice::updateOrCreate(
-            ['plan_id' => $premiumMonthly->id, 'currency_id' => $eurCurrency->id],
-            [
-                'price' => 990, // 9,90 €
-                'type' => 'flat_rate',
-            ]
-        );
-
-        $yearlyPrice = PlanPrice::updateOrCreate(
-            ['plan_id' => $premiumYearly->id, 'currency_id' => $eurCurrency->id],
-            [
-                'price' => 9900, // 99,00 €
-                'type' => 'flat_rate',
-            ]
-        );
-
-        $this->command->info('✓ Premium-Pläne in DB erstellt.');
-
-        // ── Stripe-Synchronisation ──────────────────────────────────────
-        $this->syncWithStripe($premiumMonthly, $monthlyPrice, $premiumYearly, $yearlyPrice);
-    }
-
-    private function syncWithStripe(
-        Plan $premiumMonthly,
-        PlanPrice $monthlyPrice,
-        Plan $premiumYearly,
-        PlanPrice $yearlyPrice,
-    ): void {
-        $stripeSecretKey = config('services.stripe.secret_key');
-
-        if (empty($stripeSecretKey)) {
-            $this->command->warn('STRIPE_SECRET_KEY nicht gesetzt — Stripe-Sync übersprungen.');
-            return;
-        }
-
-        $stripeProvider = PaymentProvider::where('slug', PaymentProviderConstants::STRIPE_SLUG)->first();
-
-        if (! $stripeProvider || ! $stripeProvider->is_active) {
-            $this->command->warn('Stripe PaymentProvider nicht aktiv — Stripe-Sync übersprungen.');
-            return;
-        }
-
-        try {
-            $stripe = new StripeClient($stripeSecretKey);
-
-            // Alte Mappings komplett löschen — wir bauen sie sauber neu auf
-            $planIds = [$premiumMonthly->id, $premiumYearly->id];
-            PlanPaymentProviderData::whereIn('plan_id', $planIds)
-                ->where('payment_provider_id', $stripeProvider->id)
-                ->delete();
-            PlanPricePaymentProviderData::whereIn('plan_price_id', [$monthlyPrice->id, $yearlyPrice->id])
-                ->where('payment_provider_id', $stripeProvider->id)
-                ->delete();
-
-            // Stripe-Produkt finden oder erstellen
-            $stripeProductId = $this->ensureStripeProduct($stripe);
-
-            // Stripe-Preise finden oder erstellen
-            $monthlyStripePrice = $this->ensureStripePrice(
-                $stripe, $stripeProductId, 990, 'eur', 'month', 1
-            );
-            $yearlyStripePrice = $this->ensureStripePrice(
-                $stripe, $stripeProductId, 9900, 'eur', 'year', 1
+            $plan = Plan::updateOrCreate(
+                ['slug' => $planSlug],
+                [
+                    'name' => TenantPremiumPricing::label($priceKey),
+                    'product_id' => $product->id,
+                    'interval_id' => $intervals[$isYearly ? 'year' : 'month']->id,
+                    'interval_count' => 1,
+                    'type' => PlanType::FLAT_RATE->value,
+                    'is_active' => true,
+                    'is_visible' => $tier !== null,
+                    'has_trial' => $hasTrial,
+                    'trial_interval_id' => $hasTrial ? $intervals['day']->id : null,
+                    'trial_interval_count' => $hasTrial ? (int) config('premium.trial_days') : 0,
+                    'description' => $isYearly
+                        ? 'Jährliche Abrechnung.'
+                        : 'Monatliche Abrechnung. Jederzeit kündbar.',
+                ]
             );
 
-            // DB-Mappings sauber anlegen
-            foreach ($planIds as $planId) {
-                PlanPaymentProviderData::create([
-                    'plan_id' => $planId,
-                    'payment_provider_id' => $stripeProvider->id,
-                    'payment_provider_product_id' => $stripeProductId,
-                ]);
-            }
-
-            PlanPricePaymentProviderData::create([
-                'plan_price_id' => $monthlyPrice->id,
-                'payment_provider_id' => $stripeProvider->id,
-                'payment_provider_price_id' => $monthlyStripePrice,
-                'type' => PaymentProviderPlanPriceType::MAIN_PRICE->value,
-            ]);
-
-            PlanPricePaymentProviderData::create([
-                'plan_price_id' => $yearlyPrice->id,
-                'payment_provider_id' => $stripeProvider->id,
-                'payment_provider_price_id' => $yearlyStripePrice,
-                'type' => PaymentProviderPlanPriceType::MAIN_PRICE->value,
-            ]);
-
-            $this->command->info('✓ Stripe-Sync erfolgreich:');
-            $this->command->info("  Product: {$stripeProductId}");
-            $this->command->info("  Price Monatlich: {$monthlyStripePrice} (990 ct/month)");
-            $this->command->info("  Price Jährlich: {$yearlyStripePrice} (9900 ct/year)");
-
-        } catch (\Exception $e) {
-            $this->command->error('Stripe-Sync fehlgeschlagen: ' . $e->getMessage());
-            Log::error('PremiumPlansSeeder Stripe-Sync', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+            // Nur beim ersten Anlegen: ein geaenderter Betrag wuerde die
+            // Provider-Zuordnungen des PlanPrice loeschen (PlanPrice::booted).
+            PlanPrice::firstOrCreate(
+                ['plan_id' => $plan->id, 'currency_id' => $currency->id],
+                [
+                    'price' => (int) config("premium.reference_prices_cents.{$priceKey}"),
+                    'type' => PlanType::FLAT_RATE->value,
+                ]
+            );
         }
+
+        $this->command?->info('✓ Premium-Products und -Plans angelegt bzw. aktualisiert.');
     }
 
-    /**
-     * Sucht ein aktives Stripe-Produkt "Premium Firmeneintrag" oder erstellt es.
-     */
-    private function ensureStripeProduct(StripeClient $stripe): string
+    private function seedTierProduct(PlanTier $tier): Product
     {
-        // Zuerst in Stripe nach existierendem Produkt suchen
-        $products = $stripe->products->search([
-            'query' => "active:'true' AND name:'Premium Firmeneintrag'",
-        ]);
+        $definition = self::PRODUCTS[$tier->value];
+        $gallery = $tier->limit('gallery_photos');
 
-        if (count($products->data) > 0) {
-            $productId = $products->data[0]->id;
-            $this->command->info("  Stripe Product gefunden: {$productId}");
-            return $productId;
-        }
-
-        // Neues Produkt erstellen
-        $product = $stripe->products->create([
-            'name' => 'Premium Firmeneintrag',
-            'description' => 'Maximale Sichtbarkeit und erweiterte Funktionen für Ihr Unternehmen',
-        ]);
-
-        $this->command->info("  Stripe Product erstellt: {$product->id}");
-
-        return $product->id;
+        return Product::updateOrCreate(
+            ['slug' => $definition['slug']],
+            [
+                'name' => $tier->label(),
+                'description' => $definition['description'],
+                'is_default' => $definition['is_default'],
+                'is_popular' => $definition['is_popular'],
+                'features' => $this->featureList($tier),
+                'metadata' => [
+                    'plan_tier' => $tier->value,
+                    // Alt-Keys fuer Tenant::hasFeature(), abgeleitet aus config/premium.php
+                    'max_images' => $gallery,
+                    'show_statistics' => $tier->hasFeature(PremiumFeature::Statistics),
+                    'priority_listing' => $tier->hasFeature(PremiumFeature::FeaturedPlacement),
+                    'verified_badge' => $tier->hasFeature(PremiumFeature::VerifiedBadge),
+                    'hide_ads' => $tier->hasFeature(PremiumFeature::AdFree),
+                    'gallery_enabled' => $gallery === null || $gallery > 1,
+                    'cover_image' => $tier->isAtLeast(PlanTier::Pro),
+                ],
+            ]
+        );
     }
 
     /**
-     * Sucht einen aktiven Stripe-Preis mit exakten Parametern oder erstellt ihn.
+     * @return list<array{feature: string}>
      */
-    private function ensureStripePrice(
-        StripeClient $stripe,
-        string $productId,
-        int $unitAmount,
-        string $currency,
-        string $interval,
-        int $intervalCount,
-    ): string {
-        // Existierende aktive Preise für das Produkt laden
-        $prices = $stripe->prices->all([
-            'product' => $productId,
-            'active' => true,
-            'currency' => $currency,
-            'type' => 'recurring',
-            'limit' => 20,
-        ]);
+    private function featureList(PlanTier $tier): array
+    {
+        $limitTexts = [
+            PremiumFeature::GalleryPhotos->value => fn (?int $limit): string => $limit === null
+                ? 'Unbegrenzt Fotos'
+                : ($limit === 1 ? '1 Foto' : "Bis zu {$limit} Fotos"),
+            PremiumFeature::JobPostings->value => fn (?int $limit): string => $limit === null
+                ? 'Unbegrenzt Stellenanzeigen'
+                : "{$limit} aktive Stellenanzeige".($limit === 1 ? '' : 'n'),
+            PremiumFeature::LeadQuota->value => fn (?int $limit): string => $limit === null
+                ? 'Unbegrenzt Anfragen pro Monat'
+                : "{$limit} Anfragen pro Monat",
+        ];
+        $limitKeys = [
+            PremiumFeature::GalleryPhotos->value => 'gallery_photos',
+            PremiumFeature::JobPostings->value => 'job_postings_active',
+            PremiumFeature::LeadQuota->value => 'lead_quota_monthly',
+        ];
 
-        foreach ($prices->data as $price) {
-            if ($price->unit_amount === $unitAmount
-                && $price->recurring->interval === $interval
-                && $price->recurring->interval_count === $intervalCount
-            ) {
-                $this->command->info("  Stripe Price gefunden: {$price->id} ({$interval})");
-                return $price->id;
-            }
+        $list = [['feature' => 'Firmeneintrag mit Kontaktdaten']];
+
+        foreach ($tier->features() as $feature) {
+            $text = isset($limitTexts[$feature->value])
+                ? $limitTexts[$feature->value]($tier->limit($limitKeys[$feature->value]))
+                : $feature->label();
+
+            $list[] = ['feature' => $text];
         }
 
-        // Neuen Preis erstellen
-        $price = $stripe->prices->create([
-            'product' => $productId,
-            'unit_amount' => $unitAmount,
-            'currency' => $currency,
-            'recurring' => [
-                'interval' => $interval,
-                'interval_count' => $intervalCount,
-            ],
-        ]);
-
-        $this->command->info("  Stripe Price erstellt: {$price->id} ({$interval}, {$unitAmount} ct)");
-
-        return $price->id;
+        return $list;
     }
 }

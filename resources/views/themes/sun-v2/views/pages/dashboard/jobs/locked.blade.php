@@ -6,7 +6,8 @@
 @extends('layouts.panel')
 
 @php
-    $maxJobs = \App\Models\Portal\Job::MAX_ACTIVE_PER_COMPANY;
+    // Limit des kleinsten bezahlten Pakets laut config/premium.php (#13)
+    $maxJobs = (int) \App\Enums\PlanTier::Pro->limit('job_postings_active');
     $days = \App\Models\Portal\Job::EXPIRES_AFTER_DAYS;
     $features = [
         trans_choice('portal.owner.jobs.locked.features.active', $maxJobs, ['anzahl' => $maxJobs]),

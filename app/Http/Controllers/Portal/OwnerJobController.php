@@ -6,11 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Portal\Company;
 use App\Models\Portal\Job;
 use App\Models\Portal\JobApplication;
+use App\Services\Premium\CompanyJobPostingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class OwnerJobController extends Controller
 {
+    public function __construct(
+        private readonly CompanyJobPostingService $jobPostings,
+    ) {}
+
     private function getCompany(): Company
     {
         return Company::ownedBy(Auth::id())
@@ -22,16 +27,16 @@ class OwnerJobController extends Controller
      * Stellenanzeigen-Übersicht (aktive + abgelaufene).
      * GET /firmenprofil/stellenanzeigen
      *
-     * Soft-Lock: Free-User sehen die locked-View (Premium-Upsell),
-     * Premium-User sehen die volle Übersicht.
+     * Soft-Lock: ohne Feature job_postings die locked-View (Upsell),
+     * sonst die volle Übersicht; Limit aktiver Anzeigen je Plan (#13).
      * Kein Middleware-Gate hier — bewusst im Controller für unterschiedliche Views.
      */
     public function index()
     {
         $company = $this->getCompany();
 
-        // Soft-Lock: Premium-Upsell für Free-User
-        if (! $company->is_premium) {
+        // Soft-Lock: Upsell ohne Freischaltung
+        if (! $this->jobPostings->canUse($company)) {
             return view('pages.dashboard.jobs.locked', compact('company'));
         }
 
@@ -48,10 +53,12 @@ class OwnerJobController extends Controller
             ->take(10)
             ->get();
 
-        $canCreate = Job::canCompanyCreateJob($company->id);
+        $canCreate = $this->jobPostings->canActivate($company);
+        $jobLimit = $this->jobPostings->activeLimit($company);
+        $limitMessage = $canCreate ? null : $this->jobPostings->limitMessage($company);
 
         return view('pages.dashboard.jobs.index', compact(
-            'company', 'activeJobs', 'expiredJobs', 'canCreate'
+            'company', 'activeJobs', 'expiredJobs', 'canCreate', 'jobLimit', 'limitMessage'
         ));
     }
 
@@ -59,22 +66,21 @@ class OwnerJobController extends Controller
      * Neue Stellenanzeige erstellen.
      * GET /firmenprofil/stellenanzeigen/erstellen
      *
-     * Premium-Gate via EnsurePremiumCompany Middleware auf Route-Ebene.
+     * Gate via EnsurePremiumCompany Middleware auf Route-Ebene.
      * Policy prüft zusätzlich das Job-Limit.
      */
     public function create()
     {
         $company = $this->getCompany();
 
-        $this->authorize('create', Job::class);
-
-        // Limit-Check: Policy gibt false zurück, aber wir wollen eine
-        // benutzerfreundliche Redirect-Nachricht statt 403.
-        if (! Job::canCompanyCreateJob($company->id)) {
+        // Limit-Check vor der Policy: Upsell-Hinweis statt 403 (#13)
+        if ($this->jobPostings->canUse($company) && ! $this->jobPostings->canActivate($company)) {
             return redirect()
                 ->route('portal.owner.jobs.index')
-                ->with('error', 'Sie haben bereits die maximale Anzahl aktiver Stellenanzeigen erreicht (' . Job::MAX_ACTIVE_PER_COMPANY . ').');
+                ->with('error', $this->jobPostings->limitMessage($company));
         }
+
+        $this->authorize('create', Job::class);
 
         return view('pages.dashboard.jobs.create', compact('company'));
     }
@@ -120,9 +126,9 @@ class OwnerJobController extends Controller
             return back()->with('success', "Stellenanzeige \"{$job->title}\" wurde deaktiviert.");
         }
 
-        // Beim Reaktivieren: Limit prüfen
-        if (! Job::canCompanyCreateJob($company->id)) {
-            return back()->with('error', 'Maximale Anzahl aktiver Stellenanzeigen erreicht.');
+        // Beim Reaktivieren: Limit je Plan prüfen, Ablehnung mit Upsell-Hinweis (#13)
+        if (! $this->jobPostings->canActivate($company)) {
+            return back()->with('error', $this->jobPostings->limitMessage($company));
         }
 
         $job->publish();

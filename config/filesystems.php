@@ -44,6 +44,16 @@ return [
             'throw' => false,
         ],
 
+        // Nicht oeffentliche Dokumente (z.B. Verifizierungsnachweise, #11).
+        // Mandantengetrennt ueber tenancy.filesystem; Auslieferung nur ueber
+        // signierte Routen, nie ueber eine URL des Disks.
+        'private' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private'),
+            'visibility' => 'private',
+            'throw' => false,
+        ],
+
         // Separater Disk für Livewire temporäre Uploads — NICHT vom Tenant-Bootstrapper beeinflusst
         'livewire-tmp' => [
             'driver' => 'local',

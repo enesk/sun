@@ -6,6 +6,8 @@
     Im Funnel darf ":firma" in Label, Hilfetext und Platzhalter stehen, er wird
     hier durch den Namen des Betriebs ersetzt. Das Wrapper-Element traegt
     data-question-key und data-question-type fuer lead-dialog.js (#27).
+    data-marketplace-only markiert das Opt-in fuer weitere Betriebe, das der
+    Dialog bei exklusiven Anfragen ausblendet (#9).
 
     Erwartet: $question (App\Dto\Leads\FunnelQuestion), $firma (string).
 --}}
@@ -24,7 +26,7 @@
     ];
     $component = in_array($question->type, ['text', 'email', 'phone', 'number', 'date', 'postal_code'], true) ? 'input' : $question->type;
 @endphp
-<div data-question-key="{{ $question->key }}" data-question-type="{{ $question->type }}" @if($question->required) data-required @endif>
+<div data-question-key="{{ $question->key }}" data-question-type="{{ $question->type }}" @if($question->required) data-required @endif @if(in_array($question->key, (array) config('leads.exclusive.marketplace_only_keys'), true)) data-marketplace-only @endif>
   @include('components.sun.funnel.'.str_replace('_', '-', $component), $field)
   @if($field['help'] && $question->type !== 'info')
     <p id="{{ $field['helpId'] }}" class="mt-1 text-sm text-zinc-500" data-hint-for="{{ $question->key }}">{{ $field['help'] }}</p>

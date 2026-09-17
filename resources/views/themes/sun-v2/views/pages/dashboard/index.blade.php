@@ -35,6 +35,9 @@
     </a>
   </div>
 
+  {{-- Upsell fuer Free-Betriebe (#17) --}}
+  <x-premium.upsell-banner :company="$company" class="mt-6" />
+
   {{-- Kennzahlen --}}
   <section class="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4" aria-label="{{ __('portal.owner.overview.kpi.label') }}">
     @foreach($kpis as $kpi)
@@ -137,6 +140,8 @@
           <p class="mt-2 text-sm text-zinc-500 text-center">{{ __('portal.owner.overview.premium.note') }}</p>
         </section>
       @endunless
+
+      @include('pages.dashboard.partials.lead-quota', ['leadQuota' => $leadQuota])
 
       {{-- Dein Eintrag --}}
       <section class="card p-5 md:p-6" aria-labelledby="dein-eintrag">

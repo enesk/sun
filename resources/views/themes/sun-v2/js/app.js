@@ -17,6 +17,8 @@ import { initTabs } from './modules/tabs';
 import { initLeadDialog } from './modules/lead-dialog';
 import { initCopyLink } from './modules/copy-link';
 import { initMdEditor } from './modules/md-editor';
+import { initStatsChart } from './modules/stats-chart';
+import { initStatsBeacon } from '../../../../js/stats-beacon';
 
 function boot() {
     initMobileMenu();
@@ -27,6 +29,8 @@ function boot() {
     initLeadDialog();
     initCopyLink();
     initMdEditor();
+    initStatsChart();
+    initStatsBeacon();
 }
 
 if (document.readyState === 'loading') {

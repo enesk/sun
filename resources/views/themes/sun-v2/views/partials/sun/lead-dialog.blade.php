@@ -9,6 +9,10 @@
     name, url, portal).
     Rahmentexte kommen aus portal.request.* bzw. portal.errors.request.*; was das
     Skript zur Laufzeit setzt, liegt fertig uebersetzt in data-texts.
+    Exklusive Anfragen (#9): beim Oeffnen fragt das Skript data-route-url, ob
+    die Anfrage nur an den Betrieb geht. Dann entfallen die Fragen mit
+    data-marketplace-only, der Vertrauenshinweis erscheint, und der Kontaktschritt
+    geht an data-exclusive-url statt an das Leadsystem.
     Erwartet $company und $funnel; ohne Funnel wird das Partial nicht eingebunden.
 --}}
 @php
@@ -33,6 +37,10 @@
         'next' => __('portal.request.next'),
         'submit' => __('portal.profile.request_cta'),
         'close' => __('portal.request.close'),
+        'exclusive' => [
+            'privacy' => __('portal.request.privacy_exclusive', $firma),
+            'done' => __('portal.request.done_exclusive', $firma),
+        ],
         'errors' => [
             'offline' => __('portal.errors.request.offline'),
             'rateLimited' => __('portal.errors.request.rate_limited'),
@@ -44,6 +52,7 @@
 @endphp
 <div id="leadDialog" class="hidden fixed inset-0 z-50" role="dialog" aria-modal="true" aria-labelledby="leadTitle"
      data-lead-api="{{ config('leads.api_url') }}" data-lead-token="{{ $funnel->token }}" data-funnel-version="{{ $funnel->version }}" data-company="{{ $company->name }}" @if($funnel->contactStepPosition !== null) data-contact-step="{{ $funnel->contactStepPosition }}" @endif
+     data-route-url="{{ route('portal.leads.route', ['company' => $company->id]) }}" data-exclusive-url="{{ route('portal.leads.store', ['company' => $company->id]) }}"
      data-company-key="{{ json_encode($leadCompanyKey, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) }}"
      data-texts="{{ json_encode($leadTexts, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) }}">
   <div class="absolute inset-0 bg-zinc-900/40" data-close-lead></div>
@@ -60,6 +69,9 @@
 
       <div class="p-5 overflow-y-auto flex-1" data-lead-body>
         {{-- Honigtopf: bleibt leer, gefuellt verwirft der Server die Anfrage still --}}
+        <div class="hidden mb-5" data-exclusive-hint>
+          <p class="flex items-start gap-2 rounded-xl bg-brand-50 p-3 text-sm text-zinc-900"><x-sun.icon name="check" class="icon shrink-0 text-brand" />{{ __('portal.request.exclusive_hint', $firma) }}</p>
+        </div>
         <div class="sr-only" aria-hidden="true"><label for="lead-website">{{ __('portal.request.honeypot_label') }}</label><input id="lead-website" type="text" name="website" tabindex="-1" autocomplete="off"></div>
 
         @foreach($funnel->steps as $step)
@@ -78,7 +90,7 @@
         <div data-step="done" class="hidden text-center py-6 flex flex-col items-center gap-3">
           <span class="size-14 rounded-full bg-brand-50 text-brand flex items-center justify-center"><x-sun.icon name="check" class="size-7" /></span>
           <h3 class="text-lg font-semibold text-zinc-900">{{ __('portal.request.done.heading') }}</h3>
-          <p class="text-zinc-500 max-w-sm">{{ __('portal.request.done.text', $firma) }}</p>
+          <p class="text-zinc-500 max-w-sm" data-done-text>{{ __('portal.request.done.text', $firma) }}</p>
         </div>
       </div>
 
@@ -87,7 +99,7 @@
         <button type="button" class="btn-ghost hidden px-3" data-prev>{{ __('portal.request.back') }}</button>
         <button type="button" class="btn-primary flex-1 whitespace-nowrap" data-next>{{ $leadTexts['next'] }}</button>
       </div>
-      <p class="px-5 pb-5 -mt-2 text-xs text-zinc-500" data-step-footer data-privacy>{{ __('portal.request.privacy', $firma) }} <a href="{{ route('portal.datenschutz') }}" class="underline">{{ __('portal.request.privacy_link') }}</a></p>
+      <p class="px-5 pb-5 -mt-2 text-xs text-zinc-500" data-step-footer data-privacy><span data-privacy-text>{{ __('portal.request.privacy', $firma) }}</span> <a href="{{ route('portal.datenschutz') }}" class="underline">{{ __('portal.request.privacy_link') }}</a></p>
     </form>
   </div>
 </div>

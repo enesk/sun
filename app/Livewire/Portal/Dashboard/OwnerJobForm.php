@@ -5,6 +5,7 @@ namespace App\Livewire\Portal\Dashboard;
 use App\Models\Portal\City;
 use App\Models\Portal\Company;
 use App\Models\Portal\Job;
+use App\Services\Premium\CompanyJobPostingService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
@@ -102,15 +103,15 @@ class OwnerJobForm extends Component
         $this->citySuggestions = [];
     }
 
-    public function save(): void
+    public function save(CompanyJobPostingService $jobPostings): void
     {
         $this->validate();
 
         $company = Company::ownedBy(Auth::id())->firstOrFail();
 
-        // Premium-Check
-        if (! $company->is_premium) {
-            $this->dispatch('toast', type: 'error', message: 'Premium-Abo erforderlich.');
+        // Freischaltung job_postings (#13)
+        if (! $jobPostings->canUse($company)) {
+            $this->dispatch('toast', type: 'error', message: 'Stellenanzeigen sind in Ihrem Paket nicht enthalten.');
             return;
         }
 
@@ -130,12 +131,15 @@ class OwnerJobForm extends Component
         ];
 
         if ($this->isEdit) {
+            // Nur Anzeigen der eigenen Firma bearbeiten
+            abort_unless((int) $this->job->company_id === (int) $company->id, 403);
+
             $this->job->update($data);
             $this->dispatch('toast', type: 'success', message: "Stellenanzeige \"{$this->title}\" wurde aktualisiert.");
         } else {
-            // Limit-Check
-            if (! Job::canCompanyCreateJob($company->id)) {
-                $this->dispatch('toast', type: 'error', message: 'Maximale Anzahl aktiver Stellenanzeigen erreicht (' . Job::MAX_ACTIVE_PER_COMPANY . ').');
+            // Limit aktiver Anzeigen je Plan (#13)
+            if (! $jobPostings->canActivate($company)) {
+                $this->dispatch('toast', type: 'error', message: $jobPostings->limitMessage($company));
                 return;
             }
 

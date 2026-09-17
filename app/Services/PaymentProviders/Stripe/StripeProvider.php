@@ -25,6 +25,7 @@ use App\Services\DiscountService;
 use App\Services\OneTimeProductService;
 use App\Services\PaymentProviders\PaymentProviderInterface;
 use App\Services\PlanService;
+use App\Services\Premium\CompanyPlanService;
 use App\Services\SubscriptionService;
 use Carbon\Carbon;
 use Exception;
@@ -42,6 +43,7 @@ class StripeProvider implements PaymentProviderInterface
         private PlanService $planService,
         private DiscountService $discountService,
         private OneTimeProductService $oneTimeProductService,
+        private CompanyPlanService $companyPlanService,
     ) {}
 
     public function createSubscriptionCheckoutRedirectLink(Plan $plan, Subscription $subscription, ?Discount $discount = null, int $quantity = 1): string
@@ -77,6 +79,8 @@ class StripeProvider implements PaymentProviderInterface
                 'subscription_data' => [
                     'metadata' => [
                         'subscription_uuid' => $subscription->uuid,
+                        // tenant_id/company_id bei Buchungen aus dem Betriebsbereich (#5)
+                        ...$this->companyPlanService->metadataFor($subscription),
                     ],
                 ],
             ];

@@ -7,6 +7,7 @@ use App\Constants\PlanType;
 use App\Dto\CartDto;
 use App\Dto\TotalsDto;
 use App\Models\Tenant;
+use App\Services\Premium\CompanyPlanService;
 
 class CheckoutService
 {
@@ -14,13 +15,14 @@ class CheckoutService
         private SubscriptionService $subscriptionService,
         private OrderService $orderService,
         private TenantCreationService $tenantCreationService,
+        private CompanyPlanService $companyPlanService,
     ) {}
 
     public function initSubscriptionCheckout(string $planSlug, ?string $tenantUuid, int $quantity = 1, bool $shouldCreateNewTenant = false)
     {
         $tenant = $this->resolveSubscriptionTenant($shouldCreateNewTenant, $tenantUuid);
 
-        $subscription = $this->subscriptionService->findNewByPlanSlugAndTenant($planSlug, $tenant);
+        $subscription = $this->subscriptionService->findNewByPlanSlugAndTenant($planSlug, $tenant, auth()->id());
         if ($subscription === null) {
             $subscription = $this->subscriptionService->create(
                 planSlug: $planSlug,
@@ -29,6 +31,9 @@ class CheckoutService
                 tenant: $tenant,
             );
         }
+
+        // Checkout aus dem Betriebsbereich: Subscription dem Betrieb zuordnen (#5)
+        $this->companyPlanService->bindPendingCheckout($subscription);
 
         $plan = $subscription->plan;
 

@@ -2,17 +2,23 @@
 
 namespace App\Http\Controllers\Portal;
 
+use App\Enums\PremiumFeature;
 use App\Http\Controllers\Controller;
 use App\Models\Portal\Category;
 use App\Models\Portal\City;
 use App\Models\Portal\Company;
+use App\Models\Portal\CompanyEvent;
 use App\Models\Portal\Job;
 use App\Services\CompanyListingFilters;
 use App\Services\CompanyLocationSearch;
 use App\Services\CompanyUrlService;
+use App\Services\Premium\CompanyEntitlementService;
+use App\Services\Premium\CompanyProfileContentService;
+use App\Services\Premium\CompanyStatsRecorder;
 use App\Services\Seo\SeoService;
 use App\Services\TrackingService;
 use App\Support\TenantCache;
+use App\View\Components\AdSlot;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -35,6 +41,7 @@ class CompanyController extends Controller
         }
 
         // Kategorie-Filter: JOIN statt whereHas für Performance
+        $category = null;
         if ($request->filled('category')) {
             $category = Category::where('slug', $request->category)->first();
             if ($category) {
@@ -67,7 +74,10 @@ class CompanyController extends Controller
 
         // Premium-Einträge immer oben, dann benutzerdefinierte Sortierung
         $sort = $request->get('sort', 'name');
-        $query->orderByDesc('is_premium');
+        // Top-Platzierungen (#6) nur mit Stadt-Filter, sonst waeren sie portalweit
+        $query->withFeaturedSlot($city?->id, $category?->id)
+            ->orderFeaturedFirst($city?->id, $category?->id)
+            ->orderByDesc('is_premium');
 
         $query = match ($sort) {
             'rating' => $query->orderByDesc('rating')->orderByDesc('rating_count'),
@@ -108,6 +118,14 @@ class CompanyController extends Controller
                 $request
             );
         }
+
+        // Betriebsstatistik (#15): eine Impression je Karte, als ein Batch
+        app(CompanyStatsRecorder::class)->listImpressions(
+            $companies->pluck('id'),
+            $request,
+            $city?->id,
+            CompanyEvent::SOURCE_SEARCH
+        );
 
         // Robots + Canonical: Filter-URLs noindex, Canonical auf Stadtseite oder /firmen (#7)
         $seo->forCompanyListing($request, $city);
@@ -217,6 +235,7 @@ class CompanyController extends Controller
     {
         // Page View Tracking via Request-Attribute (Middleware liest das nach Response)
         request()->attributes->set('tracked_company_id', $company->id);
+        request()->attributes->set('tracked_company_city_id', $company->city_id);
 
         $company->load([
             'categories',
@@ -226,11 +245,18 @@ class CompanyController extends Controller
             'approvedReviews' => fn ($q) => $q->latest()->take(10),
         ]);
 
+        // Werbefreies Profil (#8): keine Werbeplaetze, keine Wettbewerber
+        $adFree = app(CompanyEntitlementService::class)->can($company, PremiumFeature::AdFree);
+
+        if ($adFree) {
+            AdSlot::suppress();
+        }
+
         // Ähnliche Firmen: JOIN + LIMIT statt whereHas + ORDER BY RAND()
         $categoryIds = $company->categories->pluck('id')->all();
         $relatedCompanies = collect();
 
-        if (!empty($categoryIds)) {
+        if (! $adFree && !empty($categoryIds)) {
             $relatedCompanies = Company::active()
                 ->where('companies.id', '!=', $company->id)
                 ->join('category_company', 'companies.id', '=', 'category_company.company_id')
@@ -251,6 +277,14 @@ class CompanyController extends Controller
             ->take(3)
             ->get();
 
+        // Profil-Ausbau (#13): nur freigeschaltete Inhalte, Galerie auf das Plan-Limit gekuerzt
+        $contents = app(CompanyProfileContentService::class);
+        $profileGallery = $contents->visibleGallery($company);
+        $profileVideo = $contents->video($company);
+        $profileReferences = $contents->visibleReferences($company);
+        $profileServices = $contents->visibleServices($company);
+        $company->setRelation('services', $profileServices);
+
         // Schema.org LocalBusiness im <head> (#8)
         app(SeoService::class)->forCompanyProfile($company);
 
@@ -270,6 +304,10 @@ class CompanyController extends Controller
             'relatedCompanies',
             'companyJobs',
             'breadcrumb',
+            'profileGallery',
+            'profileVideo',
+            'profileReferences',
+            'profileServices',
         ));
     }
 }

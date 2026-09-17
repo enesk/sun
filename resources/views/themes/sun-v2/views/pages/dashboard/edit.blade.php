@@ -18,5 +18,17 @@
     </a>
   </div>
 
+  {{-- Upsell (#8): Free-Profile zeigen Werbung und Wettbewerber --}}
+  @unlesspremiumFeature($company, \App\Enums\PremiumFeature::AdFree)
+    <div class="mt-4 rounded-2xl bg-brand-50 p-4 flex flex-wrap items-center justify-between gap-3">
+      <p class="text-base text-zinc-700 flex items-center gap-2"><x-sun.icon name="sparkles" class="icon text-brand" />{{ __('portal.owner.edit.upsell_competitors') }}</p>
+      <a href="{{ route('portal.owner.premium') }}" class="btn-secondary">{{ __('portal.owner.edit.upsell_competitors_cta') }}</a>
+    </div>
+  @endpremiumFeature
+
   @livewire('portal.dashboard.profile-edit-form')
+
+  {{-- Profil-Ausbau (#13): Leistungskatalog (ab Pro) und Projektreferenzen (Premium) --}}
+  <livewire:portal.company.dashboard.services />
+  <livewire:portal.company.dashboard.references />
 @endsection

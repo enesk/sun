@@ -2,17 +2,19 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\Premium\CompanyJobPostingService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Premium-Gate Middleware.
+ * Gate der Stellenanzeigen-Aktionen.
  *
- * Checks if the authenticated user's company has an active premium subscription.
- * Must be applied AFTER EnsureHasCompany middleware (which sets ownerCompany on request).
+ * Prueft die Freischaltung job_postings ueber den Entitlement-Service (#13),
+ * nicht mehr das Alt-Flag is_premium. Must be applied AFTER EnsureHasCompany
+ * middleware (which sets ownerCompany on request).
  *
- * Non-premium users get a soft-lock view (premium upsell page) instead of a hard 403.
+ * Ohne Freischaltung gibt es statt 403 die gesperrte Ansicht (Upsell).
  */
 class EnsurePremiumCompany
 {
@@ -24,7 +26,7 @@ class EnsurePremiumCompany
             abort(403, 'Keine Firma zugeordnet.');
         }
 
-        if (! $company->is_premium) {
+        if (! app(CompanyJobPostingService::class)->canUse($company)) {
             // Soft-Lock: Show premium upsell page instead of 403
             return response()->view('pages.dashboard.jobs.locked', [
                 'company' => $company,

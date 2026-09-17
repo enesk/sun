@@ -26,7 +26,30 @@ Schedule::command('app:sync-seat-based-subscription-quantities')->hourly();
 Schedule::command('app:aggregate-tracking-stats')->dailyAt('00:30');
 Schedule::command('app:aggregate-tracking-stats --cleanup')->weeklyOn(1, '03:00');
 
+/*
+| Premium-Modul: Betriebsstatistik (#15)
+|
+| Verdichtet je Mandant den Vortag in company_stats_daily und loescht
+| Rohevents aelter als 14 Tage (config premium.stats.raw_retention_days).
+*/
+Schedule::command('tenants:run stats:aggregate-daily')
+    ->dailyAt('00:45')
+    ->withoutOverlapping()
+    ->onOneServer();
+
 Schedule::command('app:expire-jobs')->dailyAt('01:00');
+
+// Premium (#5): Auto-Downgrade nach Ablauf/Grace Period, je Tenant
+Schedule::command('tenants:run premium:process-expirations')->dailyAt('01:15')->withoutOverlapping()->onOneServer();
+
+// Premium (#16): Monatsreport am 1. um 07:00, nach der Tagesaggregation (00:45), je Tenant
+Schedule::command('tenants:run premium:send-monthly-reports')->monthlyOn(1, '07:00')->withoutOverlapping()->onOneServer();
+
+// Premium (#11): Verifizierungsnachweise 90 Tage nach Entscheidung loeschen, je Tenant
+Schedule::command('tenants:run premium:purge-verification-documents')->dailyAt('01:30')->withoutOverlapping()->onOneServer();
+
+// Exklusive Anfragen (#9): Kontaktdaten nach 12 Monaten loeschen, je Tenant
+Schedule::command('tenants:run leads:purge-contacts')->dailyAt('01:30')->withoutOverlapping()->onOneServer();
 
 Schedule::command('import:cleanup')->dailyAt('02:00');
 

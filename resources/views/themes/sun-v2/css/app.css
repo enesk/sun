@@ -22,6 +22,12 @@
 /* Werbeplaetze: <x-ad-slot> rendert Klassen aus Komponente und View */
 @source '../../../components/ad-slot.blade.php';
 @source '../../../../../app/View/Components/AdSlot.php';
+/* Verifiziert-Badge (#11): <x-company.verified-badge> */
+@source '../../../components/company';
+/* Premium-Modul (#17): Preisseite, x-premium.*, Livewire-Views im Betriebsbereich */
+@source '../../../portal/premium';
+@source '../../../components/premium';
+@source '../../../livewire/portal/company';
 
 /* ── Schrift: Figtree, lokal ausgeliefert (keine Anfrage an Google) ── */
 @font-face {

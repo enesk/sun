@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Models\Portal\Company;
 use App\Models\Portal\Job;
 use App\Models\User;
+use App\Services\Premium\CompanyJobPostingService;
 
 class JobPolicy
 {
@@ -27,18 +28,22 @@ class JobPolicy
     }
 
     /**
+     * Freischaltung job_postings ueber den Entitlement-Service (#13).
+     */
+    private function canUseJobs(?Company $company): bool
+    {
+        return app(CompanyJobPostingService::class)->canUse($company);
+    }
+
+    /**
      * Can the user create a new job?
-     * Requires: Premium + under the active job limit.
+     * Requires: Feature job_postings + under the active job limit (#13).
      */
     public function create(User $user): bool
     {
         $company = $this->resolveCompany($user);
 
-        if (! $company || ! $company->is_premium) {
-            return false;
-        }
-
-        return Job::canCompanyCreateJob($company->id);
+        return $company !== null && app(CompanyJobPostingService::class)->canActivate($company);
     }
 
     /**
@@ -54,14 +59,14 @@ class JobPolicy
 
     /**
      * Can the user update a job?
-     * Requires: Premium + Ownership.
+     * Requires: Feature job_postings + Ownership.
      */
     public function update(User $user, Job $job): bool
     {
         $company = $this->resolveCompany($user);
 
         return $company
-            && $company->is_premium
+            && $this->canUseJobs($company)
             && $job->company_id === $company->id;
     }
 
@@ -78,33 +83,33 @@ class JobPolicy
 
     /**
      * Can the user toggle (activate/deactivate) a job?
-     * Requires: Premium + Ownership.
+     * Requires: Feature job_postings + Ownership.
      */
     public function toggle(User $user, Job $job): bool
     {
         $company = $this->resolveCompany($user);
 
         return $company
-            && $company->is_premium
+            && $this->canUseJobs($company)
             && $job->company_id === $company->id;
     }
 
     /**
      * Can the user view applications for a job?
-     * Requires: Premium + Ownership.
+     * Requires: Feature job_postings + Ownership.
      */
     public function viewApplications(User $user, Job $job): bool
     {
         $company = $this->resolveCompany($user);
 
         return $company
-            && $company->is_premium
+            && $this->canUseJobs($company)
             && $job->company_id === $company->id;
     }
 
     /**
      * Can the user manage (change status of) applications?
-     * Requires: Premium + Ownership.
+     * Requires: Feature job_postings + Ownership.
      */
     public function manageApplications(User $user, Job $job): bool
     {
