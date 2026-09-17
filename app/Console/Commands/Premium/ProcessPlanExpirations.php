@@ -18,7 +18,8 @@ use Illuminate\Support\Carbon;
  * Laeuft je Tenant ueber `tenants:run premium:process-expirations`.
  * Abgelaufen ist ein Betrieb, dessen plan_ends_at und plan_grace_until
  * ueberschritten sind. Ist die zugehoerige Subscription noch aktiv (Webhook
- * verspaetet), wird stattdessen neu synchronisiert. Daten bleiben erhalten.
+ * verspaetet), wird stattdessen neu synchronisiert. Manuell gesetzte Plaene
+ * (subscription_ref leer, #18) laufen ebenso aus. Daten bleiben erhalten.
  */
 class ProcessPlanExpirations extends Command
 {
@@ -64,7 +65,8 @@ class ProcessPlanExpirations extends Command
                     return;
                 }
 
-                $this->line("  Auf Free gesetzt: #{$company->id} {$company->name} ({$company->plan_tier?->value})");
+                $source = $company->subscription_ref === null ? 'manuell' : "Subscription {$company->subscription_ref}";
+                $this->line("  Auf Free gesetzt: #{$company->id} {$company->name} ({$company->plan_tier?->value}, {$source})");
                 $downgraded++;
 
                 if (! $dryRun) {

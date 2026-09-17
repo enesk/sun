@@ -275,7 +275,8 @@ class CompanyController extends Controller
             ->with(['city'])
             ->latest('published_at')
             ->take(3)
-            ->get();
+            ->get()
+            ->each(fn (Job $job) => $job->setRelation('company', $company));
 
         // Profil-Ausbau (#13): nur freigeschaltete Inhalte, Galerie auf das Plan-Limit gekuerzt
         $contents = app(CompanyProfileContentService::class);

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Pages;
 
+use App\Models\Tenant;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
@@ -38,9 +39,14 @@ class Dashboard extends \Filament\Pages\Dashboard
                     'month' => __('Month'),
                     'year' => __('Year'),
                 ])->default('month'),
+                // Nur fuer PremiumRevenueWidget (#18)
+                Select::make('tenant_id')
+                    ->label(__('Portal'))
+                    ->placeholder(__('Alle Portale'))
+                    ->options(fn (): array => Tenant::query()->orderBy('name')->pluck('name', 'id')->all()),
 
             ])->columnSpanFull()
-                ->columns(3),
+                ->columns(4),
         ]);
     }
 }

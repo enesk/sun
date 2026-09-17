@@ -2,10 +2,10 @@
 
 namespace App\Filament\Dashboard\Resources\Companies;
 
+use App\Enums\PlanTier;
 use App\Filament\Dashboard\Resources\Companies\Pages\CreateCompany;
 use App\Filament\Dashboard\Resources\Companies\Pages\EditCompany;
 use App\Filament\Dashboard\Resources\Companies\Pages\ListCompanies;
-use App\Enums\PlanTier;
 use App\Models\Portal\Company;
 use App\Models\Portal\CompanyOpeningHour;
 use App\Models\Tenant;
@@ -15,8 +15,8 @@ use App\Services\Premium\PremiumAdminService;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
@@ -39,7 +39,6 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 class CompanyResource extends Resource
@@ -106,149 +105,149 @@ class CompanyResource extends Resource
     private static function baseFormComponents(): array
     {
         return [
-                Section::make(__('Firmendaten'))
-                    ->schema([
-                        TextInput::make('name')
-                            ->required()
-                            ->maxLength(255)
-                            ->label(__('Firmenname')),
-                        TextInput::make('slug')
-                            ->maxLength(255)
-                            ->label(__('Slug'))
-                            ->helperText(__('Wird automatisch generiert wenn leer.')),
-                        Textarea::make('description')
-                            ->rows(4)
-                            ->label(__('Beschreibung')),
-                        Select::make('categories')
-                            ->relationship('categories', 'name')
-                            ->multiple()
-                            ->preload()
-                            ->label(__('Kategorien')),
-                    ])->columns(2),
+            Section::make(__('Firmendaten'))
+                ->schema([
+                    TextInput::make('name')
+                        ->required()
+                        ->maxLength(255)
+                        ->label(__('Firmenname')),
+                    TextInput::make('slug')
+                        ->maxLength(255)
+                        ->label(__('Slug'))
+                        ->helperText(__('Wird automatisch generiert wenn leer.')),
+                    Textarea::make('description')
+                        ->rows(4)
+                        ->label(__('Beschreibung')),
+                    Select::make('categories')
+                        ->relationship('categories', 'name')
+                        ->multiple()
+                        ->preload()
+                        ->label(__('Kategorien')),
+                ])->columns(2),
 
-                Section::make(__('Adresse'))
-                    ->schema([
-                        TextInput::make('street')
-                            ->maxLength(255)
-                            ->label(__('Straße')),
-                        TextInput::make('house_no')
-                            ->maxLength(20)
-                            ->label(__('Hausnummer')),
-                        TextInput::make('zipcode')
-                            ->maxLength(10)
-                            ->label(__('PLZ')),
-                        Select::make('city_id')
-                            ->relationship('city', 'name')
-                            ->searchable()
-                            ->preload()
-                            ->label(__('Stadt')),
-                    ])->columns(2),
+            Section::make(__('Adresse'))
+                ->schema([
+                    TextInput::make('street')
+                        ->maxLength(255)
+                        ->label(__('Straße')),
+                    TextInput::make('house_no')
+                        ->maxLength(20)
+                        ->label(__('Hausnummer')),
+                    TextInput::make('zipcode')
+                        ->maxLength(10)
+                        ->label(__('PLZ')),
+                    Select::make('city_id')
+                        ->relationship('city', 'name')
+                        ->searchable()
+                        ->preload()
+                        ->label(__('Stadt')),
+                ])->columns(2),
 
-                Section::make(__('Kontakt'))
-                    ->schema([
-                        TextInput::make('tel')
-                            ->tel()
-                            ->maxLength(50)
-                            ->label(__('Telefon')),
-                        TextInput::make('email')
-                            ->email()
-                            ->maxLength(255)
-                            ->label(__('E-Mail')),
-                        TextInput::make('website')
-                            ->url()
-                            ->maxLength(255)
-                            ->label(__('Website')),
-                    ])->columns(3),
+            Section::make(__('Kontakt'))
+                ->schema([
+                    TextInput::make('tel')
+                        ->tel()
+                        ->maxLength(50)
+                        ->label(__('Telefon')),
+                    TextInput::make('email')
+                        ->email()
+                        ->maxLength(255)
+                        ->label(__('E-Mail')),
+                    TextInput::make('website')
+                        ->url()
+                        ->maxLength(255)
+                        ->label(__('Website')),
+                ])->columns(3),
 
-                Section::make(__('Bilder'))
-                    ->schema([
-                        SpatieMediaLibraryFileUpload::make('logo')
-                            ->collection('logo')
-                            ->label(__('Logo'))
-                            ->image()
-                            ->imageResizeMode('cover')
-                            ->imageCropAspectRatio('1:1')
-                            ->imageResizeTargetWidth('300')
-                            ->imageResizeTargetHeight('300')
-                            ->maxSize(2048)
-                            ->helperText(__('Max. 2 MB — PNG, JPEG oder WebP. Wird auf 300x300px zugeschnitten.')),
-                        SpatieMediaLibraryFileUpload::make('cover')
-                            ->collection('cover')
-                            ->label(__('Titelbild / Banner'))
-                            ->image()
-                            ->imageResizeMode('cover')
-                            ->imageCropAspectRatio('3:1')
-                            ->imageResizeTargetWidth('1200')
-                            ->imageResizeTargetHeight('400')
-                            ->maxSize(5120)
-                            ->helperText(__('Max. 5 MB — Empfohlen: 1200×400px (3:1). Wird als Banner auf der Firmenseite angezeigt.')),
-                        SpatieMediaLibraryFileUpload::make('gallery')
-                            ->collection('gallery')
-                            ->label(__('Galerie'))
-                            ->image()
-                            ->multiple()
-                            ->reorderable()
-                            ->maxFiles(10)
-                            ->maxSize(2048)
-                            ->helperText(__('Bis zu 10 Bilder, je max. 2 MB.')),
-                    ])->columns(1),
+            Section::make(__('Bilder'))
+                ->schema([
+                    SpatieMediaLibraryFileUpload::make('logo')
+                        ->collection('logo')
+                        ->label(__('Logo'))
+                        ->image()
+                        ->imageResizeMode('cover')
+                        ->imageCropAspectRatio('1:1')
+                        ->imageResizeTargetWidth('300')
+                        ->imageResizeTargetHeight('300')
+                        ->maxSize(2048)
+                        ->helperText(__('Max. 2 MB — PNG, JPEG oder WebP. Wird auf 300x300px zugeschnitten.')),
+                    SpatieMediaLibraryFileUpload::make('cover')
+                        ->collection('cover')
+                        ->label(__('Titelbild / Banner'))
+                        ->image()
+                        ->imageResizeMode('cover')
+                        ->imageCropAspectRatio('3:1')
+                        ->imageResizeTargetWidth('1200')
+                        ->imageResizeTargetHeight('400')
+                        ->maxSize(5120)
+                        ->helperText(__('Max. 5 MB — Empfohlen: 1200×400px (3:1). Wird als Banner auf der Firmenseite angezeigt.')),
+                    SpatieMediaLibraryFileUpload::make('gallery')
+                        ->collection('gallery')
+                        ->label(__('Galerie'))
+                        ->image()
+                        ->multiple()
+                        ->reorderable()
+                        ->maxFiles(10)
+                        ->maxSize(2048)
+                        ->helperText(__('Bis zu 10 Bilder, je max. 2 MB.')),
+                ])->columns(1),
 
-                Section::make(__('Öffnungszeiten'))
-                    ->schema([
-                        Repeater::make('openingHours')
-                            ->relationship()
-                            ->schema([
-                                Select::make('day_of_week')
-                                    ->options(CompanyOpeningHour::DAYS)
-                                    ->required()
-                                    ->label(__('Tag')),
-                                TimePicker::make('opens_at')
-                                    ->seconds(false)
-                                    ->label(__('Öffnet')),
-                                TimePicker::make('closes_at')
-                                    ->seconds(false)
-                                    ->label(__('Schließt')),
-                                Checkbox::make('is_closed')
-                                    ->label(__('Geschlossen')),
-                            ])
-                            ->columns(4)
-                            ->defaultItems(0)
-                            ->addActionLabel(__('Tag hinzufügen'))
-                            ->reorderable(false)
-                            ->label(''),
-                    ])->collapsible(),
+            Section::make(__('Öffnungszeiten'))
+                ->schema([
+                    Repeater::make('openingHours')
+                        ->relationship()
+                        ->schema([
+                            Select::make('day_of_week')
+                                ->options(CompanyOpeningHour::DAYS)
+                                ->required()
+                                ->label(__('Tag')),
+                            TimePicker::make('opens_at')
+                                ->seconds(false)
+                                ->label(__('Öffnet')),
+                            TimePicker::make('closes_at')
+                                ->seconds(false)
+                                ->label(__('Schließt')),
+                            Checkbox::make('is_closed')
+                                ->label(__('Geschlossen')),
+                        ])
+                        ->columns(4)
+                        ->defaultItems(0)
+                        ->addActionLabel(__('Tag hinzufügen'))
+                        ->reorderable(false)
+                        ->label(''),
+                ])->collapsible(),
 
-                Section::make(__('Status'))
-                    ->schema([
-                        Checkbox::make('is_active')
-                            ->default(true)
-                            ->label(__('Aktiv')),
-                    ]),
+            Section::make(__('Status'))
+                ->schema([
+                    Checkbox::make('is_active')
+                        ->default(true)
+                        ->label(__('Aktiv')),
+                ]),
 
-                Section::make(__('Admin-Einstellungen'))
-                    ->schema([
-                        TextInput::make('google_places_id')
-                            ->maxLength(255)
-                            ->label(__('Google Places ID')),
-                        TextInput::make('rating')
-                            ->numeric()
-                            ->disabled()
-                            ->label(__('Bewertung')),
-                        TextInput::make('rating_count')
-                            ->numeric()
-                            ->disabled()
-                            ->label(__('Anzahl Bewertungen')),
-                        Checkbox::make('is_premium')
-                            ->label(__('Premium')),
-                        Checkbox::make('is_verified')
-                            ->label(__('Verifiziert')),
-                        Select::make('user_id')
-                            ->relationship('owner', 'name')
-                            ->searchable()
-                            ->preload()
-                            ->label(__('Inhaber')),
-                    ])->columns(3)
-                    ->visible(fn () => auth()->user()->isAdmin()),
+            Section::make(__('Admin-Einstellungen'))
+                ->schema([
+                    TextInput::make('google_places_id')
+                        ->maxLength(255)
+                        ->label(__('Google Places ID')),
+                    TextInput::make('rating')
+                        ->numeric()
+                        ->disabled()
+                        ->label(__('Bewertung')),
+                    TextInput::make('rating_count')
+                        ->numeric()
+                        ->disabled()
+                        ->label(__('Anzahl Bewertungen')),
+                    Checkbox::make('is_premium')
+                        ->label(__('Premium')),
+                    Checkbox::make('is_verified')
+                        ->label(__('Verifiziert')),
+                    Select::make('user_id')
+                        ->relationship('owner', 'name')
+                        ->searchable()
+                        ->preload()
+                        ->label(__('Inhaber')),
+                ])->columns(3)
+                ->visible(fn () => auth()->user()->isAdmin()),
         ];
     }
 

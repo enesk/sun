@@ -254,6 +254,40 @@
         @endif
       </section>
 
+      <!-- Offene Stellen (hoechstens 3 aktive Anzeigen, Top-Job laut Feature job_highlight) -->
+      @if($companyJobs->isNotEmpty())
+        <section class="card p-5 md:p-8" aria-labelledby="stellen">
+          <div class="flex flex-wrap items-end justify-between gap-2">
+            <h2 id="stellen" class="text-2xl font-semibold text-zinc-900">{{ __('portal.profile.jobs.heading') }}</h2>
+            <a href="{{ route('portal.jobs.index') }}" class="inline-flex items-center min-h-11 text-sm text-brand font-medium hover:underline">{{ __('portal.profile.jobs.all') }}</a>
+          </div>
+          <ul class="mt-4 divide-y divide-zinc-200">
+            @foreach($companyJobs as $job)
+              <li class="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center gap-3">
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-start gap-2">
+                    <h3 class="text-lg font-semibold text-zinc-900 leading-snug"><a href="{{ route('portal.jobs.show', $job->slug) }}" class="hover:text-brand">{{ $job->title }}</a></h3>
+                    @if($job->is_top_job)
+                      <span class="pill-brand shrink-0">{{ __('portal.jobs.card.top_job') }}</span>
+                    @endif
+                  </div>
+                  <dl class="mt-1.5 flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-zinc-500">
+                    @if($job->location_display)
+                      <div class="flex items-center gap-1.5"><dt class="sr-only">{{ __('portal.jobs.card.location') }}</dt><x-sun.icon name="map-pin" class="size-4 shrink-0" /><dd>{{ $job->location_display }}</dd></div>
+                    @endif
+                    <div class="flex items-center gap-1.5"><dt class="sr-only">{{ __('portal.jobs.card.type') }}</dt><x-sun.icon name="clock" class="size-4 shrink-0" /><dd>{{ $job->employment_type_label }}</dd></div>
+                    @if($job->salary_display)
+                      <div class="flex items-center gap-1.5"><dt class="sr-only">{{ __('portal.jobs.card.salary') }}</dt><x-sun.icon name="euro" class="size-4 shrink-0" /><dd class="text-zinc-900 font-medium">{{ $job->salary_display }}</dd></div>
+                    @endif
+                  </dl>
+                </div>
+                <a href="{{ route('portal.jobs.show', $job->slug) }}" class="btn-secondary w-full sm:w-auto shrink-0" aria-label="{{ __('portal.jobs.card.details') }}: {{ $job->title }}">{{ __('portal.jobs.card.details') }}</a>
+              </li>
+            @endforeach
+          </ul>
+        </section>
+      @endif
+
       <!-- Eintrag uebernehmen -->
       @if(! $company->user_id)
         <section class="card p-5 md:p-8 bg-brand-50 border-brand-100">

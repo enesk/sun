@@ -327,6 +327,28 @@ IMPRESSUM_HTML;
         <a href="mailto:[BETREIBER_EMAIL]">[BETREIBER_EMAIL]</a>.
     </p>
 
+    <h3>10.1 Direktanfragen an Betriebe mit Premium-Eintrag</h3>
+    <p>
+        Betriebe mit einem kostenpflichtigen Premium-Eintrag können Anfragen direkt über
+        <strong>[PORTAL_NAME]</strong> erhalten. Stellen Sie über das Firmenprofil eines solchen
+        Betriebs eine Anfrage, gilt abweichend von den Angaben oben:
+    </p>
+    <ul>
+        <li>Ihre Anfrage wird ausschließlich an diesen einen Betrieb übermittelt und nicht an weitere Betriebe oder sonstige Dritte weitergegeben.</li>
+        <li>Ihre Anfrage wird bei uns im Portal gespeichert. Der Betrieb wird per E-Mail über die Anfrage informiert und kann sie in seinem Betriebsbereich abrufen.</li>
+    </ul>
+    <p>
+        <strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. b DSGVO (Anbahnung eines Vertrags mit
+        dem angefragten Betrieb).<br />
+        <strong>Empfänger:</strong> Ausschließlich der von Ihnen angefragte Betrieb.<br />
+        <strong>Speicherdauer:</strong> Ihre Kontaktdaten (Name, E-Mail-Adresse, Telefonnummer) und
+        Ihre frei formulierten Angaben werden 12 Monate nach Eingang der Anfrage automatisch
+        gelöscht. Danach bleiben nur Ihre ausgewählten Antworten ohne Kontaktdaten gespeichert,
+        damit Anfragekontingent und Anfragestatistik des Betriebs nachvollziehbar bleiben. Eine
+        frühere Löschung können Sie jederzeit verlangen (siehe „Ihre Rechte“); wenden Sie sich dazu an
+        <a href="mailto:[BETREIBER_EMAIL]">[BETREIBER_EMAIL]</a>.
+    </p>
+
     <h2>11. Ihre Rechte</h2>
     <p>Sie haben nach der DSGVO folgende Rechte:</p>
     <ul>

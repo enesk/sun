@@ -336,6 +336,11 @@ return [
             'owner_response' => 'Antwort von :firma',
         ],
 
+        'jobs' => [
+            'heading' => 'Offene Stellen',
+            'all' => 'Alle Stellenanzeigen',
+        ],
+
         'claim' => [
             'heading' => 'Gehört dir dieser Eintrag?',
             'text' => 'Übernimm den Eintrag kostenlos, aktualisiere Leistungen und Zeiten, antworte auf Bewertungen und erhalte Anfragen direkt aufs Handy.',
@@ -877,6 +882,14 @@ return [
             'apprenticeship' => 'Ausbildung',
             'career_change' => 'Quereinstieg',
             'new_this_week' => 'Neu diese Woche',
+            'all_types' => 'Alle Anstellungsarten',
+            'sort_salary' => 'Gehalt',
+        ],
+
+        'empty' => [
+            'heading' => 'Keine passenden Stellen',
+            'text' => 'Zu deiner Suche gibt es gerade keine offene Stelle. Probier einen anderen Begriff oder nimm einen Filter heraus.',
+            'show_all' => 'Alle Stellen anzeigen',
         ],
 
         'card' => [
@@ -928,6 +941,7 @@ return [
         'links' => [
             'by_profession' => 'Jobs nach Beruf',
             'by_city' => 'Jobs nach Stadt',
+            'by_type' => 'Jobs nach Anstellungsart',
         ],
 
         'seo' => [
@@ -2265,6 +2279,7 @@ return [
                 'call' => 'Anrufen',
                 'write' => 'E-Mail schreiben',
                 'no_contact' => 'Die Anfrage enthält keine Kontaktdaten.',
+                'purged' => 'Kontaktdaten und Angaben wurden nach :monate Monaten aus Datenschutzgründen gelöscht.',
                 'contact_hidden' => 'Die Kontaktdaten sind für diese Anfrage nicht freigegeben.',
                 'status' => 'Status',
                 'status_hint' => 'Der Status dient nur deiner Übersicht. Der Kunde bekommt davon nichts mit.',

@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
  * Kontext eines Elektriker-Portals, damit kein anderes Portal diese Liste bekommt.
  *
  * Usage:
- *   php artisan tenants:run db:seed --option="class=ElektrikerCategorySeeder" --option=force --tenants=<uuid>
+ *   php artisan tenants:seed --class=ElektrikerCategorySeeder --tenants=<uuid> --force
  */
 class ElektrikerCategorySeeder extends Seeder
 {

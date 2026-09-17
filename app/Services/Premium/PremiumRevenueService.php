@@ -98,8 +98,9 @@ class PremiumRevenueService
                 $counts = $this->plans->runInTenant($tenant, fn (): array => [
                     'tiers' => Company::query()
                         ->where('is_active', true)
+                        ->selectRaw('plan_tier, COUNT(*) AS aggregate')
                         ->groupBy('plan_tier')
-                        ->pluck(DB::raw('COUNT(*)'), 'plan_tier')
+                        ->pluck('aggregate', 'plan_tier')
                         ->all(),
                     'placements' => FeaturedPlacement::query()
                         ->where('status', FeaturedPlacementStatus::ACTIVE->value)

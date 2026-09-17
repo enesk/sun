@@ -1,45 +1,39 @@
 {{--
     Stellenanzeigen im Theme sun-v2 (Vorlage elektrikerportal-jobs.html).
+    Daten: PublicJobController::index() — $jobs (Paginator, Top-Jobs zuerst),
+    $employmentTypes, $cities, $totalJobs, $sort.
 
-    Vorerst reine Gestaltung: Stellen, Zahlen, Filter und Linklisten sind
-    Beispielinhalte aus der Vorlage und NICHT an PublicJobController
-    angebunden. Filter-Knoepfe, Job-Mail und Pagination haben noch keine
-    Funktion — die Anbindung folgt in einem eigenen Schritt.
+    Suche und Filter laufen ueber die Query-Parameter des Controllers
+    (q, city, type, sort). Arbeitgeber-Kasten, Job-Mail und Preis-CTA sind
+    weiterhin reine Gestaltung ohne Funktion.
 --}}
 @extends('layouts.sun')
 
 @php
     $portalName = $currentTenant->name ?? config('app.name');
+    $jobCount = $jobs->total();
+    $filtered = request()->hasAny(['q', 'city', 'type']);
 
-    $jobs = [
-        ['initials' => 'EM', 'title' => 'Elektroniker für Energie- und Gebäudetechnik (m/w/d)', 'company' => 'Elektro Müller GmbH', 'badge' => 'Top-Anzeige', 'top' => true, 'location' => '20251 Hamburg · 3 km', 'type' => 'Vollzeit, unbefristet', 'salary' => '3.400 – 4.100 € / Monat', 'tags' => ['Firmenwagen', 'Meisterbetrieb', 'Weiterbildung bezahlt'], 'age' => 'Vor 2 Tagen'],
-        ['initials' => 'ES', 'title' => 'Obermonteur Elektrotechnik (m/w/d)', 'company' => 'Elbstrom Elektrotechnik', 'badge' => 'Neu', 'top' => false, 'location' => '22767 Hamburg · 5 km', 'type' => 'Vollzeit', 'salary' => 'ab 4.200 € / Monat', 'tags' => ['Führungsrolle', 'Firmenwagen', '30 Tage Urlaub'], 'age' => 'Vor 3 Tagen'],
-        ['initials' => 'EN', 'title' => 'Ausbildung Elektroniker/in Energie- und Gebäudetechnik', 'company' => 'Elektro Nord Barmbek', 'badge' => null, 'top' => false, 'location' => '22305 Hamburg · 6 km', 'type' => 'Ausbildung ab 08/2027', 'salary' => '1.000 – 1.300 € / Monat', 'tags' => ['Ausbildung', 'Übernahme geplant', 'Fahrtkosten'], 'age' => 'Vor 1 Woche'],
-        ['initials' => 'WB', 'title' => 'Servicetechniker Wallbox & Ladeinfrastruktur (m/w/d)', 'company' => 'Watt & Bolt GmbH', 'badge' => null, 'top' => false, 'location' => '22765 Hamburg · 7 km', 'type' => 'Vollzeit', 'salary' => '3.600 – 4.400 € / Monat', 'tags' => ['E-Mobilität', 'Servicewagen', 'Keine Montage auswärts'], 'age' => 'Vor 1 Woche'],
-        ['initials' => 'LA', 'title' => 'Elektrohelfer (m/w/d) in Teilzeit', 'company' => 'Lichtwerk Altona', 'badge' => null, 'top' => false, 'location' => '22765 Hamburg · 6 km', 'type' => 'Teilzeit, 25 Std.', 'salary' => null, 'tags' => ['Quereinstieg möglich', 'Feste Arbeitszeiten'], 'age' => 'Vor 2 Wochen'],
-        ['initials' => 'KS', 'title' => 'KNX-Programmierer / Systemintegrator (m/w/d)', 'company' => 'KNX Systeme Hamburg', 'badge' => null, 'top' => false, 'location' => '20537 Hamburg · 9 km', 'type' => 'Vollzeit, hybrid', 'salary' => '4.000 – 5.200 € / Monat', 'tags' => ['KNX', 'Homeoffice möglich', 'Zertifizierung bezahlt'], 'age' => 'Vor 2 Wochen'],
+    $sortLabels = [
+        'newest' => __('portal.layout.filters.sort_newest'),
+        'az' => __('portal.layout.filters.sort_name'),
+        'salary' => __('portal.jobs.filters.sort_salary'),
     ];
+    $sortLinks = collect($sortLabels)->map(fn ($label, $key) => [
+        'label' => $label,
+        'url' => request()->fullUrlWithQuery(['sort' => $key === 'newest' ? null : $key, 'page' => null]),
+        'active' => $sort === $key,
+    ]);
 
-    $jobCount = 1842;
-
-    $filters = [
-        ['label' => __('portal.layout.filters.sort', ['sortierung' => __('portal.layout.filters.sort_newest')]), 'dropdown' => true],
-        ['label' => __('portal.jobs.filters.type'), 'dropdown' => true],
-        ['label' => __('portal.jobs.filters.with_salary'), 'dropdown' => false],
-        ['label' => __('portal.jobs.filters.apprenticeship'), 'dropdown' => false],
-        ['label' => __('portal.jobs.filters.career_change'), 'dropdown' => false],
-        ['label' => __('portal.jobs.filters.new_this_week'), 'dropdown' => false],
-    ];
-
-    $professions = [
-        ['Elektroniker EuG', 412], ['Obermonteur', 68], ['Servicetechniker', 144], ['Meister / Techniker', 91],
-        ['Ausbildung', 176], ['Elektrohelfer', 83], ['KNX / Automation', 57], ['Bauleitung', 34],
-    ];
-
-    $cities = [
-        ['Hamburg', 248], ['Berlin', 312], ['München', 207], ['Köln', 164],
-        ['Frankfurt am Main', 131], ['Stuttgart', 128], ['Düsseldorf', 96], ['Leipzig', 74],
-    ];
+    $activeType = request('type');
+    $typeLinks = collect($employmentTypes)
+        ->filter(fn ($type) => $type['count'] > 0)
+        ->map(fn ($type, $key) => [
+            'label' => $type['label'],
+            'count' => $type['count'],
+            'url' => request()->fullUrlWithQuery(['type' => $activeType === $key ? null : $key, 'page' => null]),
+            'active' => $activeType === $key,
+        ]);
 
     $benefits = [
         __('portal.jobs.cta.benefit_duration'),
@@ -47,12 +41,10 @@
         __('portal.jobs.cta.benefit_google'),
         __('portal.jobs.cta.benefit_profile'),
     ];
-
-    $pageLink = 'size-11 rounded-full hover:bg-zinc-100 text-zinc-700 font-medium flex items-center justify-center';
 @endphp
 
 @section('title', __('portal.jobs.meta_title').' | '.$portalName)
-@section('meta_description', trans_choice('portal.jobs.meta_description', $jobCount, ['anzahl' => number_format($jobCount, 0, ',', '.')]))
+@section('meta_description', trans_choice('portal.jobs.meta_description', $totalJobs, ['anzahl' => number_format($totalJobs, 0, ',', '.')]))
 
 @section('content')
 
@@ -64,22 +56,27 @@
     </nav>
     <div class="mt-4 max-w-2xl">
       <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-zinc-900">{{ __('portal.jobs.headline') }}</h1>
-      <p class="mt-3 text-base md:text-lg leading-relaxed text-zinc-700">{{ trans_choice('portal.jobs.meta_description', $jobCount, ['anzahl' => number_format($jobCount, 0, ',', '.')]) }}</p>
+      <p class="mt-3 text-base md:text-lg leading-relaxed text-zinc-700">{{ trans_choice('portal.jobs.meta_description', $totalJobs, ['anzahl' => number_format($totalJobs, 0, ',', '.')]) }}</p>
     </div>
 
     <form action="{{ route('portal.jobs.index') }}" method="get" role="search" class="card shadow-lg p-4 md:p-5 mt-6">
-      <div class="grid gap-3 lg:grid-cols-[1fr_1fr_auto_auto]">
+      <div class="grid gap-3 lg:grid-cols-[1fr_1fr_auto]">
         <div class="relative">
           <label class="sr-only" for="q">{{ __('portal.jobs.search.what_label') }}</label>
           <x-sun.icon name="search" class="icon absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
-          <input id="q" name="q" class="input pl-10" placeholder="{{ __('portal.jobs.search.what_placeholder') }}">
+          <input id="q" name="q" value="{{ request('q') }}" class="input pl-10" placeholder="{{ __('portal.jobs.search.what_placeholder') }}">
         </div>
         <div class="relative">
           <label class="sr-only" for="ort">{{ __('portal.layout.search_form.where_label') }}</label>
           <x-sun.icon name="map-pin" class="icon absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
-          <input id="ort" name="ort" class="input pl-10" placeholder="{{ __('portal.layout.search_form.where_placeholder') }}" autocomplete="postal-code">
+          <input id="ort" name="city" value="{{ request('city') }}" class="input pl-10" placeholder="{{ __('portal.layout.search_form.where_placeholder') }}" autocomplete="address-level2">
         </div>
-        <select name="umkreis" class="input hidden lg:block lg:w-32" aria-label="{{ __('portal.layout.search_form.radius_label') }}"><option>{{ __('portal.layout.search_form.radius_option', ['km' => 10]) }}</option><option selected>{{ __('portal.layout.search_form.radius_option', ['km' => 25]) }}</option><option>{{ __('portal.layout.search_form.radius_option', ['km' => 50]) }}</option></select>
+        @if(request()->filled('type'))
+          <input type="hidden" name="type" value="{{ request('type') }}">
+        @endif
+        @if($sort !== 'newest')
+          <input type="hidden" name="sort" value="{{ $sort }}">
+        @endif
         <button type="submit" class="btn-primary">{{ __('portal.jobs.search.submit') }}</button>
       </div>
     </form>
@@ -97,68 +94,83 @@
 
   <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 sm:gap-4">
     <h2 class="text-2xl font-semibold text-zinc-900">{{ trans_choice('portal.jobs.results_heading', $jobCount, ['anzahl' => number_format($jobCount, 0, ',', '.')]) }}</h2>
-    <p class="text-sm text-zinc-500">{{ __('portal.jobs.sorted_by_date') }}</p>
+    @if($sort === 'newest')
+      <p class="text-sm text-zinc-500">{{ __('portal.jobs.sorted_by_date') }}</p>
+    @endif
   </div>
 
   <div class="mt-5 -mx-4 px-4 sm:mx-0 sm:px-0 flex gap-2 overflow-x-auto scroll-snap pb-1" role="group" aria-label="{{ __('portal.layout.filters.label') }}">
-    @foreach($filters as $filter)
-      <button type="button" class="pill-link whitespace-nowrap">{{ $filter['label'] }}@if($filter['dropdown']) <x-sun.icon name="chevron-down" class="size-4" />@endif</button>
+    <button type="button" class="pill-link whitespace-nowrap" data-disclosure="filter" aria-expanded="false" aria-controls="jobs-filter-sort">{{ __('portal.layout.filters.sort', ['sortierung' => $sortLabels[$sort] ?? $sortLabels['newest']]) }} <x-sun.icon name="chevron-down" class="size-4" /></button>
+    @foreach($typeLinks as $link)
+      <a href="{{ $link['url'] }}" @class(['pill-link whitespace-nowrap', 'border-brand text-brand' => $link['active']]) aria-pressed="{{ $link['active'] ? 'true' : 'false' }}" role="button">{{ $link['label'] }}</a>
+    @endforeach
+  </div>
+  <div id="jobs-filter-sort" hidden class="mt-3 flex flex-wrap gap-2">
+    @foreach($sortLinks as $link)
+      <a href="{{ $link['url'] }}" @class(['pill-link whitespace-nowrap', 'border-brand text-brand' => $link['active']])>{{ $link['label'] }}</a>
     @endforeach
   </div>
 
   <div class="mt-6 grid gap-8 xl:grid-cols-[1fr_18rem]">
     <div class="flex flex-col gap-4 min-w-0">
 
-      @foreach($jobs as $job)
+      @forelse($jobs as $job)
         @if($loop->index === 3)
           <x-ad-slot position="listing_between_results" />
         @endif
-        <article class="card-interactive p-5 flex flex-col lg:flex-row lg:items-start gap-4 {{ $job['top'] ? 'border-l-4 border-l-brand' : '' }}">
+        @php
+            $jobUrl = route('portal.jobs.show', $job->slug);
+            $jobLogo = $job->company?->getFirstMediaUrl('logo', 'thumb');
+        @endphp
+        <article @class(['card-interactive p-5 flex flex-col lg:flex-row lg:items-start gap-4', 'border-l-4 border-l-brand' => $job->is_top_job])>
           <div class="flex-1 min-w-0 flex flex-col gap-3">
             <div class="flex items-start gap-3">
-              <span class="size-12 rounded-2xl bg-brand-50 text-brand-700 font-bold flex items-center justify-center shrink-0" aria-hidden="true">{{ $job['initials'] }}</span>
+              @if($jobLogo)
+                <img src="{{ $jobLogo }}" alt="" width="48" height="48" loading="lazy" class="size-12 rounded-2xl border border-zinc-200 object-cover shrink-0">
+              @else
+                <span class="size-12 rounded-2xl bg-brand-50 text-brand-700 font-bold flex items-center justify-center shrink-0" aria-hidden="true">{{ \App\Themes\SunV2\ProfileViewComposer::initials($job->company?->name ?? $job->title) }}</span>
+              @endif
               <div class="flex-1 min-w-0">
                 <div class="flex flex-wrap items-start justify-between gap-2">
-                  <h2 class="text-lg font-semibold text-zinc-900 leading-snug"><a href="#" class="hover:text-brand">{{ $job['title'] }}</a></h2>
-                  @if($job['badge'])
-                    <span class="pill-brand shrink-0">{{ $job['badge'] }}</span>
+                  <h2 class="text-lg font-semibold text-zinc-900 leading-snug"><a href="{{ $jobUrl }}" class="hover:text-brand">{{ $job->title }}</a></h2>
+                  @if($job->is_top_job)
+                    <span class="pill-brand shrink-0">{{ __('portal.jobs.card.top_job') }}</span>
                   @endif
                 </div>
-                <p class="mt-1 text-zinc-700">{{ $job['company'] }}</p>
+                @if($job->company)
+                  <p class="mt-1"><a href="{{ $job->company->portal_url }}" class="text-zinc-700 hover:text-brand">{{ $job->company->name }}</a></p>
+                @endif
               </div>
             </div>
             <div class="flex-1 min-w-0">
               <dl class="flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-zinc-500">
-                <div class="flex items-center gap-1.5"><dt class="sr-only">{{ __('portal.jobs.card.location') }}</dt><x-sun.icon name="map-pin" class="size-4 shrink-0" /><dd>{{ $job['location'] }}</dd></div>
-                <div class="flex items-center gap-1.5"><dt class="sr-only">{{ __('portal.jobs.card.type') }}</dt><x-sun.icon name="clock" class="size-4 shrink-0" /><dd>{{ $job['type'] }}</dd></div>
-                <div class="flex items-center gap-1.5"><dt class="sr-only">{{ __('portal.jobs.card.salary') }}</dt><x-sun.icon name="euro" class="size-4 shrink-0" /><dd class="{{ $job['salary'] ? 'text-zinc-900 font-medium' : '' }}">{{ $job['salary'] ?? __('portal.jobs.card.salary_none') }}</dd></div>
+                @if($job->location_display)
+                  <div class="flex items-center gap-1.5"><dt class="sr-only">{{ __('portal.jobs.card.location') }}</dt><x-sun.icon name="map-pin" class="size-4 shrink-0" /><dd>{{ $job->location_display }}</dd></div>
+                @endif
+                <div class="flex items-center gap-1.5"><dt class="sr-only">{{ __('portal.jobs.card.type') }}</dt><x-sun.icon name="clock" class="size-4 shrink-0" /><dd>{{ $job->employment_type_label }}</dd></div>
+                <div class="flex items-center gap-1.5"><dt class="sr-only">{{ __('portal.jobs.card.salary') }}</dt><x-sun.icon name="euro" class="size-4 shrink-0" /><dd @class(['text-zinc-900 font-medium' => $job->salary_display])>{{ $job->salary_display ?? __('portal.jobs.card.salary_none') }}</dd></div>
               </dl>
-              <div class="mt-3 flex flex-wrap gap-2">
-                @foreach($job['tags'] as $tag)
-                  <span class="pill">{{ $tag }}</span>
-                @endforeach
-              </div>
-              <p class="mt-3 text-sm text-zinc-500">{{ $job['age'] }}</p>
+              @if($job->published_at)
+                <p class="mt-3 text-sm text-zinc-500">{{ ucfirst($job->published_at->locale('de')->diffForHumans()) }}</p>
+              @endif
             </div>
           </div>
           <div class="flex lg:flex-col gap-2 lg:w-44 shrink-0">
-            <a href="#" class="btn-primary flex-1">{{ __('portal.jobs.card.apply') }}</a>
-            <a href="#" class="btn-secondary flex-1">{{ __('portal.jobs.card.details') }}</a>
+            <a href="{{ $jobUrl }}#bewerben" class="btn-primary flex-1" aria-label="{{ __('portal.jobs.card.apply') }}: {{ $job->title }}">{{ __('portal.jobs.card.apply') }}</a>
+            <a href="{{ $jobUrl }}" class="btn-secondary flex-1" aria-label="{{ __('portal.jobs.card.details') }}: {{ $job->title }}">{{ __('portal.jobs.card.details') }}</a>
           </div>
         </article>
-      @endforeach
+      @empty
+        <div class="card p-5 md:p-8">
+          <h2 class="text-2xl font-semibold text-zinc-900">{{ __('portal.jobs.empty.heading') }}</h2>
+          <p class="mt-2 text-zinc-700 leading-relaxed">{{ __('portal.jobs.empty.text') }}</p>
+          @if($filtered)
+            <a href="{{ route('portal.jobs.index') }}" class="mt-4 btn-primary">{{ __('portal.jobs.empty.show_all') }}</a>
+          @endif
+        </div>
+      @endforelse
 
-      <nav aria-label="{{ __('portal.layout.pagination.label') }}" class="mt-4 flex flex-wrap items-center justify-center sm:justify-between gap-3">
-        <span class="btn-ghost opacity-40 pointer-events-none" aria-disabled="true">{{ __('portal.layout.pagination.previous') }}</span>
-        <ul class="order-first sm:order-none w-full sm:w-auto flex items-center justify-center gap-1">
-          <li><a href="#" aria-current="page" class="size-11 rounded-full bg-brand text-white font-semibold flex items-center justify-center">1</a></li>
-          <li><a href="#" class="{{ $pageLink }}">2</a></li>
-          <li class="hidden sm:block"><a href="#" class="{{ $pageLink }}">3</a></li>
-          <li class="text-zinc-400 px-1">…</li>
-          <li><a href="#" class="{{ $pageLink }}">92</a></li>
-        </ul>
-        <a href="#" class="btn-ghost">{{ __('portal.layout.pagination.next') }}</a>
-      </nav>
+      <x-sun.pagination :paginator="$jobs" :pages="\App\Themes\SunV2\PageWindow::for($jobs)" />
     </div>
 
     <!-- ===== RECHTE SPALTE: Arbeitgeber-Verkauf ===== -->
@@ -221,12 +233,24 @@
   </section>
 
   <!-- ===== SEO-LINKLISTEN ===== -->
-  @foreach([__('portal.jobs.links.by_profession') => $professions, __('portal.jobs.links.by_city') => $cities] as $heading => $links)
+  @php
+      $linkLists = [
+          __('portal.jobs.links.by_type') => collect($employmentTypes)
+              ->filter(fn ($type) => $type['count'] > 0)
+              ->map(fn ($type, $key) => [$type['label'], $type['count'], route('portal.jobs.index', ['type' => $key])])
+              ->values(),
+          __('portal.jobs.links.by_city') => $cities
+              ->map(fn ($city) => [$city->name, $city->jobs_count, route('portal.jobs.index', ['city' => $city->slug])])
+              ->take(8),
+      ];
+  @endphp
+  @foreach($linkLists as $heading => $links)
+    @continue($links->isEmpty())
     <section class="mt-12 md:mt-16">
       <h2 class="text-2xl font-semibold text-zinc-900">{{ $heading }}</h2>
       <ul class="mt-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-1">
-        @foreach($links as [$label, $count])
-          <li><a href="#" class="flex justify-between items-center min-h-11 gap-4 hover:text-brand"><span class="font-medium text-zinc-900">{{ $label }}</span><span class="text-sm text-zinc-500">{{ $count }}</span></a></li>
+        @foreach($links as [$label, $count, $url])
+          <li><a href="{{ $url }}" class="flex justify-between items-center min-h-11 gap-4 hover:text-brand"><span class="font-medium text-zinc-900">{{ $label }}</span><span class="text-sm text-zinc-500">{{ $count }}</span></a></li>
         @endforeach
       </ul>
     </section>

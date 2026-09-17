@@ -95,7 +95,7 @@ class FeaturedPlacementResource extends Resource
             ->columns([
                 TextColumn::make('city.name')
                     ->label(__('Stadt'))
-                    ->description(fn (FeaturedPlacement $record): ?string => $record->city?->zipcode)
+                    ->description(fn (FeaturedPlacement $record): ?string => $record->city?->getAttribute('zipcode'))
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('category.name')
