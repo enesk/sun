@@ -52,6 +52,9 @@ class StoreCompanyInquiryTest extends TestCase
             ['id' => 10, 'user_id' => 5, 'name' => 'Elektro Meier', 'slug' => 'elektro-meier'],
             ['id' => 11, 'user_id' => null, 'name' => 'Elektro Ohne Inhaber', 'slug' => 'elektro-ohne-inhaber'],
             ['id' => 12, 'user_id' => 6, 'name' => 'Fremdbetrieb', 'slug' => 'fremdbetrieb'],
+            ['id' => 13, 'user_id' => null, 'name' => '24 Stunden Elektro', 'slug' => '24-stunden-elektro'],
+            ['id' => 14, 'user_id' => null, 'name' => 'Doppelt A', 'slug' => 'doppelt'],
+            ['id' => 15, 'user_id' => null, 'name' => 'Doppelt B', 'slug' => 'doppelt'],
         ]);
 
         Event::fake([CompanyInquiryReceived::class]);
@@ -111,6 +114,73 @@ class StoreCompanyInquiryTest extends TestCase
         Event::assertDispatchedTimes(CompanyInquiryReceived::class, 1);
     }
 
+    /**
+     * #38: So kommt firmenprofil auf Produktion an — die Profil-URL als Text.
+     *
+     * @return array<string, array{0: string, 1: int}>
+     */
+    public static function textReferences(): array
+    {
+        return [
+            'Profil-URL' => ['https://elektrikerportal.com/10-elektro-meier', 10],
+            'Profil-URL mit Stadt, Slash und Query' => ['https://elektrikerportal.com/rastatt/11-elektro-ohne-inhaber/?utm_source=x', 11],
+            'relativer Pfad' => ['/10-elektro-meier', 10],
+            'Slug mit ID' => ['10-elektro-meier', 10],
+            'Slug ohne ID' => ['elektro-meier', 10],
+            'Slug ohne ID, beginnt mit Ziffern' => ['24-stunden-elektro', 13],
+            'JSON als Text' => ['{"id":12,"slug":"fremdbetrieb"}', 12],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('textReferences')]
+    public function test_resolves_company_from_text_reference(string $value, int $companyId): void
+    {
+        (new StoreCompanyInquiry($this->leadWithReference($value)))->handle();
+
+        $inquiry = CompanyInquiry::sole();
+
+        $this->assertSame($companyId, $inquiry->company_id);
+        $this->assertSame(['leistung'], array_column($inquiry->answers, 'key'));
+        Event::assertDispatchedTimes(CompanyInquiryReceived::class, 1);
+    }
+
+    /**
+     * @return array<string, array{0: string}>
+     */
+    public static function unresolvableReferences(): array
+    {
+        return [
+            'URL mit falschem Slug' => ['https://elektrikerportal.com/10-anderer-betrieb'],
+            'URL ohne ID' => ['https://elektrikerportal.com/elektro-meier'],
+            'mehrdeutiger Slug' => ['doppelt'],
+            'leer' => [''],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('unresolvableReferences')]
+    public function test_unresolvable_text_reference_is_logged_with_raw_value(string $value): void
+    {
+        Log::spy();
+
+        (new StoreCompanyInquiry($this->leadWithReference($value)))->handle();
+
+        $this->assertSame(0, CompanyInquiry::count());
+        Log::shouldHaveReceived('warning')->once()->withArgs(
+            fn (string $message, array $context): bool => $context['firmenprofil_raw'] === $value
+        );
+    }
+
+    public function test_raw_value_in_log_is_truncated(): void
+    {
+        Log::spy();
+
+        (new StoreCompanyInquiry($this->leadWithReference('https://elektrikerportal.com/'.str_repeat('x', 400))))->handle();
+
+        Log::shouldHaveReceived('warning')->once()->withArgs(
+            fn (string $message, array $context): bool => mb_strlen($context['firmenprofil_raw']) <= 203
+        );
+    }
+
     public function test_policy_allows_only_owner_of_the_company(): void
     {
         (new StoreCompanyInquiry($this->lead(10, 'elektro-meier')))->handle();
@@ -162,6 +232,17 @@ class StoreCompanyInquiryTest extends TestCase
                 ], 'value_label' => null],
             ],
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function leadWithReference(string $value): array
+    {
+        $lead = $this->lead(0, '');
+        $lead['answers'][1]['value'] = $value;
+
+        return $lead;
     }
 
     private function user(int $id): User

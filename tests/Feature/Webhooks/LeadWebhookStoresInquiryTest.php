@@ -91,7 +91,19 @@ class LeadWebhookStoresInquiryTest extends TestCase
         Event::assertDispatchedTimes(CompanyInquiryReceived::class, 1);
     }
 
-    private function deliver(string $envelopeId): TestResponse
+    public function test_signed_webhook_with_profile_url_as_text_creates_inquiry(): void
+    {
+        // #38: Format aus Produktion, firmenprofil ist die Profil-URL.
+        $this->deliver('env-3', 'https://elektrikerportal.com/42-elektro-muster')->assertStatus(202);
+
+        $this->assertSame(42, (int) CompanyInquiry::query()->sole()->company_id);
+        Event::assertDispatchedTimes(CompanyInquiryReceived::class, 1);
+    }
+
+    /**
+     * @param  array<string, mixed>|string  $firmenprofil
+     */
+    private function deliver(string $envelopeId, array|string $firmenprofil = ['id' => 42, 'slug' => 'elektro-muster']): TestResponse
     {
         $body = (string) json_encode([
             'id' => $envelopeId,
@@ -109,7 +121,7 @@ class LeadWebhookStoresInquiryTest extends TestCase
                     'contact' => ['name' => 'Mara Lindqvist', 'email' => 'mara@example.com', 'phone' => '0170 1234567'],
                     'answers' => [
                         ['field_key' => 'leistung', 'label' => 'Was soll gemacht werden?', 'value' => 'wallbox', 'value_label' => 'Wallbox'],
-                        ['field_key' => 'firmenprofil', 'label' => 'firmenprofil', 'value' => ['id' => 42, 'slug' => 'elektro-muster'], 'value_label' => null],
+                        ['field_key' => 'firmenprofil', 'label' => 'firmenprofil', 'value' => $firmenprofil, 'value_label' => null],
                     ],
                 ],
             ],

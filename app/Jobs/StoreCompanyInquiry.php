@@ -12,6 +12,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * Legt eine Anfrage aus dem Leadsystem am Betrieb ab (#32).
@@ -25,7 +26,8 @@ use Illuminate\Support\Facades\Log;
  *   contact {name, first_name, last_name, email, phone, ...},
  *   answers [{field_key, label, value, value_label}, ...]
  *
- * Der Betrieb steht in der Antwort `firmenprofil` (id, slug, ...). Gespeichert
+ * Der Betrieb steht in der Antwort `firmenprofil`: Profil-URL (Text), Objekt
+ * {id, slug} oder Slug, siehe companyReference(). Gespeichert
  * wird unabhaengig davon, ob das Profil einen Inhaber hat. Doppelte
  * Zustellungen erkennt der Job an `lead_uuid`, das Event geht nur einmal raus.
  */
@@ -61,16 +63,18 @@ class StoreCompanyInquiry implements ShouldQueue
             return;
         }
 
-        $answers = is_array($this->lead['answers'] ?? null) ? $this->lead['answers'] : [];
-        $reference = $this->companyReference($answers);
+        $answers = $this->answers();
+        $reference = self::companyReference($answers);
         $company = $this->resolveCompany($reference);
 
         if ($company === null) {
-            // Bewusst ohne Kontaktdaten und ohne Antworten.
+            // Bewusst ohne Kontaktdaten und ohne Antworten; firmenprofil ist
+            // keine personenbezogene Angabe.
             Log::warning('Anfrage keinem Betrieb zuzuordnen, nicht gespeichert.', [
                 'lead_uuid' => $uuid,
                 'firmenprofil_id' => $reference['id'] ?? null,
-                'firmenprofil_slug' => $reference['slug'] ?? null,
+                'firmenprofil_slug' => $reference['slug'] ?? $reference['plain_slug'] ?? null,
+                'firmenprofil_raw' => Str::limit($reference['raw'] ?? '', 200),
             ]);
 
             return;
@@ -99,10 +103,30 @@ class StoreCompanyInquiry implements ShouldQueue
     }
 
     /**
-     * @param  array<int, mixed>  $answers
-     * @return array<string, mixed>|null
+     * Betrieb, bei dem die Anfrage landen wuerde; fuer Trockenlaeufe.
      */
-    private function companyReference(array $answers): ?array
+    public function company(): ?Company
+    {
+        return $this->resolveCompany(self::companyReference($this->answers()));
+    }
+
+    /**
+     * @return array<int, mixed>
+     */
+    private function answers(): array
+    {
+        return is_array($this->lead['answers'] ?? null) ? $this->lead['answers'] : [];
+    }
+
+    /**
+     * Verweis auf den Betrieb aus der Antwort `firmenprofil`. Der Dialog sendet
+     * heute die Profil-URL als Text (#38), aeltere Zustellungen ein Objekt
+     * {id, slug}; ein reiner Slug ist der Rueckfall des Dialogs.
+     *
+     * @param  array<int, mixed>  $answers
+     * @return array{id: int|null, slug: string|null, plain_slug: string|null, raw: string}|null
+     */
+    private static function companyReference(array $answers): ?array
     {
         foreach ($answers as $answer) {
             if (! is_array($answer) || ($answer['field_key'] ?? null) !== self::COMPANY_FIELD_KEY) {
@@ -111,34 +135,92 @@ class StoreCompanyInquiry implements ShouldQueue
 
             $value = $answer['value'] ?? null;
 
-            if (is_string($value)) {
-                $value = json_decode($value, true);
+            if (is_string($value) && is_array($decoded = json_decode($value, true))) {
+                $value = $decoded;
             }
 
-            return is_array($value) ? $value : null;
+            if (is_array($value)) {
+                $raw = (string) json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+                if (is_numeric($value['id'] ?? null) && is_string($value['slug'] ?? null) && $value['slug'] !== '') {
+                    return ['id' => (int) $value['id'], 'slug' => $value['slug'], 'plain_slug' => null, 'raw' => $raw];
+                }
+
+                $value = $value['url'] ?? $value['slug'] ?? null;
+
+                if (! is_string($value)) {
+                    return ['id' => null, 'slug' => null, 'plain_slug' => null, 'raw' => $raw];
+                }
+            }
+
+            return is_scalar($value) ? self::referenceFromText((string) $value) : null;
         }
 
         return null;
     }
 
     /**
+     * Profil-URL (`/{id}-{slug}` oder `/{stadt}/{id}-{slug}`) oder Slug.
+     *
+     * @return array{id: int|null, slug: string|null, plain_slug: string|null, raw: string}
+     */
+    private static function referenceFromText(string $text): array
+    {
+        $text = trim($text);
+        $isUrl = str_contains($text, '://') || str_starts_with($text, '/');
+        $segment = $text;
+
+        if ($isUrl) {
+            $path = rtrim((string) parse_url($text, PHP_URL_PATH), '/');
+            $segment = Str::afterLast($path, '/');
+        }
+
+        $segment = rawurldecode($segment);
+        $id = null;
+        $slug = null;
+
+        if (preg_match('/^(\d+)-(.+)$/', $segment, $matches) === 1) {
+            $id = (int) $matches[1];
+            $slug = $matches[2];
+        }
+
+        return [
+            'id' => $id,
+            'slug' => $slug,
+            // Ein Slug ohne ID kann selbst mit Ziffern beginnen ("24-stunden-elektro").
+            'plain_slug' => ! $isUrl && $segment !== '' ? $segment : null,
+            'raw' => $text,
+        ];
+    }
+
+    /**
      * Die ID findet den Betrieb, der Slug bestaetigt ihn. So landet eine
      * Anfrage nicht bei einem Betrieb, der zufaellig dieselbe ID traegt.
+     * Ein Slug ohne ID gilt nur, wenn genau ein Betrieb ihn traegt.
      *
-     * @param  array<string, mixed>|null  $reference
+     * @param  array{id: int|null, slug: string|null, plain_slug: string|null, raw: string}|null  $reference
      */
     private function resolveCompany(?array $reference): ?Company
     {
-        $id = $reference['id'] ?? null;
-        $slug = $reference['slug'] ?? null;
-
-        if (! is_numeric($id) || ! is_string($slug) || $slug === '') {
+        if ($reference === null) {
             return null;
         }
 
-        $company = Company::find((int) $id);
+        if ($reference['id'] !== null && $reference['slug'] !== null) {
+            $company = Company::find($reference['id']);
 
-        return $company !== null && $company->slug === $slug ? $company : null;
+            if ($company !== null && $company->slug === $reference['slug']) {
+                return $company;
+            }
+        }
+
+        if ($reference['plain_slug'] === null) {
+            return null;
+        }
+
+        $matches = Company::query()->where('slug', $reference['plain_slug'])->limit(2)->get();
+
+        return $matches->count() === 1 ? $matches->first() : null;
     }
 
     /**
