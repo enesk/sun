@@ -16,9 +16,10 @@ use Illuminate\Support\Facades\Log;
 /**
  * Legt eine Anfrage aus dem Leadsystem am Betrieb ab (#32).
  *
- * Vertrag mit dem Webhook-Empfang (#31): Der Job wird im Tenant-Kontext
- * dispatcht (QueueTenancyBootstrapper traegt den Tenant mit) und bekommt das
- * Objekt `lead` aus dem Webhook `lead.created` unveraendert:
+ * Einziger Speicherweg fuer Anfragen: LeadWebhookController (#31) dispatcht
+ * den Job nach der Signaturpruefung im Tenant-Kontext (QueueTenancyBootstrapper
+ * traegt den Tenant mit) und uebergibt das Objekt `data.lead` aus dem Webhook
+ * `lead.created` unveraendert:
  *
  *   uuid, score, result_key, created_at,
  *   contact {name, first_name, last_name, email, phone, ...},
@@ -35,6 +36,9 @@ class StoreCompanyInquiry implements ShouldQueue
     public const COMPANY_FIELD_KEY = 'firmenprofil';
 
     public int $tries = 3;
+
+    /** @var list<int> */
+    public array $backoff = [10, 60, 300];
 
     /**
      * @param  array<string, mixed>  $lead

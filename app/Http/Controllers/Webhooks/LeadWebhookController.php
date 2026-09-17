@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Webhooks;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\Leads\StoreCompanyInquiry;
+use App\Jobs\StoreCompanyInquiry;
 use App\Models\Tenant;
 use App\Services\Leads\LeadWebhookSignature;
 use Illuminate\Http\JsonResponse;
@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Log;
  *
  * Antworten: 404 ohne Secret, 401 bei fehlender/falscher Signatur oder zu
  * altem Zeitstempel, 400 bei unlesbarem Rumpf, 204 fuer andere Ereignisse,
- * 403 bei fremdem Funnel, 422 ohne Lead-Kennung, sonst 202 — auch bei einer
+ * 403 bei fremdem Funnel, 422 ohne data.lead.uuid, sonst 202 — auch bei einer
  * doppelten Zustellung, damit das Leadsystem nicht erneut sendet.
  * Protokolliert wird nie der Rumpf und nie Kontaktdaten.
  */
@@ -75,10 +75,11 @@ class LeadWebhookController extends Controller
             return $this->reject(403, 'fremder Funnel', ['envelope_id' => $envelope['id'] ?? null]);
         }
 
-        $key = (string) (data_get($envelope, 'data.lead.uuid') ?: ($envelope['id'] ?? ''));
+        $lead = data_get($envelope, 'data.lead');
+        $key = is_array($lead) ? trim((string) ($lead['uuid'] ?? '')) : '';
 
         if ($key === '') {
-            return $this->reject(422, 'Lead-Kennung fehlt');
+            return $this->reject(422, 'Lead oder Lead-UUID fehlt', ['envelope_id' => $envelope['id'] ?? null]);
         }
 
         $context = [
@@ -94,7 +95,7 @@ class LeadWebhookController extends Controller
             return response()->json(['status' => 'duplicate'], 202);
         }
 
-        StoreCompanyInquiry::dispatch($envelope);
+        StoreCompanyInquiry::dispatch($lead);
         Log::info('Lead-Webhook angenommen', $context);
 
         return response()->json(['status' => 'accepted'], 202);

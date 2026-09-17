@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Webhooks;
 
-use App\Jobs\Leads\StoreCompanyInquiry;
+use App\Jobs\StoreCompanyInquiry;
 use App\Models\Tenant;
 use App\Providers\TenancyServiceProvider;
 use App\Services\Leads\LeadWebhookSignature;
@@ -42,7 +42,7 @@ class LeadWebhookTest extends TestCase
     {
         $this->deliver($this->envelope())->assertStatus(202)->assertJson(['status' => 'accepted']);
 
-        Queue::assertPushed(StoreCompanyInquiry::class, fn (StoreCompanyInquiry $job): bool => data_get($job->envelope, 'data.lead.uuid') === 'lead-1');
+        Queue::assertPushed(StoreCompanyInquiry::class, fn (StoreCompanyInquiry $job): bool => ($job->lead['uuid'] ?? null) === 'lead-1');
     }
 
     public function test_wrong_signature_is_rejected(): void
@@ -96,7 +96,9 @@ class LeadWebhookTest extends TestCase
                     'id' => 17,
                     'uuid' => 'lead-1',
                     'contact' => ['name' => 'Max Muster', 'email' => 'max@example.test'],
-                    'answers' => ['firmenprofil' => ['id' => 42, 'slug' => 'elektro-muster']],
+                    'answers' => [
+                        ['field_key' => 'firmenprofil', 'label' => 'firmenprofil', 'value' => ['id' => 42, 'slug' => 'elektro-muster'], 'value_label' => null],
+                    ],
                 ],
             ],
         ];
