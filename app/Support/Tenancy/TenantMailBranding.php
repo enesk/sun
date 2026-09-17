@@ -49,7 +49,8 @@ final class TenantMailBranding
     public function portalName(): string
     {
         if ($this->tenant === null) {
-            return (string) config('app.name');
+            // Ohne Portal-Kontext der Plattformname, nie der App-Name (SaaSykit)
+            return (string) config('app.platform_name', config('app.name'));
         }
 
         return $this->tenant->terms['portal'];

@@ -18,6 +18,13 @@ return [
 
     'name' => env('APP_NAME', 'SaaSykit'),
 
+    /*
+     * Name der Plattform in Mails ohne Portal-Kontext (zentrale Konto-Mails,
+     * interne Berichte). Portal-Mails nennen immer den Portalnamen, siehe
+     * App\Support\Tenancy\TenantMailBranding.
+     */
+    'platform_name' => env('APP_PLATFORM_NAME', 'SUN'),
+
     'description' => env('APP_DESCRIPTION', ''),
 
     /*

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Listeners\Mail\SetPortalSender;
 use App\Services\PaymentProviders\LemonSqueezy\LemonSqueezyProvider;
 use App\Services\PaymentProviders\Offline\OfflineProvider;
 use App\Services\PaymentProviders\Paddle\PaddleProvider;
@@ -14,6 +15,8 @@ use App\Support\Translation\TenantTranslator;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Contracts\Translation\Loader;
+use Illuminate\Mail\Events\MessageSending;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Translation\FileLoader;
 use Illuminate\Translation\Translator;
@@ -85,6 +88,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Absendername jeder Mail ist der Portalname, nicht MAIL_FROM_NAME
+        Event::listen(MessageSending::class, SetPortalSender::class);
+
         FilamentAsset::register([
             Js::make('components-script', __DIR__.'/../../resources/js/components.js'),
         ]);
