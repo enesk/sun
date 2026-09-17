@@ -176,7 +176,7 @@
       </div>
       <div class="mt-6 lg:mt-0 flex flex-col gap-2 lg:w-64 shrink-0">
         <a href="{{ route('portal.companies.create') }}" class="btn-primary w-full">{{ __('portal.home.cta.button') }}</a>
-        <a href="{{ route('portal.owner.premium') }}" class="btn-ghost w-full">{{ __('portal.home.cta.premium') }}</a>
+        <a href="{{ route('portal.premium.pricing') }}" class="btn-ghost w-full">{{ __('portal.home.cta.premium') }}</a>
         @if($totalCompanies > 0)
           <p class="text-sm text-zinc-500 text-center mt-1">{{ trans_choice('portal.home.cta.social_proof', $totalCompanies, ['anzahl' => $companiesFormatted]) }}</p>
         @endif

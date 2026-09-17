@@ -14,7 +14,7 @@
         <h3 class="font-semibold text-zinc-900 mb-3">{{ __('portal.layout.footer.for_business') }}</h3>
         <ul class="space-y-2 text-sm">
           <li><a href="{{ route('portal.companies.create') }}" class="hover:text-brand">{{ __('portal.layout.footer.signup') }}</a></li>
-          <li><a href="{{ route('portal.owner.premium') }}" class="hover:text-brand">{{ __('portal.layout.footer.premium') }}</a></li>
+          <li><a href="{{ route('portal.premium.pricing') }}" class="hover:text-brand">{{ __('portal.layout.footer.premium') }}</a></li>
           @guest
             <li><a href="{{ route('login') }}" class="hover:text-brand">{{ __('portal.layout.footer.login') }}</a></li>
           @endguest
