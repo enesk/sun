@@ -2,7 +2,7 @@
     Monatsreport an Pro/Premium-Betriebe (#16). Mailable: App\Mail\Company\MonthlyStatsReportMail.
     Texte: portal.owner.statistics.report.mail.* und portal.owner.statistics.metrics.*
 --}}
-@extends('mail.premium.layout')
+@extends('mail.sun.layout')
 
 @php
     $number = fn ($value) => number_format((int) $value, 0, ',', '.');
@@ -47,7 +47,7 @@
         <p style="margin: 24px 0 0;">{{ $t('ranking', ['stadt' => $ranking['city'], 'platz' => $ranking['position'], 'anzahl' => $ranking['total']]) }}</p>
     @endif
 
-    @include('mail.premium.partials.button', ['url' => $dashboardUrl, 'label' => $t('cta')])
+    @include('mail.sun.partials.button', ['url' => $dashboardUrl, 'label' => $t('cta')])
 
     <p style="margin: 32px 0 0;">
         {{ __('Viele Grüße') }}<br>

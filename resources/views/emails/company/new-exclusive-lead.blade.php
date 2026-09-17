@@ -1,5 +1,5 @@
 {{-- Neue exklusive Anfrage (#9), Premium-Mail-Layout SUN-PREM-015 (#16). --}}
-@extends('mail.premium.layout')
+@extends('mail.sun.layout')
 
 @section('preview')
     {{ __('portal.owner.leads.mail.preview', ['firma' => $companyName]) }}
@@ -41,14 +41,14 @@
         </table>
     @endif
 
-    @include('mail.premium.partials.button', ['url' => $dashboardUrl, 'label' => __('portal.owner.leads.mail.cta')])
+    @include('mail.sun.partials.button', ['url' => $dashboardUrl, 'label' => __('portal.owner.leads.mail.cta')])
 
     <p style="margin: 16px 0 0; font-size: 14px; line-height: 20px; color: #71717a;">
         {{ __('portal.owner.leads.mail.exclusive_note') }}
     </p>
 
     <p style="margin: 32px 0 0;">
-        {{ __('Mit freundlichen Grüßen,') }}<br>
-        {{ __('Ihr :app-Team', ['app' => \App\Support\Tenancy\TenantMailBranding::for($mailTenant ?? null)->portalName()]) }}
+        {{ __('portal.mail.sign_off') }}<br>
+        {{ __('portal.mail.sign_off_name', ['portal' => \App\Support\Tenancy\TenantMailBranding::for($mailTenant ?? null)->portalName()]) }}
     </p>
 @endsection

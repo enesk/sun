@@ -1,39 +1,41 @@
-<x-layouts.email>
-    <x-slot name="preview">
-        Ihre Empfehlung war erfolgreich — Sie haben einen Bonus erhalten!
-    </x-slot>
+{{-- Empfehlungsbonus erhalten, umgestellt auf das sun-Mail-Layout (#16). Ohne Tenant-Bezug, daher Portalname aus dem Kontext bzw. Standardfarbe. --}}
+@extends('mail.sun.layout')
 
-    <tr>
-        <td class="sm-px-6" style="border-radius: 4px; padding: 48px; font-size: 16px; color: #334155; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05)" bgcolor="#ffffff">
-            <h1 class="sm-leading-8" style="margin: 0 0 24px; font-size: 24px; font-weight: 600; color: #000">
-                Herzlichen Glückwunsch — Empfehlungsbonus erhalten!
-            </h1>
-            <p style="margin: 0; line-height: 24px">
-                Ihre Empfehlung war erfolgreich! {{ $referral->referredUser->name }} hat sich bei uns angemeldet, und Sie haben dafür einen Bonus erhalten.
-            </p>
+@php
+    $portalName = \App\Support\Tenancy\TenantMailBranding::for($mailTenant ?? null)->portalName();
+@endphp
 
-            <div style="padding: 20px; border-radius: 8px; margin: 20px 0; background-color: #f0fdf4; border: 1px solid #bbf7d0;">
-                <p style="margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #334155;">Ihr Gutschein-Code:</p>
-                <p style="font-size: 24px; font-weight: bold; color: #10b981; margin: 0; letter-spacing: 2px;">
+@section('preview')
+    Deine Empfehlung hat geklappt — dein Bonus ist da!
+@endsection
+
+@section('content')
+    <h1 style="margin: 0 0 16px; font-size: 24px; line-height: 32px; font-weight: 700; color: #18181b;">
+        Glückwunsch — dein Empfehlungsbonus ist da!
+    </h1>
+    <p style="margin: 0; color: #3f3f46;">
+        Deine Empfehlung hat geklappt: {{ $referral->referredUser->name }} hat sich angemeldet. Dafür bekommst du von uns einen Bonus.
+    </p>
+
+    <table cellpadding="0" cellspacing="0" role="none" style="width: 100%; margin: 24px 0 0;">
+        <tr>
+            <td style="padding: 20px; border-radius: 12px; background-color: #fafafa; border: 1px solid #e4e4e7;">
+                <p style="margin: 0 0 8px; font-size: 14px; line-height: 22px; font-weight: 600; color: #71717a;">Dein Gutschein-Code:</p>
+                <p style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 700; letter-spacing: 2px; color: #18181b;">
                     {{ $discountCode->code }}
                 </p>
-            </div>
+            </td>
+        </tr>
+    </table>
 
-            <p style="margin: 0; line-height: 24px">
-                Empfehlen Sie uns weiter und sichern Sie sich weitere Boni!
-            </p>
+    <p style="margin: 24px 0 0; color: #3f3f46;">
+        Empfiehl uns weiter und sicher dir weitere Boni!
+    </p>
 
-            <div style="text-align: center;">
-                <a href="{{ route('dashboard') }}" style="margin-top: 24px; margin-bottom: 24px; display: inline-block; border-radius: 16px; background-color: {{config('app.email_color_tint')}}; padding: 12px 32px; font-size: 18px; color: #fff; text-decoration-line: none; font-weight: 600;">
-                    Zum Dashboard
-                </a>
-            </div>
+    @include('mail.sun.partials.button', ['url' => route('dashboard'), 'label' => 'Zum Dashboard'])
 
-            <div role="separator" style="background-color: #e2e8f0; height: 1px; line-height: 1px; margin: 32px 0;">&zwj;</div>
-            <p style="padding-top: 12px; padding-bottom: 12px;">
-                Mit freundlichen Grüßen,<br>
-                Ihr {{ config('app.name') }}-Team
-            </p>
-        </td>
-    </tr>
-</x-layouts.email>
+    <p style="margin: 32px 0 0; color: #3f3f46;">
+        Viele Grüße<br>
+        Dein Team von {{ $portalName }}
+    </p>
+@endsection

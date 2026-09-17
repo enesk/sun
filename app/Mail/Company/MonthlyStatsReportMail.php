@@ -51,6 +51,6 @@ class MonthlyStatsReportMail extends Mailable
 
     public function content(): Content
     {
-        return new Content(view: 'mail.premium.monthly-report');
+        return new Content(view: 'mail.sun.monthly-report');
     }
 }

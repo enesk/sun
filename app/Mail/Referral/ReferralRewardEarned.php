@@ -23,7 +23,7 @@ class ReferralRewardEarned extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Sie haben einen Empfehlungsbonus erhalten!',
+            subject: 'Du hast einen Empfehlungsbonus erhalten',
         );
     }
 
@@ -37,5 +37,13 @@ class ReferralRewardEarned extends Mailable implements ShouldQueue
     public function attachments(): array
     {
         return [];
+    }
+
+    /**
+     * Portalname; die Empfehlungspraemie laeuft ohne Tenant, dann der App-Name.
+     */
+    private function portalName(): string
+    {
+        return \App\Support\Tenancy\TenantMailBranding::for(null)->portalName();
     }
 }

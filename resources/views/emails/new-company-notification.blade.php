@@ -1,64 +1,58 @@
-<x-layouts.email>
-    <x-slot name="preview">
-        {{ __('portal.mail.new_company.preview', ['firma' => $details['company']]) }}
-    </x-slot>
+{{-- Neuer Firmeneintrag: Hinweis an den Portalbetreiber (App\Mail\NewCompanyNotification). Texte aus portal.mail.new_company.*, sun-Mail-Layout (SUN-PREM-015, #16). --}}
+@extends('mail.sun.layout')
 
-    <tr>
-        <td class="sm-px-6" style="border-radius: 4px; padding: 48px; font-size: 16px; color: #334155; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05)" bgcolor="#ffffff">
-            <h1 class="sm-leading-8" style="margin: 0 0 24px; font-size: 24px; font-weight: 600; color: #000">
-                {{ __('portal.mail.new_company.heading') }}
-            </h1>
+@section('preview')
+    {{ __('portal.mail.new_company.preview', ['firma' => $details['company']]) }}
+@endsection
 
-            <p style="margin: 0 0 16px; line-height: 24px">
-                {{ __('portal.mail.new_company.intro') }}
-            </p>
+@section('content')
+    <h1 style="margin: 0 0 16px; font-size: 24px; line-height: 32px; font-weight: 700; color: #18181b;">
+        {{ __('portal.mail.new_company.heading') }}
+    </h1>
+    <p style="margin: 0 0 24px;">
+        {{ __('portal.mail.new_company.intro') }}
+    </p>
 
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
-                <tr>
-                    <td style="padding: 8px 0; font-weight: 600; color: #64748b; width: 140px;">{{ __('portal.mail.new_company.company') }}:</td>
-                    <td style="padding: 8px 0;">{{ $details['company'] }}</td>
-                </tr>
-                @if($details['address'])
-                <tr>
-                    <td style="padding: 8px 0; font-weight: 600; color: #64748b;">{{ __('portal.mail.new_company.address') }}:</td>
-                    <td style="padding: 8px 0;">{{ $details['address'] }}</td>
-                </tr>
-                @endif
-                @if($details['tel'])
-                <tr>
-                    <td style="padding: 8px 0; font-weight: 600; color: #64748b;">{{ __('portal.mail.new_company.phone') }}:</td>
-                    <td style="padding: 8px 0;">{{ $details['tel'] }}</td>
-                </tr>
-                @endif
-                @if($details['website'])
-                <tr>
-                    <td style="padding: 8px 0; font-weight: 600; color: #64748b;">{{ __('portal.mail.new_company.website') }}:</td>
-                    <td style="padding: 8px 0;">{{ $details['website'] }}</td>
-                </tr>
-                @endif
-                <tr>
-                    <td style="padding: 8px 0; font-weight: 600; color: #64748b;">{{ __('portal.mail.new_company.owner') }}:</td>
-                    <td style="padding: 8px 0;">{{ $details['owner'] }} ({{ $details['owner_email'] }})</td>
-                </tr>
-                <tr>
-                    <td style="padding: 8px 0; font-weight: 600; color: #64748b;">{{ __('portal.mail.new_company.status') }}:</td>
-                    <td style="padding: 8px 0;">{{ __($details['is_active'] ? 'portal.mail.new_company.status_online' : 'portal.mail.new_company.status_pending') }}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 8px 0; font-weight: 600; color: #64748b;">{{ __('portal.mail.new_company.created_at') }}:</td>
-                    <td style="padding: 8px 0;">{{ __('portal.mail.new_company.created_at_value', ['zeit' => $details['created_at']]) }}</td>
-                </tr>
-            </table>
+    <table style="width: 100%; margin-bottom: 8px;" cellpadding="0" cellspacing="0" role="presentation">
+        <tr>
+            <td style="width: 35%; padding: 4px 0; vertical-align: top; color: #71717a;">{{ __('portal.mail.new_company.company') }}:</td>
+            <td style="padding: 4px 0; vertical-align: top;">{{ $details['company'] }}</td>
+        </tr>
+        @if($details['address'])
+        <tr>
+            <td style="padding: 4px 0; vertical-align: top; color: #71717a;">{{ __('portal.mail.new_company.address') }}:</td>
+            <td style="padding: 4px 0; vertical-align: top;">{{ $details['address'] }}</td>
+        </tr>
+        @endif
+        @if($details['tel'])
+        <tr>
+            <td style="padding: 4px 0; vertical-align: top; color: #71717a;">{{ __('portal.mail.new_company.phone') }}:</td>
+            <td style="padding: 4px 0; vertical-align: top;">{{ $details['tel'] }}</td>
+        </tr>
+        @endif
+        @if($details['website'])
+        <tr>
+            <td style="padding: 4px 0; vertical-align: top; color: #71717a;">{{ __('portal.mail.new_company.website') }}:</td>
+            <td style="padding: 4px 0; vertical-align: top;">{{ $details['website'] }}</td>
+        </tr>
+        @endif
+        <tr>
+            <td style="padding: 4px 0; vertical-align: top; color: #71717a;">{{ __('portal.mail.new_company.owner') }}:</td>
+            <td style="padding: 4px 0; vertical-align: top;">{{ $details['owner'] }} ({{ $details['owner_email'] }})</td>
+        </tr>
+        <tr>
+            <td style="padding: 4px 0; vertical-align: top; color: #71717a;">{{ __('portal.mail.new_company.status') }}:</td>
+            <td style="padding: 4px 0; vertical-align: top;">{{ __($details['is_active'] ? 'portal.mail.new_company.status_online' : 'portal.mail.new_company.status_pending') }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 4px 0; vertical-align: top; color: #71717a;">{{ __('portal.mail.new_company.created_at') }}:</td>
+            <td style="padding: 4px 0; vertical-align: top;">{{ __('portal.mail.new_company.created_at_value', ['zeit' => $details['created_at']]) }}</td>
+        </tr>
+    </table>
 
-            <p style="margin: 0 0 16px; line-height: 24px">
-                <a href="{{ $details['edit_url'] }}" style="color: #1d4ed8; font-weight: 600;">{{ __('portal.mail.new_company.open') }}</a>
-            </p>
+    @include('mail.sun.partials.button', ['url' => $details['edit_url'], 'label' => __('portal.mail.new_company.open')])
 
-            <div role="separator" style="background-color: #e2e8f0; height: 1px; line-height: 1px; margin: 32px 0;">&zwj;</div>
-            <p style="padding-top: 12px; padding-bottom: 12px;">
-                {{ __('portal.mail.sign_off') }}<br>
-                {{ __('portal.mail.sign_off_name') }}
-            </p>
-        </td>
-    </tr>
-</x-layouts.email>
+    <p style="margin: 32px 0 0; font-size: 14px; color: #71717a;">
+        {{ __('portal.mail.system_note') }}
+    </p>
+@endsection

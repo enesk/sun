@@ -15,7 +15,7 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * Mail 'Zahlung fehlgeschlagen' fuer Pro/Premium-Betriebe (#5).
- * Layout: mail.premium.layout (#16); der Tenant geht als mailTenant mit,
+ * Layout: mail.sun.layout (#16); der Tenant geht als mailTenant mit,
  * weil der Versand im Central-Kontext laeuft.
  */
 class CompanyPaymentFailed extends Mailable implements ShouldQueue
@@ -29,7 +29,7 @@ class CompanyPaymentFailed extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('Zahlung fehlgeschlagen – Ihr :plan-Paket', ['plan' => $this->subscription->plan?->name]),
+            subject: __('Zahlung fehlgeschlagen – dein :plan-Paket', ['plan' => $this->subscription->plan?->name]),
         );
     }
 

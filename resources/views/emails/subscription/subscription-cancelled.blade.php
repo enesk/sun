@@ -1,37 +1,42 @@
-<x-layouts.email>
-    <x-slot name="preview">
-        Ihre Kündigung bei {{ config('app.name') }} wurde bestätigt
-    </x-slot>
+{{-- Kuendigungsbestaetigung, umgestellt auf das sun-Mail-Layout (#16). Der Tenant kommt aus dem Abo, weil der Versand im Central-Kontext laeuft. --}}
+@extends('mail.sun.layout')
 
-    <tr>
-        <td class="sm-px-6" style="border-radius: 4px; padding: 48px; font-size: 16px; color: #334155; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05)" bgcolor="#ffffff">
-            <h1 class="sm-leading-8" style="margin: 0 0 24px; font-size: 24px; font-weight: 600; color: #000">
-                Hallo {{ $subscription->user->name }},
-            </h1>
-            <p style="margin: 0; line-height: 24px">
-                Wir bedauern, dass Sie Ihr Abonnement gekündigt haben. Ihre Premium-Funktionen bleiben bis zum Ende des aktuellen Abrechnungszeitraums aktiv.
-            </p>
+@php
+    $mailTenant = $subscription->tenant;
+    $branding = \App\Support\Tenancy\TenantMailBranding::for($mailTenant ?? null);
+    $portalName = $branding->portalName();
+    $contactEmail = (string) ($mailTenant?->getAttribute(\App\Constants\TenantConfigConstants::CONTACT_EMAIL) ?: config('app.support_email'));
+@endphp
 
-            <p style="margin-top: 16px; padding-top: 12px; padding-bottom: 12px; line-height: 24px;">
-                Wir würden uns freuen, wenn Sie uns mitteilen, was wir besser machen können:
-                <a href="mailto:{{ config('app.support_email') }}">
-                    {{ config('app.support_email') }}
-                </a>
-            </p>
+@section('preview')
+    Deine Kündigung bei {{ $portalName }} ist bestätigt
+@endsection
 
-            <p style="padding-top: 12px; padding-bottom: 12px; line-height: 24px;">
-                Sie können Ihr Abonnement jederzeit in Ihrem Dashboard wieder aktivieren.
-            </p>
+@section('content')
+    <h1 style="margin: 0 0 16px; font-size: 24px; line-height: 32px; font-weight: 700; color: #18181b;">
+        Hallo {{ $subscription->user->name }},
+    </h1>
+    <p style="margin: 0; color: #3f3f46;">
+        wir haben deine Kündigung erhalten und bestätigen sie hiermit. Dein Paket und alle Vorteile bleiben bis zum Ende der Laufzeit aktiv — danach läuft dein Profil als Basis-Eintrag weiter.
+    </p>
 
-            <p style="padding-top: 12px; padding-bottom: 12px; line-height: 24px;">
-                Vielen Dank, dass Sie unser Portal genutzt haben. Wir hoffen, Sie bald wiederzusehen!
-            </p>
+    <p style="margin: 16px 0 0; color: #3f3f46;">
+        Deine Inhalte bleiben gespeichert. Du kannst dein Paket jederzeit in deiner Verwaltung wieder buchen.
+    </p>
 
-            <p style="padding-top: 12px; padding-bottom: 12px;">
-                Mit freundlichen Grüßen,<br>
-                Ihr {{ config('app.name') }}-Team
-            </p>
-        </td>
-    </tr>
+    @if ($contactEmail !== '')
+        <p style="margin: 16px 0 0; color: #3f3f46;">
+            Sag uns gern, was wir besser machen können:
+            <a href="mailto:{{ $contactEmail }}" style="color: #3f3f46;">{{ $contactEmail }}</a>
+        </p>
+    @endif
 
-</x-layouts.email>
+    <p style="margin: 16px 0 0; color: #3f3f46;">
+        Danke, dass du dabei warst. Wir freuen uns, wenn wir dich wiedersehen!
+    </p>
+
+    <p style="margin: 32px 0 0; color: #3f3f46;">
+        Viele Grüße<br>
+        Dein Team von {{ $portalName }}
+    </p>
+@endsection

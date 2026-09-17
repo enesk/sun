@@ -29,7 +29,7 @@ class SubscriptionCancelled extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Ihre Kündigung bei ' . config('app.name') . ' wurde bestätigt',
+            subject: 'Deine Kündigung bei '.$this->portalName().' ist bestätigt',
         );
     }
 
@@ -51,5 +51,13 @@ class SubscriptionCancelled extends Mailable implements ShouldQueue
     public function attachments(): array
     {
         return [];
+    }
+
+    /**
+     * Portalname des Abos; ohne Tenant der App-Name (Mails aus dem Central-Kontext).
+     */
+    private function portalName(): string
+    {
+        return \App\Support\Tenancy\TenantMailBranding::for($this->subscription->tenant ?? null)->portalName();
     }
 }

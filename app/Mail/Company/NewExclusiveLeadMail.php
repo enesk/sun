@@ -15,7 +15,7 @@ use Illuminate\Queue\SerializesModels;
 /**
  * Neue exklusive Anfrage an den Betrieb (#9), mit vollstaendigen Kontaktdaten.
  * Laeuft ueber die Queue; der Tenant reist per QueueTenancyBootstrapper mit.
- * Layout: mail.premium.layout (#16).
+ * Layout: mail.sun.layout (#16).
  */
 class NewExclusiveLeadMail extends Mailable implements ShouldQueue
 {

@@ -30,7 +30,7 @@ class Subscribed extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Willkommen bei ' . config('app.name') . ' — Ihr Abo ist aktiv',
+            subject: 'Willkommen bei '.$this->portalName().' — dein Paket ist aktiv',
         );
     }
 
@@ -52,5 +52,13 @@ class Subscribed extends Mailable implements ShouldQueue
     public function attachments(): array
     {
         return [];
+    }
+
+    /**
+     * Portalname des Abos; ohne Tenant der App-Name (Mails aus dem Central-Kontext).
+     */
+    private function portalName(): string
+    {
+        return \App\Support\Tenancy\TenantMailBranding::for($this->subscription->tenant ?? null)->portalName();
     }
 }

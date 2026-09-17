@@ -30,7 +30,7 @@ class InvoicePaymentFailed extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Zahlungsproblem bei ' . config('app.name') . ' — Aktion erforderlich',
+            subject: 'Zahlungsproblem bei '.$this->portalName().' — bitte Zahlungsdaten prüfen',
         );
     }
 
@@ -52,5 +52,13 @@ class InvoicePaymentFailed extends Mailable implements ShouldQueue
     public function attachments(): array
     {
         return [];
+    }
+
+    /**
+     * Portalname des Abos; ohne Tenant der App-Name (Mails aus dem Central-Kontext).
+     */
+    private function portalName(): string
+    {
+        return \App\Support\Tenancy\TenantMailBranding::for($this->subscription->tenant ?? null)->portalName();
     }
 }

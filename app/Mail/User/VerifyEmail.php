@@ -39,7 +39,7 @@ class VerifyEmail extends Mailable implements ShouldQueue
         }
 
         return new Envelope(
-            subject: 'E-Mail-Adresse bestätigen',
+            subject: 'Bestätige deine E-Mail-Adresse',
         );
     }
 
@@ -48,8 +48,17 @@ class VerifyEmail extends Mailable implements ShouldQueue
      */
     public function content(): Content
     {
+        if (tenancy()->initialized) {
+            return new Content(
+                view: 'emails.portal.verify-email',
+                with: [
+                    'mailTenant' => tenant(),
+                ],
+            );
+        }
+
         return new Content(
-            view: tenancy()->initialized ? 'emails.portal.verify-email' : 'emails.user.verify-email',
+            view: 'emails.user.verify-email',
         );
     }
 

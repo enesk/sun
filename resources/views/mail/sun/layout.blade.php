@@ -2,12 +2,12 @@
     Gemeinsames Layout der Premium-Mails (#16, SUN-PREM-015): Monatsreport, exklusive Anfrage (#9),
     Zahlung fehlgeschlagen (#5), Nachweis abgelehnt (#11).
 
-    Aufruf: @extends('mail.premium.layout') mit den Sections
+    Aufruf: @extends('mail.sun.layout') mit den Sections
     - preview  (Vorschautext im Postfach, optional)
     - content  (Inhalt der weissen Karte inkl. Grussformel; Anrede Du/Sie bleibt bei der Mail)
     - footer   (Zusatzzeile im Fuss, z.B. Abmeldelink, optional)
     Sections werden vor dem Layout gerendert, Variablen von hier kommen dort also nicht an:
-    Buttons ueber @include('mail.premium.partials.button', ['url' => ..., 'label' => ...]),
+    Buttons ueber @include('mail.sun.partials.button', ['url' => ..., 'label' => ...]),
     Portalname/Farbe im Inhalt ueber TenantMailBranding::current().
     Ausserhalb des Tenant-Kontexts den Tenant als View-Variable $mailTenant mitgeben.
     Farben/URLs: App\Support\Tenancy\TenantMailBranding. Nur Inline-Styles (Mail-Clients).

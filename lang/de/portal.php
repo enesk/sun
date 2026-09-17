@@ -652,6 +652,8 @@ return [
         'greeting_anonymous' => 'Hallo,',
         'sign_off' => 'Viele Grüße',
         'sign_off_name' => 'Dein Team von :portal',
+        // Fussnote der Systemmails an den Portalbetreiber (keine Grussformel noetig)
+        'system_note' => 'Automatische Nachricht von :portal.',
 
         'new_company' => [
             'subject' => 'Neuer Eintrag auf :portal: :firma',

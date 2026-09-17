@@ -1,48 +1,59 @@
-<x-layouts.email>
-    <x-slot name="preview">
-        Ihre Testphase läuft bald ab — jetzt Premium sichern
-    </x-slot>
+{{-- Paket laeuft bald ab (locally managed subscription), umgestellt auf das sun-Mail-Layout (#16). Der Tenant kommt aus dem Abo, weil der Versand im Central-Kontext laeuft. --}}
+@extends('mail.sun.layout')
 
-    <tr>
-        <td class="sm-px-6" style="border-radius: 4px; padding: 48px; font-size: 16px; color: #334155; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05)" bgcolor="#ffffff">
-            <h1 class="sm-leading-8" style="margin: 0 0 24px; font-size: 24px; font-weight: 600; color: #000">
-                Ihre Testphase läuft bald ab
-            </h1>
-            <p style="margin: 0; line-height: 24px">
-                Hallo {{ $subscription->user->name }},
-                <br>
-                <br>
-                Ihre kostenlose Testphase für den <strong>{{ $subscription->plan->name }}</strong>-Plan läuft in Kürze ab. Aktivieren Sie jetzt Premium, um Ihre erweiterten Funktionen zu behalten.
-            </p>
+@php
+    $mailTenant = $subscription->tenant;
+    $branding = \App\Support\Tenancy\TenantMailBranding::for($mailTenant ?? null);
+    $portalName = $branding->portalName();
+    $contactEmail = (string) ($mailTenant?->getAttribute(\App\Constants\TenantConfigConstants::CONTACT_EMAIL) ?: config('app.support_email'));
+    $contract = config('premium.contract');
+@endphp
 
-            <p style="margin: 16px 0 0 0; line-height: 24px; font-weight: 600;">
-                Was Sie verlieren würden:
-            </p>
-            <ul style="margin: 8px 0 24px; padding-left: 20px; line-height: 28px;">
-                <li>Auf Bewertungen antworten</li>
-                <li>Bildergalerie & Cover-Bild</li>
-                <li>Top-Platzierung in der Suche</li>
-                <li>Detaillierte Statistiken</li>
-            </ul>
+@section('preview')
+    Dein Paket bei {{ $portalName }} läuft bald ab
+@endsection
 
-            <div style="text-align: center;">
-                <a href="{{ central_route('checkout.convert-local-subscription', ['subscriptionUuid' => $subscription->uuid]) }}" style="margin-top: 8px; margin-bottom: 24px; display: inline-block; border-radius: 16px; background-color: {{config('app.email_color_tint')}}; padding: 12px 32px; font-size: 18px; color: #fff; text-decoration-line: none; font-weight: 600;">
-                    Jetzt Premium aktivieren — ab 9,90 €/Monat
-                </a>
-            </div>
+@section('content')
+    <h1 style="margin: 0 0 16px; font-size: 24px; line-height: 32px; font-weight: 700; color: #18181b;">
+        Dein Paket läuft bald ab
+    </h1>
+    <p style="margin: 0; color: #3f3f46;">
+        Hallo {{ $subscription->user->name }},
+        <br>
+        <br>
+        dein Paket <strong>{{ $subscription->plan->name }}</strong> läuft in Kürze ab. Buch es jetzt weiter, damit dein Profil ohne Unterbrechung sichtbar bleibt.
+    </p>
 
-            <div role="separator" style="background-color: #e2e8f0; height: 1px; line-height: 1px; margin: 32px 0;">&zwj;</div>
-            <p style="margin-top: 16px; padding-top: 12px; padding-bottom: 12px; font-size: 14px; color: #64748b;">
-                Sie haben Fragen? Unser Support-Team hilft Ihnen gerne:
-                <a href="mailto:{{ config('app.support_email') }}">
-                    {{ config('app.support_email') }}
-                </a>
-            </p>
-            <p style="padding-top: 12px; padding-bottom: 12px;">
-                Mit freundlichen Grüßen,<br>
-                Ihr {{ config('app.name') }}-Team
-            </p>
-        </td>
-    </tr>
+    <p style="margin: 16px 0 0; font-weight: 600; color: #18181b;">
+        Das würdest du sonst verlieren:
+    </p>
+    <ul style="margin: 8px 0 0; padding-left: 20px; line-height: 28px; color: #3f3f46;">
+        <li>Werbefreies Profil</li>
+        <li>Fotogalerie im Profil</li>
+        <li>Antworten auf Bewertungen</li>
+        <li>Top-Platzierung in der Suche</li>
+        <li>Exklusive Anfragen</li>
+        <li>Statistiken zu deinem Profil</li>
+    </ul>
 
-</x-layouts.email>
+    @include('mail.sun.partials.button', [
+        'url' => central_route('checkout.convert-local-subscription', ['subscriptionUuid' => $subscription->uuid]),
+        'label' => 'Paket ansehen',
+    ])
+
+    <p style="margin: 32px 0 0; font-size: 14px; line-height: 22px; color: #71717a;">
+        Die Laufzeit beträgt {{ $contract['term_months'] }} Monate, die Kündigungsfrist {{ $contract['notice_months'] }} Monate zum Laufzeitende. Alle Preise verstehen sich netto zzgl. {{ $contract['vat_percent'] }} % USt.
+    </p>
+
+    @if ($contactEmail !== '')
+        <p style="margin: 16px 0 0; font-size: 14px; line-height: 22px; color: #71717a;">
+            Du hast Fragen? Schreib uns einfach:
+            <a href="mailto:{{ $contactEmail }}" style="color: #71717a;">{{ $contactEmail }}</a>
+        </p>
+    @endif
+
+    <p style="margin: 24px 0 0; color: #3f3f46;">
+        Viele Grüße<br>
+        Dein Team von {{ $portalName }}
+    </p>
+@endsection

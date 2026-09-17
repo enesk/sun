@@ -20,13 +20,12 @@ class JobExpired extends Mailable implements ShouldQueue
         public Job $job,
         public Company $company,
         public Tenant $tenant,
-    ) {
-    }
+    ) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Ihre Stellenanzeige „' . $this->job->title . '" ist abgelaufen',
+            subject: 'Deine Stellenanzeige „'.$this->job->title.'" ist abgelaufen',
         );
     }
 
@@ -34,6 +33,9 @@ class JobExpired extends Mailable implements ShouldQueue
     {
         return new Content(
             view: 'emails.job.expired',
+            with: [
+                'mailTenant' => $this->tenant,
+            ],
         );
     }
 

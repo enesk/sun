@@ -24,7 +24,7 @@ class TrialExpired extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Ihre Testphase ist abgelaufen',
+            subject: 'Dein Paket bei '.$this->portalName().' ist ausgelaufen',
         );
     }
 
@@ -41,5 +41,13 @@ class TrialExpired extends Mailable implements ShouldQueue
     public function attachments(): array
     {
         return [];
+    }
+
+    /**
+     * Portalname des Abos; ohne Tenant der App-Name (Mails aus dem Central-Kontext).
+     */
+    private function portalName(): string
+    {
+        return \App\Support\Tenancy\TenantMailBranding::for($this->subscription->tenant ?? null)->portalName();
     }
 }

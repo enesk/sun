@@ -1,45 +1,39 @@
 {{--
     E-Mail-Bestaetigung auf einem Portal (App\Mail\User\VerifyEmail im Tenant-Kontext, #11).
+    Empfaenger: Person, die sich gerade eingetragen/registriert hat.
     Alle Texte aus portal.mail.*; ohne Tenant gilt emails.user.verify-email.
+    Layout: mail.sun.layout; der Tenant geht als $mailTenant mit.
 --}}
-<x-layouts.email>
-    <x-slot name="preview">
-        {{ __('portal.mail.verify_email.preview') }}
-    </x-slot>
+@extends('mail.sun.layout')
 
-    <tr>
-        <td class="sm-px-6" style="border-radius: 4px; padding: 48px; font-size: 16px; color: #334155; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05)" bgcolor="#ffffff">
-            <h1 class="sm-leading-8" style="margin: 0 0 24px; font-size: 24px; font-weight: 600; color: #000">
-                {{ __('portal.mail.verify_email.heading') }}
-            </h1>
-            <p style="margin: 0 0 16px; line-height: 24px">
-                {{ filled($name) ? __('portal.mail.greeting', ['name' => $name]) : __('portal.mail.greeting_anonymous') }}
-            </p>
-            <p style="margin: 0; line-height: 24px">
-                {{ __('portal.mail.verify_email.intro') }}
-            </p>
+@section('preview')
+    {{ __('portal.mail.verify_email.preview') }}
+@endsection
 
-            <div style="text-align: center;">
-                <a href="{{ $url }}" style="margin-top: 24px; margin-bottom: 24px; display: inline-block; border-radius: 16px; background-color: {{config('app.email_color_tint')}}; padding: 12px 32px; font-size: 18px; color: #fff; text-decoration-line: none; font-weight: 600;">
-                    {{ __('portal.mail.verify_email.button') }}
-                </a>
-            </div>
+@section('content')
+    <h1 style="margin: 0 0 16px; font-size: 24px; line-height: 32px; font-weight: 700; color: #18181b;">
+        {{ __('portal.mail.verify_email.heading') }}
+    </h1>
+    <p style="margin: 0 0 16px;">
+        {{ filled($name) ? __('portal.mail.greeting', ['name' => $name]) : __('portal.mail.greeting_anonymous') }}
+    </p>
+    <p style="margin: 0;">
+        {{ __('portal.mail.verify_email.intro') }}
+    </p>
 
-            <p style="margin: 0 0 16px; line-height: 24px">
-                {{ __('portal.mail.verify_email.outro') }}
-            </p>
-            <p style="margin: 0; line-height: 24px">
-                {{ __('portal.mail.sign_off') }}<br>
-                {{ __('portal.mail.sign_off_name') }}
-            </p>
+    @include('mail.sun.partials.button', ['url' => $url, 'label' => __('portal.mail.verify_email.button')])
 
-            <div role="separator" style="background-color: #e2e8f0; height: 1px; line-height: 1px; margin: 32px 0;">&zwj;</div>
+    <p style="margin: 32px 0 16px;">
+        {{ __('portal.mail.verify_email.outro') }}
+    </p>
+    <p style="margin: 0;">
+        {{ __('portal.mail.sign_off') }}<br>
+        {{ __('portal.mail.sign_off_name') }}
+    </p>
 
-            <p style="font-size: 14px; color: #64748b;">
-                {{ __('portal.mail.verify_email.link_hint') }} <a href="{{ $url }}">
-                    {{ $url }}
-                </a>
-            </p>
-        </td>
-    </tr>
-</x-layouts.email>
+    <div role="separator" style="background-color: #e4e4e7; height: 1px; line-height: 1px; margin: 32px 0;">&zwj;</div>
+
+    <p style="margin: 0; font-size: 14px; line-height: 20px; color: #71717a;">
+        {{ __('portal.mail.verify_email.link_hint') }} <a href="{{ $url }}" style="color: #71717a;">{{ $url }}</a>
+    </p>
+@endsection

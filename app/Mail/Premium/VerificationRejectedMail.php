@@ -13,7 +13,7 @@ use Illuminate\Mail\Mailables\Envelope;
 /**
  * Mail 'Nachweis abgelehnt' (#11). Bekommt nur Skalare, damit der Queue-Job
  * keine Tenant-Models ausserhalb des Tenant-Kontexts nachladen muss.
- * Layout: mail.premium.layout (#16).
+ * Layout: mail.sun.layout (#16).
  */
 class VerificationRejectedMail extends Mailable implements ShouldQueue
 {
@@ -29,7 +29,7 @@ class VerificationRejectedMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('Ihr Nachweis für :company wurde nicht bestätigt', ['company' => $this->companyName]),
+            subject: __('Dein Nachweis für :company wurde nicht bestätigt', ['company' => $this->companyName]),
         );
     }
 
