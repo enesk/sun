@@ -89,8 +89,9 @@ class StripeProvider implements PaymentProviderInterface
             // braucht Stripe die Anschrift des Kunden; die USt-IdNr. dient zugleich
             // als Nachweis der Unternehmereigenschaft.
             if (config('premium.contract.automatic_tax', true)) {
+                // Nur auf Session-Ebene: Stripe uebernimmt die Einstellung von dort
+                // auf das Abo. In subscription_data ist der Schluessel unbekannt.
                 $sessionCreationObject['automatic_tax'] = ['enabled' => true];
-                $sessionCreationObject['subscription_data']['automatic_tax'] = ['enabled' => true];
                 $sessionCreationObject['billing_address_collection'] = 'required';
                 $sessionCreationObject['customer_update'] = ['address' => 'auto', 'name' => 'auto'];
                 $sessionCreationObject['tax_id_collection'] = ['enabled' => true];
