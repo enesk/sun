@@ -143,6 +143,10 @@ return [
         'notice_months' => 3,
         'vat_percent' => 19,
         'business_only' => true,
+
+        // Stripe rechnet die Umsatzsteuer im Checkout auf den Nettopreis. Setzt
+        // Stripe Tax im Konto voraus; ohne das lehnt Stripe die Session ab.
+        'automatic_tax' => true,
     ],
 
     /*

@@ -85,6 +85,17 @@ class StripeProvider implements PaymentProviderInterface
                 ],
             ];
 
+            // Nettopreise: Stripe rechnet die Umsatzsteuer oben drauf (#39). Dafuer
+            // braucht Stripe die Anschrift des Kunden; die USt-IdNr. dient zugleich
+            // als Nachweis der Unternehmereigenschaft.
+            if (config('premium.contract.automatic_tax', true)) {
+                $sessionCreationObject['automatic_tax'] = ['enabled' => true];
+                $sessionCreationObject['subscription_data']['automatic_tax'] = ['enabled' => true];
+                $sessionCreationObject['billing_address_collection'] = 'required';
+                $sessionCreationObject['customer_update'] = ['address' => 'auto', 'name' => 'auto'];
+                $sessionCreationObject['tax_id_collection'] = ['enabled' => true];
+            }
+
             $shouldSkipTrial = $this->subscriptionService->shouldSkipTrial($subscription);
 
             if (! $shouldSkipTrial && $trialDays > 0) {
