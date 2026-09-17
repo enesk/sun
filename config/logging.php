@@ -73,6 +73,15 @@ return [
             'replace_placeholders' => true,
         ],
 
+        // profiles:rewrite-descriptions und Folgebefehle
+        'profile-descriptions' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/profile-descriptions.log'),
+            'level' => 'debug',
+            'days' => 60,
+            'replace_placeholders' => true,
+        ],
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),
