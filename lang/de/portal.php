@@ -2142,7 +2142,7 @@ return [
             ],
             'locked' => [
                 'intro' => 'Finde Bewerber aus deiner Region, direkt über dein Profil.',
-                'badge' => 'Premium',
+                'badge' => 'Pro',
                 'title' => 'Stellenanzeigen schalten',
                 'text' => 'Veröffentliche Stellen auf deiner Firmenseite und in der Jobbörse. Bewerbungen kommen gesammelt hier an.',
                 'features' => [
@@ -2150,11 +2150,11 @@ return [
                     'applications' => 'Bewerbungen direkt im Portal',
                     'visible' => ':tage Tage sichtbar',
                 ],
-                'hint' => 'Stellenanzeigen gibt es mit Premium.',
-                'unlock' => 'Freischalten',
-                'premium_title' => 'Mit Premium mehr erreichen',
+                'hint' => 'Stellenanzeigen gibt es ab Pro.',
+                'unlock' => 'Mit Pro freischalten',
+                'premium_title' => 'Mit Pro mehr erreichen',
                 'premium_text' => 'Stellenanzeigen, Fotos, Leistungen und Öffnungszeiten in deinem Profil.',
-                'premium_cta' => 'Premium ansehen',
+                'premium_cta' => 'Pakete ansehen',
             ],
             'create' => [
                 'title' => 'Stelle erstellen',

@@ -14,13 +14,14 @@ return [
 
     'tiers' => [
         PlanTier::Free->value => [
+            // Stellenanzeigen sind kostenpflichtig (Vorgabe Enes, 18.09.2026):
+            // Basis sieht nur die gesperrte Ansicht mit Upsell.
             'features' => [
                 PremiumFeature::GalleryPhotos->value,
-                PremiumFeature::JobPostings->value,
             ],
             'limits' => [
                 'gallery_photos' => 1,
-                'job_postings_active' => 1,
+                'job_postings_active' => 0,
                 'lead_quota_monthly' => 0,
                 'references' => 0,
             ],
