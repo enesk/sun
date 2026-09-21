@@ -9,6 +9,7 @@ use App\Content\Llm\LlmContext;
 use App\Content\Llm\PromptRenderer;
 use App\Content\Models\ArticleDraft;
 use App\Content\Models\Central\PromptTemplate;
+use App\Content\Support\UmlautSpelling;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 
@@ -43,6 +44,16 @@ abstract class GenerationStep
     /**
      * Schluessel des Templates in `prompt_templates`.
      */
+    /**
+     * Die Prompts sind in ASCII geschrieben ("fuer", "Naehe"); ohne diese
+     * Regel uebernimmt das Modell die Umschreibung in den Artikel (#41).
+     * Sie steht im Code, damit sie fuer jede Vorlagenversion gilt.
+     */
+    public const SPELLING_RULE = 'Rechtschreibung: Schreiben Sie im gesamten Ergebnis die deutschen Umlaute '
+        .'und das ß korrekt (ä, ö, ü, Ä, Ö, Ü, ß), also „für", „Nähe", „Störung", „Größe". Umschreibungen wie '
+        .'„ae", „oe", „ue" oder „ss" statt ß stehen in diesen Anweisungen nur aus technischen Gründen und '
+        .'dürfen im Text nie vorkommen. Ausgenommen sind Link-Adressen, die Sie unverändert übernehmen.';
+
     abstract public function templateKey(): string;
 
     /**
@@ -88,13 +99,17 @@ abstract class GenerationStep
             $user .= "\n\n".$rules;
         }
 
-        return $this->llm->emit(
+        $user .= "\n\n".self::SPELLING_RULE;
+
+        $payload = $this->llm->emit(
             $system,
             $user,
             $this->schema($context),
             LlmContext::forDraft($draft, $this->templateKey()),
             $this->templateKey(),
         );
+
+        return (array) UmlautSpelling::repairPayload($payload);
     }
 
     /**

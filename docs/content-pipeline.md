@@ -342,6 +342,23 @@ getrennt hinterlegt.
 `thinking` standardmäßig auf `disabled` — bei erzwungenem Tool-Use bringt erweitertes
 Denken nichts und kostet Output-Tokens.
 
+Mit `CONTENT_LLM_DRIVER=cli` läuft derselbe Aufruf über die Claude-CLI und das Claude-Abo
+(`Llm\ClaudeCliTransport`, `claude -p --json-schema`). Die Nutzdaten stehen dann in
+`structured_output`, einen Nachrichtenverlauf gibt es nicht: Bei einem Schemaverstoß
+stehen die vorige Ausgabe und die Verstöße als Text im nächsten Prompt. Kosten werden mit
+0 geloggt, die Grenze setzt das Abo-Kontingent statt `content.budget`.
+
+### Umlaute (#41)
+
+Die Prompts sind in ASCII geschrieben („fuer“, „Naehe“), und das Modell übernahm diese
+Schreibung teilweise in Titel und Text. `GenerationStep::ask()` hängt deshalb jeder Stufe
+die Sprachregel `SPELLING_RULE` an, unabhängig von der Vorlagenversion, und schickt die
+Antwort durch `Support\UmlautSpelling::repairPayload()`. Die Klasse ersetzt nur Wortstämme
+aus einer geprüften Liste. HTML-Tags, Link-Adressen und Schlüssel wie `url` oder `slug`
+bleiben unberührt. Was sie nicht kennt, meldet die Lint-Regel `umlaut_spelling`
+(`config/content_seo_rules.php`): Schon ein Treffer in Titel, Meta-Angaben oder
+Kurzantwort blockiert, im Fließtext erst mehr als `max_body_suspects` (2).
+
 ### Rate-Limits
 
 | Provider | Grenze (Konfig) | Parallelität |
@@ -605,6 +622,14 @@ Tenant-Name und -Domain bestimmt (Gesundheit, Geld, Recht, Sicherheit); YMYL-Man
 bekommen `auto_publish_threshold` 90 statt 80.
 
 Aufruf: `php artisan db:seed --class=TenantContentSettingSeeder`
+
+Zur Grundausstattung jeder Umgebung gehören außerdem, alle idempotent:
+
+| Seeder | Füllt | Ohne ihn |
+|---|---|---|
+| `PromptTemplateSeeder` | `prompt_templates` (Stufen, Rubrik, Branchen-Styleguides aus `docs/styleguides/`) | Alle Stufen schreiben mit den eingebauten Ersatzprompts, ohne Styleguide |
+| `GeoRegionSeeder` | `geo_regions` je Tenant (Länder, 400 Städte, Portalorte) | Kein Ortsbezug erkannt, Betriebssuchen werden nicht aussortiert |
+| `BranchKeywordSeeder` | Branchen-Keywords je Tenant | Google Trends überspringt jeden Abruf |
 
 ---
 
@@ -1006,6 +1031,13 @@ per Cascade fremde Belege mit. Welche Fakten ein Artikel belegt, steht in
 `draft_sources`; gesucht wird über `withKey()` + `forRegion()` + `stillValid()`, nie über
 die Beziehung `factSnippets()`.
 
+Welche Schnipsel ein Artikel mitbekommt, entscheidet `ContextAssembler::isRelevantFact()`
+(#41): zum Thema erhobene Schnipsel, Schnipsel aus den Quellen des Themas und
+Portal-Eigendaten (`portal.*`) immer, allgemeine Kennzahlen nur bei einem gemeinsamen
+Fachbegriff mit dem Thema, DWD-Werte nur bei einem Wetterwort im Thema („frost“,
+„gewitter“, „hitze“ …). Vorher bekam jeder bundesweite Artikel die DWD-Monatsmittel, und
+das Modell baute sie ein, auch wo sie nichts zur Sache taten.
+
 GENESIS braucht Zugangsdaten (`GENESIS_USERNAME`/`GENESIS_PASSWORD`, kostenlose
 Registrierung). Fehlen sie, läuft nur der DWD-Teil. Vom DWD kommen ausschließlich
 Regionalmittel je Monat, gemittelt über `reference_years` Jahre — Klima, kein Wetterbericht.
@@ -1104,10 +1136,20 @@ auf — Suchvolumen kommt aus den Rohsignalen, Nachfrage und Lücke aus `article
 Vorfilter, danach Cosine über die Voyage-Embeddings in PHP. Ab 0.88 zu einem Artikel im
 Portalnetz oder 0.80 zu einem eigenen gilt der Kandidat als `duplicate`. Rankt der Mandant
 laut Search Console zum Hauptkeyword bereits auf Position ≤ 7, ist es `cannibalization`.
-Der Grund steht in `rejection_reason` (genau diese beiden Werte), die Einzelheiten in
-`rationale`. Der SimHash hier ist die maßgebliche Fassung für die Pipeline; #21 registriert
+Der Grund steht in `rejection_reason`, die Einzelheiten in `rationale`. Der SimHash hier ist die maßgebliche Fassung für die Pipeline; #21 registriert
 Fingerprints mit derselben Methode. Fällt Voyage aus, läuft der Lauf ohne
 Ähnlichkeitsvergleich weiter (`uniqueness_score = 100`) statt die Tageskette anzuhalten.
+
+### Betriebssuchen (#41)
+
+Vor der Duplikatprüfung sortiert `Services\NavigationalTopicDetector` Themen aus, die eine
+Betriebssuche sind: Nimmt man aus dem Hauptkeyword Orte (`geo_regions`), Nähe-Angaben
+(„in der nähe“) und Suchwörter („notdienst“, „firma“) heraus und bleibt höchstens ein
+Begriff übrig, wird der Kandidat mit `rejection_reason = navigational` abgelehnt.
+„elektriker hamburg“ ist damit kein Thema, „wallbox kosten hamburg“ bleibt eins. Solche
+Anfragen bedienen die Stadt- und Kategorieseiten des Portals. Ohne geseedete `geo_regions`
+erkennt der Filter keine Orte, deshalb gehört der `GeoRegionSeeder` zur Grundausstattung
+(siehe §11).
 
 ### YMYL
 

@@ -11,6 +11,7 @@ use App\Content\Models\TenantContentSetting;
 use App\Content\Models\TopicCandidate;
 use App\Content\Services\DuplicateChecker;
 use App\Content\Services\KeywordClusterer;
+use App\Content\Services\NavigationalTopicDetector;
 use App\Content\Services\TopicScorer;
 use App\Content\Support\BranchResolver;
 use App\Models\Tenant;
@@ -69,8 +70,11 @@ class ScoreTopicsJob implements ShouldBeUnique, ShouldQueue
         return 3600;
     }
 
-    public function handle(DuplicateChecker $duplicates, KeywordClusterer $clusterer): void
-    {
+    public function handle(
+        DuplicateChecker $duplicates,
+        KeywordClusterer $clusterer,
+        NavigationalTopicDetector $navigational,
+    ): void {
         $tenant = Tenant::query()->find($this->tenantId);
 
         if ($tenant === null) {
@@ -79,7 +83,7 @@ class ScoreTopicsJob implements ShouldBeUnique, ShouldQueue
 
         $branch = BranchResolver::resolve($tenant);
 
-        $tenant->run(function () use ($duplicates, $clusterer, $branch): void {
+        $tenant->run(function () use ($duplicates, $clusterer, $navigational, $branch): void {
             /** @var \Illuminate\Database\Eloquent\Collection<int, TopicCandidate> $topics */
             $topics = TopicCandidate::query()
                 ->whereIn('status', [TopicStatus::DISCOVERED->value, TopicStatus::SCORED->value])
@@ -97,10 +101,22 @@ class ScoreTopicsJob implements ShouldBeUnique, ShouldQueue
             $embeddings = $this->embed($duplicates, $topics);
             $scorer = new TopicScorer(TenantContentSetting::current());
 
-            $rejected = ['duplicate' => 0, 'cannibalization' => 0];
+            $rejected = ['navigational' => 0, 'duplicate' => 0, 'cannibalization' => 0];
             $entries = [];
 
             foreach ($topics as $index => $topic) {
+                // Betriebssuchen ("elektriker hamburg") bedienen Stadt- und
+                // Kategorieseiten, nicht der Ratgeber (#41).
+                $navigationalReason = $navigational->reason($topic);
+
+                if ($navigationalReason !== null) {
+                    $this->reject($topic, NavigationalTopicDetector::REASON, $navigationalReason);
+
+                    $rejected['navigational']++;
+
+                    continue;
+                }
+
                 $embedding = $embeddings[$index] ?? [];
                 $simhash = DuplicateChecker::simhash($duplicates->textFor($topic));
 

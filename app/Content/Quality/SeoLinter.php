@@ -7,6 +7,7 @@ namespace App\Content\Quality;
 use App\Content\Models\ArticleDraft;
 use App\Content\Support\EvidenceMarks;
 use App\Content\Support\TextFold;
+use App\Content\Support\UmlautSpelling;
 use Illuminate\Support\Str;
 
 /**
@@ -47,6 +48,7 @@ final class SeoLinter
         'image_alt' => 'Alt-Texte der Bilder',
         'external_links_reachable' => 'Externe Links erreichbar',
         'readability' => 'Lesbarkeit (Flesch)',
+        'umlaut_spelling' => 'Umlaute',
         'doorway' => 'Regionalbezug im Fließtext',
         'ymyl_disclaimer' => 'Pflichthinweis (YMYL)',
     ];
@@ -153,6 +155,7 @@ final class SeoLinter
             'image_alt' => $this->imageAlt($body),
             'external_links_reachable' => $this->externalLinks((array) ($input['link_results'] ?? [])),
             'readability' => $this->readability((array) ($input['readability'] ?? [])),
+            'umlaut_spelling' => $this->umlautSpelling($draft, $body, (int) ($rule['max_body_suspects'] ?? 2)),
             'doorway' => $this->doorway($text, $input),
             'ymyl_disclaimer' => $this->ymylDisclaimer($text, (bool) ($input['is_ymyl'] ?? false)),
             default => null,
@@ -464,6 +467,47 @@ final class SeoLinter
         }
 
         return ['status' => 'ok', 'message' => __('Alle :count externen Links antworten.', ['count' => count($results)])];
+    }
+
+    /**
+     * Umschriebene Umlaute ("Naehe", "fuer"), die UmlautSpelling nicht
+     * korrigieren konnte (#41).
+     *
+     * @return array{status: string, message: ?string}
+     */
+    private function umlautSpelling(ArticleDraft $draft, string $body, int $maxBodySuspects): array
+    {
+        $visible = implode(' ', array_filter([
+            (string) $draft->title,
+            (string) $draft->meta_title,
+            (string) $draft->meta_description,
+            (string) $draft->short_answer,
+        ]));
+
+        $prominent = UmlautSpelling::suspects($visible);
+        $faq = implode(' ', array_map(
+            static fn ($entry): string => is_array($entry) ? implode(' ', array_filter($entry, 'is_string')) : '',
+            (array) ($draft->faq_json ?? []),
+        ));
+        $inText = array_values(array_diff(UmlautSpelling::suspects($body.' '.$faq), $prominent));
+
+        if ($prominent !== []) {
+            return ['status' => 'fail', 'message' => __('Umschriebene Umlaute in Titel, Meta-Angaben oder Kurzantwort: :words.', [
+                'words' => implode(', ', array_slice($prominent, 0, 8)),
+            ])];
+        }
+
+        if ($inText === []) {
+            return ['status' => 'ok', 'message' => __('Keine umschriebenen Umlaute gefunden.')];
+        }
+
+        return [
+            'status' => count($inText) > $maxBodySuspects ? 'fail' : 'warn',
+            'message' => __(':count Wörter mit umschriebenem Umlaut im Text: :words.', [
+                'count' => count($inText),
+                'words' => implode(', ', array_slice($inText, 0, 8)),
+            ]),
+        ];
     }
 
     /**

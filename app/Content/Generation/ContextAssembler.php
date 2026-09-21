@@ -18,6 +18,7 @@ use App\Content\Services\SerpInsightDto;
 use App\Content\Services\SerpInsightService;
 use App\Content\Sources\Support\StateCatalog;
 use App\Content\Support\BranchResolver;
+use App\Content\Support\TextFold;
 use App\Models\Portal\City;
 use App\Models\Tenant;
 use Illuminate\Support\Carbon;
@@ -44,6 +45,25 @@ use Illuminate\Support\Str;
  */
 class ContextAssembler
 {
+    /**
+     * Themenwoerter, bei denen Wetterwerte (DWD) in den Artikel gehoeren.
+     * Gefaltet wie TextFold::fold().
+     */
+    private const WEATHER_TERMS = [
+        'wetter', 'unwetter', 'gewitter', 'blitz', 'blitzschlag', 'blitzschutz', 'hitze', 'hitzewelle',
+        'frost', 'kaelte', 'winter', 'sommer', 'regen', 'starkregen', 'niederschlag', 'sturm',
+        'temperatur', 'temperaturen', 'feuchtigkeit', 'hochwasser', 'schnee', 'glatteis',
+    ];
+
+    /**
+     * Woerter, die in fast jedem Thema und Schnipsel stehen und deshalb keine
+     * Verwandtschaft belegen.
+     */
+    private const GENERIC_TERMS = [
+        'deutschland', 'bundesweit', 'regional', 'portal', 'monatsmittel', 'durchschnitt',
+        'aktuell', 'stand', 'quelle', 'daten', 'jahres', 'monat', 'monate',
+    ];
+
     public function __construct(
         private readonly SerpInsightService $serp,
         private readonly PortalDataProvider $portal,
@@ -165,7 +185,7 @@ class ContextAssembler
 
     /**
      * Faktenschnipsel fuer den Artikel: passend zur Region, noch gueltig,
-     * eigene Themenschnipsel zuerst.
+     * eigene Themenschnipsel zuerst — und passend zum Thema (#41).
      *
      * Bewusst ohne Filter auf `article_draft_id`: die von #11 geschriebenen
      * Schnipsel sind ein gemeinsamer Bestand, kein Verbrauchsmaterial. Derselbe
@@ -174,11 +194,19 @@ class ContextAssembler
      * Welche Schnipsel ein Entwurf verwendet hat, steht in
      * `outline_json.fact_snippet_ids` und in `draft_sources`.
      *
+     * Allgemeine Kennzahlen (DWD-Monatsmittel, Statistikreihen) gehoeren
+     * dagegen nicht in jeden Artikel: bekommt das Modell sie mitgegeben,
+     * baut es sie ein, auch wenn sie nichts mit dem Thema zu tun haben
+     * ("Warum Stoerungen im Herbst haeufiger sind"). Sie kommen nur mit, wenn
+     * das Thema sie beruehrt, siehe isRelevantFact().
+     *
      * @return Collection<int, FactSnippet>
      */
     private function factSnippets(TopicCandidate $topic, string $scope, ?string $code): Collection
     {
         $limit = max(4, (int) config('content.generation.max_fact_snippets', 14));
+        $topicTerms = $this->topicTerms($topic);
+        $sourceItemIds = array_map('intval', (array) ($topic->source_item_ids_json ?? []));
 
         return FactSnippet::query()
             ->stillValid()
@@ -186,8 +214,72 @@ class ContextAssembler
             ->orderByRaw('topic_candidate_id = ? DESC', [$topic->getKey()])
             ->orderByRaw('region_scope <> ? DESC', [RegionScopeResolver::SCOPE_NATIONAL])
             ->orderByDesc('retrieved_at')
-            ->limit($limit)
-            ->get();
+            ->limit($limit * 4)
+            ->get()
+            ->filter(fn (FactSnippet $snippet): bool => $this->isRelevantFact($snippet, $topic, $topicTerms, $sourceItemIds))
+            ->take($limit)
+            ->values();
+    }
+
+    /**
+     * Ein Schnipsel passt, wenn er zum Thema selbst erhoben wurde, aus dessen
+     * Quellen stammt, Portal-Eigendaten der Region sind oder mindestens einen
+     * Fachbegriff mit dem Thema teilt. Wetterwerte brauchen ein Wetterwort
+     * im Thema.
+     *
+     * @param  array<int, string>  $topicTerms
+     * @param  array<int, int>  $sourceItemIds
+     */
+    private function isRelevantFact(FactSnippet $snippet, TopicCandidate $topic, array $topicTerms, array $sourceItemIds): bool
+    {
+        if ((int) $snippet->topic_candidate_id === (int) $topic->getKey()) {
+            return true;
+        }
+
+        if ($snippet->source_item_id !== null && in_array((int) $snippet->source_item_id, $sourceItemIds, true)) {
+            return true;
+        }
+
+        $factKey = (string) $snippet->fact_key;
+
+        if (str_starts_with($factKey, 'portal.')) {
+            return true;
+        }
+
+        if (str_contains($factKey, 'dwd')) {
+            return array_intersect($topicTerms, self::WEATHER_TERMS) !== [];
+        }
+
+        $snippetTerms = $this->terms(implode(' ', [$factKey, (string) $snippet->statement, (string) $snippet->source_name]));
+
+        return array_intersect($topicTerms, $snippetTerms) !== [];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function topicTerms(TopicCandidate $topic): array
+    {
+        return $this->terms(implode(' ', [
+            (string) $topic->title,
+            (string) $topic->primary_keyword,
+            ...$this->secondaryKeywords($topic),
+        ]));
+    }
+
+    /**
+     * Gefaltete Begriffe ab fuenf Zeichen, ohne Allerweltswoerter.
+     *
+     * @return array<int, string>
+     */
+    private function terms(string $text): array
+    {
+        $words = explode(' ', TextFold::fold($text));
+
+        return array_values(array_unique(array_filter(
+            $words,
+            static fn (string $word): bool => mb_strlen($word) >= 5 && ! in_array($word, self::GENERIC_TERMS, true),
+        )));
     }
 
     /**

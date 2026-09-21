@@ -9,6 +9,7 @@ use App\Content\Llm\LlmContext;
 use App\Content\Llm\PromptRenderer;
 use App\Content\Models\ArticleDraft;
 use App\Content\Models\Central\PromptTemplate;
+use App\Content\Support\UmlautSpelling;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
@@ -55,7 +56,7 @@ class AltTextGenerator
                 self::TEMPLATE_KEY,
             );
 
-            $alt = trim((string) ($result['alt_text'] ?? ''));
+            $alt = UmlautSpelling::repair(trim((string) ($result['alt_text'] ?? '')));
         } catch (Throwable $exception) {
             Log::warning('Alt-Text nicht erzeugbar, Ersatztext verwendet.', [
                 'draft_id' => $draft->getKey(),

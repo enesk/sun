@@ -138,6 +138,18 @@ return [
         ],
 
         /*
+        | Umlaute als ae/oe/ue (#41). Im Titel, in den Meta-Angaben oder in der
+        | Kurzantwort ist schon ein Wort blockierend, weil es in den
+        | Suchergebnissen steht; im Fliesstext ab 'max_body_suspects'.
+        */
+        'umlaut_spelling' => [
+            'enabled' => true,
+            'blocking' => true,
+            'weight' => 1.5,
+            'max_body_suspects' => 2,
+        ],
+
+        /*
         | Doorway-Erkennung: ein Regionalartikel, der die Region nur in Titel
         | und Meta nennt, ist eine Doorway-Seite und wird nie automatisch
         | freigegeben.
