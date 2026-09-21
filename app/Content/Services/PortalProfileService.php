@@ -82,7 +82,7 @@ class PortalProfileService
         $region = $this->regionLabel();
         $subject = $branch !== null ? "Betriebe aus dem Bereich {$branch}" : 'Betriebe und Dienstleister';
 
-        return "{$this->siteName()} ist ein Branchenportal fuer {$subject}"
+        return "{$this->siteName()} ist ein Branchenportal für {$subject}"
             .($region !== null ? " in {$region}" : ' in Deutschland')
             .' mit Firmenverzeichnis, Ratgeber und Jobangeboten.';
     }
