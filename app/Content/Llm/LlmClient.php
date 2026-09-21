@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Content\Llm;
 
 use App\Content\Llm\Exceptions\BudgetExceededException;
+use App\Content\Llm\Exceptions\CliStructuredOutputException;
 use App\Content\Llm\Exceptions\LlmSchemaException;
 use App\Content\Llm\Exceptions\ProviderAccountException;
 use App\Content\Models\Central\LlmUsageLog;
@@ -179,6 +180,19 @@ class LlmClient
 
             try {
                 $response = $this->cli->send($system, $prompt, $schema);
+            } catch (CliStructuredOutputException $exception) {
+                // Die CLI hat selbst schon mehrfach wiederholt; ein frischer
+                // Aufruf gelingt meist (#42). Zaehlt als schemawidriger Versuch.
+                $this->log($context, $templateKey, [], $this->elapsed($startedAt), false, $exception->getMessage(), $attempt);
+                $errors = ['Die Ausgabe passte nicht zum verlangten Format.'];
+
+                Log::warning('CLI ohne schemakonforme Ausgabe, neuer Versuch.', [
+                    'template' => $templateKey,
+                    'attempt' => $attempt,
+                    'error' => $exception->getMessage(),
+                ]);
+
+                continue;
             } catch (\Throwable $exception) {
                 $this->log($context, $templateKey, [], $this->elapsed($startedAt), false, $exception->getMessage(), $attempt);
 
