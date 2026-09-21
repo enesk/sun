@@ -415,6 +415,14 @@ class ArticleBlockPresenter
             return null;
         }
 
+        // Die Grafik ist ein Abzug der Key-Facts vom Zeitpunkt der Freigabe.
+        // Sind die Zeilen seither gestrichen (#41: themenfremde Wetterwerte),
+        // zeigte die gespeicherte Datei Zahlen, die im Artikel nicht mehr
+        // stehen — ohne Faktenzeilen also keine Infografik.
+        if ($this->keyFacts($draft)['rows'] === []) {
+            return null;
+        }
+
         $url = $this->text(Arr::get($this->assetsOf($draft), 'infographic.url'));
 
         if ($url === null && $draft->infographic_svg_path !== null) {
