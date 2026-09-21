@@ -28,6 +28,12 @@ php artisan content:golive:check --only-active
 
 ## 0. Rollout-Schalter — wie ein Portal an- und ausgeht
 
+> **Entfernt mit #35:** Den Befehl `content:rollout` gibt es nicht mehr. Er schrieb nur
+> noch den alten Schalter `tenant_content_settings.is_active` und wirkte nicht auf das
+> Ratgebersystem. Gültig ist `tenant_guide_settings.is_active`, zu bedienen im
+> Content-Panel unter *Einstellungen › Portal* („Portal ist freigeschaltet“, nur Rolle
+> `owner`); siehe docs/guide-golive.md. Die Befehle unten sind nur noch Historie.
+
 Maßgeblich ist `tenant_content_settings.is_active` in der Datenbank des Portals,
 Vorgabe `false`. Solange der Schalter aus ist, überspringt der Tages-Orchestrator
 das Portal vollständig: keine Themenfindung, keine Erzeugung, keine

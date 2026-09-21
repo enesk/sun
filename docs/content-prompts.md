@@ -1,8 +1,12 @@
 # Content-Prompts — Templates, Styleguides, Rubrik, Saisonkalender, Keywords
 
-Status: **verbindlich**
+Status: **historisch** — die alte Content-Pipeline ist mit #23 zurückgebaut
+(`PromptTemplateSeeder`, `SeasonalTopicSeeder`, Stufen-Prompts und Saisonkalender entfallen).
+Gültig für das Ratgebersystem sind `docs/guide-prompts.md` und `GuidePromptTemplateSeeder`.
+Die Architektur der alten Pipeline (`docs/content-pipeline.md`) steht nur noch in der
+Git-Historie.
 Ticket: SUN-RC-013 (#13)
-Letzte Änderung: 2026-09-09
+Letzte Änderung: 2026-09-21
 
 Dieses Dokument beschreibt die Redaktionsvorgaben, aus denen `claude-sonnet-5` zur
 Laufzeit Ratgebertexte erzeugt: das System-Prompt „Ratgeber-Redakteur", die
@@ -60,7 +64,7 @@ als inaktive Zeilen für die Nachvollziehbarkeit erhalten, statt gelöscht zu we
 
 Es gibt keine Spalte und keine Konfigurationsliste, die einen Tenant einer Branche
 zuordnet — jeder Tenant ist ein Branchenportal für genau ein Gewerk, erkennbar am Namen
-bzw. an der Domain. `App\Content\Support\BranchResolver::resolve(Tenant $tenant)` bildet das
+bzw. an der Domain. `App\Guide\Support\BranchResolver::resolve(Tenant $tenant)` bildet das
 über einen Slug-Abgleich ab (Name + Domain, kleingeschrieben, `Str::slug()`), analog zu
 `TenantContentSettingSeeder::isYmyl()`. Ergebnis ist einer der folgenden 16
 Branchen-Schlüssel oder `null` (Tenant ohne Treffer bekommt keine Styleguide-Zuordnung und

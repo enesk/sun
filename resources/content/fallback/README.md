@@ -3,7 +3,7 @@
 Letzte Rueckfallebene des `HeroImageGenerator`: erreicht weder fal.ai noch
 Unsplash ein Titelbild, nimmt der `GenerateAssetsJob` die Datei
 `<branch>.webp` aus diesem Verzeichnis. `<branch>` ist der Schluessel aus
-`App\Content\Support\BranchResolver`; `default.webp` greift fuer Mandanten
+`App\Guide\Support\BranchResolver`; `default.webp` greift fuer Mandanten
 ohne erkannte Branche.
 
 Seit #72 liegen hier **echte Fotos** statt der abstrakten Platzhalter. Alle

@@ -45,6 +45,10 @@ Ergebnis: **23 angelegt, 0 bereits vorhanden.** Der Seeder schreibt
 `gsc_property = sc-domain:<domain>`. `is_active` bleibt bewusst `false` — die
 Freischaltung ist allein Sache von `content:rollout`.
 
+> **Stand #35:** `content:rollout` ist entfernt. Freigeschaltet wird über
+> `tenant_guide_settings.is_active` im Content-Panel unter *Einstellungen › Portal*
+> („Portal ist freigeschaltet“); die `content:rollout`-Aufrufe unten sind Historie.
+
 Als YMYL erkannt wurden sechs Portale: Tierarztportal.com, ApothekeFinden,
 Unfallchirurgie in der Nähe, Zahnarzt in der Nähe, Energieberater, ArztFinder.
 

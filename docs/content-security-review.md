@@ -25,7 +25,7 @@ haben ausschließlich Administratoren (`users.is_admin`); gesperrte Konten nie.
 | Prüfpunkt | Stelle | Befund |
 | --- | --- | --- |
 | Zugang nur für Administratoren | `App\Models\User::canAccessPanel()` | `is_admin` **und** nicht gesperrt, sonst HTTP 403 |
-| Abfragen an einer Stelle | `App\Content\Concerns\InteractsWithContentPanel` | Einstellungen, Kosten und Portalauswahl gehen alle über `canAccessContentPanel()` |
+| Abfragen an einer Stelle | `App\Guide\Concerns\InteractsWithContentPanel` | Einstellungen, Kosten und Portalauswahl gehen alle über `canAccessContentPanel()` |
 | Einstellungen abgeriegelt | `Filament\Content\Pages\Settings::canAccess()` | nur Administratoren — damit auch der Rollout-Schalter |
 | Portalzuordnung | `User::canAccessContentTenant()`, `InitializeContentTenant` | Administratoren sehen alle Portale; die Auswahl wird bei jeder Anfrage neu geprüft |
 | Sitzungsschutz | `ContentPanelProvider::panel()` | `EncryptCookies`, `StartSession`, `AuthenticateSession`, `VerifyCsrfToken` |
@@ -46,10 +46,10 @@ Die Artikelvorschau liegt auf der Portaldomain, das Panel auf der Zentraldomain.
 Eine gemeinsame Sitzung gibt es deshalb nicht — die Adresse trägt den prüfenden
 Account als Parameter mit und ist signiert.
 
-* Erzeugt in `App\Content\Services\ContentPreviewLink::for()` über
+* Erzeugt in `App\Guide\Support\ContentPreviewLink::for()` über
   `URL::temporarySignedRoute()`, Gültigkeit **60 Minuten**.
 * Die Route hängt hinter `signed` **und**
-  `App\Content\Http\Middleware\EnsureContentPreviewAccess`
+  `App\Guide\Http\Middleware\EnsureContentPreviewAccess`
   (`routes/tenant.php`, `ratgeber.preview`).
 * Die Middleware prüft danach erneut: Account existiert, ist aktiv, darf dieses
   Portal sehen. Ein Link allein reicht also nicht, wenn der Account inzwischen
