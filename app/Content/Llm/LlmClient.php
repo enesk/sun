@@ -31,16 +31,29 @@ use InvalidArgumentException;
  *
  * Modell, max_tokens, Sampling und Preise stehen ausschliesslich in
  * config('content.providers.anthropic') — nichts davon ist hier fest verdrahtet.
+ *
+ * Mit driver=cli laeuft derselbe Aufruf ueber die Claude-CLI und das Claude-Abo
+ * (ClaudeCliTransport); die CLI erzwingt das Schema dann selbst.
  */
 class LlmClient
 {
     public const PROVIDER = 'anthropic';
 
+    public const DRIVER_API = 'api';
+
+    public const DRIVER_CLI = 'cli';
+
     public function __construct(
         private readonly BudgetGuard $budget,
         private readonly PromptRenderer $renderer,
         private readonly SchemaValidator $validator,
+        private readonly ClaudeCliTransport $cli,
     ) {}
+
+    public static function usesCli(): bool
+    {
+        return config('content.providers.anthropic.driver') === self::DRIVER_CLI;
+    }
 
     /**
      * Rendert das Template, ruft das Modell und liefert die validierte Ausgabe.
@@ -104,6 +117,11 @@ class LlmClient
         );
 
         $maxAttempts = 1 + max(0, (int) $this->option('schema_retries', 2));
+
+        if (self::usesCli()) {
+            return $this->emitViaCli($system, $user, $schema, $context, $templateKey, $maxAttempts);
+        }
+
         $messages = [['role' => 'user', 'content' => $user]];
         $errors = [];
 
@@ -133,6 +151,64 @@ class LlmClient
             ]);
 
             $messages = $this->retryMessages($messages, $response, $errors);
+        }
+
+        throw LlmSchemaException::afterRetries($templateKey, $maxAttempts, $errors);
+    }
+
+    /**
+     * CLI-Weg: kein Nachrichtenverlauf, deshalb stehen vorige Ausgabe und
+     * Verstoesse im Wiederholungsfall als Klartext im naechsten Prompt.
+     *
+     * @param  array<string, mixed>  $schema
+     * @return array<string, mixed>
+     */
+    private function emitViaCli(
+        ?string $system,
+        string $user,
+        array $schema,
+        LlmContext $context,
+        string $templateKey,
+        int $maxAttempts,
+    ): array {
+        $prompt = $user;
+        $errors = [];
+
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            $startedAt = microtime(true);
+
+            try {
+                $response = $this->cli->send($system, $prompt, $schema);
+            } catch (\Throwable $exception) {
+                $this->log($context, $templateKey, [], $this->elapsed($startedAt), false, $exception->getMessage(), $attempt);
+
+                throw $exception;
+            }
+
+            $this->log($context, $templateKey, $response['usage'], $this->elapsed($startedAt), true, null, $attempt);
+            ProviderAccountGuard::reportSuccess(self::PROVIDER);
+
+            $payload = $response['output'];
+            $errors = $payload === null
+                ? ['Antwort enthaelt keine strukturierte Ausgabe.']
+                : $this->validator->validate($payload, $schema);
+
+            if ($errors === []) {
+                return $payload;
+            }
+
+            Log::warning('Schemawidrige Modellantwort (CLI), neuer Versuch.', [
+                'template' => $templateKey,
+                'attempt' => $attempt,
+                'errors' => $errors,
+            ]);
+
+            $previous = $payload === null ? $response['text'] : (string) json_encode($payload, JSON_UNESCAPED_UNICODE);
+
+            $prompt = $user
+                ."\n\n---\nDeine vorige Ausgabe:\n{$previous}\n\n"
+                ."Die Ausgabe verletzt das Schema:\n- ".implode("\n- ", $errors)
+                ."\nBehebe genau diese Punkte. Aendere nichts Inhaltliches, was nicht beanstandet wurde.";
         }
 
         throw LlmSchemaException::afterRetries($templateKey, $maxAttempts, $errors);
@@ -368,6 +444,11 @@ class LlmClient
      */
     public function costFor(array $usage): float
     {
+        // Ueber die CLI traegt das Abo die Kosten; Tokens werden trotzdem geloggt.
+        if (self::usesCli()) {
+            return 0.0;
+        }
+
         $pricing = (array) $this->option('pricing', []);
 
         $cost = ((int) ($usage['input_tokens'] ?? 0)) * (float) ($pricing['input_per_mtok'] ?? 0)

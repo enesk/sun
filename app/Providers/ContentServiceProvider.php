@@ -12,6 +12,7 @@ use App\Content\Assets\InfographicRenderer;
 use App\Content\Events\ContentRepublished;
 use App\Content\Events\ContentWithdrawn;
 use App\Content\Llm\BudgetGuard;
+use App\Content\Llm\ClaudeCliTransport;
 use App\Content\Llm\EmbeddingClient;
 use App\Content\Llm\LlmClient;
 use App\Content\Llm\PromptRenderer;
@@ -251,6 +252,7 @@ class ContentServiceProvider extends ServiceProvider
             $app->make(BudgetGuard::class),
             $app->make(PromptRenderer::class),
             $app->make(SchemaValidator::class),
+            $app->make(ClaudeCliTransport::class),
         ));
 
         $this->app->singleton(EmbeddingClient::class, fn ($app) => new EmbeddingClient(

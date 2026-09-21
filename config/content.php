@@ -118,6 +118,14 @@ return [
     'providers' => [
 
         'anthropic' => [
+            // 'api' = Messages API mit ANTHROPIC_API_KEY (Guthaben),
+            // 'cli' = Claude-CLI mit dem Claude-Abo (CLAUDE_CODE_OAUTH_TOKEN
+            // aus 'claude setup-token'). Kosten werden bei 'cli' mit 0 geloggt,
+            // die Grenze setzt dann das Abo-Kontingent, nicht content.budget.
+            'driver' => env('CONTENT_LLM_DRIVER', 'api'),
+            'cli_binary' => env('CLAUDE_CLI_BINARY'),
+            'cli_oauth_token' => env('CLAUDE_CODE_OAUTH_TOKEN'),
+
             'api_key' => env('ANTHROPIC_API_KEY'),
             'base_url' => env('ANTHROPIC_BASE_URL', 'https://api.anthropic.com/v1'),
             'version' => env('ANTHROPIC_VERSION', '2023-06-01'),

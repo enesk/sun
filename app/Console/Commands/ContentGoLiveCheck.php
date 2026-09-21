@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Content\Llm\LlmClient;
 use App\Content\Models\Central\ContentAlert;
 use App\Content\Providers\AdSenseClient;
 use App\Content\Providers\IndexNowClient;
@@ -90,12 +91,23 @@ class ContentGoLiveCheck extends Command
             'content.pipeline.timezone fehlt',
         );
 
-        $this->check(
-            'Anthropic-Zugang',
-            trim((string) config('content.providers.anthropic.api_key')) !== '',
-            'Schlüssel gesetzt',
-            'ANTHROPIC_API_KEY fehlt',
-        );
+        if (LlmClient::usesCli()) {
+            $binary = (string) config('content.providers.anthropic.cli_binary');
+
+            $this->check(
+                'Anthropic-Zugang (Claude-CLI, Abo)',
+                $binary !== '' && is_executable($binary) && trim((string) config('content.providers.anthropic.cli_oauth_token')) !== '',
+                "CLI {$binary}, Abo-Token gesetzt",
+                'CLAUDE_CLI_BINARY nicht ausführbar oder CLAUDE_CODE_OAUTH_TOKEN fehlt',
+            );
+        } else {
+            $this->check(
+                'Anthropic-Zugang',
+                trim((string) config('content.providers.anthropic.api_key')) !== '',
+                'Schlüssel gesetzt',
+                'ANTHROPIC_API_KEY fehlt',
+            );
+        }
 
         $this->check(
             'Voyage-Zugang (Embeddings)',
