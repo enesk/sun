@@ -16,9 +16,11 @@
     }
     $lead = $shortAnswer ?: $post->excerpt;
     $ctaCount = (int) ($region['company_count'] ?? 0);
-    $proseClasses = 'space-y-6 text-base leading-relaxed'
-        .' [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-zinc-900 [&_h2]:scroll-mt-24 [&_h2]:pt-2'
-        .' [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-zinc-900 [&_h3]:scroll-mt-24'
+    // Ueberschriften: viel Luft davor, wenig danach, damit sie zum folgenden
+    // Absatz gehoeren statt zwischen zwei Absaetzen zu schweben.
+    $proseClasses = 'space-y-4 text-base leading-relaxed [&>:first-child]:!mt-0'
+        .' [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-zinc-900 [&_h2]:scroll-mt-24 [&_h2]:mt-10 [&_h2]:mb-3'
+        .' [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-zinc-900 [&_h3]:scroll-mt-24 [&_h3]:mt-8 [&_h3]:mb-2'
         .' [&_a]:text-brand [&_a]:underline [&_strong]:font-semibold [&_strong]:text-zinc-900'
         .' [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:space-y-2 [&_li]:marker:text-brand'
         .' [&_table]:block [&_table]:w-full [&_table]:overflow-x-auto'
@@ -52,7 +54,9 @@
         <span class="text-zinc-900" aria-current="page">{{ \Illuminate\Support\Str::limit($post->title, 60) }}</span>
       </nav>
 
-      <div class="mt-4 flex flex-wrap items-center gap-3">
+      {{-- Artikel als Karte auf dem grauen Seitengrund, wie Inhaltsverzeichnis und CTA --}}
+      <div class="card mt-4 p-5 md:p-8">
+      <div class="flex flex-wrap items-center gap-3">
         @if($post->category)
           <a href="{{ route('portal.blog.category', $post->category->slug) }}" class="pill-brand">{{ $post->category->name }}</a>
         @endif
@@ -94,7 +98,8 @@
 
       <!-- Inhaltsverzeichnis -->
       @if(count($mainHeadings) >= 3)
-        <nav class="card p-5 mt-6 xl:hidden" aria-labelledby="toc">
+        {{-- Liegt jetzt in der Artikelkarte: getoente Flaeche statt Karte in der Karte --}}
+        <nav class="rounded-2xl bg-zinc-50 p-5 mt-6 xl:hidden" aria-labelledby="toc">
           <h2 id="toc" class="font-semibold text-zinc-900">{{ __('portal.blog.show.toc_heading') }}</h2>
           <ol class="mt-1 divide-y divide-zinc-100">
             @foreach($mainHeadings as $heading)
@@ -141,7 +146,7 @@
           <section class="rounded-2xl bg-brand-50 p-5 flex gap-4" aria-labelledby="region-heading">
             <span class="text-brand shrink-0"><x-sun.icon name="map-pin" class="size-6" /></span>
             <div class="min-w-0">
-              <h2 id="region-heading" class="!text-lg !pt-0">{{ __('portal.blog.show.region.heading', ['stadt' => $region['name']]) }}</h2>
+              <h2 id="region-heading" class="!text-lg !mt-0 !mb-0">{{ __('portal.blog.show.region.heading', ['stadt' => $region['name']]) }}</h2>
               @if($region['intro'])
                 <p class="mt-1">{{ $region['intro'] }}</p>
               @endif
@@ -174,6 +179,7 @@
           </div>
         @endif
       </div>
+      </div>
 
       <!-- CTA -->
       <div class="card p-5 md:p-8 mt-10 bg-brand-50 border-brand-100">
@@ -193,7 +199,7 @@
       </div>
 
       <!-- Quellen und Aktualitaet (#27) -->
-      <section class="mt-8 text-sm text-zinc-500" @if(!empty($sources)) aria-labelledby="sources-heading" @else aria-label="{{ __('portal.blog.show.freshness_label') }}" @endif>
+      <section class="card mt-8 p-5 md:p-6 text-sm text-zinc-500" @if(!empty($sources)) aria-labelledby="sources-heading" @else aria-label="{{ __('portal.blog.show.freshness_label') }}" @endif>
         <p>
           @if($seo['published_at'])
             {!! __('portal.blog.show.published_at', ['datum' => '<time datetime="'.e($seo['published_at']->toDateString()).'">'.e($seo['published_at']->translatedFormat('j. F Y')).'</time>']) !!}
@@ -251,7 +257,7 @@
 
       {{-- Aenderungshinweise (#24) --}}
       @if(!empty($changelog ?? []))
-        <section class="mt-6 text-sm" aria-labelledby="changelog-heading">
+        <section class="card mt-6 p-5 md:p-6 text-sm" aria-labelledby="changelog-heading">
           <h2 id="changelog-heading" class="font-semibold text-zinc-900">{{ __('portal.blog.show.changelog_heading') }}</h2>
           <ol class="mt-2 divide-y divide-zinc-100">
             @foreach($changelog as $entry)
