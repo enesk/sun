@@ -25,14 +25,34 @@ return [
     |--------------------------------------------------------------------------
     |
     | claude-sonnet-5 lehnt temperature/top_p mit HTTP 400 ab, deshalb gibt es
-    | hier keine Sampling-Parameter. Die Recherche (Probe, Tiefenrecherche)
-    | laeuft ausschliesslich ueber die Messages API, weil nur dort das
-    | serverseitige Web-Search-Werkzeug samt Abrechnung je Suche verfuegbar
-    | ist; der CLI-Treiber der alten Pipeline ist hier nicht vorgesehen.
+    | hier keine Sampling-Parameter.
+    |
+    | driver (#42): 'cli' (Vorgabe) ruft das Modell ueber die Claude-CLI mit
+    |   dem Claude-Abo auf (ClaudeCliTransport), die Recherche ueber deren
+    |   Websuche. 'api' nutzt die Messages API mit ANTHROPIC_API_KEY und dem
+    |   serverseitigen Web-Search-Werkzeug. Beim Treiber 'cli' sind die
+    |   Kosten im Log rechnerisch (total_cost_usd der CLI), nicht abgerechnet;
+    |   Budgetgrenzen greifen trotzdem.
     |
     */
 
     'model' => env('GUIDE_LLM_MODEL', 'claude-sonnet-5'),
+
+    'driver' => env('GUIDE_LLM_DRIVER', 'cli'),
+
+    /*
+    | Claude-CLI (driver 'cli'). Token und Binary werden hier gelesen und dem
+    | Prozess mitgegeben, weil bei config:cache keine .env in der Umgebung
+    | steht. home: HOME des CLI-Prozesses; leer = Home des ausfuehrenden
+    | Benutzers (Horizon-Worker unter Supervisor haben oft kein HOME).
+    | timeout: unter dem Horizon-Timeout von guide-research/guide-write (960 s).
+    */
+    'cli' => [
+        'binary' => env('CLAUDE_CLI_BINARY'),
+        'oauth_token' => env('CLAUDE_CODE_OAUTH_TOKEN'),
+        'home' => env('GUIDE_CLI_HOME'),
+        'timeout' => (int) env('GUIDE_CLI_TIMEOUT', 600),
+    ],
 
     'anthropic' => [
         'api_key' => env('ANTHROPIC_API_KEY'),
@@ -267,10 +287,12 @@ return [
     |
     */
 
+    // Beim Treiber 'cli' laufen alle Aufrufe ueber ein einziges Claude-Abo
+    // mit Nutzungsgrenzen je 5-Stunden-Fenster; deshalb vorsichtiger (#42).
     'concurrency' => [
         'enabled' => (bool) env('GUIDE_CONCURRENCY_ENABLED', true),
-        'per_tenant' => (int) env('GUIDE_CONCURRENCY_PER_TENANT', 3),
-        'total' => (int) env('GUIDE_CONCURRENCY_TOTAL', 12),
+        'per_tenant' => (int) env('GUIDE_CONCURRENCY_PER_TENANT', env('GUIDE_LLM_DRIVER', 'cli') !== 'api' ? 1 : 3),
+        'total' => (int) env('GUIDE_CONCURRENCY_TOTAL', env('GUIDE_LLM_DRIVER', 'cli') !== 'api' ? 3 : 12),
         'redis_connection' => env('GUIDE_CONCURRENCY_REDIS', 'default'),
         'wait_seconds' => 30,
         'rate_limit_backoff' => [

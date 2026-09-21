@@ -68,7 +68,10 @@ Artisan immer als Benutzer `sanitaerfinden`.
 
 ### 1.2 Zugänge und Schlüssel
 
-- [ ] `ANTHROPIC_API_KEY` gesetzt, Guthaben aufgeladen, `php artisan guide:llm:ping` meldet ok
+- [ ] Treiber geklärt (`GUIDE_LLM_DRIVER`, Vorgabe `cli`, #42):
+  - `cli`: `CLAUDE_CLI_BINARY` und `CLAUDE_CODE_OAUTH_TOKEN` gesetzt, die CLI ist für `sanitaerfinden` ausführbar. `ANTHROPIC_API_KEY` ist nicht nötig und wird der CLI ohnehin entzogen.
+  - `api`: `ANTHROPIC_API_KEY` gesetzt, Guthaben aufgeladen.
+- [ ] `sudo -u sanitaerfinden php artisan guide:llm:ping` nach `config:cache` meldet ok, zeigt den Treiber und mindestens zwei Quellen
 - [ ] `FAL_API_KEY` gesetzt (Titelbilder #20; der Name ist `FAL_API_KEY`, nicht `FAL_KEY`)
 - [ ] `APP_KEY` wird **nie** gewechselt — die IndexNow-Keys sind daraus abgeleitet (§1.4)
 - [ ] Schlüssel stehen nur in `.env`, kein Wert in Git (`php scripts/secret-scan.php` sauber)
@@ -148,7 +151,7 @@ Empfänger sind alle nicht gesperrten Konten mit `guide_role = owner`.
 - [ ] `php artisan guide:user:create <mail-uwe> --role=owner`
 - [ ] #38 G1/G2 erledigt: kritische Alarme gehen sofort per Mail
 - [ ] Probe Tagesbericht: `php artisan guide:daily --stage=report --mail-to=<mail-enes>` kommt an (Postfach, nicht Spam)
-- [ ] Probe Alarm: ein ausgelöster `provider_down` (z. B. `ANTHROPIC_API_KEY` kurz leer, `guide:run` auf einem Test-Thema) erreicht beide Postfächer; danach Key zurück, `config:cache`
+- [ ] Probe Alarm: ein ausgelöster `provider_down` (beim Treiber `cli` z. B. `CLAUDE_CODE_OAUTH_TOKEN` kurz ungültig, beim Treiber `api` `ANTHROPIC_API_KEY` kurz leer; `guide:run` auf einem Test-Thema) erreicht beide Postfächer; danach Wert zurück, `config:cache`
 - [ ] Mail-Versand läuft über die Queue: Horizon zeigt die Mail-Jobs als verarbeitet
 
 ---
@@ -247,6 +250,8 @@ Nachweis (einmal an Tag 3 und Tag 7):
 
 Ist-Werte aus `llm_usage_logs` (`operation LIKE 'guide.%'`, `guide_topic_id`) bzw. Panel
 *Verlauf › Kosten* (je Thema). Modell aus `docs/guide-system.md` §8 (inkl. 15 % Aufschlag).
+
+Beim Treiber `cli` (#42) sind die Beträge **rechnerisch**: `total_cost_usd` der CLI zu Listenpreisen, abgerechnet wird über das Claude-Abo. `llm_usage_logs.driver` weist den Treiber je Zeile aus. Der Vergleich mit dem Modell bleibt aussagekräftig für Token- und Suchmengen; eine Rechnung dazu gibt es nicht. Die Grenze setzt hier das Nutzungslimit des Abos, das Budget greift trotzdem.
 
 | Größe | Modell | Ist Stufe 1 | Ist Stufe 2 | Abweichung |
 |---|---:|---:|---:|---:|

@@ -31,7 +31,8 @@ class GuideLlmPing extends Command
         {--tenant= : Tenant-ID fuer Budget und Log}
         {--max-searches=3 : Hoechstzahl der Web-Suchen}
         {--allowed-domain=* : Nur diese Domains durchsuchen}
-        {--blocked-domain=* : Diese Domains nie durchsuchen}';
+        {--blocked-domain=* : Diese Domains nie durchsuchen}
+        {--driver= : Treiber fuer diesen Aufruf (cli oder api), Vorgabe: guide.driver}';
 
     protected $description = 'Fuehrt einen research()-Aufruf des Ratgebersystems aus und zeigt Daten, Quellen und Kosten';
 
@@ -45,10 +46,23 @@ class GuideLlmPing extends Command
             return self::FAILURE;
         }
 
+        $driver = $this->option('driver');
+
+        if ($driver !== null) {
+            if (! in_array($driver, [LlmClient::DRIVER_CLI, LlmClient::DRIVER_API], true)) {
+                $this->error("Unbekannter Treiber: {$driver} (erlaubt: cli, api)");
+
+                return self::FAILURE;
+            }
+
+            config(['guide.driver' => $driver]);
+        }
+
         $question = (string) ($this->option('question') ?: self::DEFAULT_QUESTION);
         $startedAt = now();
 
-        $this->line('Modell: <info>'.config('guide.model').'</info>, Werkzeug: <info>'.config('guide.web_search.tool_type').'</info>');
+        $this->line('Treiber: <info>'.LlmClient::driver().'</info>, Modell: <info>'.config('guide.model').'</info>, Websuche: <info>'
+            .(LlmClient::driver() === LlmClient::DRIVER_CLI ? 'Claude-CLI (WebSearch/WebFetch)' : config('guide.web_search.tool_type')).'</info>');
         $this->line("Frage: {$question}");
         $this->newLine();
 
@@ -94,17 +108,19 @@ class GuideLlmPing extends Command
 
         $this->newLine();
         $this->line(sprintf(
-            'Suchen: %d · Anfragen: %d · Tokens: %d ein / %d aus · Kosten: %.4f USD · Log-Eintraege: %d',
+            'Treiber: %s · Suchen: %d · Anfragen: %d · Tokens: %d ein / %d aus · Kosten: %.4f USD%s · Log-Eintraege: %d',
+            LlmClient::driver(),
             $result->searchCount,
             $result->requests,
             $result->inputTokens,
             $result->outputTokens,
             $result->costUsd,
+            LlmClient::driver() === LlmClient::DRIVER_CLI ? ' (rechnerisch, Abo)' : '',
             $logs,
         ));
 
         if (count($result->citations) < 2) {
-            $this->warn('Weniger als zwei Quellen — Web-Search pruefen (Werkzeugtyp, Domainlisten, max_uses).');
+            $this->warn('Weniger als zwei Quellen — Websuche pruefen (Treiber, Werkzeugtyp, Domainlisten, max_uses).');
         }
 
         return self::SUCCESS;

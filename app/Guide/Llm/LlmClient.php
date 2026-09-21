@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Guide\Llm;
 
 use App\Guide\Llm\Exceptions\BudgetExceededException;
+use App\Guide\Llm\Exceptions\CliStructuredOutputException;
 use App\Guide\Llm\Exceptions\LlmSchemaException;
 use App\Guide\Models\Central\LlmUsageLog;
 use App\Guide\Models\Central\PromptTemplate;
@@ -20,8 +21,12 @@ use RuntimeException;
 /**
  * LLM-Zugang des Ratgebersystems (#5, docs/guide-system.md §6).
  *
- * Anthropic Messages API, ausschliesslich ueber die API — kein CLI-Pfad, weil
- * sonst weder Budget noch Web-Search-Abrechnung greifen.
+ * Zwei Treiber (config('guide.driver'), #42): 'cli' ruft die Claude-CLI mit
+ * dem Claude-Abo auf (ClaudeCliTransport, siehe cliStructured()/cliResearch()),
+ * 'api' die Anthropic Messages API. Die Aufrufer merken davon nichts; Budget,
+ * Kontowaechter und Kosten-Log gelten fuer beide, das Log traegt den Treiber.
+ *
+ * Treiber 'api':
  *
  * structured(): schemakonforme Ausgabe ueber erzwungenen Tool-Use. Die Anfrage
  * definiert das Werkzeug 'emit' mit dem Schema als input_schema und setzt
@@ -44,11 +49,24 @@ class LlmClient
 {
     public const PROVIDER = 'anthropic';
 
+    public const DRIVER_API = 'api';
+
+    public const DRIVER_CLI = ClaudeCliTransport::DRIVER;
+
     public function __construct(
         private readonly BudgetGuard $budget,
         private readonly PromptRenderer $renderer,
         private readonly SchemaValidator $validator,
+        private readonly ClaudeCliTransport $cli,
     ) {}
+
+    /**
+     * Eingestellter Treiber; alles ausser 'api' gilt als 'cli'.
+     */
+    public static function driver(): string
+    {
+        return config('guide.driver') === self::DRIVER_API ? self::DRIVER_API : self::DRIVER_CLI;
+    }
 
     /**
      * @param  array<string, mixed>  $vars
@@ -66,6 +84,11 @@ class LlmClient
     ): array {
         $schema = $this->schemaFor($template, $schema);
         $context ??= LlmCallContext::current();
+
+        if (self::driver() === self::DRIVER_CLI) {
+            return $this->cliStructured($template, $vars, $schema, $context);
+        }
+
         $prompts = $this->renderer->render($template, $vars, $this->cacheEnabled());
 
         $request = $this->request(
@@ -97,6 +120,11 @@ class LlmClient
     ): ResearchResult {
         $schema = $this->schemaFor($template, $schema);
         $context ??= LlmCallContext::current();
+
+        if (self::driver() === self::DRIVER_CLI) {
+            return $this->cliResearch($template, $vars, $schema, $maxSearches, $allowedDomains, $blockedDomains, $context);
+        }
+
         $templateKey = (string) $template->key;
         $prompts = $this->renderer->render($template, $vars, $this->cacheEnabled());
         $totals = new UsageTotals;
@@ -162,6 +190,320 @@ class LlmClient
             requests: $totals->requests,
             searchErrors: $searchErrors,
         );
+    }
+
+    /**
+     * structured() ueber die Claude-CLI. Kein Nachrichtenverlauf: bei einem
+     * Schemaverstoss stehen vorige Ausgabe und Verstoesse als Text im
+     * naechsten Prompt. Meldet die CLI selbst keine schemakonforme Ausgabe
+     * (CliStructuredOutputException), zaehlt das als Versuch.
+     *
+     * @param  array<string, mixed>  $vars
+     * @param  array<string, mixed>  $schema
+     * @return array<string, mixed>
+     */
+    private function cliStructured(PromptTemplate $template, array $vars, array $schema, LlmCallContext $context): array
+    {
+        $templateKey = (string) $template->key;
+        $prompts = $this->renderer->render($template, $vars, false);
+        $system = $this->systemText($prompts['system']);
+
+        return $this->cliEmitLoop($system, $prompts['user'], $schema, $context, $templateKey, new UsageTotals, false);
+    }
+
+    /**
+     * research() ueber die Claude-CLI mit deren Websuche.
+     *
+     * Die Suchgrenze und die Domainlisten stehen im Prompt, weil die CLI
+     * dafuer keine Optionen hat; Treffer ausserhalb der Domainlisten fallen
+     * zusaetzlich aus den Zitaten. Zitate sind die Treffer der tatsaechlich
+     * ausgefuehrten Suchen (stream-json) plus abgerufene Seiten; 'cited'
+     * heisst: die URL steht in der Ausgabe. Damit bleibt die Pruefung
+     * not_in_search_results im ResearchService wirksam.
+     *
+     * Schemaverstoesse werden ohne neue Suche korrigiert: der Folgeaufruf
+     * bekommt die vorige Ausgabe und die gefundenen Treffer.
+     *
+     * @param  array<string, mixed>  $vars
+     * @param  array<string, mixed>  $schema
+     * @param  array<int, string>  $allowedDomains
+     * @param  array<int, string>  $blockedDomains
+     */
+    private function cliResearch(
+        PromptTemplate $template,
+        array $vars,
+        array $schema,
+        int $maxSearches,
+        array $allowedDomains,
+        array $blockedDomains,
+        LlmCallContext $context,
+    ): ResearchResult {
+        if ($maxSearches < 1) {
+            throw new InvalidArgumentException('research() braucht mindestens eine erlaubte Suche.');
+        }
+
+        $allowedDomains = $this->domains($allowedDomains);
+        $blockedDomains = $this->domains($blockedDomains);
+
+        if ($allowedDomains !== [] && $blockedDomains !== []) {
+            throw new InvalidArgumentException('allowed_domains und blocked_domains schliessen sich aus.');
+        }
+
+        $templateKey = (string) $template->key;
+        $prompts = $this->renderer->render($template, $vars, false);
+        $system = $this->systemText($prompts['system']);
+        $user = $prompts['user']."\n\n".$this->researchRules($maxSearches, $allowedDomains, $blockedDomains);
+        $totals = new UsageTotals;
+        $found = [];
+
+        $data = $this->cliEmitLoop($system, $user, $schema, $context, $templateKey, $totals, true, $found);
+
+        $citations = [];
+        $encoded = (string) json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        foreach ($found as $url => $title) {
+            if (! $this->domainAllowed($url, $allowedDomains, $blockedDomains)) {
+                continue;
+            }
+
+            $citations[] = [
+                'url' => $url,
+                'title' => $title,
+                'page_age' => null,
+                'cited' => str_contains($encoded, $url),
+            ];
+        }
+
+        $searchErrors = [];
+
+        if ($totals->searches === 0) {
+            $searchErrors[] = 'cli_no_search';
+        }
+
+        if ($totals->searches > $maxSearches) {
+            Log::warning('Claude-CLI hat mehr Websuchen gemacht als erlaubt.', [
+                'template' => $templateKey,
+                'tenant_id' => $context->tenantId,
+                'searches' => $totals->searches,
+                'max' => $maxSearches,
+            ]);
+        }
+
+        return new ResearchResult(
+            data: $data,
+            citations: $citations,
+            searchCount: $totals->searches,
+            costUsd: $totals->costUsd,
+            inputTokens: $totals->inputTokens,
+            outputTokens: $totals->outputTokens,
+            requests: $totals->requests,
+            searchErrors: $searchErrors,
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $schema
+     * @param  array<string, string>  $found  url => Titel, wird fortgeschrieben
+     * @return array<string, mixed>
+     */
+    private function cliEmitLoop(
+        string $system,
+        string $user,
+        array $schema,
+        LlmCallContext $context,
+        string $templateKey,
+        UsageTotals $totals,
+        bool $webTools,
+        array &$found = [],
+    ): array {
+        $maxAttempts = 1 + max(0, (int) $this->option('schema_retries', 2));
+        $prompt = $user;
+        $errors = [];
+        $searched = false;
+
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            // Gesucht wird nur, bis eine Recherche mit Treffern vorliegt;
+            // Korrekturen danach laufen ohne Werkzeuge.
+            $withTools = $webTools && ! $searched;
+            $response = $this->cliSend($system, $prompt, $schema, $withTools, $context, $templateKey, $totals);
+
+            if ($response === null) {
+                $errors = ['Die Ausgabe passte nicht zum verlangten Format.'];
+                $prompt = $this->cliRetryPrompt($user, null, $errors, $found);
+
+                continue;
+            }
+
+            foreach ($response->searchResults as $hit) {
+                $found[$hit['url']] ??= $hit['title'];
+            }
+
+            foreach ($response->fetchedUrls as $url) {
+                $found[$url] ??= '';
+            }
+
+            $searched = $searched || $response->searches > 0 || $found !== [];
+
+            $errors = $response->output === null
+                ? ['Antwort enthaelt keine strukturierte Ausgabe.']
+                : $this->validator->validate($response->output, $schema);
+
+            if ($errors === []) {
+                return (array) $response->output;
+            }
+
+            Log::warning('Schemawidrige Modellantwort (Guide, CLI), neuer Versuch.', [
+                'template' => $templateKey,
+                'attempt' => $attempt,
+                'errors' => $errors,
+            ]);
+
+            $prompt = $this->cliRetryPrompt($user, $response->output, $errors, $webTools ? $found : []);
+        }
+
+        throw LlmSchemaException::afterRetries($templateKey, $maxAttempts, $errors);
+    }
+
+    /**
+     * Ein CLI-Aufruf mit Kontowaechter, Budgetpruefung und Kostenbuchung.
+     * null = die CLI meldete keine schemakonforme Ausgabe.
+     *
+     * @param  array<string, mixed>  $schema
+     */
+    private function cliSend(
+        string $system,
+        string $prompt,
+        array $schema,
+        bool $webTools,
+        LlmCallContext $context,
+        string $templateKey,
+        UsageTotals $totals,
+    ): ?CliResponse {
+        ProviderAccountGuard::assertUsable(self::PROVIDER);
+        $this->budget->check($context);
+
+        $startedAt = microtime(true);
+
+        try {
+            $response = $this->cli->run($system, $prompt, $schema, $webTools);
+        } catch (CliStructuredOutputException $exception) {
+            $this->log($context, $templateKey, [], $this->elapsed($startedAt), $exception->getMessage(), self::DRIVER_CLI);
+
+            Log::warning('Claude-CLI ohne schemakonforme Ausgabe, neuer Versuch.', [
+                'template' => $templateKey,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return null;
+        } catch (\Throwable $exception) {
+            $this->log($context, $templateKey, [], $this->elapsed($startedAt), $exception->getMessage(), self::DRIVER_CLI);
+
+            throw $exception;
+        }
+
+        $cost = $this->log(
+            $context,
+            $templateKey,
+            $response->usage,
+            $this->elapsed($startedAt),
+            null,
+            self::DRIVER_CLI,
+            $response->costUsd,
+            $response->searches,
+        );
+
+        $totals->add($response->inputTokens(), $response->outputTokens(), $response->searches, $cost);
+
+        ProviderAccountGuard::reportSuccess(self::PROVIDER);
+
+        return $response;
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $previous
+     * @param  array<int, string>  $errors
+     * @param  array<string, string>  $found
+     */
+    private function cliRetryPrompt(string $user, ?array $previous, array $errors, array $found): string
+    {
+        $prompt = $user;
+
+        if ($found !== []) {
+            $lines = [];
+
+            foreach ($found as $url => $title) {
+                $lines[] = "- {$url}".($title !== '' ? " ({$title})" : '');
+            }
+
+            $prompt .= "\n\n---\nDie Recherche ist abgeschlossen, suche nicht erneut. Gefundene Quellen:\n"
+                .implode("\n", $lines)
+                ."\nStuetze dich nur auf diese Quellen.";
+        }
+
+        if ($previous !== null) {
+            $prompt .= "\n\n---\nDeine vorige Ausgabe:\n"
+                .json_encode($previous, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        }
+
+        return $prompt
+            ."\n\nDie Ausgabe verletzt das Schema:\n- ".implode("\n- ", $errors)
+            ."\nBehebe genau diese Punkte. Aendere nichts Inhaltliches, was nicht beanstandet wurde.";
+    }
+
+    /**
+     * @param  array<int, string>  $allowedDomains
+     * @param  array<int, string>  $blockedDomains
+     */
+    private function researchRules(int $maxSearches, array $allowedDomains, array $blockedDomains): string
+    {
+        $rules = [
+            "Recherche: Nutze die Websuche hoechstens {$maxSearches} Mal. Rufe Seiten nur ab, wenn ein Suchtreffer nicht genuegt.",
+            'Jede Aussage braucht eine Quelle aus deinen Suchergebnissen; gib deren URL unveraendert an. Erfinde keine URL.',
+        ];
+
+        if ($allowedDomains !== []) {
+            $rules[] = 'Verwende ausschliesslich Quellen von diesen Domains: '.implode(', ', $allowedDomains).'.';
+        }
+
+        if ($blockedDomains !== []) {
+            $rules[] = 'Verwende nie Quellen von diesen Domains: '.implode(', ', $blockedDomains).'.';
+        }
+
+        return implode("\n", $rules);
+    }
+
+    /**
+     * @param  array<int, string>  $allowedDomains
+     * @param  array<int, string>  $blockedDomains
+     */
+    private function domainAllowed(string $url, array $allowedDomains, array $blockedDomains): bool
+    {
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+
+        if ($host === '') {
+            return false;
+        }
+
+        $matches = static fn (string $domain): bool => $host === $domain || str_ends_with($host, '.'.$domain);
+
+        if ($allowedDomains !== [] && array_filter($allowedDomains, $matches) === []) {
+            return false;
+        }
+
+        return array_filter($blockedDomains, $matches) === [];
+    }
+
+    /**
+     * System-Bloecke des PromptRenderers als ein Text fuer --system-prompt.
+     *
+     * @param  array<int, array<string, mixed>>  $blocks
+     */
+    private function systemText(array $blocks): string
+    {
+        return implode("\n\n", array_filter(array_map(
+            static fn (array $block): string => trim((string) ($block['text'] ?? '')),
+            $blocks,
+        )));
     }
 
     /**
@@ -539,12 +881,18 @@ class LlmClient
         array $usage,
         int $durationMs,
         ?string $error = null,
+        string $driver = self::DRIVER_API,
+        ?float $costUsd = null,
+        ?int $searches = null,
     ): float {
-        $cost = $usage === [] ? 0.0 : $this->costFor($usage);
+        // Beim Treiber 'cli' kommt der Betrag aus total_cost_usd der CLI:
+        // rechnerisch zu Listenpreisen, abgerechnet wird ueber das Abo.
+        $cost = $costUsd ?? ($usage === [] ? 0.0 : $this->costFor($usage));
 
         LlmUsageLog::create([
             'tenant_id' => $context->tenantId,
             'provider' => self::PROVIDER,
+            'driver' => $driver,
             'model' => $this->model(),
             'operation' => $this->operation($templateKey),
             'reference_type' => $context->runId === null ? null : LlmCallContext::REFERENCE_RUN,
@@ -555,7 +903,7 @@ class LlmClient
             'output_tokens' => (int) ($usage['output_tokens'] ?? 0),
             'cache_write_tokens' => (int) ($usage['cache_creation_input_tokens'] ?? 0),
             'cache_read_tokens' => (int) ($usage['cache_read_input_tokens'] ?? 0),
-            'search_count' => $this->searchCount($usage),
+            'search_count' => $searches ?? $this->searchCount($usage),
             'requests' => 1,
             'cost_usd' => $cost,
             'duration_ms' => $durationMs,

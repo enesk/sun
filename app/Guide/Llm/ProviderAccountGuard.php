@@ -36,6 +36,14 @@ class ProviderAccountGuard
     {
         $isModelAccount = $provider === LlmClient::PROVIDER;
 
+        // Treiber 'cli' (#42): kein Guthaben und kein API-Schluessel, sondern
+        // Abo-Kontingent und Abo-Token.
+        if ($isModelAccount && LlmClient::driver() === LlmClient::DRIVER_CLI) {
+            return $reason === ProviderAccountException::REASON_KEY
+                ? __('Das Abo-Token der Claude-CLI wird abgelehnt (CLAUDE_CODE_OAUTH_TOKEN). Bis zur Erneuerung entstehen keine Artikel.')
+                : __('Das Nutzungslimit des Claude-Abos ist erreicht. Bis zur Freigabe des Kontingents entstehen keine Artikel.');
+        }
+
         if ($reason === ProviderAccountException::REASON_KEY) {
             return $isModelAccount
                 ? __('Der Zugangsschlüssel des Modellkontos wird abgelehnt. Bis zur Erneuerung entstehen keine Artikel.')

@@ -677,10 +677,17 @@ Beibehalten je externem Provider (Anthropic, fal.ai, IndexNow):
 * Keine Keys in der Datenbank, in Panel-Feldern, Livewire-Payloads, Blade-Views oder Logs.
   Konfigurierbar im Panel sind Budgets, Zeitfenster, Schalter, Prompts, Whitelists — nie
   Credentials.
-* Die Recherche läuft nur über die Messages API. Der CLI-Treiber der alten Pipeline
-  (`CONTENT_LLM_DRIVER=cli`) wird für das Ratgebersystem nicht angeboten: Er bucht
-  `cost_usd = 0`, das Budget griffe nicht, und die Web-Search-Abrechnung wäre nicht
-  nachvollziehbar.
+* Treiber (#42, Vorgabe Enes 21.09.2026, hebt die frühere Festlegung „nur API“ auf):
+  `GUIDE_LLM_DRIVER=cli` (Vorgabe) ruft das Modell über die Claude-CLI mit dem Abo auf
+  (`App\Guide\Llm\ClaudeCliTransport`), `api` über die Messages API. Beim Treiber `cli`
+  bucht das Kosten-Log `total_cost_usd` der CLI als rechnerischen Betrag, damit Budget
+  und Kostenabgleich weiter greifen; `llm_usage_logs.driver` weist den Treiber aus.
+  Die Recherche nutzt die Websuche der CLI (nur `WebSearch`/`WebFetch`, sonst keine
+  Werkzeuge). Die Zitate sind die Treffer der tatsächlich ausgeführten Suchen, gelesen
+  aus dem `stream-json`-Verlauf; so bleibt die Prüfung `not_in_search_results` wirksam.
+  Suchgrenze und Domainlisten stehen im Prompt, Treffer außerhalb der Domainlisten
+  fallen aus den Zitaten. Token, Binary und HOME kommen aus `config('guide.cli')`,
+  `ANTHROPIC_API_KEY` wird dem Prozess entzogen.
 
 ### Panel `content`: eigene Zugangsgrenze, Guard `web`
 
@@ -880,7 +887,7 @@ Supervisor-Programmen und Config-Blöcken.
 
 | Baustein | Umbau | Ticket |
 |---|---|---|
-| `LlmClient`, `BudgetGuard` | Web-Search-Werkzeug, Kosten je Suche, Budget nur `guide.*`, kein CLI-Pfad | #5 |
+| `LlmClient`, `BudgetGuard` | Web-Search-Werkzeug, Kosten je Suche, Budget nur `guide.*`; Treiber `cli`/`api` | #5, #42 |
 | `ClaudeCliTransport` | bleibt nur für die alte Pipeline; im Ratgebersystem nicht verwendet, entfällt mit #19 | #5/#19 |
 | `PromptTemplate` + `PromptTemplateSeeder` | neue Stufen `guide.probe`, `guide.deep_research`, `guide.outline`, `guide.section_write`, `guide.section_update`, `guide.faq`, `guide.short_answer`, `guide.meta`, `guide.changelog`, `guide.rubric` | #7 |
 | `docs/styleguides/` | Branchen-Styleguides fürs Ratgebersystem | #7 |

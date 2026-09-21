@@ -38,7 +38,9 @@ class ProposeOutlineJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $timeout = 300;
+    // Ueber dem CLI-Timeout (guide.cli.timeout, 600 s) und unter dem
+    // Horizon-Timeout von guide-write (960 s), wie die Lauf-Jobs (#42).
+    public int $timeout = 900;
 
     public int $budgetReleaseSeconds = 3600;
 

@@ -21,6 +21,7 @@ class LlmUsageLog extends Model
     protected $fillable = [
         'tenant_id',
         'provider',
+        'driver',
         'model',
         'operation',
         'reference_type',
