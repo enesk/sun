@@ -1,6 +1,6 @@
 {{-- Blog Post Card (wiederverwendbar in index, category, tag, search) --}}
 <article class="blog-card {{ ($featured ?? false) ? 'blog-card--featured' : '' }} reveal">
-    <a href="{{ route('portal.blog.show', $post->slug) }}" class="block group {{ ($featured ?? false) ? 'sm:grid sm:grid-cols-2' : '' }}">
+    <a href="{{ route('guide.show', $post->slug) }}" class="block group {{ ($featured ?? false) ? 'sm:grid sm:grid-cols-2' : '' }}">
         {{-- Featured Image --}}
         @if($post->featured_image_url)
             <div class="blog-card__image">

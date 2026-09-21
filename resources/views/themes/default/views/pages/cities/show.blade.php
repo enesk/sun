@@ -179,6 +179,9 @@
                 </div>
             </section>
         @endif
+
+        {{-- Passende Ratgeber (#18) --}}
+        <x-guide.related :category="$category ?? null" class="mt-12" />
     </div>
 
 @endsection

@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Filament\Content\Resources\PromptTemplates;
 
-use App\Content\Llm\PromptRenderer;
-use App\Content\Llm\PromptSchemaContract;
-use App\Content\Models\Central\PromptTemplate;
 use App\Filament\Content\Forms\Components\PromptCodeEditor;
 use App\Filament\Content\Resources\PromptTemplates\Pages\EditPromptTemplate;
 use App\Filament\Content\Resources\PromptTemplates\Pages\ListPromptTemplates;
+use App\Guide\Llm\TemplateRenderer;
+use App\Guide\Models\Central\PromptTemplate;
 use App\Models\Tenant;
 use App\Models\User;
 use BackedEnum;
@@ -95,7 +94,8 @@ class PromptTemplateResource extends Resource
                         ->required()
                         ->maxLength(255),
                     Select::make('tenant_id')
-                        ->label(__('Portal'))
+                        // Ohne __(): "Portal" loest auf die Gruppe lang/de/portal.php auf.
+                        ->label('Portal')
                         ->options(fn (): array => Tenant::query()->orderBy('name')->pluck('name', 'id')->all())
                         ->searchable()
                         ->placeholder(__('Für alle Portale'))
@@ -183,7 +183,7 @@ class PromptTemplateResource extends Resource
                     ->searchable()
                     ->wrap(),
                 TextColumn::make('tenant.name')
-                    ->label(__('Portal'))
+                    ->label('Portal')
                     ->placeholder(__('Alle Portale')),
                 TextColumn::make('version')
                     ->label(__('Version'))
@@ -271,14 +271,12 @@ class PromptTemplateResource extends Resource
     }
 
     /**
-     * Fall A und `isSatisfiedBy() === false`. Fall B und C tragen nie ein
-     * Abzeichen.
+     * Fall A (Schemavertrag im Code) gibt es seit dem Rueckbau der alten
+     * Pipeline nicht mehr (#35); Fall B und C tragen nie ein Abzeichen.
      */
     public static function isSchemaStale(PromptTemplate $record): bool
     {
-        $contract = PromptSchemaContract::for($record->key);
-
-        return $contract !== null && ! $contract->isSatisfiedBy($record->output_schema_json);
+        return false;
     }
 
     /**
@@ -294,21 +292,14 @@ class PromptTemplateResource extends Resource
      */
     public static function schemaViewData(string $part, mixed $key, ?array $schema): array
     {
-        $contract = PromptSchemaContract::for(is_string($key) ? $key : null);
         $hasSchema = $schema !== null && $schema !== [];
-
-        $case = match (true) {
-            $contract !== null => 'A',
-            $hasSchema => 'C',
-            default => 'B',
-        };
 
         return [
             'part' => $part,
-            'case' => $case,
+            'case' => $hasSchema ? 'C' : 'B',
             'json' => $hasSchema ? static::encode($schema) : '',
-            'class' => $contract?->className(),
-            'stale' => $contract !== null && ! $contract->isSatisfiedBy($schema),
+            'class' => null,
+            'stale' => false,
             'hasSchema' => $hasSchema,
         ];
     }
@@ -337,7 +328,7 @@ class PromptTemplateResource extends Resource
         ]);
 
         $variables = $template->variables_json ?? [];
-        $renderer = app(PromptRenderer::class);
+        $renderer = app(TemplateRenderer::class);
         $missing = $renderer->missingVariables($template, $variables);
 
         if ($missing !== []) {
@@ -370,7 +361,7 @@ class PromptTemplateResource extends Resource
      *
      * @param  array<string, mixed>  $variables
      */
-    private static function highlight(string $text, array $variables, PromptRenderer $renderer): HtmlString
+    private static function highlight(string $text, array $variables, TemplateRenderer $renderer): HtmlString
     {
         return new HtmlString($renderer->renderWith(
             e($text),
@@ -441,7 +432,7 @@ class PromptTemplateResource extends Resource
      * Bleibt bestehen (§7b.1 Abschnitt 9), obwohl seit #58 kein Formularfeld
      * mehr am Ausgabeschema haengt: sie wird nicht verschaerft und ist wieder
      * anzuhaengen, sobald ein Schema-Feld entsteht. Was sie nicht pruefen
-     * kann, prueft PromptSchemaContract zur Laufzeit.
+     * kann, prueft das Guide-Schema der nutzenden Klasse zur Laufzeit.
      */
     public static function jsonSchemaRule(): \Closure
     {

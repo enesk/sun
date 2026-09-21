@@ -137,5 +137,8 @@
       </ul>
     </section>
   @endif
+
+  {{-- Passende Ratgeber (#18) --}}
+  <x-guide.related :category="$category" />
 </div>
 @endsection

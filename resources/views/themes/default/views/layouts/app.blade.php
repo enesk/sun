@@ -3,6 +3,11 @@
     $seo = app(\App\Services\Seo\SeoService::class);
     $metaRobots = $seo->robots() !== null ? e($seo->robots()) : ($__env->hasSection('meta_robots') ? $__env->yieldContent('meta_robots') : null);
     $canonicalUrl = $seo->canonical() !== null ? e($seo->canonical()) : $__env->yieldContent('canonical', url()->current());
+    // Title, Description, OG: ebenfalls SeoService zuerst (Ratgeber #17). yieldContent() escaped selbst.
+    $metaTitle = $seo->title() !== null ? e($seo->title()) : $__env->yieldContent('title', $currentTenant->name ?? config('app.name'));
+    $metaDescription = $seo->description() !== null ? e($seo->description()) : $__env->yieldContent('meta_description', '');
+    $metaOgType = $seo->ogType() !== null ? e($seo->ogType()) : $__env->yieldContent('og_type', 'website');
+    $metaOgImage = $seo->ogImage() !== null ? e($seo->ogImage()) : ($__env->hasSection('og_image') ? $__env->yieldContent('og_image') : null);
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
@@ -11,31 +16,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     {{-- SEO Meta --}}
-    <title>@yield('title', ($currentTenant->name ?? config('app.name')))</title>
-    <meta name="description" content="@yield('meta_description', '')">
+    <title>{!! $metaTitle !!}</title>
+    <meta name="description" content="{!! $metaDescription !!}">
     @if($metaRobots !== null)
         <meta name="robots" content="{!! $metaRobots !!}">
     @endif
 
     {{-- Open Graph --}}
-    <meta property="og:title" content="@yield('title', ($currentTenant->name ?? config('app.name')))">
-    <meta property="og:description" content="@yield('meta_description', '')">
-    <meta property="og:type" content="@yield('og_type', 'website')">
+    <meta property="og:title" content="{!! $metaTitle !!}">
+    <meta property="og:description" content="{!! $metaDescription !!}">
+    <meta property="og:type" content="{!! $metaOgType !!}">
     <meta property="og:url" content="{!! $canonicalUrl !!}">
     <meta property="og:site_name" content="{{ $currentTenant->name ?? config('app.name') }}">
     <meta property="og:locale" content="de_DE">
-    @hasSection('og_image')
-        <meta property="og:image" content="@yield('og_image')">
+    @if($metaOgImage !== null)
+        <meta property="og:image" content="{!! $metaOgImage !!}">
     @elseif(!empty($currentTenant) && $currentTenant->getAttribute('branding.og_image_path'))
         <meta property="og:image" content="{{ asset($currentTenant->getAttribute('branding.og_image_path')) }}">
     @endif
 
     {{-- Twitter Cards --}}
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="@yield('title', ($currentTenant->name ?? config('app.name')))">
-    <meta name="twitter:description" content="@yield('meta_description', '')">
-    @hasSection('og_image')
-        <meta name="twitter:image" content="@yield('og_image')">
+    <meta name="twitter:title" content="{!! $metaTitle !!}">
+    <meta name="twitter:description" content="{!! $metaDescription !!}">
+    @if($metaOgImage !== null)
+        <meta name="twitter:image" content="{!! $metaOgImage !!}">
     @elseif(!empty($currentTenant) && $currentTenant->getAttribute('branding.og_image_path'))
         <meta name="twitter:image" content="{{ asset($currentTenant->getAttribute('branding.og_image_path')) }}">
     @endif

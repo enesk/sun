@@ -17,7 +17,7 @@
             <thead>
                 <tr class="bg-surface-sunken">
                     <th scope="col" class="h-10 px-content-3 text-start text-content-label font-medium text-text-base">
-                        {{ __('Portal') }}
+                        Portal
                     </th>
                     <th scope="col" class="h-10 w-[130px] px-content-3 text-end text-content-label font-medium text-text-base">
                         {{ __('Kosten (USD)') }}

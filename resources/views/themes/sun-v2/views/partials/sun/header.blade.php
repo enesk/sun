@@ -4,7 +4,7 @@
 
     $navLinks = [
         ['label' => __('portal.layout.header.cities'), 'href' => route('portal.cities.index')],
-        ['label' => __('portal.layout.header.guide'), 'href' => route('portal.blog.index')],
+        ['label' => __('portal.layout.header.guide'), 'href' => route('guide.index')],
         ['label' => __('portal.layout.header.jobs'), 'href' => route('portal.jobs.index')],
     ];
 

@@ -123,10 +123,10 @@
 @if($latestPosts->isNotEmpty())
 <section class="section pt-0">
   <div class="container-portal">
-    <x-sun.section-heading :title="__('portal.home.guide.heading')" :href="route('portal.blog.index')" :link="__('portal.home.guide.all')" />
+    <x-sun.section-heading :title="__('portal.home.guide.heading')" :href="route('guide.index')" :link="__('portal.home.guide.all')" />
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
       @foreach($latestPosts->take(3) as $post)
-        <a href="{{ route('portal.blog.show', $post->slug) }}" class="card-interactive overflow-hidden flex flex-col">
+        <a href="{{ route('guide.show', $post->slug) }}" class="card-interactive overflow-hidden flex flex-col">
           @if($post->featured_image_url)
             <img src="{{ $post->featured_image_url }}" alt="" width="640" height="360" class="aspect-video w-full object-cover" loading="lazy">
           @else

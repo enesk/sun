@@ -16,7 +16,7 @@
 @if(request('page'))
 @section('meta_robots', 'noindex, follow')
 @endif
-@section('canonical', route('portal.blog.category', $category->slug))
+@section('canonical', route('guide.category', $category->slug))
 
 @push('scripts')
     @include('ratgeber.partials.organization-jsonld', ['organization' => $organization ?? []])
@@ -26,7 +26,7 @@
         '@type' => 'CollectionPage',
         'name' => $category->name.' — '.__('portal.layout.header.guide').' — '.$portalName,
         'description' => $intro,
-        'url' => route('portal.blog.category', $category->slug),
+        'url' => route('guide.category', $category->slug),
         'isPartOf' => ['@type' => 'WebSite', 'name' => $portalName, 'url' => url('/')],
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}
     </script>
@@ -39,7 +39,7 @@
   <div class="container-portal">
     <nav aria-label="{{ __('portal.layout.breadcrumb.label') }}" class="text-sm text-zinc-500 flex items-center gap-1.5 flex-wrap">
       <a href="{{ route('home') }}" class="hover:text-brand">{{ __('portal.layout.breadcrumb.home') }}</a><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" />
-      <a href="{{ route('portal.blog.index') }}" class="hover:text-brand">{{ __('portal.layout.header.guide') }}</a><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" />
+      <a href="{{ route('guide.index') }}" class="hover:text-brand">{{ __('portal.layout.header.guide') }}</a><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" />
       <span class="text-zinc-900">{{ $category->name }}</span>
     </nav>
     <div class="mt-4 flex items-start gap-4 max-w-2xl">
@@ -72,9 +72,9 @@
       @if($categories->isNotEmpty())
         <nav class="flex gap-2 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto scroll-snap pb-1 min-w-0" aria-label="{{ __('portal.blog.category.filter_label') }}">
           @php $activeClass = 'pill min-h-11 md:min-h-0 px-4 md:px-3 bg-brand-50 text-brand-700 border border-brand-200 whitespace-nowrap'; @endphp
-          <a href="{{ route('portal.blog.index') }}" class="pill-link whitespace-nowrap">{{ __('portal.blog.list.filter_all') }}</a>
+          <a href="{{ route('guide.index') }}" class="pill-link whitespace-nowrap">{{ __('portal.blog.list.filter_all') }}</a>
           @foreach($categories as $item)
-            <a href="{{ route('portal.blog.category', $item->slug) }}" class="{{ $item->id === $category->id ? $activeClass : 'pill-link whitespace-nowrap' }}" @if($item->id === $category->id) aria-current="page" @endif>{{ $item->name }}</a>
+            <a href="{{ route('guide.category', $item->slug) }}" class="{{ $item->id === $category->id ? $activeClass : 'pill-link whitespace-nowrap' }}" @if($item->id === $category->id) aria-current="page" @endif>{{ $item->name }}</a>
           @endforeach
         </nav>
       @endif
@@ -85,7 +85,7 @@
         <span class="size-14 mx-auto rounded-2xl bg-brand-50 text-brand flex items-center justify-center" aria-hidden="true"><x-sun.icon name="search-x" class="size-7" /></span>
         <p class="mt-4 font-semibold text-zinc-900">{{ __('portal.blog.category.empty_heading', ['kategorie' => $category->name]) }}</p>
         <p class="mt-1 text-sm text-zinc-500">{{ __('portal.blog.list.empty_text') }}</p>
-        <a href="{{ route('portal.blog.index') }}" class="mt-5 btn-secondary">{{ __('portal.blog.list.all_guides') }}</a>
+        <a href="{{ route('guide.index') }}" class="mt-5 btn-secondary">{{ __('portal.blog.list.all_guides') }}</a>
       </div>
     @endif
 
@@ -98,7 +98,7 @@
       @if($group->isNotEmpty())
         <div class="{{ $loop->first ? 'mt-6' : 'mt-4' }} grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           @foreach($group as $post)
-            <a href="{{ route('portal.blog.show', $post->slug) }}" class="card-interactive overflow-hidden flex flex-col">
+            <a href="{{ route('guide.show', $post->slug) }}" class="card-interactive overflow-hidden flex flex-col">
               @if($post->featured_image_url)
                 <img src="{{ $post->featured_image_url }}" alt="" width="640" height="360" class="aspect-video w-full object-cover" loading="lazy">
               @else

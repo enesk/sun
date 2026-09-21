@@ -30,7 +30,7 @@
   <div class="container-portal">
     <nav aria-label="{{ __('portal.layout.breadcrumb.label') }}" class="text-sm text-zinc-500 flex items-center gap-1.5 flex-wrap">
       <a href="{{ route('home') }}" class="hover:text-brand">{{ __('portal.layout.breadcrumb.home') }}</a><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" />
-      <a href="{{ route('portal.blog.index') }}" class="hover:text-brand">{{ __('portal.layout.header.guide') }}</a><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" />
+      <a href="{{ route('guide.index') }}" class="hover:text-brand">{{ __('portal.layout.header.guide') }}</a><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" />
       <span class="text-zinc-900">#{{ $tag->name }}</span>
     </nav>
     <div class="mt-4 max-w-2xl">
@@ -72,7 +72,7 @@
         <span class="size-14 mx-auto rounded-2xl bg-brand-50 text-brand flex items-center justify-center" aria-hidden="true"><x-sun.icon name="search-x" class="size-7" /></span>
         <p class="mt-4 font-semibold text-zinc-900">{{ __('portal.blog.tag.empty_heading', ['schlagwort' => $tag->name]) }}</p>
         <p class="mt-1 text-sm text-zinc-500">{{ __('portal.blog.list.empty_text') }}</p>
-        <a href="{{ route('portal.blog.index') }}" class="mt-5 btn-secondary">{{ __('portal.blog.list.all_guides') }}</a>
+        <a href="{{ route('guide.index') }}" class="mt-5 btn-secondary">{{ __('portal.blog.list.all_guides') }}</a>
       </div>
     @endif
 

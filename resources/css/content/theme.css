@@ -15,16 +15,19 @@
  *   ContentPanelProvider -> ->viteTheme('resources/css/content/theme.css')
  *
  * Statusfarben sind normativ. Sie gelten identisch in Board, Kalender,
- * Tabellen, Leistung und E-Mail (Leitbild, Prinzip 2) und bilden die sieben
- * Werte von App\Content\Enums\DisplayStatus ab. DraftStatus und TopicStatus
- * bekommen KEINE eigenen Farben, sie werden ueber fromDraft()/fromTopic()
- * abgebildet und nur als Fortschrittstext unter der Pille gezeigt.
+ * Tabellen, Leistung und E-Mail (Leitbild, Prinzip 2) und bilden sieben
+ * Anzeige-Status ab (idea, scheduled, generating, review, published, failed,
+ * archived; Filament-Farben status-* aus config('content.colors')). Feinere
+ * interne Zustaende bekommen KEINE eigenen Farben, sie erscheinen nur als
+ * Fortschrittstext unter der Pille.
  */
 
 @import '../../../vendor/filament/filament/resources/css/theme.css';
 
 @source '../../../app/Filament/Content';
 @source '../../../app/Content';
+@source '../../../app/Guide/Filament';
+@source '../../../app/Guide/Livewire';
 @source '../../views/filament/content';
 @source '../../views/content';
 @source '../../../vendor/**/*.blade.php';
@@ -82,7 +85,7 @@
                                           4,45:1 — dort text-base nehmen (#64). */
 
     /* ==============================================================
-       Statusfarben — DisplayStatus, sieben Werte, normativ.
+       Statusfarben — sieben Anzeige-Status, normativ.
        Je Status vier Rollen:
          bg    Flaeche der Pille / des Badges
          fg    Text und Rand, >= 4,5:1 auf bg und auf Weiss
@@ -132,6 +135,19 @@
     --color-status-archived-fg:   #64716f;
     --color-status-archived-dot:  #64716f;
     --color-status-archived-fill: #7c8a88;
+
+    /* Segmente des gestapelten Tagesbalkens im Ratgeber-Dashboard
+       (design/guide-dashboard.md §2.4, #14). Keine neue Statusrolle, nur
+       Fuellungen; der Balken steht nie ohne Legende mit Zahlen. "Neu"
+       unterscheidet sich von "Aktualisiert" zusaetzlich durch Schraffur
+       (.content-run-segment--new). */
+    --color-run-new-fill:       var(--color-status-published-fill);
+    --color-run-updated-fill:   var(--color-status-published-fill);
+    --color-run-unchanged-fill: #6fbf9f;
+    --color-run-review-fill:    var(--color-status-review-fill);
+    --color-run-failed-fill:    var(--color-status-failed-fill);
+    --color-run-active-fill:    var(--color-status-generating-fill);
+    --color-run-open-fill:      var(--color-line-strong);
 
     /* Wortmarken im Fassungsvergleich (#44/#53) — eigener Namensraum, weil
        sie keine Statusbedeutung tragen. Kontraste: del 8,1:1, ins 9,4:1. */
@@ -236,6 +252,26 @@
     .content-status--failed     { background: var(--color-status-failed-bg);     color: var(--color-status-failed-fg); }
     .content-status--archived   { background: var(--color-status-archived-bg);   color: var(--color-status-archived-fg); opacity: 0.85; }
 
+    /* Sonderbauformen des Ratgeber-Dashboards (design/guide-dashboard.md §2.3).
+       "Geprueft, unveraendert": Flaeche wie "Wartet", aber gruener Punkt und
+       Text in text-base — abgeschwaechter Erfolg, nicht grau. */
+    .content-status--unchanged  { background: var(--color-status-idea-bg); color: var(--color-text-base); }
+    .content-status--unchanged::before { background: var(--color-status-published-dot); }
+
+    /* "Pausiert": Pausenzeichen (zwei Balken 2 x 8 px, 2 px Abstand) statt
+       Punkt, damit es sich auch ohne Farbe von "Wartet" unterscheidet. */
+    .content-status--paused     { background: var(--color-status-scheduled-bg); color: var(--color-status-scheduled-fg); }
+    .content-status--paused::before {
+        width: 0.375rem;
+        height: 0.5rem;
+        border-radius: 0;
+        background: linear-gradient(to right, currentColor 0 2px, transparent 2px 4px, currentColor 4px 6px);
+    }
+
+    .content-run-segment--new {
+        background: repeating-linear-gradient(135deg, var(--color-status-published-fill) 0 4px, var(--color-status-published-dot) 4px 6px);
+    }
+
     /* ------------------------------------------------------------------
        Aktualisierungsstand (#99). Pille in der Artikelliste, Streifen in
        der Fassungsansicht. Keine neuen Farbtokens: "vorgemerkt" traegt den
@@ -299,12 +335,12 @@
        (rounded-md) schon mit; Flaeche und Text kommen aus der
        registrierten Farbe (Schattierung 50 bzw. 600). Fehlt nur der
        Punkt und das Schriftgewicht. Beides wird hier ergaenzt, streng
-       begrenzt auf die sieben Statusfarben, damit Zaehlmarken und
+       begrenzt auf die sieben Statusfarben und die zwei Bauformen des
+       Ratgeber-Dashboards (unchanged, paused), damit Zaehlmarken und
        Tag-Eingaben im Panel unveraendert bleiben.
        Regel fuer Umsetzende: Status-Badges bekommen KEIN ->icon(),
-       sonst stehen Punkt und Heroicon nebeneinander. Das Symbol aus
-       DisplayStatus::icon() gehoert in Auswahllisten, Filter und den
-       Kopf des Pruefblatts.
+       sonst stehen Punkt und Heroicon nebeneinander. Ein Status-Symbol
+       gehoert in Auswahllisten, Filter und den Kopf des Pruefblatts.
        ------------------------------------------------------------------ */
     .fi-badge:is(
         .fi-color-status-idea,
@@ -313,7 +349,9 @@
         .fi-color-status-review,
         .fi-color-status-published,
         .fi-color-status-failed,
-        .fi-color-status-archived
+        .fi-color-status-archived,
+        .fi-color-status-unchanged,
+        .fi-color-status-paused
     ) {
         gap: var(--spacing-content-2);
         font-weight: 600;
@@ -326,7 +364,9 @@
         .fi-color-status-review,
         .fi-color-status-published,
         .fi-color-status-failed,
-        .fi-color-status-archived
+        .fi-color-status-archived,
+        .fi-color-status-unchanged,
+        .fi-color-status-paused
     )::before {
         content: "";
         width: 0.5rem;
@@ -344,7 +384,19 @@
         opacity: 0.85;
     }
 
-    /* Fortschritt innerhalb eines Status (DraftStatus::progressLabel).
+    /* Sonderbauformen wie .content-status--unchanged / --paused (§2.3). */
+    .fi-badge.fi-color-status-unchanged::before {
+        background: var(--color-status-published-dot);
+    }
+
+    .fi-badge.fi-color-status-paused::before {
+        width: 0.375rem;
+        height: 0.5rem;
+        border-radius: 0;
+        background: linear-gradient(to right, currentColor 0 2px, transparent 2px 4px, currentColor 4px 6px);
+    }
+
+    /* Fortschritt innerhalb eines Status (Fortschrittstext).
        Steht UNTER der Pille, nie als eigene Pille. */
     .content-status-progress {
         display: block;
@@ -582,6 +634,23 @@
    ausschliesslich, ob ein Beispielwert vorliegt — kein Status.
    ================================================================== */
 @layer components {
+    /* Platzhalter in Beispielwerten des Import-Wizards (#15, §4.2):
+       bekannt wie im Prompt-Editor, unbekannt gedaempft mit gestrichelter
+       Unterlinie — der Unterschied haengt nicht allein an der Farbe. */
+    .content-placeholder {
+        background: var(--color-placeholder-known-bg);
+        color: var(--color-placeholder-known-fg);
+        border-radius: var(--radius-content-sm);
+        padding: 0 0.125rem;
+    }
+
+    .content-placeholder--missing {
+        background: var(--color-placeholder-missing-bg);
+        color: var(--color-placeholder-missing-fg);
+        text-decoration: underline dashed;
+        text-underline-offset: 2px;
+    }
+
     .cm-prompt-placeholder {
         background: var(--color-placeholder-known-bg);
         color: var(--color-placeholder-known-fg);

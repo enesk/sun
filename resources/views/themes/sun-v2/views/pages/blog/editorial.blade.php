@@ -29,7 +29,7 @@
   @include('partials.sun.legal-page', [
       'title' => 'So arbeitet unsere Redaktion',
       'subtitle' => 'Redaktionsgrundsätze unserer Ratgeber',
-      'crumbs' => [['Start', route('home')], ['Ratgeber', route('portal.blog.index')], ['Redaktion', null]],
+      'crumbs' => [['Start', route('home')], ['Ratgeber', route('guide.index')], ['Redaktion', null]],
       'footerLinks' => [['Impressum', route('portal.impressum')], ['Datenschutzerklärung', route('portal.datenschutz')]],
   ])
 @endsection

@@ -41,7 +41,7 @@ class Dashboard extends \Filament\Pages\Dashboard
                 ])->default('month'),
                 // Nur fuer PremiumRevenueWidget (#18)
                 Select::make('tenant_id')
-                    ->label(__('Portal'))
+                    ->label('Portal')
                     ->placeholder(__('Alle Portale'))
                     ->options(fn (): array => Tenant::query()->orderBy('name')->pluck('name', 'id')->all()),
 

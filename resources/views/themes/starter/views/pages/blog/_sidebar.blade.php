@@ -8,7 +8,7 @@
             <ul class="space-y-0.5">
                 @foreach($categories as $cat)
                     <li>
-                        <a href="{{ route('portal.blog.category', $cat->slug) }}"
+                        <a href="{{ route('guide.category', $cat->slug) }}"
                            class="blog-sidebar__link {{ (isset($category) && $category->id === $cat->id) ? 'blog-sidebar__link--active' : '' }}">
                             <span>{{ $cat->name }}</span>
                             <span class="blog-sidebar__count">{{ $cat->posts_count }}</span>
@@ -26,7 +26,7 @@
             <ul class="space-y-3">
                 @foreach($recentPosts as $recent)
                     <li>
-                        <a href="{{ route('portal.blog.show', $recent->slug) }}" class="block group">
+                        <a href="{{ route('guide.show', $recent->slug) }}" class="block group">
                             <span class="text-sm font-medium text-[#334155] group-hover:text-[var(--portal-primary-text,#3472D8)] transition-colors line-clamp-2">{{ $recent->title }}</span>
                             <span class="text-xs text-[#94A3B8] mt-0.5 block">{{ $recent->formatted_date }}</span>
                         </a>

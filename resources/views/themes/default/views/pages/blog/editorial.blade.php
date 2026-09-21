@@ -25,7 +25,7 @@
 
     @include('components.breadcrumb', ['items' => [
         ['label' => 'Home', 'url' => route('home')],
-        ['label' => 'Ratgeber', 'url' => route('portal.blog.index')],
+        ['label' => 'Ratgeber', 'url' => route('guide.index')],
         ['label' => 'So arbeitet unsere Redaktion'],
     ]])
 
@@ -50,7 +50,7 @@
             </div>
 
             <p class="mt-8 pt-6 border-t border-[#E2E8F0] text-sm">
-                <a href="{{ route('portal.blog.index') }}" class="hover:underline" style="color: var(--portal-primary-text, #3472D8);">
+                <a href="{{ route('guide.index') }}" class="hover:underline" style="color: var(--portal-primary-text, #3472D8);">
                     Zurück zum Ratgeber
                 </a>
             </p>

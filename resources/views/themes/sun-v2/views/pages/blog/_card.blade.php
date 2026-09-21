@@ -1,5 +1,5 @@
 {{-- Artikelkarte der Ratgeber-Listen im Theme sun-v2 (Uebersicht, Suche, Schlagwort). Erwartet $post und $sunBlog. --}}
-<a href="{{ route('portal.blog.show', $post->slug) }}" class="card-interactive overflow-hidden flex flex-col">
+<a href="{{ route('guide.show', $post->slug) }}" class="card-interactive overflow-hidden flex flex-col">
   @if($post->featured_image_url)
     <img src="{{ $post->featured_image_url }}" alt="" width="640" height="360" class="aspect-video w-full object-cover" loading="lazy">
   @else

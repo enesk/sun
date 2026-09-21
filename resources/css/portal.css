@@ -9434,3 +9434,586 @@ details[open] > .cookie-category__summary::before {
         transition: none;
     }
 }
+
+/* ============================================================
+   RATGEBER (themengetrieben, #17) — Uebersicht, Kategorie, Artikel
+   design/guide-frontend.md. Markenfarbe nur als portal-primary-Familie,
+   sonst Zinc-Neutrale. Mobile first; Breakpoints 480/640/1024 px.
+   ============================================================ */
+
+.ratgeber-page {
+    max-width: 72.5rem; /* 1160px */
+    margin: 0 auto;
+    padding: 1rem 1.25rem 3rem;
+    color: var(--color-zinc-700, #3f3f46);
+}
+
+.ratgeber-crumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+    margin: 0 0 1rem;
+    padding: 0;
+    list-style: none;
+    font-size: 0.875rem;
+    color: var(--color-zinc-600, #52525b);
+}
+
+.ratgeber-crumbs li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.ratgeber-crumbs a {
+    color: var(--portal-primary-text, #3472D8);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.ratgeber-title {
+    font-size: 1.75rem;
+    line-height: 1.25;
+    font-weight: 700;
+    color: var(--color-zinc-900, #18181b);
+    margin: 0 0 0.75rem;
+}
+
+.ratgeber-lead {
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    color: var(--color-zinc-700, #3f3f46);
+    margin: 0 0 1.25rem;
+}
+
+.ratgeber-intro {
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    margin-bottom: 1rem;
+}
+
+.ratgeber-intro > * + * {
+    margin-top: 0.75rem;
+}
+
+.ratgeber-intro a {
+    color: var(--portal-primary-text, #3472D8);
+    text-decoration: underline;
+}
+
+.ratgeber-meta {
+    font-size: 0.875rem;
+    color: var(--color-zinc-600, #52525b);
+    margin: 0 0 1.25rem;
+}
+
+.ratgeber-empty {
+    font-size: 1rem;
+    color: var(--color-zinc-700, #3f3f46);
+}
+
+.ratgeber-empty a {
+    color: var(--portal-primary-text, #3472D8);
+    text-decoration: underline;
+}
+
+/* --- Suche (reines GET-Formular) --- */
+.ratgeber-search {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.ratgeber-search__input {
+    flex: 1;
+    min-width: 0;
+    height: 48px;
+    padding: 0 1rem;
+    border: 1px solid var(--color-zinc-300, #d4d4d8);
+    border-radius: 0.75rem;
+    background: #fff;
+    font-size: 1rem;
+    color: var(--color-zinc-900, #18181b);
+}
+
+.ratgeber-search__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    border-radius: 0.75rem;
+    background: var(--portal-primary-text, #3472D8);
+    color: #fff;
+}
+
+.ratgeber-search__btn:hover {
+    background: var(--portal-primary-text-strong, #2C60B6);
+}
+
+/* --- Abschnitte --- */
+.ratgeber-section {
+    margin-top: 2rem;
+}
+
+.ratgeber-section__heading {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-zinc-900, #18181b);
+    margin: 0 0 1rem;
+}
+
+/* --- Kategorie-Kacheln (§4.4) --- */
+.ratgeber-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+}
+
+.ratgeber-tile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 112px;
+    padding: 1.25rem;
+    border: 1px solid var(--color-zinc-200, #e4e4e7);
+    border-radius: 1rem;
+    background: #fff;
+    text-decoration: none;
+    transition: border-color 150ms ease;
+}
+
+.ratgeber-tile:hover {
+    border-color: var(--portal-primary-text, #3472D8);
+}
+
+.ratgeber-tile__body {
+    min-width: 0;
+}
+
+.ratgeber-tile__name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--color-zinc-900, #18181b);
+    margin: 0;
+}
+
+.ratgeber-tile__meta {
+    margin: 0.375rem 0 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--color-zinc-600, #52525b);
+}
+
+.ratgeber-tile__chevron {
+    flex-shrink: 0;
+    color: var(--color-zinc-400, #a1a1aa);
+}
+
+/* --- Themen-Karten (§4.5) --- */
+.ratgeber-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+}
+
+.ratgeber-card {
+    position: relative;
+    min-height: 160px;
+    padding: 1.25rem;
+    border: 1px solid var(--color-zinc-200, #e4e4e7);
+    border-radius: 1rem;
+    background: #fff;
+    transition: border-color 150ms ease;
+}
+
+.ratgeber-card:hover {
+    border-color: var(--portal-primary-text, #3472D8);
+}
+
+.ratgeber-card__title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--color-zinc-900, #18181b);
+    margin: 0;
+}
+
+.ratgeber-card__link {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* Ganze Karte klickbar, der Anriss bleibt markierbar */
+.ratgeber-card__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 1rem;
+}
+
+.ratgeber-card__teaser {
+    position: relative;
+    z-index: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0.5rem 0 0;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--color-zinc-700, #3f3f46);
+}
+
+.ratgeber-card__date {
+    margin: 0.5rem 0 0;
+    font-size: 0.875rem;
+    color: var(--color-zinc-600, #52525b);
+}
+
+/* --- Chips „Weitere Themen“ --- */
+.ratgeber-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ratgeber-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    margin: 2px 0;
+    padding: 0 1rem;
+    border: 1px solid var(--color-zinc-200, #e4e4e7);
+    border-radius: 9999px;
+    background: #fff;
+    font-size: 0.9375rem;
+    color: var(--color-zinc-700, #3f3f46);
+    text-decoration: none;
+}
+
+.ratgeber-chip:hover {
+    border-color: var(--portal-primary-text, #3472D8);
+    color: var(--portal-primary-text, #3472D8);
+}
+
+.ratgeber-pagination {
+    margin-top: 1.5rem;
+}
+
+.ratgeber-sidebar__card {
+    border: 1px solid var(--color-zinc-200, #e4e4e7);
+    border-radius: 1rem;
+    background: #fff;
+    padding: 1rem;
+}
+
+.ratgeber-sidebar__links {
+    margin: 0.5rem 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ratgeber-sidebar__links a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--portal-primary-text, #3472D8);
+    text-decoration: none;
+}
+
+.ratgeber-sidebar__links a:hover {
+    text-decoration: underline;
+}
+
+/* --- Artikel: Raster 720 + 320, Rinne 48 (ab 1024 px) --- */
+.ratgeber-layout__main {
+    min-width: 0;
+}
+
+.ratgeber-hero {
+    margin: 0 0 1.25rem;
+}
+
+.ratgeber-hero picture {
+    display: block;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 1rem;
+    background: var(--color-zinc-100, #f4f4f5);
+}
+
+.ratgeber-hero img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ratgeber-hero__credit {
+    margin-top: 0.375rem;
+    font-size: 0.75rem;
+    color: var(--color-zinc-600, #52525b);
+}
+
+.ratgeber-hero__credit a {
+    color: inherit;
+    text-decoration: underline;
+}
+
+.ratgeber-prose {
+    font-size: 1.0625rem;
+    line-height: 1.7;
+}
+
+.ratgeber-prose :is(h2, h3) {
+    scroll-margin-top: 88px;
+}
+
+/* --- Stand-Zeile (§4.1) --- */
+.ratgeber-stand {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 0;
+    row-gap: 4px;
+    margin: 0 0 0.25rem;
+    padding: 0;
+    list-style: none;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--color-zinc-600, #52525b);
+}
+
+.ratgeber-stand li {
+    white-space: nowrap;
+}
+
+.ratgeber-stand li + li::before {
+    content: '·';
+    padding: 0 0.5rem;
+}
+
+.ratgeber-stand__link {
+    display: inline-block;
+    padding: 10px 0;
+    margin: -10px 0;
+    color: var(--portal-primary-text, #3472D8);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+@media (max-width: 479px) {
+    .ratgeber-stand li {
+        flex-basis: 100%;
+    }
+
+    .ratgeber-stand li + li::before {
+        content: none;
+    }
+}
+
+/* --- Block 9: Aktualitaet und Quellen --- */
+.ratgeber-aktualitaet {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-zinc-200, #e4e4e7);
+}
+
+/* --- Changelog „Was ist neu?“ (§4.2) --- */
+.ratgeber-news {
+    margin-top: 1.5rem;
+}
+
+.ratgeber-news__heading {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-zinc-900, #18181b);
+    margin: 0 0 1rem;
+    scroll-margin-top: 88px;
+}
+
+.ratgeber-news__list {
+    margin: 0;
+    padding: 0 0 0 1.25rem;
+    list-style: none;
+    border-left: 2px solid var(--color-zinc-200, #e4e4e7);
+}
+
+.ratgeber-news__item {
+    position: relative;
+}
+
+.ratgeber-news__item + .ratgeber-news__item {
+    margin-top: 1rem;
+}
+
+.ratgeber-news__item::before {
+    content: '';
+    position: absolute;
+    left: calc(-1.25rem - 5px);
+    top: 0.375rem;
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background: var(--color-zinc-400, #a1a1aa);
+}
+
+.ratgeber-news__date {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-zinc-700, #3f3f46);
+}
+
+.ratgeber-news__text {
+    margin: 0.125rem 0 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--color-zinc-700, #3f3f46);
+}
+
+.ratgeber-news__text a {
+    color: var(--portal-primary-text, #3472D8);
+    text-decoration: underline;
+}
+
+.ratgeber-news__more {
+    margin-top: 1rem;
+}
+
+.ratgeber-news__more > summary {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--color-zinc-900, #18181b);
+}
+
+.ratgeber-news__more[open] > summary {
+    margin-bottom: 0.75rem;
+}
+
+/* --- Verweisleiste Firmensuche (Block 7) --- */
+.ratgeber-cta-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    margin: 2rem 0;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--color-zinc-200, #e4e4e7);
+    border-radius: 1rem;
+    background: #fff;
+}
+
+.ratgeber-cta-bar__text {
+    margin: 0;
+    font-weight: 600;
+    color: var(--color-zinc-900, #18181b);
+}
+
+.ratgeber-cta-bar__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 0 1.25rem;
+    border: 2px solid var(--portal-primary-text, #3472D8);
+    border-radius: 0.75rem;
+    color: var(--portal-primary-text, #3472D8);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.ratgeber-cta-bar__btn:hover {
+    background: var(--portal-primary-light, #EFF6FF);
+}
+
+.ratgeber-tile:focus-visible,
+.ratgeber-card__link:focus-visible,
+.ratgeber-chip:focus-visible,
+.ratgeber-search__btn:focus-visible,
+.ratgeber-cta-bar__btn:focus-visible,
+.ratgeber-stand__link:focus-visible,
+.ratgeber-news__more > summary:focus-visible {
+    outline: 2px solid var(--portal-primary-text, #3472D8);
+    outline-offset: 2px;
+}
+
+@media (min-width: 640px) {
+    .ratgeber-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .ratgeber-tile {
+        min-height: 128px;
+    }
+
+    .ratgeber-card {
+        min-height: 136px;
+    }
+
+    .ratgeber-card__teaser {
+        -webkit-line-clamp: 2;
+    }
+
+    .ratgeber-title {
+        font-size: 2rem;
+    }
+
+    .ratgeber-news__heading {
+        font-size: 1.25rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .ratgeber-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1.5rem;
+    }
+
+    .ratgeber-list--two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .ratgeber-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 45rem) 20rem;
+        gap: 3rem;
+        justify-content: space-between;
+    }
+
+    .ratgeber-sidebar {
+        width: auto;
+    }
+
+    /* Auf Desktop ersetzt die Linkliste der Seitenspalte die Chips */
+    .ratgeber-section--chips {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ratgeber-tile,
+    .ratgeber-card {
+        transition: none;
+    }
+}

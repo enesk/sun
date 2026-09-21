@@ -142,6 +142,9 @@
                 @endif
             </div>
         </div>
+
+        {{-- Passende Ratgeber (#18) --}}
+        <x-guide.related :category="$category" class="mt-12" />
     </div>
 
 @endsection

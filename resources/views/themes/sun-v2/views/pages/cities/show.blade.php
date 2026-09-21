@@ -136,10 +136,10 @@
 
   @if($citySun['posts']->isNotEmpty())
     <section class="mt-12 md:mt-16">
-      <x-sun.section-heading :title="__('portal.city.guide_heading', ['stadt' => $city->name])" :href="route('portal.blog.index')" :link="__('portal.city.guide_all')" />
+      <x-sun.section-heading :title="__('portal.city.guide_heading', ['stadt' => $city->name])" :href="route('guide.index')" :link="__('portal.city.guide_all')" />
       <div class="grid sm:grid-cols-2 gap-4">
         @foreach($citySun['posts'] as $post)
-          <a href="{{ route('portal.blog.show', $post->slug) }}" class="card-interactive p-5 flex flex-col gap-2">
+          <a href="{{ route('guide.show', $post->slug) }}" class="card-interactive p-5 flex flex-col gap-2">
             @if($post->category)
               <span class="pill self-start">{{ $post->category->name }}</span>
             @endif

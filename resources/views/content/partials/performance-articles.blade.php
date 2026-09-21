@@ -61,7 +61,7 @@
 
                 <tbody>
                     @foreach ($list['rows'] as $row)
-                        <tr wire:key="metric-{{ $row['tenant_id'] }}-{{ $row['draft_id'] }}" class="h-11 border-t border-line-soft">
+                        <tr wire:key="metric-{{ $row['tenant_id'] }}-{{ $row['article_id'] }}" class="h-11 border-t border-line-soft">
                             <td class="max-w-0 px-content-3">
                                 <span class="block truncate font-medium text-text-strong" title="{{ $row['title'] }}">
                                     {{ $row['title'] }}
@@ -104,7 +104,7 @@
         {{-- Mobil (< 1024 px): Kartenliste statt waagerecht scrollender Tabelle. --}}
         <div class="overflow-hidden rounded-content-lg bg-surface-card lg:hidden">
             @foreach ($list['rows'] as $row)
-                <div wire:key="metric-card-{{ $row['tenant_id'] }}-{{ $row['draft_id'] }}" class="border-t border-line-soft p-content-4 first:border-t-0">
+                <div wire:key="metric-card-{{ $row['tenant_id'] }}-{{ $row['article_id'] }}" class="border-t border-line-soft p-content-4 first:border-t-0">
                     <p class="flex items-center gap-content-2 text-content-label text-text-muted">
                         <span class="truncate">{{ $row['portal'] }}</span>
                         <span class="ms-auto">{{ $row['region'] }}</span>
@@ -199,41 +199,4 @@
             @endforeach
         </div>
     @endif
-
-    {{-- Refresh-Kandidaten (#23/#24): der Grund steht dabei, sonst ist die
-         Liste nur eine Behauptung. --}}
-    <section class="rounded-content-lg bg-surface-card p-content-6 shadow-content-card">
-        <h2 class="text-content-h3 font-semibold text-text-strong">{{ __('Kandidaten für eine Aktualisierung') }}</h2>
-        <p class="mt-content-1 text-content-label text-text-muted">
-            {{ __('Vom Metrik-Collector markiert: Position gefallen oder CTR eingebrochen.') }}
-        </p>
-
-        @if ($snapshot['refresh_candidates'] === [])
-            <p class="mt-content-3 text-content-body text-text-muted">
-                {{ __('Kein Artikel ist zur Aktualisierung vorgemerkt.') }}
-            </p>
-        @else
-            <ul class="mt-content-3 space-y-content-3">
-                @foreach ($snapshot['refresh_candidates'] as $candidate)
-                    <li
-                        wire:key="refresh-{{ $candidate['tenant_id'] }}-{{ $candidate['draft_id'] }}"
-                        class="border-t border-line-soft pt-content-3 first:border-t-0 first:pt-0"
-                    >
-                        <p class="text-content-table font-medium text-text-strong">{{ $candidate['title'] }}</p>
-                        <p class="mt-content-1 text-content-label text-text-muted">
-                            {{ $candidate['portal'] }}
-                            @if ($candidate['marked_at'])
-                                · {{ __('vorgemerkt am :date', [
-                                    'date' => \Illuminate\Support\Carbon::parse($candidate['marked_at'])->format('d.m.Y'),
-                                ]) }}
-                            @endif
-                        </p>
-                        <p class="mt-content-1 text-content-label text-text-base">
-                            {{ implode(' · ', $candidate['reasons']) ?: __('Grund nicht hinterlegt') }}
-                        </p>
-                    </li>
-                @endforeach
-            </ul>
-        @endif
-    </section>
 </div>

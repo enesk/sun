@@ -41,7 +41,7 @@
                    class="header-nav-link {{ request()->is('jobs*') ? 'header-nav-active' : '' }}">
                     Stellenanzeigen
                 </a>
-                <a href="{{ route('portal.blog.index') }}"
+                <a href="{{ route('guide.index') }}"
                    class="header-nav-link {{ request()->is('ratgeber*') ? 'header-nav-active' : '' }}">
                     Ratgeber
                 </a>
@@ -178,7 +178,7 @@
                @click="mobileOpen = false">
                 Stellenanzeigen
             </a>
-            <a href="{{ route('portal.blog.index') }}"
+            <a href="{{ route('guide.index') }}"
                class="block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-black/5 touch-target
                       {{ request()->is('ratgeber*') ? 'bg-black/5 text-portal-primary-dark' : '' }}"
                @click="mobileOpen = false">

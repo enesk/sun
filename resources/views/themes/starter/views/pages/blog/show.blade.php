@@ -78,7 +78,7 @@
                 @endif
                 @if($post->category)
                     <span aria-hidden="true">&middot;</span>
-                    <a href="{{ route('portal.blog.category', $post->category->slug) }}"
+                    <a href="{{ route('guide.category', $post->category->slug) }}"
                        class="blog-detail-hero__badge">{{ $post->category->name }}</a>
                 @endif
             </div>
@@ -136,9 +136,6 @@
                 {{-- Block 5: Key-Facts-Tabelle --}}
                 @include('ratgeber.partials.key-facts', ['keyFacts' => $keyFacts])
 
-                {{-- Infografik aus denselben Key-Facts (#16) --}}
-                @include('ratgeber.partials.infographic', ['infographic' => $infographic ?? null])
-
                 {{-- Anzeige: fruehestens nach der Key-Facts-Tabelle --}}
                 <x-ad-slot position="content_after_intro" />
 
@@ -146,9 +143,6 @@
                 <div class="blog-detail-prose" id="blog-prose">
                     {!! $bodyBefore !!}
                 </div>
-
-                {{-- Block 7: Regionalblock — ohne Anzeige davor oder danach --}}
-                @include('ratgeber.partials.regional-block', ['region' => $region])
 
                 @if($bodyAfter !== '')
                     <div class="blog-detail-prose">
@@ -237,7 +231,7 @@
                 @if($previousPost || $nextPost)
                     <nav class="blog-detail-pager" aria-label="Weitere Artikel">
                         @if($previousPost)
-                            <a href="{{ route('portal.blog.show', $previousPost->slug) }}"
+                            <a href="{{ route('guide.show', $previousPost->slug) }}"
                                class="blog-detail-pager__link">
                                 <span class="blog-detail-pager__label">&larr; Vorheriger Artikel</span>
                                 <span class="blog-detail-pager__title">{{ $previousPost->title }}</span>
@@ -246,7 +240,7 @@
                             <div></div>
                         @endif
                         @if($nextPost)
-                            <a href="{{ route('portal.blog.show', $nextPost->slug) }}"
+                            <a href="{{ route('guide.show', $nextPost->slug) }}"
                                class="blog-detail-pager__link blog-detail-pager__link--next">
                                 <span class="blog-detail-pager__label">Nächster Artikel &rarr;</span>
                                 <span class="blog-detail-pager__title">{{ $nextPost->title }}</span>

@@ -24,9 +24,9 @@
         <h3 class="font-semibold text-zinc-900 mb-3">{{ __('portal.layout.footer.guide') }}</h3>
         <ul class="space-y-2 text-sm">
           @forelse($sunFooterPostCategories as $postCategory)
-            <li><a href="{{ route('portal.blog.category', $postCategory->slug) }}" class="hover:text-brand">{{ $postCategory->name }}</a></li>
+            <li><a href="{{ route('guide.category', $postCategory->slug) }}" class="hover:text-brand">{{ $postCategory->name }}</a></li>
           @empty
-            <li><a href="{{ route('portal.blog.index') }}" class="hover:text-brand">{{ __('portal.layout.footer.guide_all') }}</a></li>
+            <li><a href="{{ route('guide.index') }}" class="hover:text-brand">{{ __('portal.layout.footer.guide_all') }}</a></li>
           @endforelse
         </ul>
       </div>

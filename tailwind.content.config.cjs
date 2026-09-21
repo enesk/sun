@@ -78,6 +78,8 @@ const statusRamps = {
     'status-published':  { 50: '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#059669', 600: '#047857', 700: '#065f46', 800: '#064e3b', 900: '#04412f', 950: '#022c22' },
     'status-failed':     { 50: '#fef2f2', 100: '#fee2e2', 200: '#fecaca', 300: '#fca5a5', 400: '#f87171', 500: '#ef4444', 600: '#b91c1c', 700: '#991b1b', 800: '#7f1d1d', 900: '#641818', 950: '#450a0a' },
     'status-archived':   { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e7e7e2', 300: '#cbd5e1', 400: '#94a3b8', 500: '#7c8a88', 600: '#64716f', 700: '#55605e', 800: '#3d4a48', 900: '#2a3533', 950: '#16211f' },
+    'status-unchanged':  { 50: '#f4f5f7', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#7b8794', 600: '#3d4a48', 700: '#2a3533', 800: '#1e293b', 900: '#0f172a', 950: '#020617' },
+    'status-paused':     { 50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6', 600: '#1d4ed8', 700: '#1e40af', 800: '#1e3a8a', 900: '#172554', 950: '#0d1233' },
 };
 
 /**
@@ -101,6 +103,53 @@ const statusFromTopic = {
     scored: 'idea',
     selected: 'scheduled',
     rejected: 'archived',
+};
+
+/**
+ * Ratgeber-Dashboard (design/guide-dashboard.md §2, Ticket #22). Keine neuen
+ * Statusrollen — nur zwei Bauformen und die Fuellungen des Tagesbalkens.
+ *
+ * guideStatus   Sonderbauformen .content-status--unchanged / --paused;
+ *               filament = registrierte Farbe gleichen Tons (config/content.php)
+ * runFill       Segmente des gestapelten Tagesbalkens (--color-run-*-fill);
+ *               "new" traegt zusaetzlich die Schraffur runNewPattern
+ * runDisplay    Anzeigewert eines Laufs, spiegelt App\Guide\Enums\RunDisplay
+ *               (pill() = Modifikator, color() = 'status-' + pill)
+ * topicStatus   spiegelt App\Guide\Enums\TopicStatus::pill()
+ */
+const guideStatus = {
+    unchanged: { label: 'Geprüft, unverändert', bg: status.idea.bg, fg: '#3d4a48', dot: status.published.dot, filament: 'status-unchanged' },
+    paused:    { label: 'Pausiert', bg: status.scheduled.bg, fg: status.scheduled.fg, dot: status.scheduled.fg, filament: 'status-paused', mark: 'pause' },
+};
+
+const runFill = {
+    new: status.published.fill,
+    updated: status.published.fill,
+    unchanged: '#6fbf9f',
+    review: status.review.fill,
+    failed: status.failed.fill,
+    active: status.generating.fill,
+    open: '#d3d3cc',
+};
+
+const runNewPattern = `repeating-linear-gradient(135deg, ${status.published.fill} 0 4px, ${status.published.dot} 4px 6px)`;
+
+const runDisplay = {
+    wartet:         { label: 'Wartet',               pill: 'idea',       rank: 3 },
+    'in-arbeit':    { label: 'In Arbeit',            pill: 'generating', rank: 2 },
+    pruefung:       { label: 'Zur Prüfung',          pill: 'review',     rank: 1 },
+    neu:            { label: 'Neu erschienen',       pill: 'published',  rank: 4, fill: 'new' },
+    aktualisiert:   { label: 'Aktualisiert',         pill: 'published',  rank: 5, fill: 'updated' },
+    unveraendert:   { label: 'Geprüft, unverändert', pill: 'unchanged',  rank: 6, fill: 'unchanged' },
+    fehlgeschlagen: { label: 'Fehlgeschlagen',       pill: 'failed',     rank: 0, fill: 'failed' },
+};
+
+const topicStatus = {
+    draft: 'idea',
+    outline_pending: 'review',
+    active: 'published',
+    paused: 'paused',
+    archived: 'archived',
 };
 
 /** Qualitaetsscore des Gates (#15) — eigene Skala, damit ein guter Score
@@ -159,6 +208,10 @@ module.exports = {
                 ),
 
                 score,
+
+                run: Object.fromEntries(
+                    Object.entries(runFill).map(([key, value]) => [key, { fill: value }]),
+                ),
             },
 
             /* 8px-Skala, deckungsgleich mit --portal-space-* */
@@ -233,6 +286,11 @@ module.exports = {
         statusRamps,
         statusFromDraft,
         statusFromTopic,
+        guideStatus,
+        runFill,
+        runNewPattern,
+        runDisplay,
+        topicStatus,
         score,
         /* Klickflaeche mindestens 44x44px, Tabellenzeile 44px, Statuspille 24px.
            Das Filament-Badge hat dieselbe Bauform: 24px hoch, Radius 6px,

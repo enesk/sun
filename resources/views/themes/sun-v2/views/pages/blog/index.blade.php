@@ -31,7 +31,7 @@
         '@type' => 'CollectionPage',
         'name' => __('portal.layout.header.guide').' — '.$portalName,
         'description' => $sunBlog['text'],
-        'url' => route('portal.blog.index'),
+        'url' => route('guide.index'),
         'isPartOf' => ['@type' => 'WebSite', 'name' => $portalName, 'url' => url('/')],
         'publisher' => [
             '@type' => 'Organization',
@@ -77,7 +77,7 @@
     <h2 class="text-2xl font-semibold text-zinc-900">{{ __('portal.blog.index.topics_heading') }}</h2>
     <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
       @foreach($categories as $category)
-        <a href="{{ route('portal.blog.category', $category->slug) }}" class="card-interactive p-5 flex flex-row items-start lg:flex-col gap-4 lg:gap-3">
+        <a href="{{ route('guide.category', $category->slug) }}" class="card-interactive p-5 flex flex-row items-start lg:flex-col gap-4 lg:gap-3">
           <span class="size-11 shrink-0 rounded-xl bg-brand-50 text-brand flex items-center justify-center"><x-sun.icon :name="$sunBlog['icon']($category->slug)" class="size-6" /></span>
           <span class="min-w-0 flex-1 flex flex-col gap-1">
             <span class="font-semibold text-zinc-900 leading-snug">{{ $category->name }}</span>
@@ -97,7 +97,7 @@
   <section>
     <h2 class="text-2xl font-semibold text-zinc-900">{{ __('portal.blog.index.featured_heading') }}</h2>
     <div class="mt-6 flex flex-col gap-4">
-      <a href="{{ route('portal.blog.show', $featured->slug) }}" class="card-interactive overflow-hidden flex flex-col md:flex-row">
+      <a href="{{ route('guide.show', $featured->slug) }}" class="card-interactive overflow-hidden flex flex-col md:flex-row">
         @if($featured->featured_image_url)
           <img src="{{ $featured->featured_image_url }}" alt="" width="640" height="360" class="aspect-video md:aspect-auto md:w-2/5 shrink-0 object-cover" loading="lazy">
         @else
@@ -127,9 +127,9 @@
       @if($categories->isNotEmpty())
         <nav class="flex gap-2 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto scroll-snap pb-1 min-w-0" aria-label="{{ __('portal.blog.index.filter_label') }}">
           @php $activeClass = 'pill min-h-11 md:min-h-0 px-4 md:px-3 bg-brand-50 text-brand-700 border border-brand-200 whitespace-nowrap'; @endphp
-          <a href="{{ route('portal.blog.index') }}" class="{{ $activeCategory ? 'pill-link whitespace-nowrap' : $activeClass }}" @unless($activeCategory) aria-current="page" @endunless>{{ __('portal.blog.list.filter_all') }}</a>
+          <a href="{{ route('guide.index') }}" class="{{ $activeCategory ? 'pill-link whitespace-nowrap' : $activeClass }}" @unless($activeCategory) aria-current="page" @endunless>{{ __('portal.blog.list.filter_all') }}</a>
           @foreach($categories as $category)
-            <a href="{{ route('portal.blog.index', ['kategorie' => $category->slug]) }}" class="{{ $activeCategory === $category->slug ? $activeClass : 'pill-link whitespace-nowrap' }}" @if($activeCategory === $category->slug) aria-current="page" @endif>{{ $category->name }}</a>
+            <a href="{{ route('guide.index', ['kategorie' => $category->slug]) }}" class="{{ $activeCategory === $category->slug ? $activeClass : 'pill-link whitespace-nowrap' }}" @if($activeCategory === $category->slug) aria-current="page" @endif>{{ $category->name }}</a>
           @endforeach
         </nav>
       @endif

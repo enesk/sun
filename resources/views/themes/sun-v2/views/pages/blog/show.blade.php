@@ -50,7 +50,7 @@
 
       <nav aria-label="{{ __('portal.layout.breadcrumb.label') }}" class="text-sm text-zinc-500 flex items-center gap-1.5 flex-wrap">
         <a href="{{ route('home') }}" class="hover:text-brand hidden sm:inline">{{ __('portal.layout.breadcrumb.home') }}</a><span class="hidden sm:inline"><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" /></span>
-        <a href="{{ route('portal.blog.index') }}" class="hover:text-brand">{{ __('portal.layout.header.guide') }}</a><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" />
+        <a href="{{ route('guide.index') }}" class="hover:text-brand">{{ __('portal.layout.header.guide') }}</a><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" />
         <span class="text-zinc-900" aria-current="page">{{ \Illuminate\Support\Str::limit($post->title, 60) }}</span>
       </nav>
 
@@ -58,7 +58,7 @@
       <div class="card mt-4 p-5 md:p-8">
       <div class="flex flex-wrap items-center gap-3">
         @if($post->category)
-          <a href="{{ route('portal.blog.category', $post->category->slug) }}" class="pill-brand">{{ $post->category->name }}</a>
+          <a href="{{ route('guide.category', $post->category->slug) }}" class="pill-brand">{{ $post->category->name }}</a>
         @endif
         @if($post->reading_time_minutes)
           <span class="text-sm text-zinc-500">{{ __('portal.layout.reading_time', ['minuten' => $post->reading_time_minutes]) }}</span>
@@ -123,15 +123,6 @@
             <p class="mt-2 text-sm text-zinc-500">{{ $keyFacts['caption'] }}</p>
           @endif
         </div>
-      @endif
-
-      @if(!empty($infographic))
-        <figure class="mt-6">
-          <img src="{{ $infographic['url'] }}" alt="{{ $infographic['alt'] }}"
-               width="{{ (int) config('content.assets.infographic.width', 1200) }}"
-               height="{{ (int) config('content.assets.infographic.height', 675) }}"
-               loading="lazy" decoding="async" class="w-full h-auto rounded-2xl">
-        </figure>
       @endif
 
       <div class="mt-8 {{ $proseClasses }}">
@@ -279,7 +270,7 @@
           <h2 class="text-2xl font-semibold text-zinc-900">{{ __('portal.blog.show.related_heading') }}</h2>
           <div class="mt-6 grid sm:grid-cols-2 gap-4">
             @foreach($relatedPosts->take(2) as $related)
-              <a href="{{ route('portal.blog.show', $related->slug) }}" class="card-interactive p-5 flex flex-col gap-2">
+              <a href="{{ route('guide.show', $related->slug) }}" class="card-interactive p-5 flex flex-col gap-2">
                 @if($related->category)
                   <span class="pill self-start">{{ $related->category->name }}</span>
                 @endif

@@ -51,7 +51,7 @@ class FeaturedPlacementResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return __('Portal');
+        return 'Portal';
     }
 
     public static function getNavigationLabel(): string

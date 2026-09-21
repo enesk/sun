@@ -71,7 +71,7 @@
                 <ul class="space-y-3">
                     @foreach($posts as $post)
                         <li class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
-                            <a href="{{ route('portal.blog.show', $post->slug) }}" class="hover:underline" style="color: var(--portal-primary-text, #3472D8);">
+                            <a href="{{ route('guide.show', $post->slug) }}" class="hover:underline" style="color: var(--portal-primary-text, #3472D8);">
                                 {{ $post->title }}
                             </a>
                             <time class="text-sm text-[#64748B]" datetime="{{ $post->published_at?->toDateString() }}">
@@ -83,7 +83,7 @@
             @endif
 
             <p class="mt-8 pt-6 border-t border-[#E2E8F0] text-sm">
-                <a href="{{ route('portal.blog.index') }}" class="hover:underline" style="color: var(--portal-primary-text, #3472D8);">
+                <a href="{{ route('guide.index') }}" class="hover:underline" style="color: var(--portal-primary-text, #3472D8);">
                     Zurück zum Ratgeber
                 </a>
             </p>

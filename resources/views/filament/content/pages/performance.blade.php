@@ -1,7 +1,7 @@
 {{--
     Leistung (#25), Aufbau nach design/content-dashboard.md, §5.
 
-    Vier Reiter (Artikel · Cluster · Regionen · Kosten), Standardzeitraum
+    Drei Reiter (Artikel · Regionen · Kosten), Standardzeitraum
     30 Tage. Alle Zahlen kommen aus article_metrics und llm_usage_logs; die
     Seite ruft keine Schnittstelle auf. An jeder Kennzahl steht der
     Datenstand — Search-Console-Zahlen hinken zwei bis drei Tage nach, und
@@ -57,7 +57,7 @@
 
     $columns = [
         ['key' => 'titel', 'label' => __('Titel'), 'class' => 'min-w-[280px]', 'align' => 'text-start'],
-        ['key' => 'portal', 'label' => __('Portal'), 'class' => 'w-[150px]', 'align' => 'text-start'],
+        ['key' => 'portal', 'label' => 'Portal', 'class' => 'w-[150px]', 'align' => 'text-start'],
         ['key' => 'status', 'label' => __('Status'), 'class' => 'w-[140px]', 'align' => 'text-start'],
         ['key' => 'impressionen', 'label' => __('Impr.'), 'class' => 'w-[100px]', 'align' => 'text-end'],
         ['key' => 'klicks', 'label' => __('Klicks'), 'class' => 'w-[90px]', 'align' => 'text-end'],
@@ -101,7 +101,7 @@
 
             @if ($this->getPortalOptions() !== [])
                 <label class="flex flex-col gap-content-1">
-                    <span class="text-content-label text-text-base">{{ __('Portal') }}</span>
+                    <span class="text-content-label text-text-base">Portal</span>
                     <select
                         wire:model.live="portal"
                         class="h-9 rounded-content-md border border-line-soft bg-surface-card px-content-3 text-content-table text-text-base"
@@ -196,20 +196,6 @@
                 'columns' => $columns,
                 'ariaSort' => $ariaSort,
                 'arrow' => $arrow,
-                'int' => $int,
-                'dec' => $dec,
-            ])
-        @elseif ($this->tab === PerformancePage::TAB_CLUSTERS)
-            @livewire(
-                \App\Filament\Content\Widgets\ClicksByClusterChart::class,
-                $this->getChartData(),
-                key('cluster-chart-'.$this->days.'-'.($this->portal ?: 'alle'))
-            )
-
-            @include('content.partials.performance-groups', [
-                'groups' => $snapshot['clusters'],
-                'heading' => __('Cluster'),
-                'empty' => __('Für diesen Zeitraum liegen keine Clusterzahlen vor.'),
                 'int' => $int,
                 'dec' => $dec,
             ])

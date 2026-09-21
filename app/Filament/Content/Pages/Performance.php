@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Content\Pages;
 
-use App\Content\Services\ContentTenantContext;
 use App\Content\Services\PerformanceDashboardService;
+use App\Guide\Services\ContentTenantContext;
 use App\Models\Tenant;
 use App\Models\User;
 use BackedEnum;
@@ -14,7 +14,7 @@ use Livewire\Attributes\Url;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * Leistung: Artikel, Cluster, Regionen und Kosten (#25),
+ * Leistung: Artikel, Regionen und Kosten (#25),
  * design/content-dashboard.md, §5.
  *
  * Alle Zahlen kommen aus `article_metrics` (Tenant) und `llm_usage_logs`
@@ -30,8 +30,6 @@ class Performance extends ContentPage
 {
     public const TAB_ARTICLES = 'artikel';
 
-    public const TAB_CLUSTERS = 'cluster';
-
     public const TAB_REGIONS = 'regionen';
 
     public const TAB_COSTS = 'kosten';
@@ -41,6 +39,9 @@ class Performance extends ContentPage
     protected static ?int $navigationSort = 4;
 
     protected static ?string $slug = 'leistung';
+
+    // Alte Pipeline: nicht in der Navigation, nur fuer Inhaber (#14).
+    protected static bool $isLegacyPipelinePage = true;
 
     protected static string $followUpTicket = '#25';
 
@@ -108,7 +109,6 @@ class Performance extends ContentPage
     {
         $tabs = [
             self::TAB_ARTICLES => __('Artikel'),
-            self::TAB_CLUSTERS => __('Cluster'),
             self::TAB_REGIONS => __('Regionen'),
         ];
 

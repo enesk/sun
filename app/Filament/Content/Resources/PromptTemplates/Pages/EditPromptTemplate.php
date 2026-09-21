@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Content\Resources\PromptTemplates\Pages;
 
-use App\Content\Models\Central\PromptTemplate;
 use App\Filament\Content\Resources\PromptTemplates\PromptTemplateResource;
+use App\Guide\Models\Central\PromptTemplate;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Contracts\Support\Htmlable;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Content\Forms\Components;
 
-use App\Content\Llm\PromptRenderer;
+use App\Guide\Llm\TemplateRenderer;
 use Closure;
 use Filament\Forms\Components\CodeEditor;
 
@@ -18,7 +18,7 @@ use Filament\Forms\Components\CodeEditor;
  * (language(), wrap(), live()) bleibt deshalb unveraendert die von CodeEditor.
  *
  * Hervorgehoben werden {{var}}-Stellen in zwei Zustaenden: mit Beispielwert
- * in variables_json und ohne. Das Muster kommt aus PromptRenderer, damit
+ * in variables_json und ohne. Das Muster kommt aus TemplateRenderer, damit
  * Editor und Renderer nicht auseinanderlaufen koennen.
  */
 class PromptCodeEditor extends CodeEditor
@@ -57,6 +57,6 @@ class PromptCodeEditor extends CodeEditor
      */
     public function getPlaceholderPattern(): string
     {
-        return PromptRenderer::placeholderPattern();
+        return TemplateRenderer::placeholderPattern();
     }
 }

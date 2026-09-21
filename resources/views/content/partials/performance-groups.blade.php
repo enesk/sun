@@ -1,5 +1,5 @@
 {{--
-    Leistung, Gruppentabelle der Reiter "Cluster" und "Regionen" (#25).
+    Leistung, Gruppentabelle des Reiters "Regionen" (#25).
 
     Neben der Summe steht immer "Klicks je Artikel": eine grosse Gruppe mit
     vielen schwachen Artikeln sieht in der Summe sonst besser aus als sie ist.

@@ -52,7 +52,7 @@
                     <div class="text-center py-16">
                         <h2 class="text-lg font-semibold text-[#0F172A] mb-2">Keine Ergebnisse gefunden</h2>
                         <p class="text-sm text-[#64748B] mb-4">Versuchen Sie es mit einem anderen Suchbegriff.</p>
-                        <a href="{{ route('portal.blog.index') }}" class="text-sm font-semibold" style="color: var(--portal-primary-text, #3472D8);">Alle Ratgeber ansehen &rarr;</a>
+                        <a href="{{ route('guide.index') }}" class="text-sm font-semibold" style="color: var(--portal-primary-text, #3472D8);">Alle Ratgeber ansehen &rarr;</a>
                     </div>
                 @endif
             </div>

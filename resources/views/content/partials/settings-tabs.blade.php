@@ -1,18 +1,16 @@
 {{--
     Reiterleiste der Einstellungen (#20), design/content-dashboard.md, §7.
 
-    Vier Reiter unter einem Navigationspunkt. Der Quellen-Monitor ist
-    ausdruecklich ein Reiter hier und kein sechster Navigationspunkt: er wird
-    selten und anlassbezogen geoeffnet.
+    Zwei Reiter unter einem Navigationspunkt; der Quellen-Monitor ist mit der
+    alten Themenfindung entfallen (#23).
 
     Die Reiter sind echte Verweise auf eigene Seiten, keine Livewire-Zustaende —
     damit steht jeder Reiter in der Adresszeile und ist teilbar.
 --}}
 @php
     $tabs = [
-        ['label' => __('Portal'), 'url' => \App\Filament\Content\Pages\Settings::getUrl(), 'key' => 'portal'],
+        ['label' => 'Portal', 'url' => \App\Filament\Content\Pages\Settings::getUrl(), 'key' => 'portal'],
         ['label' => __('Prompts'), 'url' => \App\Filament\Content\Resources\PromptTemplates\PromptTemplateResource::getUrl(), 'key' => 'prompts'],
-        ['label' => __('Quellen'), 'url' => \App\Filament\Content\Pages\SourceMonitor::getUrl(), 'key' => 'quellen'],
     ];
 @endphp
 

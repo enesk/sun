@@ -20,7 +20,7 @@
   <div class="container-portal">
     <nav aria-label="{{ __('portal.layout.breadcrumb.label') }}" class="text-sm text-zinc-500 flex items-center gap-1.5 flex-wrap">
       <a href="{{ route('home') }}" class="hover:text-brand">{{ __('portal.layout.breadcrumb.home') }}</a><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" />
-      <a href="{{ route('portal.blog.index') }}" class="hover:text-brand">{{ __('portal.layout.header.guide') }}</a><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" />
+      <a href="{{ route('guide.index') }}" class="hover:text-brand">{{ __('portal.layout.header.guide') }}</a><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" />
       <span class="text-zinc-900">{{ __('portal.blog.search.crumb') }}</span>
     </nav>
     <div class="mt-4 max-w-2xl">
@@ -54,9 +54,9 @@
       <h2 class="text-2xl font-semibold text-zinc-900">{{ __('portal.blog.search.results_heading') }}</h2>
       @if($categories->isNotEmpty())
         <nav class="flex gap-2 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto scroll-snap pb-1 min-w-0" aria-label="{{ __('portal.blog.search.browse_label') }}">
-          <a href="{{ route('portal.blog.index') }}" class="pill-link whitespace-nowrap">{{ __('portal.blog.list.filter_all') }}</a>
+          <a href="{{ route('guide.index') }}" class="pill-link whitespace-nowrap">{{ __('portal.blog.list.filter_all') }}</a>
           @foreach($categories as $item)
-            <a href="{{ route('portal.blog.category', $item->slug) }}" class="pill-link whitespace-nowrap">{{ $item->name }}</a>
+            <a href="{{ route('guide.category', $item->slug) }}" class="pill-link whitespace-nowrap">{{ $item->name }}</a>
           @endforeach
         </nav>
       @endif
@@ -67,7 +67,7 @@
         <span class="size-14 mx-auto rounded-2xl bg-brand-50 text-brand flex items-center justify-center" aria-hidden="true"><x-sun.icon name="search-x" class="size-7" /></span>
         <p class="mt-4 font-semibold text-zinc-900">{{ __('portal.blog.search.empty_heading') }}</p>
         <p class="mt-1 text-sm text-zinc-500">{{ __('portal.blog.search.empty_text') }}</p>
-        <a href="{{ route('portal.blog.index') }}" class="mt-5 btn-secondary">{{ __('portal.blog.list.all_guides') }}</a>
+        <a href="{{ route('guide.index') }}" class="mt-5 btn-secondary">{{ __('portal.blog.list.all_guides') }}</a>
       </div>
     @endif
 

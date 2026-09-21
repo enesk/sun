@@ -1,7 +1,7 @@
 {{--
     Kopfzeile des Content-Panels: globaler Portal-Umschalter (#4).
     Wird per Render-Hook `panels::topbar.start` eingehaengt und von
-    App\Content\Livewire\TenantSwitcher gerendert.
+    App\Guide\Livewire\TenantSwitcher gerendert.
 
     Farben ausschliesslich ueber die Token aus resources/css/content/theme.css.
 --}}
@@ -10,7 +10,8 @@
         for="content-tenant-switcher"
         class="hidden text-xs font-medium text-text-muted sm:block"
     >
-        {{ __('Portal') }}
+        {{-- Ohne __(): "Portal" loest auf die Gruppe lang/de/portal.php auf. --}}
+        Portal
     </label>
 
     <div class="relative">
@@ -24,7 +25,7 @@
             ])
             aria-label="{{ __('Portal auswählen') }}"
         >
-            <option value="{{ \App\Content\Livewire\TenantSwitcher::ALL_PORTALS }}">
+            <option value="{{ \App\Guide\Livewire\TenantSwitcher::ALL_PORTALS }}">
                 {{ __('Alle Portale') }}
             </option>
 

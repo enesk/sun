@@ -22,7 +22,7 @@
         '@type' => 'CollectionPage',
         'name' => 'Ratgeber — ' . ($currentTenant->name ?? config('app.name')),
         'description' => 'Ratgeber und Tipps rund um lokale Dienstleister.',
-        'url' => route('portal.blog.index'),
+        'url' => route('guide.index'),
         'isPartOf' => [
             '@type' => 'WebSite',
             'name' => $currentTenant->name ?? config('app.name'),

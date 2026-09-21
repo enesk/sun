@@ -109,7 +109,7 @@
         <table class="mt-content-3 w-full text-content-table">
             <thead>
                 <tr class="text-content-label text-text-muted">
-                    <th scope="col" class="py-content-2 pe-content-3 text-start">{{ __('Portal') }}</th>
+                    <th scope="col" class="py-content-2 pe-content-3 text-start">Portal</th>
                     <th scope="col" class="py-content-2 pe-content-3 text-start">{{ __('Search Console') }}</th>
                     <th scope="col" class="py-content-2 text-start">{{ __('Property') }}</th>
                 </tr>
