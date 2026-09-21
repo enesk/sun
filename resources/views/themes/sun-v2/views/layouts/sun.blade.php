@@ -21,6 +21,11 @@
     $seo = app(\App\Services\Seo\SeoService::class);
     $metaRobots = $seo->robots() !== null ? e($seo->robots()) : ($__env->hasSection('meta_robots') ? $__env->yieldContent('meta_robots') : null);
     $canonicalUrl = $seo->canonical() !== null ? e($seo->canonical()) : $__env->yieldContent('canonical', url()->current());
+    // Title/Description/OG wie im Default-Layout: SeoService (Ratgeber, #17) vor @section
+    $metaTitle = $seo->title() !== null ? e($seo->title()) : $__env->yieldContent('title', $portalName);
+    $metaDescription = $seo->description() !== null ? e($seo->description()) : $__env->yieldContent('meta_description', '');
+    $metaOgType = $seo->ogType() !== null ? e($seo->ogType()) : $__env->yieldContent('og_type', 'website');
+    $metaOgImage = $seo->ogImage() !== null ? e($seo->ogImage()) : ($__env->hasSection('og_image') ? $__env->yieldContent('og_image') : null);
 @endphp
 <!doctype html>
 <html lang="de" style="--brand:{{ $brandColor }}">
@@ -28,21 +33,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<title>@yield('title', $portalName)</title>
-<meta name="description" content="@yield('meta_description', '')">
+<title>{!! $metaTitle !!}</title>
+<meta name="description" content="{!! $metaDescription !!}">
 @if($metaRobots !== null)
 <meta name="robots" content="{!! $metaRobots !!}">
 @endif
 <link rel="canonical" href="{!! $canonicalUrl !!}">
 <x-seo.json-ld />
 
-<meta property="og:title" content="@yield('title', $portalName)">
-<meta property="og:description" content="@yield('meta_description', '')">
-<meta property="og:type" content="@yield('og_type', 'website')">
+<meta property="og:title" content="{!! $metaTitle !!}">
+<meta property="og:description" content="{!! $metaDescription !!}">
+<meta property="og:type" content="{!! $metaOgType !!}">
 <meta property="og:url" content="{!! $canonicalUrl !!}">
 <meta property="og:site_name" content="{{ $portalName }}">
 <meta property="og:locale" content="de_DE">
-@if(!empty($currentTenant) && $currentTenant->getAttribute('branding.og_image_path'))
+@if($metaOgImage !== null)
+<meta property="og:image" content="{!! $metaOgImage !!}">
+@elseif(!empty($currentTenant) && $currentTenant->getAttribute('branding.og_image_path'))
 <meta property="og:image" content="{{ asset($currentTenant->getAttribute('branding.og_image_path')) }}">
 @endif
 <meta name="twitter:card" content="summary_large_image">
