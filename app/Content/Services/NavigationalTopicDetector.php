@@ -129,13 +129,33 @@ final class NavigationalTopicDetector
                 ->all(),
         ];
 
+        // Suchende schreiben "freiburg", nicht "Freiburg im Breisgau": neben
+        // dem vollen Namen zaehlt auch der Name ohne Zusatz (#42).
+        $variants = [];
+
+        foreach ($names as $name) {
+            $variants[] = $name;
+            $variants[] = self::withoutSuffix($name);
+        }
+
         $folded = array_values(array_unique(array_filter(array_map(
             static fn (string $name): string => TextFold::fold($name),
-            $names,
+            $variants,
         ), static fn (string $name): bool => mb_strlen($name) >= 4)));
 
         usort($folded, static fn (string $a, string $b): int => mb_strlen($b) <=> mb_strlen($a));
 
         return $this->placeCache[$cacheKey] = $folded;
+    }
+
+    /**
+     * "Esslingen am Neckar" -> "Esslingen", "Verden (Aller)" -> "Verden",
+     * "Neustadt an der Weinstraße" -> "Neustadt".
+     */
+    public static function withoutSuffix(string $name): string
+    {
+        $name = trim((string) preg_replace('/\s*\(.*\)\s*$/u', '', $name));
+
+        return trim((string) preg_replace('/\s+(am|an der|an|im|in der|in|ob der|bei|vor der)\s+.*$/iu', '', $name));
     }
 }

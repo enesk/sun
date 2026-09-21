@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Content\Generation;
 
 use App\Content\Models\ArticleDraft;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 /**
@@ -18,6 +19,8 @@ use Illuminate\Support\Str;
  */
 class ShortAnswerStep extends GenerationStep
 {
+    private const MAX_ATTEMPTS = 3;
+
     public function templateKey(): string
     {
         return 'short_answer';
@@ -28,13 +31,60 @@ class ShortAnswerStep extends GenerationStep
      */
     public function run(GenerationContext $context, ArticleDraft $draft, array $outline): string
     {
-        $result = $this->ask($context, $draft, [
+        $vars = [
             'outline' => collect($outline)->map(
                 static fn (array $item): string => 'H'.$item['level'].': '.$item['heading']
             )->implode("\n"),
-        ]);
+        ];
 
-        return Str::limit(trim((string) ($result['short_answer'] ?? '')), 500, '');
+        $answer = '';
+
+        // Bis zu drei Anlaeufe: eine Beschreibung des Vorgehens statt einer
+        // Antwort (#42) ist kein Schemaverstoss, der SchemaValidator sieht sie
+        // also nicht. Bleibt es dabei, blockiert der SEO-Lint den Entwurf.
+        for ($attempt = 1; $attempt <= self::MAX_ATTEMPTS; $attempt++) {
+            $result = $this->ask($context, $draft, $vars);
+            $answer = self::clean((string) ($result['short_answer'] ?? ''));
+
+            if (! self::isMetaCommentary($answer)) {
+                break;
+            }
+
+            Log::warning('Kurzantwort beschreibt das Vorgehen statt zu antworten, neuer Versuch.', [
+                'draft_id' => $draft->getKey(),
+                'attempt' => $attempt,
+                'answer' => Str::limit($answer, 160),
+            ]);
+        }
+
+        return Str::limit($answer, 500, '');
+    }
+
+    /**
+     * Entfernt Vorsaetze wie 'Kurzantwort: "…"' samt umschliessender
+     * Anfuehrungszeichen.
+     */
+    public static function clean(string $answer): string
+    {
+        $answer = trim($answer);
+        $answer = (string) preg_replace('/^(kurzantwort|antwort|short answer)\s*:\s*/iu', '', $answer);
+
+        if (preg_match('/^["„“»](.*)["“”«]$/su', $answer, $match) === 1) {
+            $answer = $match[1];
+        }
+
+        return trim($answer);
+    }
+
+    /**
+     * Beschreibt der Text sich selbst statt die Frage zu beantworten?
+     */
+    public static function isMetaCommentary(string $answer): bool
+    {
+        return preg_match(
+            '/^(kurzantwort|die kurzantwort|hier ist|ich habe|diese antwort|der text)\b|\b(kurzantwort erstellt|beantwortet die suchintention|verweist mangels|im ersten satz)\b/iu',
+            $answer,
+        ) === 1;
     }
 
     /**

@@ -162,14 +162,9 @@ final class SearchConsoleProperty
      */
     public function stateOf(Tenant $tenant): array
     {
-        $settings = $this->settingsOf($tenant);
+        $values = $this->propertyValuesOf($tenant);
 
-        return $this->state(
-            $settings?->gsc_property,
-            $settings?->gsc_check_status,
-            $settings?->gsc_checked_at !== null ? CarbonImmutable::parse($settings->gsc_checked_at) : null,
-            $settings?->gsc_check_detail,
-        );
+        return $this->state($values['property'], $values['status'], $values['checked_at'], $values['detail']);
     }
 
     /**
@@ -248,16 +243,16 @@ final class SearchConsoleProperty
 
         /** @var Tenant $tenant */
         foreach (Tenant::all() as $tenant) {
-            $settings = $this->settingsOf($tenant);
+            $values = $this->propertyValuesOf($tenant);
 
             $rows[] = [
                 'tenant' => $tenant,
-                'property' => $settings?->gsc_property,
+                'property' => $values['property'],
                 'state' => $this->state(
-                    $settings?->gsc_property,
-                    $settings?->gsc_check_status,
-                    $settings?->gsc_checked_at !== null ? CarbonImmutable::parse($settings->gsc_checked_at) : null,
-                    $settings?->gsc_check_detail,
+                    $values['property'],
+                    $values['status'],
+                    $values['checked_at'],
+                    $values['detail'],
                 ),
             ];
         }
@@ -435,6 +430,42 @@ final class SearchConsoleProperty
         }
 
         return mb_strtolower(explode('/', $property)[0]);
+    }
+
+    /**
+     * Die Property-Felder, noch im Tenant-Kontext gelesen. Ausserhalb davon
+     * braucht der Datums-Cast die Verbindung 'tenant', die es dann nicht mehr
+     * gibt (content:rollout brach daran ab, #42).
+     *
+     * @return array{property: ?string, status: ?string, checked_at: ?CarbonImmutable, detail: ?string}
+     */
+    private function propertyValuesOf(Tenant $tenant): array
+    {
+        $empty = ['property' => null, 'status' => null, 'checked_at' => null, 'detail' => null];
+
+        try {
+            return $tenant->run(static function () use ($empty): array {
+                $settings = TenantContentSetting::query()->first();
+
+                if ($settings === null) {
+                    return $empty;
+                }
+
+                return [
+                    'property' => $settings->gsc_property,
+                    'status' => $settings->gsc_check_status,
+                    'checked_at' => $settings->gsc_checked_at !== null ? CarbonImmutable::parse($settings->gsc_checked_at) : null,
+                    'detail' => $settings->gsc_check_detail,
+                ];
+            });
+        } catch (Throwable $exception) {
+            Log::warning('Einstellungen des Portals nicht lesbar.', [
+                'tenant_id' => (int) $tenant->getKey(),
+                'exception' => $exception->getMessage(),
+            ]);
+
+            return $empty;
+        }
     }
 
     private function settingsOf(Tenant $tenant): ?TenantContentSetting

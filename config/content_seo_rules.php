@@ -150,6 +150,29 @@ return [
         ],
 
         /*
+        | Kurzantwort, die ihr eigenes Entstehen beschreibt ("Kurzantwort
+        | erstellt: Sie beantwortet ...") statt die Frage zu beantworten (#42).
+        */
+        'short_answer_meta' => [
+            'enabled' => true,
+            'blocking' => true,
+            'weight' => 1.5,
+        ],
+
+        /*
+        | Kostenartikel ohne Betrag (#42): Titel oder Hauptkeyword versprechen
+        | Kosten oder Preise, im Text steht aber kein einziger Euro-Betrag.
+        | Solche Artikel verfehlen die Suchintention, auch wenn die Rubrik sie
+        | gut bewertet, weil sie nichts Unbelegtes behaupten.
+        */
+        'cost_figures' => [
+            'enabled' => true,
+            'blocking' => true,
+            'weight' => 2.0,
+            'pattern' => '/\\b(kosten|kostet|preis|preise|stundenlohn|stundensatz|gebuehr|gebühr|tarif)\\b/iu',
+        ],
+
+        /*
         | Doorway-Erkennung: ein Regionalartikel, der die Region nur in Titel
         | und Meta nennt, ist eine Doorway-Seite und wird nie automatisch
         | freigegeben.

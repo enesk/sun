@@ -15,6 +15,7 @@ use App\Content\Models\Central\PromptTemplate;
 use App\Content\Models\SourceItem;
 use App\Content\Models\TenantContentSetting;
 use App\Content\Models\TopicCandidate;
+use App\Content\Services\NavigationalTopicDetector;
 use App\Content\Services\RegionScopeResolver;
 use App\Content\Services\YmylGuard;
 use App\Content\Sources\TenantContext;
@@ -179,12 +180,22 @@ class DiscoverTopicsJob implements ShouldBeUnique, ShouldQueue
             max(1, (int) config('content.topics.discover.lookback_days', 7)),
         );
 
+        $limit = max(10, (int) config('content.topics.discover.max_source_items', 120));
+        $navigational = app(NavigationalTopicDetector::class);
+
+        // Betriebssuchen ("bauunternehmen freiburg") gehen gar nicht erst in
+        // den Prompt (#42): das Modell uebernahm sie sonst fast woertlich als
+        // Thema, und nach dem Scoring blieb kaum ein Kandidat uebrig. Deshalb
+        // ein groesserer Vorrat, aus dem die Betriebssuchen herausfallen.
         return SourceItem::query()
             ->where('fetched_at', '>=', $since)
             ->orderByDesc('signal_strength')
             ->orderByDesc('fetched_at')
-            ->limit(max(10, (int) config('content.topics.discover.max_source_items', 120)))
-            ->get();
+            ->limit($limit * 4)
+            ->get()
+            ->reject(fn (SourceItem $item): bool => $navigational->reasonFor((string) $item->title) !== null)
+            ->take($limit)
+            ->values();
     }
 
     /**
@@ -383,6 +394,7 @@ class DiscoverTopicsJob implements ShouldBeUnique, ShouldQueue
             - source_item_ids enthaelt nur Nummern aus der Liste oben, mindestens eine je Thema.
             - primary_keyword ist der Suchbegriff, nicht die Ueberschrift; secondary_keywords sind Varianten und Unterfragen.
             - Fassen Sie mehrere Signale zum selben Anliegen zu EINEM Thema zusammen.
+            - Jedes Thema ist eine Ratgeberfrage (Ablauf, Vorschriften, Foerderung, Auswahl, Wartung, Fehler vermeiden), keine Betriebssuche. Themen der Form "<Beruf> <Ort>", "<Beruf> in der Naehe" oder "<Beruf> Notdienst" sind verboten; die bedienen die Stadt- und Kategorieseiten des Portals.
             - region_scope ist ein Vorschlag: 'state' oder 'city' nur, wenn die Quellen selbst einen Ortsbezug tragen, sonst 'national'. region_code ist der ISO-Code des Bundeslands ('DE-BY') oder der Ortsname; bei 'national' lassen Sie das Feld weg.
             - rationale in einem Satz: warum das Thema jetzt.
             TEXT;

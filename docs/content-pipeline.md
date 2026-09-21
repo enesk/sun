@@ -359,6 +359,17 @@ bleiben unberührt. Was sie nicht kennt, meldet die Lint-Regel `umlaut_spelling`
 (`config/content_seo_rules.php`): Schon ein Treffer in Titel, Meta-Angaben oder
 Kurzantwort blockiert, im Fließtext erst mehr als `max_body_suspects` (2).
 
+### Inhalt statt Vorgehen, Beträge im Kostenartikel (#42)
+
+Über die CLI beschrieb das Modell mitunter sein Vorgehen („Kurzantwort erstellt: Sie
+beantwortet die Suchintention …“) oder setzte „Kurzantwort:“ davor. Jede Stufe bekommt
+deshalb zusätzlich `GenerationStep::CONTENT_ONLY_RULE`. `ShortAnswerStep` entfernt Vorsätze
+und Anführungszeichen (`clean()`) und fragt bis zu dreimal neu, solange
+`isMetaCommentary()` anschlägt. Zwei Lint-Regeln sichern ab, beide blockierend:
+`short_answer_meta` und `cost_figures`. Die zweite schlägt an, wenn Titel oder Hauptkeyword
+Kosten oder Preise versprechen, im Text aber kein einziger Euro-Betrag steht. Solange die
+Pipeline keine Preisquelle hat, landen Kostenthemen damit in der Prüfung statt online.
+
 ### Rate-Limits
 
 | Provider | Grenze (Konfig) | Parallelität |
@@ -1150,6 +1161,11 @@ Begriff übrig, wird der Kandidat mit `rejection_reason = navigational` abgelehn
 Anfragen bedienen die Stadt- und Kategorieseiten des Portals. Ohne geseedete `geo_regions`
 erkennt der Filter keine Orte, deshalb gehört der `GeoRegionSeeder` zur Grundausstattung
 (siehe §11).
+
+Seit #42 greift der Filter schon vor dem Modellaufruf: `DiscoverTopicsJob::sourceItems()`
+lässt Rohsignale, deren Titel eine Betriebssuche ist, gar nicht erst in den Prompt, und die
+Ausgaberegeln verbieten Themen der Form „<Beruf> <Ort>“. Orte zählen auch ohne Namenszusatz
+(`withoutSuffix()`: „Freiburg im Breisgau“ → „Freiburg“, „Verden (Aller)“ → „Verden“).
 
 ### YMYL
 

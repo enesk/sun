@@ -54,6 +54,14 @@ abstract class GenerationStep
         .'„ae", „oe", „ue" oder „ss" statt ß stehen in diesen Anweisungen nur aus technischen Gründen und '
         .'dürfen im Text nie vorkommen. Ausgenommen sind Link-Adressen, die Sie unverändert übernehmen.';
 
+    /**
+     * Ueber die Claude-CLI beschrieb das Modell mitunter sein Vorgehen statt
+     * zu liefern ("Kurzantwort erstellt: Sie beantwortet ..."), #42.
+     */
+    public const CONTENT_ONLY_RULE = 'Ausgabe: Die Felder enthalten ausschließlich den fertigen Text für die Leserinnen '
+        .'und Leser. Keine Beschreibung Ihres Vorgehens, keine Vorbemerkung wie „Kurzantwort:" oder „Hier ist …", '
+        .'keine Anführungszeichen um den ganzen Text.';
+
     abstract public function templateKey(): string;
 
     /**
@@ -99,7 +107,7 @@ abstract class GenerationStep
             $user .= "\n\n".$rules;
         }
 
-        $user .= "\n\n".self::SPELLING_RULE;
+        $user .= "\n\n".self::SPELLING_RULE."\n\n".self::CONTENT_ONLY_RULE;
 
         $payload = $this->llm->emit(
             $system,

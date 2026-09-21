@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Content\Quality;
 
+use App\Content\Generation\ShortAnswerStep;
 use App\Content\Models\ArticleDraft;
 use App\Content\Support\EvidenceMarks;
 use App\Content\Support\TextFold;
@@ -49,6 +50,8 @@ final class SeoLinter
         'external_links_reachable' => 'Externe Links erreichbar',
         'readability' => 'Lesbarkeit (Flesch)',
         'umlaut_spelling' => 'Umlaute',
+        'short_answer_meta' => 'Kurzantwort beantwortet die Frage',
+        'cost_figures' => 'Beträge im Kostenartikel',
         'doorway' => 'Regionalbezug im Fließtext',
         'ymyl_disclaimer' => 'Pflichthinweis (YMYL)',
     ];
@@ -156,6 +159,8 @@ final class SeoLinter
             'external_links_reachable' => $this->externalLinks((array) ($input['link_results'] ?? [])),
             'readability' => $this->readability((array) ($input['readability'] ?? [])),
             'umlaut_spelling' => $this->umlautSpelling($draft, $body, (int) ($rule['max_body_suspects'] ?? 2)),
+            'short_answer_meta' => $this->shortAnswerMeta((string) $draft->short_answer),
+            'cost_figures' => $this->costFigures($draft, $text, $keyword, (string) ($rule['pattern'] ?? '')),
             'doorway' => $this->doorway($text, $input),
             'ymyl_disclaimer' => $this->ymylDisclaimer($text, (bool) ($input['is_ymyl'] ?? false)),
             default => null,
@@ -467,6 +472,44 @@ final class SeoLinter
         }
 
         return ['status' => 'ok', 'message' => __('Alle :count externen Links antworten.', ['count' => count($results)])];
+    }
+
+    /**
+     * @return array{status: string, message: ?string}
+     */
+    private function shortAnswerMeta(string $shortAnswer): array
+    {
+        if (trim($shortAnswer) === '') {
+            return ['status' => 'fail', 'message' => __('Keine Kurzantwort vorhanden.')];
+        }
+
+        if (ShortAnswerStep::isMetaCommentary($shortAnswer)) {
+            return ['status' => 'fail', 'message' => __('Die Kurzantwort beschreibt ihr Vorgehen, statt die Frage zu beantworten: „:start …"', [
+                'start' => Str::limit($shortAnswer, 80, ''),
+            ])];
+        }
+
+        return ['status' => 'ok', 'message' => __('Die Kurzantwort beantwortet die Frage direkt.')];
+    }
+
+    /**
+     * @return array{status: string, message: ?string}
+     */
+    private function costFigures(ArticleDraft $draft, string $text, string $keyword, string $pattern): array
+    {
+        $promise = $keyword.' '.(string) $draft->title.' '.(string) $draft->meta_title;
+
+        if ($pattern === '' || preg_match($pattern, $promise) !== 1) {
+            return ['status' => 'skipped', 'message' => __('Kein Kostenthema.')];
+        }
+
+        $amounts = preg_match_all('/\d[\d.,]*\s?(?:€|euro\b|eur\b)|(?:€|eur)\s?\d/iu', $text);
+
+        if ($amounts === 0) {
+            return ['status' => 'fail', 'message' => __('Titel oder Keyword versprechen Kosten, im Text steht aber kein einziger Euro-Betrag.')];
+        }
+
+        return ['status' => 'ok', 'message' => __(':count Euro-Beträge im Text.', ['count' => $amounts])];
     }
 
     /**
