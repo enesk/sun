@@ -39,6 +39,14 @@ final class SeoService
     private array $jsonLd = [];
 
     /**
+     * Title, Description und Open Graph (Ratgeber #17). Die Layouts lesen
+     * diese Werte vorrangig und fallen sonst auf die @section der Seite zurueck.
+     *
+     * @var array{title: string, description: string, og_type: string, og_image: ?string}|null
+     */
+    private ?array $meta = null;
+
+    /**
      * /firmen: ohne Query-Parameter indexierbar mit Self-Canonical. Mit
      * mindestens einem Parameter noindex; Canonical auf die Stadtseite, wenn
      * ?city= eine vorhandene Stadt mit Slug trifft, sonst auf /firmen.
@@ -155,6 +163,48 @@ final class SeoService
     public function forCompanyProfile(Company $company): void
     {
         $this->addJsonLd(app(StructuredDataService::class)->forCompany($company));
+    }
+
+    /**
+     * Ratgeber-Seiten (#17): Title, Description, Robots, Canonical und Open
+     * Graph kommen vollstaendig von hier, die Blade-Views setzen keine Meta-Tags.
+     */
+    public function forGuidePage(
+        string $title,
+        string $description,
+        string $canonical,
+        bool $indexable = true,
+        string $ogType = 'website',
+        ?string $ogImage = null,
+    ): void {
+        $this->set($indexable ? self::INDEX : self::NOINDEX, $canonical);
+
+        $this->meta = [
+            'title' => $title,
+            'description' => $description,
+            'og_type' => $ogType,
+            'og_image' => $ogImage,
+        ];
+    }
+
+    public function title(): ?string
+    {
+        return $this->meta['title'] ?? null;
+    }
+
+    public function description(): ?string
+    {
+        return $this->meta['description'] ?? null;
+    }
+
+    public function ogType(): ?string
+    {
+        return $this->meta['og_type'] ?? null;
+    }
+
+    public function ogImage(): ?string
+    {
+        return $this->meta['og_image'] ?? null;
     }
 
     /**

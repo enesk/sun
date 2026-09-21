@@ -11,6 +11,7 @@ use App\Services\TenantCreationService;
 use App\Services\UserDashboardService;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -35,6 +36,21 @@ Route::get('/dashboard', function (UserDashboardService $dashboardService) {
 })->name('dashboard')->middleware('auth');
 
 Auth::routes();
+
+// Einstieg ins Content-Panel (#14). Das Panel hat kein eigenes Formular,
+// angemeldet wird ueber den SaaSykit-Login (Guard 'web', inkl. 2FA und
+// Captcha); danach fuehrt die intended URL zurueck ins Panel.
+Route::get('/'.trim((string) config('content.panel.path', 'content'), '/').'/login', function () {
+    $panelUrl = url(config('content.panel.path', 'content'));
+
+    if (Auth::check()) {
+        return redirect($panelUrl);
+    }
+
+    Redirect::setIntendedUrl($panelUrl);
+
+    return redirect()->route('login');
+})->name('content.login');
 
 Route::get('/plan/start', function (
     TenantCreationService $tenantCreationService,

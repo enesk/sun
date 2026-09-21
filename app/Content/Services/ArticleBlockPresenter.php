@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Content\Services;
 
-use App\Content\Models\ArticleDraft;
-use App\Content\Models\DraftSource;
+use App\Guide\Models\LegacyArticle;
+use App\Guide\Support\BrokenSources;
+use App\Guide\Writing\HtmlAssembler;
 use App\Models\Portal\City;
 use App\Models\Portal\Post;
 use App\Support\CityUrl;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -19,19 +19,19 @@ use Illuminate\Support\Str;
  * Ratgeber-Template auf: Kurzantwort, Key-Facts, FAQ, Quellen, Regionalblock
  * und Titelbild.
  *
- * Die Zusatzfelder liegen am ArticleDraft (#3), der veroeffentlichte Beitrag
- * bleibt die Anzeigequelle. Fehlt der Entwurf — etwa bei redaktionell von Hand
- * gepflegten Beitraegen —, liefert jede Methode einen leeren Wert und der Block
- * entfaellt im Template.
+ * Die Zusatzfelder der Altartikel liegen seit #34 in guide_legacy_articles
+ * (LegacyArticle), der veroeffentlichte Beitrag bleibt die Anzeigequelle.
+ * Fehlt die Zeile — etwa bei redaktionell von Hand gepflegten Beitraegen —,
+ * liefert jede Methode einen leeren Wert und der Block entfaellt im Template.
  */
 class ArticleBlockPresenter
 {
     /** Quellen aelter als so viele Monate bekommen einen Standhinweis. */
     private const STALE_SOURCE_MONTHS = 24;
 
-    public function shortAnswer(?ArticleDraft $draft): ?string
+    public function shortAnswer(?LegacyArticle $legacy): ?string
     {
-        $value = trim((string) $draft?->short_answer);
+        $value = trim((string) $legacy?->short_answer);
 
         return $value !== '' ? $value : null;
     }
@@ -43,9 +43,9 @@ class ArticleBlockPresenter
      *
      * @return array{rows: list<array{label: string, value: string}>, caption: ?string, numeric: bool}
      */
-    public function keyFacts(?ArticleDraft $draft): array
+    public function keyFacts(?LegacyArticle $legacy): array
     {
-        $raw = $draft?->key_facts_json ?? [];
+        $raw = $legacy?->key_facts_json ?? [];
         $rows = [];
         $caption = null;
 
@@ -90,11 +90,11 @@ class ArticleBlockPresenter
     /**
      * @return list<array{question: string, answer: string}>
      */
-    public function faq(?ArticleDraft $draft): array
+    public function faq(?LegacyArticle $legacy): array
     {
         $items = [];
 
-        foreach ($draft?->faq_json ?? [] as $entry) {
+        foreach ($legacy?->faq_json ?? [] as $entry) {
             if (! is_array($entry)) {
                 continue;
             }
@@ -113,24 +113,45 @@ class ArticleBlockPresenter
     }
 
     /**
+     * Quellenliste (zitierte Quellen in Anzeigereihenfolge); gehoert der
+     * Beitrag zu einem Ratgeber-Thema, gilt fuer nicht erreichbare Quellen
+     * dieselbe Regel wie auf der Artikelseite (design/guide-frontend.md
+     * §4.3a): ohne Verweis, solange sie einen aktuellen Fakt belegen oder im
+     * Text stehen, sonst gar nicht.
+     *
      * @return list<array{title: string, url: ?string, publisher: ?string, published_at: ?Carbon, stale_year: ?string}>
      */
-    public function sources(?ArticleDraft $draft): array
+    public function sources(?LegacyArticle $legacy): array
     {
-        if ($draft === null) {
+        if ($legacy === null) {
             return [];
         }
 
-        return $draft->sources()
-            ->where('is_cited', true)
-            ->orderBy('sort_order')
-            ->get()
-            ->map(function (DraftSource $source): array {
+        $broken = $this->brokenSources($legacy);
+        $textKeys = $broken->isEmpty() ? [] : BrokenSources::hrefKeys(
+            (string) $legacy->body_html,
+            $legacy->short_answer,
+            ...array_values(array_map(
+                fn (mixed $item): ?string => is_array($item) ? implode(' ', array_filter($item, 'is_string')) : null,
+                $legacy->faq_json ?? [],
+            )),
+        );
+
+        return collect((array) ($legacy->sources_json ?? []))
+            ->filter(fn (mixed $source): bool => is_array($source))
+            ->map(fn (array $source): object => (object) [
+                'title' => $source['title'] ?? null,
+                'url' => $source['url'] ?? null,
+                'publisher' => $source['publisher'] ?? null,
+                'published_at' => $source['published_at'] ?? null,
+            ])
+            ->reject(fn (object $source): bool => $broken->isReplaced($source->url, $textKeys))
+            ->map(function (object $source) use ($broken): array {
                 $publishedAt = $source->published_at !== null ? Carbon::parse($source->published_at) : null;
 
                 return [
                     'title' => (string) ($source->title ?: $source->url),
-                    'url' => $source->url,
+                    'url' => $broken->linkable($this->safeUrl($source->url)),
                     'publisher' => $source->publisher,
                     'published_at' => $publishedAt,
                     'stale_year' => $publishedAt && $publishedAt->lt(now()->subMonths(self::STALE_SOURCE_MONTHS))
@@ -143,6 +164,17 @@ class ArticleBlockPresenter
     }
 
     /**
+     * Nicht erreichbare Quellen des Ratgeber-Themas, zu dem der Beitrag
+     * gehoert (#27); ohne Thema keine.
+     */
+    public function brokenSources(?LegacyArticle $legacy): BrokenSources
+    {
+        $topicId = $legacy?->article?->getAttribute('guide_topic_id');
+
+        return BrokenSources::forTopic($topicId !== null ? (int) $topicId : null);
+    }
+
+    /**
      * Aenderungshinweise („Aktualisiert am ...", #24), juengster zuerst.
      *
      * Eintraege ohne Datum fallen heraus: sie gehoeren zu einer Fassung, die
@@ -152,15 +184,15 @@ class ArticleBlockPresenter
      *
      * @return list<array{at: Carbon, summary: string, reasons: list<string>}>
      */
-    public function changelog(?ArticleDraft $draft): array
+    public function changelog(?LegacyArticle $legacy): array
     {
-        if ($draft === null) {
+        if ($legacy === null) {
             return [];
         }
 
         $entries = [];
 
-        foreach ($draft->changelogEntries() as $entry) {
+        foreach ($legacy->changelogEntries() as $entry) {
             if ($entry['at'] === null) {
                 continue;
             }
@@ -183,13 +215,13 @@ class ArticleBlockPresenter
      *
      * @return array{name: string, url: string, company_count: ?int, facts: list<array{label: string, value: string}>, intro: ?string, outro: ?string}|null
      */
-    public function region(?ArticleDraft $draft): ?array
+    public function region(?LegacyArticle $legacy): ?array
     {
-        if ($draft === null || $draft->region_scope !== 'city') {
+        if ($legacy === null || $legacy->region_scope !== 'city') {
             return null;
         }
 
-        $code = trim((string) $draft->region_code);
+        $code = trim((string) $legacy->region_code);
 
         if ($code === '') {
             return null;
@@ -204,7 +236,7 @@ class ArticleBlockPresenter
             return null;
         }
 
-        $outline = $draft->outline_json ?? [];
+        $outline = $legacy->outline_json ?? [];
 
         return [
             'name' => $city->name,
@@ -222,9 +254,9 @@ class ArticleBlockPresenter
      *
      * @return array{name: string, steps: list<array{name: string, text: string}>}|null
      */
-    public function howTo(?ArticleDraft $draft): ?array
+    public function howTo(?LegacyArticle $legacy): ?array
     {
-        $howTo = ($draft?->outline_json ?? [])['howto'] ?? null;
+        $howTo = ($legacy?->outline_json ?? [])['howto'] ?? null;
 
         if (! is_array($howTo)) {
             return null;
@@ -252,7 +284,7 @@ class ArticleBlockPresenter
         }
 
         return [
-            'name' => trim((string) ($howTo['name'] ?? $draft->title)),
+            'name' => trim((string) ($howTo['name'] ?? $legacy->title)),
             'steps' => $steps,
         ];
     }
@@ -263,18 +295,18 @@ class ArticleBlockPresenter
      * URL, Breite und Hoehe, `hero_image_alt` den Alt-Text und
      * `assets_json.hero.credit_html` die verlinkte Attribution.
      *
-     * Ohne Entwurf — oder bei einem von Hand gepflegten Beitrag — bleibt es
+     * Ohne Altartikel-Zeile — oder bei einem von Hand gepflegten Beitrag — bleibt es
      * beim Medien-Anhang des Beitrags; die Geometrie bleibt in beiden Faellen
      * gesetzt, damit kein Layoutsprung entsteht.
      *
      * @return array{src: string, srcset: ?string, webp: ?string, width: int, height: int, alt: string, credit: ?string, credit_html: ?string, source: ?string}|null
      */
-    public function heroImage(Post $post, ?ArticleDraft $draft = null): ?array
+    public function heroImage(Post $post, ?LegacyArticle $legacy = null): ?array
     {
-        $fromDraft = $this->heroImageFromDraft($draft);
+        $fromLegacy = $this->heroImageFromLegacy($legacy);
 
-        if ($fromDraft !== null) {
-            return $fromDraft;
+        if ($fromLegacy !== null) {
+            return $fromLegacy;
         }
 
         $url = $post->featured_image_url;
@@ -308,10 +340,10 @@ class ArticleBlockPresenter
             'webp' => $webp,
             'width' => 1440,
             'height' => 810,
-            'alt' => $draft?->hero_image_alt ?: ($media?->getCustomProperty('alt') ?: $post->title),
-            'credit' => $this->text($draft?->hero_image_credit),
+            'alt' => $legacy?->hero_image_alt ?: ($media?->getCustomProperty('alt') ?: $post->title),
+            'credit' => $this->text($legacy?->hero_image_credit),
             'credit_html' => null,
-            'source' => $this->text($draft?->hero_image_source),
+            'source' => $this->text($legacy?->hero_image_source),
         ];
     }
 
@@ -322,13 +354,13 @@ class ArticleBlockPresenter
      *
      * @return array{src: string, srcset: ?string, webp: ?string, width: int, height: int, alt: string, credit: ?string, credit_html: ?string, source: ?string}|null
      */
-    private function heroImageFromDraft(?ArticleDraft $draft): ?array
+    private function heroImageFromLegacy(?LegacyArticle $legacy): ?array
     {
-        if ($draft === null) {
+        if ($legacy === null) {
             return null;
         }
 
-        $variants = $this->heroVariants($draft);
+        $variants = $this->heroVariants($legacy);
 
         if ($variants === []) {
             return null;
@@ -340,7 +372,8 @@ class ArticleBlockPresenter
             $variants,
         ));
 
-        $creditHtml = $this->text(Arr::get($this->assetsOf($draft), 'hero.credit_html'));
+        // Bildnachweis geht per {!! !!} raus: gegen die Whitelist saeubern (Review S3).
+        $creditHtml = $this->text(app(HtmlAssembler::class)->sanitizeLegacy((string) $this->text(Arr::get($this->assetsOf($legacy), 'hero.credit_html'))));
 
         return [
             'src' => $largest['url'],
@@ -350,21 +383,21 @@ class ArticleBlockPresenter
             'webp' => null,
             'width' => $largest['width'],
             'height' => $largest['height'],
-            'alt' => trim((string) $draft->hero_image_alt) ?: (string) $draft->title,
-            'credit' => $this->text($draft->hero_image_credit),
+            'alt' => trim((string) $legacy->hero_image_alt) ?: (string) $legacy->title,
+            'credit' => $this->text($legacy->hero_image_credit),
             'credit_html' => $creditHtml,
-            'source' => $this->text($draft->hero_image_source),
+            'source' => $this->text($legacy->hero_image_source),
         ];
     }
 
     /**
-     * Hero-Varianten des Entwurfs, absteigend nach Breite.
+     * Hero-Varianten des Altartikels, absteigend nach Breite.
      *
      * @return list<array{url: string, width: int, height: int}>
      */
-    public function heroVariants(?ArticleDraft $draft): array
+    public function heroVariants(?LegacyArticle $legacy): array
     {
-        $raw = Arr::get($this->assetsOf($draft), 'hero.variants');
+        $raw = Arr::get($this->assetsOf($legacy), 'hero.variants');
         $variants = [];
 
         foreach (is_array($raw) ? $raw : [] as $variant) {
@@ -397,57 +430,29 @@ class ArticleBlockPresenter
      * Groesste Hero-Variante als absolute URL — die Fassung fuer `og:image`,
      * `twitter:image` und das Article-Markup (#71).
      */
-    public function heroImageUrl(?ArticleDraft $draft): ?string
+    public function heroImageUrl(?LegacyArticle $legacy): ?string
     {
-        return $this->heroVariants($draft)[0]['url'] ?? null;
+        return $this->heroVariants($legacy)[0]['url'] ?? null;
     }
 
     /**
-     * Infografik aus den Key-Facts (#16). Sie steht als eigenstaendiges Bild
-     * im Artikel, nicht als Hintergrund: nur so ist sie mit einem eigenen
-     * Alt-Text beschreibbar.
-     *
-     * @return array{url: string, alt: string}|null
-     */
-    public function infographic(?ArticleDraft $draft): ?array
-    {
-        if ($draft === null) {
-            return null;
-        }
-
-        // Die Grafik ist ein Abzug der Key-Facts vom Zeitpunkt der Freigabe.
-        // Sind die Zeilen seither gestrichen (#41: themenfremde Wetterwerte),
-        // zeigte die gespeicherte Datei Zahlen, die im Artikel nicht mehr
-        // stehen — ohne Faktenzeilen also keine Infografik.
-        if ($this->keyFacts($draft)['rows'] === []) {
-            return null;
-        }
-
-        $url = $this->text(Arr::get($this->assetsOf($draft), 'infographic.url'));
-
-        if ($url === null && $draft->infographic_svg_path !== null) {
-            $url = Storage::disk((string) config('content.assets.disk', 'public'))
-                ->url((string) $draft->infographic_svg_path);
-        }
-
-        if ($url === null || $url === '') {
-            return null;
-        }
-
-        return [
-            'url' => $url,
-            'alt' => 'Infografik: '.trim((string) $draft->title),
-        ];
-    }
-
-    /**
-     * Asset-Bericht des Entwurfs (#16) als Array.
+     * Asset-Bericht des Altartikels (#16) als Array.
      *
      * @return array<string, mixed>
      */
-    private function assetsOf(?ArticleDraft $draft): array
+    private function assetsOf(?LegacyArticle $legacy): array
     {
-        return (array) ($draft?->assets_json ?? []);
+        return (array) ($legacy?->assets_json ?? []);
+    }
+
+    /**
+     * Nur http(s)-Verweise gelangen in href-Attribute.
+     */
+    private function safeUrl(mixed $url): ?string
+    {
+        $url = is_string($url) ? trim($url) : '';
+
+        return preg_match('#^https?://#i', $url) === 1 ? $url : null;
     }
 
     private function text(mixed $value): ?string

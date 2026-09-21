@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Content\Models\GeoRegion;
-use App\Content\Sources\Support\StateCatalog;
 use App\Models\Portal\City;
 use App\Models\Portal\Company;
 use App\Models\Tenant;
@@ -42,8 +40,6 @@ use Throwable;
  *    Kollision mit einem gleichnamigen Ort im Ziel-Bundesland bleibt die Zeile
  *    unveraendert und wird nur gemeldet — Orte werden nie zusammengelegt.
  * 5. Leere Bundeslaender werden nicht angefasst.
- * 6. Portalorte in geo_regions (GeoRegionSeeder), deren state_code wegen des
- *    fremden Bundeslands leer blieb, bekommen den ISO-Code nachgetragen.
  */
 class CityStateRepairCommand extends Command
 {
@@ -160,8 +156,6 @@ class CityStateRepairCommand extends Command
                         }
                     }
 
-                    $geo = $this->syncGeoRegions($write);
-
                     $summary[] = [
                         $tenant->id,
                         $tenant->name,
@@ -169,7 +163,7 @@ class CityStateRepairCommand extends Command
                         $counts['fixed'],
                         $counts['unresolved'],
                         $counts['conflict'],
-                        ($write ? 'geschrieben' : 'Trockenlauf').($geo > 0 ? ", geo_regions: {$geo}" : ''),
+                        $write ? 'geschrieben' : 'Trockenlauf',
                     ];
                 });
             } catch (Throwable $e) {
@@ -186,44 +180,6 @@ class CityStateRepairCommand extends Command
         $this->table(['Tenant', 'Name', 'Fremde Regionen', 'Korrigierbar', 'Offen (PLZ/nur Ausland)', 'Konflikte', 'Ergebnis'], $summary);
 
         return $failed ? self::FAILURE : self::SUCCESS;
-    }
-
-    /**
-     * Traegt state_code bei Portalorten nach, deren Ort inzwischen ein gueltiges
-     * Bundesland hat. Liefert die Anzahl (geschriebener) Zeilen.
-     */
-    private function syncGeoRegions(bool $write): int
-    {
-        if (! Schema::hasTable('geo_regions')) {
-            return 0;
-        }
-
-        $synced = 0;
-
-        GeoRegion::query()
-            ->where('scope', GeoRegion::SCOPE_CITY)
-            ->where('source', 'portal')
-            ->whereNull('state_code')
-            ->get()
-            ->each(function (GeoRegion $region) use ($write, &$synced): void {
-                $state = City::query()
-                    ->where('slug', $region->code)
-                    ->whereIn('administrative_area_level_1', GermanState::NAMES)
-                    ->value('administrative_area_level_1');
-                $iso = StateCatalog::fromText($state);
-
-                if ($iso === null) {
-                    return;
-                }
-
-                $synced++;
-
-                if ($write) {
-                    $region->update(['state_code' => $iso]);
-                }
-            });
-
-        return $synced;
     }
 
     private function hasGermanCompany(City $city): bool

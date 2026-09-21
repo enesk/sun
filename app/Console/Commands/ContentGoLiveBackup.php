@@ -12,7 +12,8 @@ use Stancl\Tenancy\Database\TenantCollection;
 use Throwable;
 
 /**
- * Sicherung der Artikeltabellen vor dem ersten automatischen Lauf (#26).
+ * Sicherung der Artikel- und Ratgeber-Tabellen vor dem ersten automatischen
+ * Lauf (#26, #38 G10).
  *
  * Die Pipeline schreibt in `posts` — also in dieselbe Tabelle, in der die
  * von Hand gepflegten Beitraege eines Portals liegen. Vor dem Go-Live
@@ -31,18 +32,38 @@ class ContentGoLiveBackup extends Command
 {
     /**
      * Die Tabellen, die der Go-Live veraendert. `posts` ist die
-     * Veroeffentlichungsziel-Tabelle, `article_drafts` das Protokoll der
-     * Pipeline dazu.
+     * Veroeffentlichungsziel-Tabelle, `guide_legacy_articles` haelt die
+     * Anzeigebloecke der Altartikel (#34), `guide_redirects` die 301 der
+     * Altpfade (#18); dazu die Guide-Tabellen des Portals (#38 G10).
      *
      * @var array<int, string>
      */
-    public const TABLES = ['posts', 'article_drafts'];
+    public const TABLES = [
+        'posts',
+        'guide_legacy_articles',
+        'guide_redirects',
+        'tenant_guide_settings',
+        'guide_categories',
+        'guide_topics',
+        'guide_topic_runs',
+        'guide_sources',
+        'guide_facts',
+        'guide_article_versions',
+        'guide_article_details',
+    ];
+
+    /**
+     * Nur gesichert, solange es sie auf dem Portal noch gibt (Rueckbau #34).
+     *
+     * @var array<int, string>
+     */
+    public const LEGACY_TABLES = ['article_drafts'];
 
     protected $signature = 'content:golive:backup
         {--tenant= : Nur dieses Portal (ID, UUID oder Domain), sonst alle}
         {--date= : Datum des Sicherungsordners (Y-m-d), Vorgabe: heute}';
 
-    protected $description = 'Sichert posts und article_drafts jedes Portals als NDJSON vor dem ersten Pipeline-Lauf';
+    protected $description = 'Sichert posts, Weiterleitungen und die Ratgeber-Tabellen jedes Portals als NDJSON vor dem ersten Lauf';
 
     public function handle(): int
     {
@@ -71,9 +92,13 @@ class ContentGoLiveBackup extends Command
 
         /** @var Tenant $tenant */
         foreach ($tenants as $tenant) {
-            foreach (self::TABLES as $table) {
+            foreach ([...self::TABLES, ...self::LEGACY_TABLES] as $table) {
                 try {
-                    $rows[] = $this->dump($tenant, $table, $directory);
+                    $row = $this->dump($tenant, $table, $directory, in_array($table, self::LEGACY_TABLES, true));
+
+                    if ($row !== null) {
+                        $rows[] = $row;
+                    }
                 } catch (Throwable $exception) {
                     $failed++;
                     $this->error("[{$tenant->name}] {$table}: {$exception->getMessage()}");
@@ -88,8 +113,7 @@ class ContentGoLiveBackup extends Command
     }
 
     /**
-     * Der Ordner, in dem die Sicherung eines Tages liegt. Auch die
-     * Vorabpruefung (`content:golive:check`) fragt hier nach.
+     * Der Ordner, in dem die Sicherung eines Tages liegt.
      */
     public static function directory(string $date): string
     {
@@ -97,10 +121,17 @@ class ContentGoLiveBackup extends Command
     }
 
     /**
-     * @return array{0: string, 1: string, 2: int, 3: string}
+     * Schreibt eine Tabelle als NDJSON. Fehlt eine Alt-Tabelle
+     * ($onlyIfPresent), entsteht keine Datei und keine Zeile.
+     *
+     * @return array{0: string, 1: string, 2: int, 3: string}|null
      */
-    private function dump(Tenant $tenant, string $table, string $directory): array
+    private function dump(Tenant $tenant, string $table, string $directory, bool $onlyIfPresent = false): ?array
     {
+        if ($onlyIfPresent && ! $tenant->run(fn (): bool => DB::getSchemaBuilder()->hasTable($table))) {
+            return null;
+        }
+
         $file = $directory.'/tenant-'.(int) $tenant->getKey().'-'.$table.'.ndjson';
         $handle = fopen($file, 'w');
 

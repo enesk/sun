@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Portal;
 
-use App\Content\Models\ArticleDraft;
 use App\Content\Services\ArticleBlockPresenter;
 use App\Content\Services\ArticleSeoService;
-use App\Content\Services\PortalProfileService;
-use App\Content\Services\TocBuilder;
+use App\Guide\Models\LegacyArticle;
+use App\Guide\Services\PortalProfileService;
+use App\Guide\Services\TocBuilder;
 use App\Http\Controllers\Controller;
 use App\Models\Portal\Post;
 use App\Models\Portal\PostCategory;
@@ -15,7 +15,6 @@ use App\Support\TenantCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -82,15 +81,15 @@ class PublicBlogController extends Controller
             session()->put($sessionKey, true);
         }
 
-        // Zusatzfelder des Ratgeber-Entwurfs (#3). Redaktionell von Hand
-        // gepflegte Beitraege haben keinen Entwurf — dann entfallen die
+        // Zusatzfelder der Altartikel (guide_legacy_articles, #34). Redaktionell
+        // von Hand gepflegte Beitraege haben keine Zeile — dann entfallen die
         // zusaetzlichen Bloecke, der Artikel bleibt vollstaendig lesbar.
-        $draft = $this->draftFor($post);
+        $legacy = LegacyArticle::forArticle((int) $post->id);
 
         // Related Posts: zuerst die Artikel, die beim Veroeffentlichen auf
         // diesen hier verlinkt haben (Backlinks, #21), danach die gleiche
         // Kategorie.
-        $relatedPosts = $this->backlinkPosts($draft);
+        $relatedPosts = $this->backlinkPosts($legacy);
 
         if ($relatedPosts->count() < 3 && $post->category_id) {
             $relatedPosts = $relatedPosts->merge(
@@ -134,60 +133,58 @@ class PublicBlogController extends Controller
 
         $breadcrumb = array_values(array_filter([
             ['label' => 'Home', 'url' => route('home')],
-            ['label' => 'Ratgeber', 'url' => route('portal.blog.index')],
-            $post->category ? ['label' => $post->category->name, 'url' => route('portal.blog.category', $post->category->slug)] : null,
+            ['label' => 'Ratgeber', 'url' => route('guide.index')],
+            $post->category ? ['label' => $post->category->name, 'url' => route('guide.category', $post->category->slug)] : null,
             ['label' => $post->title],
         ]));
 
-        $toc = $tocBuilder->build($this->bodyHtml($post, $draft));
+        $toc = $tocBuilder->build($this->bodyHtml($post, $legacy));
         [$bodyBefore, $bodyAfter] = $tocBuilder->splitForRegionalBlock($toc['html'], $toc['headings']);
 
         $siteName = $this->siteName();
         $organization = $this->profile->organizationJsonLd();
-        $faq = $blocks->faq($draft);
-        $sources = $blocks->sources($draft);
-        $howTo = $blocks->howTo($draft);
-        $shortAnswer = $blocks->shortAnswer($draft);
+        $faq = $blocks->faq($legacy);
+        $sources = $blocks->sources($legacy);
+        $howTo = $blocks->howTo($legacy);
+        $shortAnswer = $blocks->shortAnswer($legacy);
 
         return view('pages.blog.show', [
             'post' => $post,
-            'draft' => $draft,
             'relatedPosts' => $relatedPosts,
             'previousPost' => $previousPost,
             'nextPost' => $nextPost,
             'categories' => $sidebar['categories'],
             'popularTags' => $sidebar['popularTags'],
             'breadcrumb' => $breadcrumb,
-            'seo' => $seo->meta($post, $draft, $siteName),
-            'jsonLd' => $seo->graph($post, $draft, $siteName, $breadcrumb, $faq, $howTo, $sources, $shortAnswer, $toc['html'], $organization),
+            'seo' => $seo->meta($post, $legacy, $siteName),
+            'jsonLd' => $seo->graph($post, $legacy, $siteName, $breadcrumb, $faq, $howTo, $sources, $shortAnswer, $toc['html'], $organization),
             'organization' => $organization,
             'headings' => $toc['headings'],
             'bodyBefore' => $bodyBefore,
             'bodyAfter' => $bodyAfter,
             'shortAnswer' => $shortAnswer,
-            'keyFacts' => $blocks->keyFacts($draft),
+            'keyFacts' => $blocks->keyFacts($legacy),
             'faq' => $faq,
             'sources' => $sources,
-            'region' => $blocks->region($draft),
-            'heroImage' => $blocks->heroImage($post, $draft),
-            'infographic' => $blocks->infographic($draft),
+            'region' => $blocks->region($legacy),
+            'heroImage' => $blocks->heroImage($post, $legacy),
             'authorName' => $this->profile->authorName(),
             'authorUrl' => $this->profile->authorUrl(),
-            'changelog' => $blocks->changelog($draft),
+            'changelog' => $blocks->changelog($legacy),
         ]);
     }
 
     /**
      * Artikel, die beim Veroeffentlichen auf diesen Ratgeber verlinkt haben
-     * (#21). Sie stehen im Protokoll des Entwurfs und sind die verlaesslichere
+     * (#21). Sie stehen im Protokoll des Altartikels und sind die verlaesslichere
      * Empfehlung als „gleiche Kategorie": jemand hat den Verweis im Text
      * tatsaechlich gesetzt.
      *
      * @return \Illuminate\Support\Collection<int, Post>
      */
-    private function backlinkPosts(?ArticleDraft $draft): Collection
+    private function backlinkPosts(?LegacyArticle $legacy): Collection
     {
-        $ids = $draft?->backlinkArticleIds() ?? [];
+        $ids = $legacy?->backlinkArticleIds() ?? [];
 
         if ($ids === []) {
             return collect();
@@ -202,34 +199,11 @@ class PublicBlogController extends Controller
     }
 
     /**
-     * Ratgeber-Entwurf zum veroeffentlichten Beitrag. Portale ohne
-     * Content-Pipeline haben die Tabelle nicht — dort bleibt es beim Bestand.
+     * Der Altartikel liefert fertiges HTML, der Bestand Markdown.
      */
-    private function draftFor(Post $post): ?ArticleDraft
+    private function bodyHtml(Post $post, ?LegacyArticle $legacy): string
     {
-        if (! Schema::connection((new ArticleDraft)->getConnectionName())->hasTable('article_drafts')) {
-            return null;
-        }
-
-        // Nur live stehende Fassungen. Eine Aktualisierung (#24) traegt vom
-        // Anlegen an dieselbe article_id wie die Fassung, die sie ersetzt —
-        // ohne diese Einschraenkung stuende der unfertige Entwurf ab dem
-        // ersten Ueberarbeitungsschritt auf der oeffentlichen Seite, noch vor
-        // Qualitaetsgate und Pruefung. Die juengste veroeffentlichte Fassung
-        // ist die richtige: nach einem Refresh ist das die neue.
-        return ArticleDraft::query()
-            ->where('article_id', $post->id)
-            ->published()
-            ->latest('id')
-            ->first();
-    }
-
-    /**
-     * Der Entwurf liefert fertiges HTML, der Bestand Markdown.
-     */
-    private function bodyHtml(Post $post, ?ArticleDraft $draft): string
-    {
-        $html = trim((string) $draft?->body_html);
+        $html = trim((string) $legacy?->body_html);
 
         return $html !== '' ? $html : (string) Str::markdown((string) $post->body);
     }
@@ -264,7 +238,7 @@ class PublicBlogController extends Controller
             'recentPosts' => $sidebar['recentPosts'],
             'breadcrumb' => [
                 ['label' => 'Home', 'url' => route('home')],
-                ['label' => 'Ratgeber', 'url' => route('portal.blog.index')],
+                ['label' => 'Ratgeber', 'url' => route('guide.index')],
                 ['label' => $category->name],
             ],
         ]);
@@ -295,7 +269,7 @@ class PublicBlogController extends Controller
             'recentPosts' => $sidebar['recentPosts'],
             'breadcrumb' => [
                 ['label' => 'Home', 'url' => route('home')],
-                ['label' => 'Ratgeber', 'url' => route('portal.blog.index')],
+                ['label' => 'Ratgeber', 'url' => route('guide.index')],
                 ['label' => '#'.$tag->name],
             ],
         ]);
@@ -324,7 +298,7 @@ class PublicBlogController extends Controller
             'popularTags' => $sidebar['popularTags'],
             'breadcrumb' => [
                 ['label' => 'Home', 'url' => route('home')],
-                ['label' => 'Ratgeber', 'url' => route('portal.blog.index')],
+                ['label' => 'Ratgeber', 'url' => route('guide.index')],
                 ['label' => 'Suche: '.$term],
             ],
         ]);

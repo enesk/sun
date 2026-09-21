@@ -15,7 +15,7 @@ use Stancl\Tenancy\Database\TenantCollection;
  * Reiht je Mandant einen CollectArticleMetricsJob ein. Der Job verdichtet die
  * Search-Console-Rohzeilen des juengsten Fensters (#9) zu Tageswerten je
  * Ratgeber, holt — falls freigeschaltet — die AdSense-Ertraege dazu und
- * markiert abrutschende Artikel mit needs_refresh.
+ * setzt die Snapshot-Flags d7/d30/d90.
  */
 class ContentMetricsCollect extends Command
 {

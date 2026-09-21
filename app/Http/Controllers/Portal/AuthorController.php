@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Portal;
 
-use App\Content\Services\PortalProfileService;
+use App\Guide\Services\PortalProfileService;
 use App\Http\Controllers\Controller;
 use App\Models\Portal\Post;
 use Illuminate\View\View;
@@ -45,7 +45,7 @@ class AuthorController extends Controller
             'postCount' => Post::published()->count(),
             'breadcrumb' => [
                 ['label' => 'Home', 'url' => route('home')],
-                ['label' => 'Ratgeber', 'url' => route('portal.blog.index')],
+                ['label' => 'Ratgeber', 'url' => route('guide.index')],
                 ['label' => $this->profile->authorName()],
             ],
         ]);

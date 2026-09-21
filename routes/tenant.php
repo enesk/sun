@@ -1,6 +1,10 @@
 <?php
 
-use App\Content\Http\Middleware\EnsureContentPreviewAccess;
+use App\Guide\Http\Middleware\EnsureContentPreviewAccess;
+use App\Guide\Http\Middleware\HandleGuideRedirects;
+use App\Guide\Seo\GuideSitemapGenerator;
+use App\Http\Controllers\GuideController;
+use App\Http\Controllers\GuidePreviewController;
 use App\Http\Controllers\IndexNowKeyController;
 use App\Http\Controllers\Portal\AuthorController;
 use App\Http\Controllers\Portal\BlogFeedController;
@@ -24,7 +28,6 @@ use App\Http\Controllers\Portal\StaticPageController;
 use App\Http\Controllers\Portal\StatsBeaconController;
 use App\Http\Controllers\Portal\TrackingController;
 use App\Http\Controllers\Portal\VerificationDocumentController;
-use App\Http\Controllers\RatgeberPreviewController;
 use App\Http\Controllers\Verwaltung\VerwaltungAdController;
 use App\Http\Controllers\Verwaltung\VerwaltungBlogController;
 use App\Http\Controllers\Verwaltung\VerwaltungCategoryController;
@@ -77,6 +80,19 @@ Route::middleware([
         }
         return response()->file($path, ['Content-Type' => 'application/xml']);
     })->name('portal.sitemap');
+
+    // Ratgeber-Sitemap: dynamisch aus dem Seiten-Cache, den der Publisher verwirft (#18)
+    Route::get('/sitemap-ratgeber.xml', function (GuideSitemapGenerator $sitemap) {
+        // Schema wie im Sitemap-Job, damit Index und Teil-Sitemap dieselben URLs nennen
+        $xml = $sitemap->xml((app()->environment('production') ? 'https' : 'http').'://'.request()->getHost());
+        if ($xml === null) {
+            abort(404);
+        }
+        return response($xml, 200, [
+            'Content-Type' => 'application/xml; charset=UTF-8',
+            'Cache-Control' => 'public, max-age='.GuideSitemapGenerator::CACHE_TTL,
+        ]);
+    })->name('guide.sitemap');
 
     Route::get('/sitemap-{name}.xml', function (string $name) {
         $name = preg_replace('/[^a-z0-9\-]/', '', $name);
@@ -184,21 +200,30 @@ Route::middleware([
     // FAQ (#198)
     Route::get('/faq', [PublicFaqController::class, 'index'])->name('portal.faqs.index');
 
-    // Ratgeber-Blog — öffentlich (#203)
-    Route::get('/ratgeber', [PublicBlogController::class, 'index'])->name('portal.blog.index');
+    // Ratgeber — öffentlich (#203, themengetrieben seit #17). Übersicht,
+    // Kategorie und Artikel laufen über den GuideController; Portale ohne
+    // Ratgeber-Kategorien bekommen dort weiter die bisherigen Blog-Seiten.
+    Route::get('/ratgeber', [GuideController::class, 'index'])->name('guide.index');
     Route::get('/ratgeber/suche', [PublicBlogController::class, 'search'])->name('portal.blog.search');
     Route::get('/ratgeber/redaktion', [StaticPageController::class, 'editorial'])->name('portal.blog.editorial');
-    Route::get('/ratgeber/kategorie/{slug}', [PublicBlogController::class, 'category'])->name('portal.blog.category');
+    // guide.category muss vor guide.show stehen (#17)
+    Route::get('/ratgeber/kategorie/{slug}', [GuideController::class, 'category'])
+        ->middleware(HandleGuideRedirects::class)
+        ->name('guide.category');
     Route::get('/ratgeber/tag/{slug}', [PublicBlogController::class, 'tag'])->name('portal.blog.tag');
 
-    // Artikelvorschau der Redaktion (#20). Muss vor der Slug-Route stehen,
-    // sonst schluckt diese den Pfad. Signiert und nur fuer Redaktions-Accounts.
-    Route::get('/ratgeber/vorschau/{draft}', [RatgeberPreviewController::class, 'show'])
-        ->whereNumber('draft')
+    // Vorschau einer Ratgeber-Fassung aus Pruef-Queue und Versionshistorie
+    // (#16): signiert, nur fuer Redaktions-Accounts, gleicher View wie
+    // guide.show. Muss vor der Slug-Route stehen, sonst schluckt diese den Pfad.
+    Route::get('/ratgeber/fassung/{version}', [GuidePreviewController::class, 'show'])
+        ->whereNumber('version')
         ->middleware(['signed', EnsureContentPreviewAccess::class])
-        ->name('ratgeber.preview');
+        ->name('guide.preview');
 
-    Route::get('/ratgeber/{slug}', [PublicBlogController::class, 'show'])->name('portal.blog.show');
+    // Alte Kategorie- und Artikeladressen leiten vor der 404-Seite mit 301 um (#18)
+    Route::get('/ratgeber/{slug}', [GuideController::class, 'show'])
+        ->middleware(HandleGuideRedirects::class)
+        ->name('guide.show');
 
     // Autorenprofil der Redaktion (#18)
     Route::get('/autor/{slug}', [AuthorController::class, 'show'])->name('portal.author.show');

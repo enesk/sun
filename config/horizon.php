@@ -194,28 +194,13 @@ return [
             'nice' => 0,
         ],
 
-        // Quell-Connectoren der Content-Pipeline (#7). Eigenes Programm, damit
-        // langsame externe Abrufe die uebrigen Queues nicht ausbremsen.
-        'supervisor-content-sources' => [
+        // Ratgebersystem (#13): Recherche und Schreiben warten fast nur auf das
+        // Modell; die Parallelitaet je Tenant und gesamt begrenzt der
+        // Redis-Funnel (guide.concurrency). Worker-Zahlen wie in
+        // deploy/supervisor/guide-*.conf.
+        'supervisor-guide-research' => [
             'connection' => 'redis',
-            'queue' => ['content-sources'],
-            'balance' => 'auto',
-            'autoScalingStrategy' => 'time',
-            'maxProcesses' => 1,
-            'maxTime' => 0,
-            'maxJobs' => 0,
-            'memory' => 256,
-            'tries' => 1,
-            'timeout' => 300,
-            'nice' => 5,
-        ],
-
-        // Erzeugung (#22): Themenfindung, Texterstellung, Qualitaetsgate und
-        // Assets. Die Jobs warten fast nur auf externe Antworten, deshalb
-        // mehr Prozesse als Rechenkerne und ein langer Timeout.
-        'supervisor-content-generate' => [
-            'connection' => 'redis',
-            'queue' => ['content-discovery', 'content-llm', 'content-assets'],
+            'queue' => ['guide-research'],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
             'maxProcesses' => 1,
@@ -223,15 +208,34 @@ return [
             'maxJobs' => 0,
             'memory' => 512,
             'tries' => 1,
-            'timeout' => 1800,
+            'timeout' => 960,
             'nice' => 0,
         ],
 
-        // Veroeffentlichung und Metriken (#21, #22). Bewusst ein einzelner
-        // Worker: die gestaffelten Zeitpunkte sollen der Reihe nach laufen.
-        'supervisor-content-publish' => [
+        // guide-assets (Titelbilder, #20) laeuft nachrangig mit: erst wenn
+        // guide-write leer ist. Nicht an guide-publish, weil ein Bildjob (bis
+        // 600 s) dort den einzigen Worker und damit Veroeffentlichung und
+        // Tagesauswahl blockieren wuerde (#36/#38). Wie deploy/supervisor/guide-write.conf.
+        'supervisor-guide-write' => [
             'connection' => 'redis',
-            'queue' => ['content-publish', 'content-metrics'],
+            'queue' => ['guide-write', 'guide-assets'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 1,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 512,
+            'tries' => 1,
+            'timeout' => 960,
+            'nice' => 0,
+        ],
+
+        // Veroeffentlichung und Tagesauswahl je Tenant, ein Worker. Seit dem
+        // Rueckbau der alten Pipeline (#23) laeuft hier auch der
+        // Metrik-Collector (content-metrics, einmal taeglich je Portal).
+        'supervisor-guide-publish' => [
+            'connection' => 'redis',
+            'queue' => ['guide-publish', 'guide-dispatch', 'content-metrics'],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
             'maxProcesses' => 1,
@@ -239,7 +243,7 @@ return [
             'maxJobs' => 0,
             'memory' => 256,
             'tries' => 1,
-            'timeout' => 300,
+            'timeout' => 960,
             'nice' => 5,
         ],
     ],
@@ -252,20 +256,20 @@ return [
                 'balanceCooldown' => 3,
             ],
 
-            // Worker-Zahlen wie in deploy/supervisor/content-*.conf.
-            'supervisor-content-sources' => [
-                'maxProcesses' => 2,
-                'balanceMaxShift' => 1,
-                'balanceCooldown' => 3,
-            ],
-
-            'supervisor-content-generate' => [
+            // Worker-Zahlen wie in deploy/supervisor/guide-*.conf.
+            'supervisor-guide-research' => [
                 'maxProcesses' => 4,
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
 
-            'supervisor-content-publish' => [
+            'supervisor-guide-write' => [
+                'maxProcesses' => 4,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+
+            'supervisor-guide-publish' => [
                 'maxProcesses' => 1,
             ],
         ],
@@ -281,19 +285,19 @@ return [
                 'balanceCooldown' => 3,
             ],
 
-            'supervisor-content-sources' => [
-                'maxProcesses' => 2,
-                'balanceMaxShift' => 1,
-                'balanceCooldown' => 3,
-            ],
-
-            'supervisor-content-generate' => [
+            'supervisor-guide-research' => [
                 'maxProcesses' => 4,
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
 
-            'supervisor-content-publish' => [
+            'supervisor-guide-write' => [
+                'maxProcesses' => 4,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+
+            'supervisor-guide-publish' => [
                 'maxProcesses' => 1,
             ],
         ],
@@ -303,15 +307,15 @@ return [
                 'maxProcesses' => 3,
             ],
 
-            'supervisor-content-sources' => [
+            'supervisor-guide-research' => [
                 'maxProcesses' => 1,
             ],
 
-            'supervisor-content-generate' => [
+            'supervisor-guide-write' => [
                 'maxProcesses' => 1,
             ],
 
-            'supervisor-content-publish' => [
+            'supervisor-guide-publish' => [
                 'maxProcesses' => 1,
             ],
         ],

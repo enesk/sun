@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Content\Concerns\InteractsWithContentPanel;
+use App\Guide\Concerns\InteractsWithContentPanel;
 use App\Notifications\Auth\QueuedVerifyEmail;
 use App\Services\OrderService;
 use App\Services\SubscriptionService;
@@ -123,8 +123,9 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
             return false;
         }
 
-        // Content-Panel der Ratgeber-Pipeline: nur Administratoren, und
-        // gesperrte Konten nie (App\Content\Concerns\InteractsWithContentPanel).
+        // Content-Panel des Ratgebersystems: nur Konten mit Ratgeber-Rolle
+        // (guide_role owner/editor, Administratoren ohne Rolle gelten als
+        // owner), gesperrte Konten nie (App\Guide\Concerns\InteractsWithContentPanel).
         if ($panel->getId() == config('content.panel.id', 'content') && ! $this->canAccessContentPanel()) {
             return false;
         }

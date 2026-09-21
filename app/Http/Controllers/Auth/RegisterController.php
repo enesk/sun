@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\UserService;
+use App\Support\IntendedUrl;
 use App\Validator\RegisterValidator;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Redirect;
@@ -41,7 +42,7 @@ class RegisterController extends Controller
 
     public function redirectPath()
     {
-        if ($intended = Redirect::getIntendedUrl()) {
+        if (($intended = Redirect::getIntendedUrl()) && IntendedUrl::isOwn($intended)) {
             return $intended;
         }
 
@@ -81,7 +82,7 @@ class RegisterController extends Controller
     public function showRegistrationForm()
     {
         if (url()->previous() != route('login') && Redirect::getIntendedUrl() === null) {
-            Redirect::setIntendedUrl(url()->previous()); // make sure we redirect back to the page we came from
+            IntendedUrl::rememberPrevious(); // make sure we redirect back to the page we came from (own hosts only)
         }
 
         return view('auth.register', [

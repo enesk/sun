@@ -30,13 +30,13 @@ class AdSlot extends Component
      * which pushes CLS above the 0.1 target on the article pages (Vorgabe #100).
      */
     private const AUTO_ADS_BLOCKED_ROUTES = [
-        'portal.blog.index',
+        'guide.index',
         'portal.blog.search',
         'portal.blog.editorial',
-        'portal.blog.category',
+        'guide.category',
         'portal.blog.tag',
-        'portal.blog.show',
-        'ratgeber.preview',
+        'guide.show',
+        'guide.preview',
     ];
 
     /**

@@ -56,98 +56,51 @@ Schedule::command('tenants:run leads:inquiries:purge-contacts')->dailyAt('01:45'
 
 Schedule::command('import:cleanup')->dailyAt('02:00');
 
-/*
-| Content-Pipeline: Quell-Connectoren (#7)
-|
-| Die Connectoren deklarieren ihre Frequenz selbst (SourceFrequency); der
-| Scheduler ruft je Rhythmus einen Sammellauf auf, der die faelligen
-| Connectoren je Mandant als Jobs auf 'content-sources' einreiht.
-*/
-Schedule::command('content:sources:run --frequency=hourly')->hourlyAt(10)->withoutOverlapping();
-Schedule::command('content:sources:run --frequency=six_hourly')->cron('20 */6 * * *')->withoutOverlapping();
-Schedule::command('content:sources:run --frequency=daily')->dailyAt('01:30')->withoutOverlapping();
-Schedule::command('content:sources:run --frequency=weekly')->weeklyOn(1, '01:45')->withoutOverlapping();
+// Ratgeber-Import (#15): hochgeladene Themenlisten nach 7 Tagen loeschen
+Schedule::command('guide:imports:prune')->dailyAt('02:15')->onOneServer();
 
-Schedule::command('content:sources:prune')->dailyAt('03:40');
+// Ratgeber-Publisher (#12): hoechstens 30 Fassungen je Artikel, erste und veroeffentlichte bleiben
+Schedule::command('guide:versions:prune')->dailyAt('01:50')->withoutOverlapping()->onOneServer();
 
 /*
-| Content-Pipeline: Veroeffentlichung (#21)
+| Leistungsdaten der Ratgeber-URLs (docs/guide-system.md §9)
 |
-| Der Normalfall laeuft ueber die Verzoegerung des ScheduleAndPublishJob. Der
-| Fuenf-Minuten-Lauf ist die Sicherung: er holt verpasste Zeitpunkte nach,
-| plant freigegebene Entwuerfe ein und zieht kurz vor Fensterende den
-| Reserve-Kandidaten nach.
-*/
-Schedule::command('content:publish:due')->everyFiveMinutes()->withoutOverlapping();
-
-/*
-| Content-Pipeline: Metriken und Lernschleife (#23)
-|
-| Der Collector laeuft nach dem taeglichen Quellenlauf, damit er die frischen
-| Search-Console-Rohzeilen des Gap-Connectors (#9) vorfindet und keinen
-| zweiten Abruf braucht. Die Lernschleife rechnet einmal woechentlich; ihr
-| Ergebnis aendert sich langsamer als taeglich.
+| Der Metrik-Collector holt die Search-Console-Rohzeilen je Portal selbst
+| (SearchConsoleRawFetcher) und verdichtet sie zu article_metrics. Die
+| uebrigen Eintraege der alten Content-Pipeline (Quellen, Tageskette,
+| Veroeffentlichung, Lernschleife, Refresh, Tagesbericht) sind mit dem
+| Rueckbau entfallen; den Tagesbericht schreibt guide:daily --stage=report.
 */
 Schedule::command('content:metrics:collect')->dailyAt('06:30')->withoutOverlapping();
-Schedule::command('content:learning:run')->weeklyOn(1, '05:30')->withoutOverlapping();
 
 /*
-| Content-Pipeline: Refresh-Loop (#24)
+| Ratgebersystem: Tages-Orchestrator (#13)
 |
-| Laeuft nach dem Metrik-Collector, damit er dessen frische needs_refresh-
-| Marken vorfindet, und vor dem Veroeffentlichungsfenster. Je Mandant
-| hoechstens drei Aktualisierungen am Tag; sie zaehlen nicht gegen das
-| Tagesziel von zwei neuen Artikeln.
+| Alle Zeiten in guide.timezone (Europe/Berlin). guide:daily reiht je
+| aktivem Tenant einen DispatchDueTopicsJob ein; der staffelt die faelligen
+| Themen selbst ueber das Laufzeitfenster (run_window_start bis
+| run_window_end) und faengt Fehler je Tenant ab. withoutOverlapping
+| verhindert, dass ein langer Lauf sich selbst ueberholt, onOneServer, dass
+| mehrere Anwendungsserver denselben Tag doppelt starten.
 */
-Schedule::command('content:refresh:run')
-    ->dailyAt((string) config('content.refresh.run_at', '07:15'))
-    ->timezone((string) config('content.pipeline.timezone', 'Europe/Berlin'))
+$guideTimezone = (string) config('guide.timezone', 'Europe/Berlin');
+
+Schedule::command('guide:daily --stage=dispatch')
+    ->dailyAt((string) config('guide.run_window_start', '02:00'))
+    ->timezone($guideTimezone)
     ->withoutOverlapping()
     ->onOneServer();
 
-/*
-| Content-Pipeline: Tageskette (#22)
-|
-| Alle Zeiten in Europe/Berlin. Jeder Eintrag reiht je Mandant einen eigenen
-| DailyChainJob ein (--queue): ein Portal, das ausfaellt, haelt die uebrigen
-| nicht auf. withoutOverlapping verhindert, dass ein langer Lauf sich selbst
-| ueberholt, onOneServer, dass mehrere Anwendungsserver dieselbe Kette
-| doppelt starten.
-*/
-$contentTimezone = (string) config('content.pipeline.timezone', 'Europe/Berlin');
-
-Schedule::command('content:daily --stage=discover --queue')
-    ->dailyAt((string) config('content.pipeline.schedule.discover_at', '02:00'))
-    ->timezone($contentTimezone)
+// Haengende Laeufe (laenger als guide.schedule.stuck_after_minutes in einem
+// Zwischenstatus) neu ansetzen, Fehlerquote je Tenant pruefen.
+Schedule::command('guide:daily --stage=watchdog')
+    ->cron('*/'.max(5, (int) config('guide.orchestrator.watchdog.every_minutes', 10)).' * * * *')
+    ->timezone($guideTimezone)
     ->withoutOverlapping()
     ->onOneServer();
 
-Schedule::command('content:daily --stage=select --queue')
-    ->dailyAt((string) config('content.pipeline.schedule.select_at', '03:00'))
-    ->timezone($contentTimezone)
-    ->withoutOverlapping()
-    ->onOneServer();
-
-Schedule::command('content:daily --stage=generate --queue')
-    ->dailyAt((string) config('content.pipeline.schedule.generate_at', '03:30'))
-    ->timezone($contentTimezone)
-    ->withoutOverlapping()
-    ->onOneServer();
-
-// Die Veroeffentlichung braucht keinen eigenen Tageseintrag: die Kette
-// stoesst sie je Artikel selbst an, und content:publish:due holt alle fuenf
-// Minuten nach, was liegen geblieben ist.
-
-// Der Wachhund prueft je Mandant, ob jeder Slot des Tages einen Entwurf
-// traegt, und zieht sonst einen Reserve-Kandidaten nach.
-Schedule::command('content:daily --stage=watchdog --queue')
-    ->cron('*/'.max(5, (int) config('content.pipeline.watchdog.every_minutes', 30)).' * * * *')
-    ->timezone($contentTimezone)
-    ->withoutOverlapping()
-    ->onOneServer();
-
-Schedule::command('content:report:daily')
-    ->dailyAt((string) config('content.pipeline.schedule.report_at', '20:00'))
-    ->timezone($contentTimezone)
+Schedule::command('guide:daily --stage=report')
+    ->dailyAt((string) config('guide.orchestrator.report_at', '20:00'))
+    ->timezone($guideTimezone)
     ->withoutOverlapping()
     ->onOneServer();

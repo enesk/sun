@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Content\Services;
 
-use App\Content\Models\ArticleDraft;
+use App\Guide\Models\LegacyArticle;
 use App\Models\Portal\Post;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
@@ -23,15 +23,15 @@ class ArticleSeoService
     /**
      * @return array{title: string, description: string, canonical: string, og_type: string, og_image: ?string, published_at: ?Carbon, modified_at: ?Carbon}
      */
-    public function meta(Post $post, ?ArticleDraft $draft, string $siteName): array
+    public function meta(Post $post, ?LegacyArticle $legacy, string $siteName): array
     {
-        $title = $draft?->meta_title ?: ($post->meta_title ?: $post->title);
-        $description = $draft?->meta_description ?: ($post->meta_description ?: $post->excerpt_or_truncated);
+        $title = $legacy?->meta_title ?: ($post->meta_title ?: $post->title);
+        $description = $legacy?->meta_description ?: ($post->meta_description ?: $post->excerpt_or_truncated);
 
         return [
             'title' => $this->truncate($title, 65).' — '.$siteName,
             'description' => $this->truncate($description, 160),
-            'canonical' => route('portal.blog.show', $post->slug),
+            'canonical' => route('guide.show', $post->slug),
             'og_type' => 'article',
             // Vorschaubild ist die groesste Hero-Variante aus #16 (1200 Breite);
             // sie speist og:image, twitter:image und das Article-Markup.
@@ -40,9 +40,9 @@ class ArticleSeoService
             // die Ablage beim Erzeugen geliefert hat — ohne gesetzte Disk-URL
             // ist das ein Pfad. Deshalb hier gegen den Host der Anfrage
             // aufloesen (#84).
-            'og_image' => $this->absoluteUrl($this->blocks->heroImageUrl($draft) ?: $post->featured_image_url),
+            'og_image' => $this->absoluteUrl($this->blocks->heroImageUrl($legacy) ?: $post->featured_image_url),
             'published_at' => $post->published_at,
-            'modified_at' => $this->modifiedAt($post, $draft),
+            'modified_at' => $this->modifiedAt($post, $legacy),
         ];
     }
 
@@ -71,11 +71,11 @@ class ArticleSeoService
      * technische Zeile in `posts`, sonst wuerde jede Cache-Beruehrung als
      * Aktualisierung gelten.
      */
-    public function modifiedAt(Post $post, ?ArticleDraft $draft): ?Carbon
+    public function modifiedAt(Post $post, ?LegacyArticle $legacy): ?Carbon
     {
         $latest = null;
 
-        foreach ([$draft?->updated_at, $post->updated_at, $post->published_at] as $candidate) {
+        foreach ([$legacy?->content_updated_at, $post->updated_at, $post->published_at] as $candidate) {
             if ($candidate instanceof Carbon && ($latest === null || $candidate->greaterThan($latest))) {
                 $latest = $candidate;
             }
@@ -86,7 +86,7 @@ class ArticleSeoService
 
     /**
      * JSON-LD-Graph der Artikelseite: Article, BreadcrumbList, FAQPage und —
-     * wenn der Entwurf Schritte mitbringt — HowTo.
+     * wenn der Altartikel Schritte mitbringt — HowTo.
      *
      * @param  list<array{label: string, url?: string}>  $breadcrumb
      * @param  list<array{question: string, answer: string}>  $faq
@@ -97,7 +97,7 @@ class ArticleSeoService
      */
     public function graph(
         Post $post,
-        ?ArticleDraft $draft,
+        ?LegacyArticle $legacy,
         string $siteName,
         array $breadcrumb,
         array $faq,
@@ -107,7 +107,7 @@ class ArticleSeoService
         string $bodyHtml,
         array $organization = [],
     ): array {
-        $meta = $this->meta($post, $draft, $siteName);
+        $meta = $this->meta($post, $legacy, $siteName);
         $url = $meta['canonical'];
 
         // Herausgeber: der Organization-Knoten des Portals (#18) mit Logo und

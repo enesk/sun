@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Portal;
 
-use App\Content\Services\LlmsTxtBuilder;
+use App\Guide\Seo\LlmsTxtBuilder;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Response;
 

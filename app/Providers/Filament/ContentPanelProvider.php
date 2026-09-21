@@ -4,12 +4,26 @@ declare(strict_types=1);
 
 namespace App\Providers\Filament;
 
-use App\Content\Http\Middleware\InitializeContentTenant;
-use App\Content\Livewire\ArticleList;
-use App\Content\Livewire\EditorialCalendar;
-use App\Content\Livewire\PipelineBoard;
-use App\Content\Livewire\ReviewQueue;
-use App\Content\Livewire\TenantSwitcher;
+use App\Guide\Filament\Pages\ArticleVersions;
+use App\Guide\Filament\Pages\ConfirmOutlines;
+use App\Guide\Filament\Pages\Costs;
+use App\Guide\Filament\Pages\DailyRunMonitor;
+use App\Guide\Filament\Pages\DailyRunSettings;
+use App\Guide\Filament\Pages\ImportWizard;
+use App\Guide\Filament\Pages\LegacyOverlaps;
+use App\Guide\Filament\Pages\RunHistory;
+use App\Guide\Filament\Pages\TenantGuideSettings;
+use App\Guide\Filament\Resources\CategoryResource;
+use App\Guide\Filament\Resources\PromptTemplateResource;
+use App\Guide\Filament\Resources\ReviewRunResource;
+use App\Guide\Filament\Resources\TopicResource;
+use App\Guide\Http\Controllers\ToggleReviewShortcuts;
+use App\Guide\Http\Middleware\InitializeContentTenant;
+use App\Guide\Livewire\OutlineEditor;
+use App\Guide\Livewire\TenantSwitcher;
+use App\Guide\Services\TopicDirectory;
+use App\Guide\Support\ReviewShortcuts;
+use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -27,16 +41,25 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Livewire\Livewire;
 
 /**
- * Content-Panel der Ratgeber-Pipeline (#4).
+ * Ratgeber-Dashboard: Panel `content` unter <CENTRAL_DOMAIN>/content (#4, #14).
  *
  * Eigenes Panel, aber gewoehnlicher SaaSykit-Login: Guard 'web',
- * App\Models\User, kein eigenes Anmeldeformular und keine eigene
- * Benutzertabelle. Wer sich anmelden darf, entscheidet
- * App\Models\User::canAccessPanel() — ausschliesslich Administratoren.
+ * App\Models\User, keine eigene Benutzertabelle (docs/guide-system.md §7).
+ * /content/login leitet auf den SaaSykit-Login weiter (routes/web.php,
+ * Route content.login). Wer hinein darf, entscheidet
+ * App\Models\User::canAccessPanel() ueber die Rolle guide_role
+ * (owner/editor, Administratoren ohne Rolle gelten als owner); anlegen mit
+ * `php artisan guide:user:create`.
+ *
+ * Navigation: Heute, Themen, Pruefung, Verlauf, Einstellungen
+ * (design/guide-dashboard.md §1.2), alle aus app/Guide/Filament: Themen
+ * (#15), Heute, Pruefung, Verlauf und Einstellungen (#16). Die Seiten der
+ * alten Pipeline stehen nicht mehr in der Navigation.
  * Es werden ausdruecklich keine Ressourcen des Admin-Panels eingebunden:
  * discoverResources/discoverPages zeigen ausschliesslich auf app/Filament/Content.
  *
@@ -52,7 +75,7 @@ class ContentPanelProvider extends PanelProvider
             ->id(config('content.panel.id', 'content'))
             ->path(config('content.panel.path', 'content'))
             ->authGuard(config('content.panel.guard', 'web'))
-            ->brandName('SUN Content')
+            ->brandName('Ratgeber')
             ->favicon(asset('images/favicon.ico'))
             ->colors([
                 // Deckungsgleich mit --color-content-* aus resources/css/content/theme.css.
@@ -79,6 +102,30 @@ class ContentPanelProvider extends PanelProvider
             // Dunkelmodus muesste eigene Statusfarben bekommen (#30).
             ->darkMode(false)
             ->viteTheme('resources/css/content/theme.css')
+            // Themen, Kategorien, Import, Gliederung bestaetigen (#15). Leben
+            // unter app/Guide und werden deshalb ausdruecklich registriert;
+            // Kategorien vor Themen, damit /themen/kategorien vor
+            // /themen/{record} steht.
+            ->resources([
+                CategoryResource::class,
+                TopicResource::class,
+                // Pruefung, Prompts der Einstellungen (#16).
+                ReviewRunResource::class,
+                PromptTemplateResource::class,
+            ])
+            ->pages([
+                ImportWizard::class,
+                ConfirmOutlines::class,
+                LegacyOverlaps::class,
+                // Heute (Startseite), Verlauf, Kosten, Einstellungen (#16).
+                DailyRunMonitor::class,
+                // Verlauf › Laeufe und Einstellungen › Tageslauf (#33).
+                RunHistory::class,
+                DailyRunSettings::class,
+                ArticleVersions::class,
+                Costs::class,
+                TenantGuideSettings::class,
+            ])
             ->discoverResources(in: app_path('Filament/Content/Resources'), for: 'App\\Filament\\Content\\Resources')
             ->discoverPages(in: app_path('Filament/Content/Pages'), for: 'App\\Filament\\Content\\Pages')
             ->discoverWidgets(in: app_path('Filament/Content/Widgets'), for: 'App\\Filament\\Content\\Widgets')
@@ -96,8 +143,20 @@ class ContentPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
                 // Erst nach der Anmeldung: die Portalauswahl wird gegen die
-                // Zuordnung des angemeldeten Administrators geprueft.
+                // Zuordnung des angemeldeten Kontos geprueft.
                 InitializeContentTenant::class,
+            ])
+            // Einzeltasten der Pruefung abschaltbar (WCAG 2.1.4, #33): Schalter
+            // im Nutzermenue, Wahl je Browser im Cookie (ReviewShortcuts).
+            ->authenticatedRoutes(function (): void {
+                Route::post('tastenkuerzel', ToggleReviewShortcuts::class)->name('review-shortcuts.toggle');
+            })
+            ->userMenuItems([
+                Action::make('reviewShortcuts')
+                    ->label(fn (): string => ReviewShortcuts::enabled() ? __('Einzeltasten abschalten') : __('Einzeltasten einschalten'))
+                    ->icon('heroicon-o-command-line')
+                    ->url(fn (): string => route('filament.'.config('content.panel.id', 'content').'.review-shortcuts.toggle'))
+                    ->postToUrl(),
             ])
             // Globaler Portal-Umschalter in der Kopfzeile.
             ->renderHook(
@@ -127,16 +186,11 @@ class ContentPanelProvider extends PanelProvider
 
         Livewire::component('content.tenant-switcher', TenantSwitcher::class);
 
-        // Board, Kalender und Artikelliste der Produktionsansicht (#19, #36).
-        // Eigene Komponenten, damit das 15-Sekunden-Polling des Boards nur
-        // seinen eigenen Bereich neu rendert und nicht die ganze Seite.
-        Livewire::component('content.pipeline-board', PipelineBoard::class);
-        Livewire::component('content.editorial-calendar', EditorialCalendar::class);
-        Livewire::component('content.article-list', ArticleList::class);
+        // Gliederungs-Editor im Thema-Detail (#15). Eigene Komponente, damit
+        // das Polling des Laufbereichs die Bearbeitung nicht zuruecksetzt.
+        Livewire::component('content.guide.outline-editor', OutlineEditor::class);
 
-        // Pruef-Queue (#20). Eigene Komponente, damit eine Entscheidung nur
-        // die Warteschlange und das Pruefblatt neu rendert — die Vorschau im
-        // Rahmen bleibt dabei stehen.
-        Livewire::component('content.review-queue', ReviewQueue::class);
+        // Themen und Kategorien aller Portale; ein Stand je Anfrage (#15).
+        $this->app->scoped(TopicDirectory::class);
     }
 }

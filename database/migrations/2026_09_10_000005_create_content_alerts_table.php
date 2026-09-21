@@ -26,7 +26,7 @@ return new class extends Migration
             $table->id();
             $table->string('dedupe_key', 191)->unique();
             $table->unsignedBigInteger('tenant_id')->nullable(); // null = netzwerkweit
-            $table->string('key', 64);                           // App\Content\Models\Central\ContentAlert::KEY_*
+            $table->string('key', 64);                           // App\Guide\Models\Central\ContentAlert::KEY_*
             $table->string('level', 16)->default('warning');     // critical|warning|info
             $table->text('message');
             $table->json('context_json')->nullable();

@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->string('role', 32)->default('editor'); // App\Content\Enums\ContentRole: owner|editor
+            $table->string('role', 32)->default('editor'); // owner|editor (heute App\Guide\Enums\GuideRole)
             $table->boolean('is_active')->default(true);
             $table->json('tenant_ids_json')->nullable();   // null = alle Mandanten
             $table->timestamp('last_login_at')->nullable();

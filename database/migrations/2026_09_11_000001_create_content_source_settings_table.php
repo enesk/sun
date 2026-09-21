@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('source_key', 64)->unique();
             $table->boolean('is_enabled')->default(true);
 
-            // Werte aus App\Content\Enums\SourceFrequency; null = Deklaration
+            // Werte aus dem frueheren Enum SourceFrequency (entfernt mit #23); null = Deklaration
             // des Connectors gilt. Nur gleich oder seltener als die
             // Deklaration, nie haeufiger.
             $table->string('frequency_override', 20)->nullable();

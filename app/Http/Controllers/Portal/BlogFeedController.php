@@ -34,7 +34,7 @@ class BlogFeedController extends Controller
         }
 
         foreach ($posts as $post) {
-            $itemUrl = route('portal.blog.show', $post->slug);
+            $itemUrl = route('guide.show', $post->slug);
 
             $xml .= '  <item>' . "\n";
             $xml .= '    <title>' . e($post->title) . '</title>' . "\n";

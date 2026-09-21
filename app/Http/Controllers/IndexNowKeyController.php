@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Content\Providers\IndexNowClient;
+use App\Guide\Publishing\IndexNowClient;
 use App\Models\Tenant;
 use Illuminate\Http\Response;
 
 /**
- * Schluesseldatei fuer IndexNow (#21).
+ * Schluesseldatei fuer IndexNow (#21, seit #12 ueber den Ratgeber-Client;
+ * die Ableitung ist dieselbe wie in der alten Pipeline).
  *
  * IndexNow verlangt den Nachweis, dass der meldende Dienst die Domain
  * kontrolliert: unter der im Ping genannten `keyLocation` muss eine Textdatei

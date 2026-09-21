@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Content\Services;
 
-use App\Content\Enums\DisplayStatus;
-use App\Content\Enums\DraftStatus;
-use App\Content\Models\ArticleDraft;
 use App\Content\Models\ArticleMetric;
-use App\Content\Models\Central\LlmUsageLog;
+use App\Guide\Models\Central\LlmUsageLog;
+use App\Guide\Services\ContentTenantContext;
+use App\Guide\Support\BranchResolver;
+use App\Models\Portal\Post;
 use App\Models\Tenant;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
@@ -26,8 +26,7 @@ use Throwable;
  * Massgeblich ist je Artikel die **juengste** Metrikzeile im Zeitraum, nicht
  * die Summe aller Zeilen: eine Zeile traegt bereits die Klicks eines
  * 28-Tage-Fensters der Search Console, Aufsummieren wuerde denselben Klick
- * mehrfach zaehlen. Dieselbe Regel gilt im PerformanceAggregator (#23) — die
- * beiden Ansichten sollen nicht unterschiedlich rechnen. Der Zeitraum
+ * mehrfach zaehlen. Der Zeitraum
  * 7/30/90 waehlt also aus, **welche** Erhebungszeilen betrachtet werden,
  * nicht ueber welche Tage summiert wird.
  *
@@ -70,12 +69,7 @@ final class PerformanceDashboardService
      */
     private const PER_TENANT_LIMIT = 500;
 
-    /**
-     * Refresh-Kandidaten je Portal.
-     */
-    private const REFRESH_LIMIT = 25;
-
-    public function __construct(private readonly ContentPipelineService $pipeline) {}
+    public function __construct(private readonly ContentTenantContext $context) {}
 
     /**
      * Gueltiger Zeitraum; alles ausserhalb faellt auf die Vorgabe zurueck.
@@ -94,7 +88,7 @@ final class PerformanceDashboardService
     public function snapshot(int $days = self::PERIOD_DEFAULT, array $filters = []): array
     {
         $days = $this->period($days);
-        $tenants = $this->pipeline->tenants($filters);
+        $tenants = $this->tenants($filters);
 
         // Der Schluessel traegt die Portalauswahl: ohne sie saehe ein
         // Redakteur mit zwei Portalen den Cache des Netzwerks.
@@ -168,10 +162,9 @@ final class PerformanceDashboardService
 
         fputcsv($handle, [
             __('Titel'),
-            __('Portal'),
+            'Portal',
             __('Status'),
             __('Region'),
-            __('Cluster'),
             __('Impressionen'),
             __('Klicks'),
             __('CTR'),
@@ -182,11 +175,10 @@ final class PerformanceDashboardService
 
         foreach ($rows as $row) {
             fputcsv($handle, [
-                $row['title'],
-                $row['portal'],
-                $row['status_label'],
-                $row['region'],
-                $row['cluster'] ?? '',
+                $this->csvText($row['title']),
+                $this->csvText($row['portal']),
+                $this->csvText($row['status_label']),
+                $this->csvText($row['region']),
                 $row['impressions'],
                 $row['clicks'],
                 $row['ctr'] === null ? '' : $this->decimal($row['ctr'] * 100, 2),
@@ -204,6 +196,17 @@ final class PerformanceDashboardService
     }
 
     /**
+     * Textzelle ohne Formel-Deutung in Excel/LibreOffice (CSV-Injection):
+     * beginnt sie mit = + - @ (oder Tab/CR), wird ein ' vorangestellt.
+     */
+    private function csvText(mixed $value): string
+    {
+        $value = (string) $value;
+
+        return preg_match('/^[=+\-@\t\r]/', $value) === 1 ? "'{$value}" : $value;
+    }
+
+    /**
      * @param  Collection<int, Tenant>  $tenants
      * @return array<string, mixed>
      */
@@ -216,7 +219,6 @@ final class PerformanceDashboardService
 
         $articles = [];
         $previous = [];
-        $refresh = [];
         $revenueByTenant = [];
         $unreadable = [];
         $asOf = null;
@@ -232,7 +234,6 @@ final class PerformanceDashboardService
 
             $articles = array_merge($articles, $data['articles']);
             $previous = array_merge($previous, $data['previous']);
-            $refresh = array_merge($refresh, $data['refresh']);
 
             $revenueByTenant[(int) $tenant->getKey()] = $data['revenue_usd'];
 
@@ -243,8 +244,6 @@ final class PerformanceDashboardService
 
         $totals = $this->totals($articles);
         $previousTotals = $this->totals($previous);
-
-        usort($refresh, fn (array $a, array $b): int => ($b['marked_at'] ?? '') <=> ($a['marked_at'] ?? ''));
 
         $ranked = $this->sortRows($articles, 'klicks', self::DIRECTION_DESC);
 
@@ -260,11 +259,9 @@ final class PerformanceDashboardService
             'previous' => $previousTotals,
             'change' => $this->change($totals, $previousTotals),
             'articles' => $articles,
-            'clusters' => $this->groupClusters($articles),
             'regions' => $this->groupRegions($articles),
             'scopes' => $this->groupScopes($articles),
             'costs' => $this->costs($tenants, $from, $today, $revenueByTenant),
-            'refresh_candidates' => $refresh,
             'top' => array_slice($ranked, 0, self::RANK_LIMIT),
             'flop' => array_slice(array_reverse($ranked), 0, self::RANK_LIMIT),
         ];
@@ -301,7 +298,6 @@ final class PerformanceDashboardService
                 return [
                     'articles' => $articles,
                     'previous' => $previous,
-                    'refresh' => $this->refreshCandidates($tenant),
                     'revenue_usd' => $revenue,
                     'as_of' => $dates === [] ? null : max($dates),
                 ];
@@ -317,8 +313,9 @@ final class PerformanceDashboardService
     }
 
     /**
-     * Juengste Metrikzeile je Artikel im Fenster, angereichert um Entwurf,
-     * Region und Cluster.
+     * Juengste Metrikzeile je Artikel im Fenster, angereichert um Beitrag
+     * (Titel, Status) und — bei Altartikeln — die Region aus
+     * guide_legacy_articles (#34). Ratgeber-Themen gelten als bundesweit.
      *
      * @return array<int, array<string, mixed>>
      */
@@ -331,67 +328,54 @@ final class PerformanceDashboardService
             ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
             ->groupBy('article_id');
 
-        // Bewusst der Query-Builder: die Zeilen tragen Spalten aus vier
+        // Bewusst der Query-Builder: die Zeilen tragen Spalten aus drei
         // Tabellen und sind kein ArticleMetric mehr.
         $records = $connection->table('article_metrics')
             ->joinSub($latest, 'latest', function ($join): void {
                 $join->on('latest.article_id', '=', 'article_metrics.article_id')
                     ->on('latest.max_date', '=', 'article_metrics.date');
             })
-            ->join('article_drafts', 'article_drafts.id', '=', 'article_metrics.article_draft_id')
-            ->leftJoin('topic_candidates', 'topic_candidates.id', '=', 'article_drafts.topic_candidate_id')
-            ->leftJoin('keyword_clusters', 'keyword_clusters.id', '=', 'topic_candidates.cluster_id')
+            ->join('posts', 'posts.id', '=', 'article_metrics.article_id')
+            ->leftJoin('guide_legacy_articles as legacy', 'legacy.article_id', '=', 'article_metrics.article_id')
             ->orderByDesc('article_metrics.impressions')
             ->limit(self::PER_TENANT_LIMIT)
             ->get([
                 'article_metrics.article_id',
-                'article_metrics.article_draft_id',
                 'article_metrics.date',
                 'article_metrics.impressions',
                 'article_metrics.clicks',
                 'article_metrics.ctr',
                 'article_metrics.position',
                 'article_metrics.adsense_revenue_usd',
-                'article_drafts.title',
-                'article_drafts.status',
-                'article_drafts.withdrawn_at',
-                'article_drafts.region_scope',
-                'article_drafts.region_code',
-                'article_drafts.published_at',
-                'article_drafts.needs_refresh',
-                'topic_candidates.cluster_id',
-                'keyword_clusters.name as cluster_name',
+                'posts.title',
+                'posts.status',
+                'posts.published_at',
+                'legacy.region_scope',
+                'legacy.region_code',
             ]);
 
         $rows = [];
 
         foreach ($records as $record) {
-            $status = DisplayStatus::fromDraft(
-                DraftStatus::tryFrom((string) $record->status) ?? DraftStatus::PUBLISHED,
-                $record->withdrawn_at !== null,
-            );
+            [$status, $statusLabel] = $this->status((string) $record->status);
 
             $rows[] = [
                 'tenant_id' => (int) $tenant->getKey(),
                 'portal' => (string) $tenant->name,
                 'article_id' => (int) $record->article_id,
-                'draft_id' => (int) $record->article_draft_id,
                 'title' => (string) $record->title,
-                'status' => $status->value,
-                'status_label' => $status->label(),
+                'status' => $status,
+                'status_label' => $statusLabel,
                 'scope' => (string) ($record->region_scope ?: 'national'),
-                'region' => $this->pipeline->regionLabel(
+                'region' => $this->regionLabel(
                     $record->region_scope === null ? null : (string) $record->region_scope,
                     $record->region_code === null ? null : (string) $record->region_code,
                 ),
-                'cluster_id' => $record->cluster_id === null ? null : (int) $record->cluster_id,
-                'cluster' => $record->cluster_name === null ? null : (string) $record->cluster_name,
                 'impressions' => (int) $record->impressions,
                 'clicks' => (int) $record->clicks,
                 'ctr' => $record->ctr === null ? null : (float) $record->ctr,
                 'position' => $record->position === null ? null : (float) $record->position,
                 'revenue_usd' => $record->adsense_revenue_usd === null ? null : (float) $record->adsense_revenue_usd,
-                'needs_refresh' => (bool) $record->needs_refresh,
                 'date' => $record->date === null ? null : CarbonImmutable::parse((string) $record->date)->toDateString(),
                 'published_at' => $record->published_at === null
                     ? null
@@ -403,68 +387,18 @@ final class PerformanceDashboardService
     }
 
     /**
-     * Artikel, die der Metrik-Collector zur Auffrischung vorgemerkt hat
-     * (#23/#24), mit dem Grund im Klartext.
+     * Status-Token (resources/css/content/theme.css) und Beschriftung aus
+     * posts.status.
      *
-     * @return array<int, array<string, mixed>>
+     * @return array{0: string, 1: string}
      */
-    private function refreshCandidates(Tenant $tenant): array
+    private function status(string $postStatus): array
     {
-        $drafts = ArticleDraft::query()
-            ->select(['id', 'article_id', 'title', 'needs_refresh_at', 'refresh_reason_json', 'published_at'])
-            ->where('needs_refresh', true)
-            ->orderByDesc('needs_refresh_at')
-            ->limit(self::REFRESH_LIMIT)
-            ->get();
-
-        $candidates = [];
-
-        foreach ($drafts as $draft) {
-            $reason = (array) ($draft->refresh_reason_json ?? []);
-
-            $candidates[] = [
-                'tenant_id' => (int) $tenant->getKey(),
-                'portal' => (string) $tenant->name,
-                'draft_id' => (int) $draft->getKey(),
-                'article_id' => $draft->article_id === null ? null : (int) $draft->article_id,
-                'title' => (string) $draft->title,
-                'marked_at' => $draft->needs_refresh_at === null
-                    ? null
-                    : CarbonImmutable::parse($draft->needs_refresh_at)->toDateTimeString(),
-                'reasons' => $this->reasonLabels((array) ($reason['reasons'] ?? [])),
-                'compared_with' => $reason['compared_with'] ?? null,
-            ];
-        }
-
-        return $candidates;
-    }
-
-    /**
-     * @param  array<int, mixed>  $reasons
-     * @return array<int, string>
-     */
-    private function reasonLabels(array $reasons): array
-    {
-        $labels = [];
-
-        foreach ($reasons as $reason) {
-            $reason = (array) $reason;
-            $type = (string) ($reason['type'] ?? '');
-
-            $labels[] = match ($type) {
-                'position_drop' => __('Position von :from auf :to gefallen', [
-                    'from' => $this->decimal((float) ($reason['from'] ?? 0), 1),
-                    'to' => $this->decimal((float) ($reason['to'] ?? 0), 1),
-                ]),
-                'ctr_drop' => __('CTR von :from % auf :to % gefallen', [
-                    'from' => $this->decimal(((float) ($reason['from'] ?? 0)) * 100, 2),
-                    'to' => $this->decimal(((float) ($reason['to'] ?? 0)) * 100, 2),
-                ]),
-                default => __('Unbekannter Grund'),
-            };
-        }
-
-        return $labels;
+        return match ($postStatus) {
+            Post::STATUS_ARCHIVED => ['archived', __('Zurückgezogen')],
+            Post::STATUS_DRAFT => ['review', __('Entwurf')],
+            default => ['published', __('Veröffentlicht')],
+        };
     }
 
     /**
@@ -529,29 +463,6 @@ final class PerformanceDashboardService
         }
 
         return $change;
-    }
-
-    /**
-     * Klicks je Themencluster, absteigend.
-     *
-     * @param  array<int, array<string, mixed>>  $rows
-     * @return array<int, array<string, mixed>>
-     */
-    private function groupClusters(array $rows): array
-    {
-        $groups = [];
-
-        foreach ($rows as $row) {
-            // Artikel ohne Cluster bekommen eine eigene Gruppe statt zu
-            // verschwinden — sonst summieren sich die Balken nicht auf die
-            // Kachelzahl und niemand versteht die Differenz.
-            $key = $row['cluster_id'] === null ? 'none' : 'c'.$row['cluster_id'];
-            $label = $row['cluster'] ?? __('Ohne Cluster');
-
-            $groups[$key] = $this->addTo($groups[$key] ?? ['label' => $label], $row);
-        }
-
-        return $this->byClicks($groups);
     }
 
     /**
@@ -747,5 +658,46 @@ final class PerformanceDashboardService
     private function decimal(float $value, int $decimals): string
     {
         return number_format($value, $decimals, ',', '');
+    }
+
+    /**
+     * Sichtbare Portale: Zuordnung des Accounts, globale Portalauswahl und
+     * der Portal-/Branchenfilter der Ansicht (bis #23 im ContentPipelineService).
+     *
+     * @param  array<string, mixed>  $filters
+     * @return Collection<int, Tenant>
+     */
+    private function tenants(array $filters): Collection
+    {
+        /** @var Collection<int, Tenant> $tenants */
+        $tenants = collect($this->context->available()->all());
+        $selected = $this->context->selectedId();
+
+        if ($selected !== null) {
+            $tenants = $tenants->filter(fn (Tenant $tenant): bool => (int) $tenant->getKey() === $selected);
+        }
+
+        $portals = array_map('intval', array_filter((array) ($filters['portals'] ?? [])));
+
+        if ($portals !== []) {
+            $tenants = $tenants->filter(fn (Tenant $tenant): bool => in_array((int) $tenant->getKey(), $portals, true));
+        }
+
+        $branches = array_values(array_filter((array) ($filters['branches'] ?? [])));
+
+        if ($branches !== []) {
+            $tenants = $tenants->filter(fn (Tenant $tenant): bool => in_array(BranchResolver::resolve($tenant), $branches, true));
+        }
+
+        return $tenants->values();
+    }
+
+    private function regionLabel(?string $scope, ?string $code): string
+    {
+        if ($scope === 'national' || $code === null || $code === '') {
+            return __('Bundesweit');
+        }
+
+        return (string) config("content.regions.states.{$code}.name", $code);
     }
 }

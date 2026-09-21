@@ -133,14 +133,18 @@ task('provision:fix-aws-ssh', function () {
 })->verbose()
     ->limit(1);
 
-desc('Install supervisor programs for the content pipeline queues');
+desc('Install supervisor programs for the guide queues');
 task('deploy:supervisor-content', function () use ($remoteUser, $deployPath) {
     // Nur fuer Server, die die Queues ohne Horizon fahren. Laeuft Horizon,
     // stehen dieselben Worker-Zahlen in config/horizon.php und dieser Task
     // wird nicht aufgerufen — sonst zieht jede Queue zwei Konsumenten.
     $deployPathAbsolute = str_replace('~', '/home/'.$remoteUser, $deployPath);
 
-    foreach (['content-sources', 'content-generate', 'content-publish'] as $program) {
+    // guide-* seit #13 (Ratgebersystem: guide-research, guide-write, guide-publish + guide-dispatch,
+    // dazu content-metrics). Die Programme der alten Pipeline sind mit #23 entfallen und werden entfernt.
+    run('rm -f /etc/supervisor/conf.d/content-sources.conf /etc/supervisor/conf.d/content-generate.conf /etc/supervisor/conf.d/content-publish.conf');
+
+    foreach (['guide-research', 'guide-write', 'guide-publish'] as $program) {
         $config = file_get_contents(__DIR__.'/deploy/supervisor/'.$program.'.conf');
         $config = str_replace(['{{deploy_path}}', '{{user}}'], [$deployPathAbsolute, $remoteUser], $config);
 
@@ -170,7 +174,7 @@ after('provision:verify', 'provision:supervisor');
 after('provision:deployer', 'provision:fix-aws-ssh');
 
 after('deploy:success', 'artisan:horizon:terminate'); // to restart horizon after deploy
-after('deploy:success', 'artisan:queue:restart'); // Worker der Content-Queues auf den neuen Release ziehen (#22)
+after('deploy:success', 'artisan:queue:restart'); // Worker der Content- und guide-*-Queues auf den neuen Release ziehen (#22, #13)
 after('deploy:success', 'crontab:sync');
 after('deploy:success', 'deploy:sitemap');
 after('deploy:success', 'deploy:export-configs');

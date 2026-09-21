@@ -24,7 +24,6 @@ class ArticleMetric extends Model
 
     protected $fillable = [
         'article_id',
-        'article_draft_id',
         'date',
         'window_days',
         'impressions',
@@ -58,11 +57,6 @@ class ArticleMetric extends Model
     public function article(): BelongsTo
     {
         return $this->belongsTo(Post::class, 'article_id');
-    }
-
-    public function draft(): BelongsTo
-    {
-        return $this->belongsTo(ArticleDraft::class, 'article_draft_id');
     }
 
     public function scopeBetween(Builder $query, \DateTimeInterface $from, \DateTimeInterface $to): Builder

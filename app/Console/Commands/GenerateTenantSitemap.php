@@ -2,12 +2,14 @@
 
 namespace App\Console\Commands;
 
+use App\Guide\Seo\GuideSitemapGenerator;
 use App\Models\Portal\Category;
 use App\Models\Portal\Company;
 use App\Models\Portal\FAQ;
 use App\Models\Portal\Job;
 use App\Models\Portal\Post;
 use App\Models\Tenant;
+use App\Services\RobotsTxtBuilder;
 use App\Services\Seo\SitemapGenerator;
 use Illuminate\Console\Command;
 use Spatie\Sitemap\Sitemap;
@@ -111,27 +113,13 @@ class GenerateTenantSitemap extends Command
                     );
                 });
 
-            // Blog posts
-            $blogPostCount = Post::published()->count();
-            if ($blogPostCount > 0) {
-                $miscSitemap->add(Url::create("{$baseUrl}/ratgeber")->setPriority(0.8)->setChangeFrequency(Url::CHANGE_FREQUENCY_DAILY));
-                Post::published()
-                    ->select(['slug', 'published_at', 'updated_at'])
-                    ->orderByDesc('published_at')
-                    ->chunk(200, function ($posts) use ($miscSitemap, $baseUrl) {
-                        foreach ($posts as $post) {
-                            $miscSitemap->add(
-                                Url::create("{$baseUrl}/ratgeber/{$post->slug}")
-                                    ->setPriority(0.7)
-                                    ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
-                                    ->setLastModificationDate($post->updated_at ?? $post->published_at)
-                            );
-                        }
-                    });
-            }
-
             $miscSitemap->writeToFile("{$sitemapDir}/sitemap-misc.xml");
             $sitemapFiles[] = 'sitemap-misc.xml';
+
+            // Ratgeber: eigene Sitemap, dynamisch ausgeliefert von der Route guide.sitemap (#18)
+            if (app(GuideSitemapGenerator::class)->hasEntries()) {
+                $sitemapFiles[] = GuideSitemapGenerator::FILENAME;
+            }
 
             // Sitemap 2+: Companies split into chunks of MAX_URLS_PER_SITEMAP
             $companyCount = Company::active()->count();
@@ -184,9 +172,8 @@ class GenerateTenantSitemap extends Command
             }
             $sitemapIndexFile->writeToFile("{$sitemapDir}/sitemap.xml");
 
-            // Write robots.txt
-            $robotsContent = "User-agent: *\nAllow: /\nDisallow: /firmenprofil/\nDisallow: /verwaltung/\nDisallow: /login\nDisallow: /register\n\nSitemap: {$baseUrl}/sitemap.xml\n";
-            file_put_contents("{$sitemapDir}/robots.txt", $robotsContent);
+            // robots.txt inkl. KI-Crawler-Regeln, gleicher Inhalt wie im GenerateTenantSitemapJob (#18)
+            file_put_contents("{$sitemapDir}/robots.txt", app(RobotsTxtBuilder::class)->build($baseUrl));
         });
 
         $companyCount = $tenant->run(fn () => Company::active()->count());

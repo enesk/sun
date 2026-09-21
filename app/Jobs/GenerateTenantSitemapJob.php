@@ -2,8 +2,8 @@
 
 namespace App\Jobs;
 
-use App\Content\Services\LlmsTxtBuilder;
-use App\Content\Services\RatgeberSitemapGenerator;
+use App\Guide\Seo\GuideSitemapGenerator;
+use App\Guide\Seo\LlmsTxtBuilder;
 use App\Models\Portal\Category;
 use App\Models\Portal\Company;
 use App\Models\Portal\FAQ;
@@ -116,10 +116,9 @@ class GenerateTenantSitemapJob implements ShouldQueue
             $miscSitemap->writeToFile("{$sitemapDir}/sitemap-misc.xml");
             $sitemapFiles[] = 'sitemap-misc.xml';
 
-            // Ratgeber: eigene Sitemap mit lastmod = dateModified der Artikelseite (#18)
-            $ratgeberFile = app(RatgeberSitemapGenerator::class)->generate($baseUrl, $sitemapDir);
-            if ($ratgeberFile !== null) {
-                $sitemapFiles[] = $ratgeberFile;
+            // Ratgeber: eigene Sitemap, dynamisch ausgeliefert von der Route guide.sitemap (#18)
+            if (app(GuideSitemapGenerator::class)->hasEntries()) {
+                $sitemapFiles[] = GuideSitemapGenerator::FILENAME;
             }
 
             $this->updateProgress($cacheKey, 15, 'Statische Seiten, Kategorien, Jobs & Ratgeber fertig');

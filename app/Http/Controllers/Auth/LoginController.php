@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\Trait\RedirectAwareTrait;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\LoginService;
+use App\Support\IntendedUrl;
 use App\Validator\LoginValidator;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
@@ -37,7 +38,7 @@ class LoginController extends Controller
     public function showLoginForm()
     {
         if (url()->previous() != route('register') && Redirect::getIntendedUrl() === null) {
-            Redirect::setIntendedUrl(url()->previous()); // make sure we redirect back to the page we came from
+            IntendedUrl::rememberPrevious(); // make sure we redirect back to the page we came from (own hosts only)
         }
 
         return view('auth.login', [

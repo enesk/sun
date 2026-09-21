@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Content\Providers;
 
-use App\Content\Llm\BudgetGuard;
-use App\Content\Llm\LlmContext;
-use App\Content\Models\Central\LlmUsageLog;
 use App\Content\Providers\Support\GoogleServiceAccountToken;
+use App\Guide\Llm\ContentBudgetGuard;
+use App\Guide\Llm\LlmContext;
+use App\Guide\Models\Central\LlmUsageLog;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use Illuminate\Http\Client\PendingRequest;
@@ -41,7 +41,7 @@ final class AdSenseClient
     public const OPERATION = 'page_report';
 
     public function __construct(
-        private readonly BudgetGuard $budget,
+        private readonly ContentBudgetGuard $budget,
     ) {}
 
     /**

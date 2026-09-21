@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Auth\Trait\RedirectAwareTrait;
 use App\Models\OauthLoginProvider;
 use App\Models\User;
+use App\Support\IntendedUrl;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Redirect;
 use Laravel\Socialite\Facades\Socialite;
 
 class OAuthController extends RegisterController
@@ -27,7 +27,7 @@ class OAuthController extends RegisterController
             return redirect()->route('home');
         }
 
-        Redirect::setIntendedUrl(url()->previous());
+        IntendedUrl::rememberPrevious();
 
         return Socialite::driver($provider)->redirect();
     }

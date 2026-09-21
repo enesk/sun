@@ -74,18 +74,13 @@ class TenantContentSettingSeeder extends Seeder
                 // Spalte ist false, freigeschaltet wird einzeln beim
                 // Rollout (#26, `content:rollout`).
                 TenantContentSetting::create([
-                    'articles_per_day' => (int) config('content.targets.articles_per_tenant_per_day', 2),
                     'auto_publish_threshold' => $isYmyl ? 90 : 80,
                     'is_ymyl' => $isYmyl,
                     'tone' => 'sachlich',
-                    'allowed_region_scopes_json' => ['national', 'state', 'city'],
                     'preferred_states_json' => [],
-                    'publish_window_start' => config('content.pipeline.schedule.publish_window.0', '09:00').':00',
-                    'publish_window_end' => config('content.pipeline.schedule.publish_window.1', '17:00').':00',
                     'author_name' => $tenant->name.' Redaktion',
                     'author_bio' => null,
                     'organization_same_as_json' => [],
-                    'category_mapping_json' => [],
                     'gsc_property' => $this->gscProperty($tenant),
                 ]);
 

@@ -7,7 +7,7 @@ namespace App\Console\Commands;
 use App\Content\Providers\AdSenseClient;
 use App\Content\Providers\SearchConsoleClient;
 use App\Content\Services\SearchConsoleProperty;
-use App\Content\Services\TenantRollout;
+use App\Guide\Services\TenantRollout;
 use App\Models\Tenant;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
@@ -95,10 +95,9 @@ class ContentMetricsPreflight extends Command
     }
 
     /**
-     * Die drei Schalter, ohne die der Abnahmelauf aussteigt statt zu
-     * arbeiten. Der Gap-Connector ist ohne seinen Schalter gar nicht
-     * registriert; content:sources:run meldet dann nur
-     * "Unbekannter Quell-Connector 'gsc_gap'".
+     * Die Schalter, ohne die der Abnahmelauf aussteigt statt zu arbeiten.
+     * Die Search-Console-Rohzeilen holt seit #23 der Collector selbst, ein
+     * eigener Connector-Schalter entfaellt.
      */
     private function switches(): void
     {
@@ -106,14 +105,7 @@ class ContentMetricsPreflight extends Command
             'Pipeline eingeschaltet',
             (bool) config('content.enabled'),
             'content.enabled ist true',
-            'CONTENT_PIPELINE_ENABLED=true setzen — sonst steigen alle drei Befehle wirkungslos aus',
-        );
-
-        $this->check(
-            'Gap-Connector registriert',
-            (bool) config('content.sources.gsc_gap.enabled'),
-            'content.sources.gsc_gap.enabled ist true',
-            "CONTENT_SOURCES_GSC_ENABLED=true setzen — sonst meldet content:sources:run \"Unbekannter Quell-Connector 'gsc_gap'\"",
+            'CONTENT_PIPELINE_ENABLED=true setzen — sonst steigt content:metrics:collect wirkungslos aus',
         );
 
         $this->check(
@@ -254,7 +246,7 @@ class ContentMetricsPreflight extends Command
     }
 
     /**
-     * Stichprobe ueber dasselbe Fenster, das der Gap-Connector liest. Eine
+     * Stichprobe ueber dasselbe Fenster, das der Metrik-Collector liest. Eine
      * frisch verifizierte Property antwortet mit dataState 'final' und drei
      * Tagen Verzoegerung erst nach einigen Tagen — leer ist deshalb eine
      * Warnung, kein Fehler.

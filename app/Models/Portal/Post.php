@@ -34,6 +34,8 @@ class Post extends Model implements HasMedia
         'body',
         'featured_image',
         'category_id',
+        'guide_topic_id',
+        'guide_category_id',
         'author_id',
         'status',
         'published_at',

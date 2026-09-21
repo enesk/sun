@@ -150,6 +150,7 @@ class PublicCityController extends Controller
             'metaDescription',
             'cityHeading',
             'localHub',
+            'category', // gewaehlter Kategorie-Filter, fuer <x-guide.related> (#18)
         ));
     }
 }

@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Content\Jobs;
 
-use App\Content\Models\ArticleDraft;
 use App\Content\Models\ArticleMetric;
 use App\Content\Models\ArticleMetricRaw;
 use App\Content\Providers\AdSenseClient;
+use App\Content\Services\SearchConsoleRawFetcher;
+use App\Models\Portal\Post;
 use App\Models\Tenant;
 use Carbon\CarbonImmutable;
 use Illuminate\Bus\Queueable;
@@ -21,9 +22,9 @@ use Illuminate\Support\Facades\Log;
 /**
  * Tagesmetriken je veroeffentlichtem Ratgeber (#23).
  *
- * Grundlage sind die Search-Console-Rohzeilen, die der Gap-Connector (#9)
- * ohnehin taeglich in article_metrics_raw ablegt — ein zweiter Abruf derselben
- * Zahlen waere Verschwendung und braeuchte ein zweites Kontingent. Der Job
+ * Grundlage sind die Search-Console-Rohzeilen in article_metrics_raw. Bis
+ * zum Rueckbau der Themenfindung (#23) legte sie der Gap-Connector ab, seitdem
+ * holt der Job sie zu Beginn selbst (SearchConsoleRawFetcher). Der Job
  * verdichtet das juengste Fenster je Ratgeberseite zu genau einer Zeile in
  * article_metrics; `date` ist das Fensterende, `window_days` die Fensterlaenge.
  *
@@ -32,17 +33,17 @@ use Illuminate\Support\Facades\Log;
  * Null heisst "nicht gemessen" und nicht "null Euro" — deshalb faellt der Job
  * bei fehlender AdSense-Anbindung auch nicht aus, sondern schreibt weiter.
  *
- * Drei weitere Dinge passieren hier:
+ * Zwei weitere Dinge passieren hier:
  *
  *  - Snapshot-Flags: die erste Zeile eines Artikels, die 7, 30 bzw. 90 Tage
  *    nach der Veroeffentlichung liegt, wird als d7/d30/d90 markiert. Damit hat
  *    die Performance-Ansicht (#25) feste Vergleichspunkte, ohne jedes Mal ein
  *    Datum ausrechnen zu muessen.
- *  - Refresh-Erkennung: verliert ein Artikel ueber 14 Tage mindestens fuenf
- *    Plaetze oder bricht seine CTR um 40 Prozent ein, wird der Entwurf mit
- *    needs_refresh markiert. Das ist die Eingangsgroesse des Refresh-Loops
- *    (#24); dieser Job aktualisiert selbst nichts.
  *  - Aufraeumen: Zeilen jenseits der Aufbewahrungsfrist werden geloescht.
+ *
+ * Die Zeilen haengen seit #34 nur noch an posts.id. Die Refresh-Markierung
+ * der alten Pipeline (needs_refresh am Entwurf) ist mit deren Tabellen
+ * entfallen; Aktualisierungen plant das Ratgebersystem selbst.
  *
  * Der Job ist wiederaufsetzbar: er schreibt je Artikel und Datum per upsert,
  * ein zweiter Lauf am selben Tag aendert nichts.
@@ -71,7 +72,7 @@ class CollectArticleMetricsJob implements ShouldBeUnique, ShouldQueue
         return 3600;
     }
 
-    public function handle(AdSenseClient $adsense): void
+    public function handle(AdSenseClient $adsense, SearchConsoleRawFetcher $rawFetcher): void
     {
         $tenant = Tenant::query()->find($this->tenantId);
 
@@ -79,7 +80,9 @@ class CollectArticleMetricsJob implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        $tenant->run(function () use ($tenant, $adsense): void {
+        $tenant->run(function () use ($tenant, $adsense, $rawFetcher): void {
+            $rawFetcher->fetch($this->tenantId);
+
             $window = ArticleMetricRaw::query()->articlesOnly()->max('window_end');
 
             if ($window === null) {
@@ -100,8 +103,8 @@ class CollectArticleMetricsJob implements ShouldBeUnique, ShouldQueue
             $revenue = $this->revenue($tenant, $adsense, $windowEnd);
             $written = 0;
 
-            foreach ($this->draftsByPath(array_keys($pages)) as $path => $draft) {
-                $this->store($draft, $windowEnd, $pages[$path], $revenue[$path] ?? null);
+            foreach ($this->postsByPath(array_keys($pages)) as $path => $post) {
+                $this->store($post, $windowEnd, $pages[$path], $revenue[$path] ?? null);
                 $written++;
             }
 
@@ -119,8 +122,7 @@ class CollectArticleMetricsJob implements ShouldBeUnique, ShouldQueue
     /**
      * Rohzeilen des Fensters je Ratgeberseite verdichten.
      *
-     * Die Position wird ueber die Impressionen gewichtet — genau wie im
-     * Gap-Connector, sonst kippt eine Suchanfrage mit drei Impressionen auf
+     * Die Position wird ueber die Impressionen gewichtet, sonst kippt eine Suchanfrage mit drei Impressionen auf
      * Position 90 den Schnitt.
      *
      * @return array<string, array{impressions: int, clicks: int, ctr: float, position: ?float, window_days: int}>
@@ -206,16 +208,17 @@ class CollectArticleMetricsJob implements ShouldBeUnique, ShouldQueue
     }
 
     /**
-     * Entwuerfe zu den gefundenen Pfaden. Der Pfad eines Ratgebers ist
-     * '/ratgeber/<slug>'; Seiten ohne veroeffentlichten Entwurf (alte
-     * Blogartikel unter demselben Praefix) fallen heraus.
+     * Veroeffentlichte Beitraege zu den gefundenen Pfaden. Der Pfad eines
+     * Ratgebers ist '/ratgeber/<slug>'; seit #34 zaehlen alle Beitraege unter
+     * dem Praefix — Ratgeber-Themen wie Altartikel —, nicht nur die aus der
+     * alten Pipeline.
      *
      * @param  array<int, string>  $paths
-     * @return array<string, ArticleDraft>
+     * @return array<string, Post>
      */
-    private function draftsByPath(array $paths): array
+    private function postsByPath(array $paths): array
     {
-        $prefix = rtrim((string) config('content.sources.gsc_gap.article_path_prefix', '/ratgeber/'), '/').'/';
+        $prefix = rtrim((string) config('content.metrics.article_path_prefix', '/ratgeber/'), '/').'/';
         $slugs = [];
 
         foreach ($paths as $path) {
@@ -234,23 +237,18 @@ class CollectArticleMetricsJob implements ShouldBeUnique, ShouldQueue
             return [];
         }
 
-        // Nach einer Aktualisierung (#24) tragen mehrere Fassungen denselben
-        // Slug. Aufsteigend sortiert gewinnt beim Zuweisen die juengste — die
-        // Fassung, die tatsaechlich live steht.
-        $drafts = ArticleDraft::query()
-            ->whereNotNull('article_id')
-            ->whereNotNull('published_at')
+        $posts = Post::query()
+            ->published()
             ->whereIn('slug', array_keys($slugs))
-            ->orderBy('id')
-            ->get();
+            ->get(['id', 'slug', 'published_at']);
 
         $byPath = [];
 
-        foreach ($drafts as $draft) {
-            $path = $slugs[(string) $draft->slug] ?? null;
+        foreach ($posts as $post) {
+            $path = $slugs[(string) $post->slug] ?? null;
 
             if ($path !== null) {
-                $byPath[$path] = $draft;
+                $byPath[$path] = $post;
             }
         }
 
@@ -258,21 +256,19 @@ class CollectArticleMetricsJob implements ShouldBeUnique, ShouldQueue
     }
 
     /**
-     * Eine Zeile schreiben und daraus Snapshot-Flags und Refresh-Bedarf
-     * ableiten.
+     * Eine Zeile schreiben und daraus die Snapshot-Flags ableiten.
      *
      * @param  array{impressions: int, clicks: int, ctr: float, position: ?float, window_days: int}  $metrics
      * @param  array{pageviews: int, earnings: float, page: string}|null  $revenue
      */
-    private function store(ArticleDraft $draft, CarbonImmutable $windowEnd, array $metrics, ?array $revenue): void
+    private function store(Post $post, CarbonImmutable $windowEnd, array $metrics, ?array $revenue): void
     {
         $metric = ArticleMetric::query()->updateOrCreate(
             [
-                'article_id' => (int) $draft->article_id,
+                'article_id' => (int) $post->getKey(),
                 'date' => $windowEnd->toDateString(),
             ],
             [
-                'article_draft_id' => (int) $draft->getKey(),
                 'window_days' => $metrics['window_days'],
                 'impressions' => $metrics['impressions'],
                 'clicks' => $metrics['clicks'],
@@ -283,17 +279,16 @@ class CollectArticleMetricsJob implements ShouldBeUnique, ShouldQueue
             ],
         );
 
-        $this->markSnapshots($draft, $metric, $windowEnd);
-        $this->checkRefresh($draft, $metric, $windowEnd);
+        $this->markSnapshots($post, $metric, $windowEnd);
     }
 
     /**
      * Erste Zeile ab 7, 30 und 90 Tagen nach der Veroeffentlichung markieren.
      * Ist der Snapshot fuer den Artikel schon gesetzt, bleibt es dabei.
      */
-    private function markSnapshots(ArticleDraft $draft, ArticleMetric $metric, CarbonImmutable $windowEnd): void
+    private function markSnapshots(Post $post, ArticleMetric $metric, CarbonImmutable $windowEnd): void
     {
-        $publishedAt = $draft->published_at;
+        $publishedAt = $post->published_at;
 
         if ($publishedAt === null) {
             return;
@@ -310,7 +305,7 @@ class CollectArticleMetricsJob implements ShouldBeUnique, ShouldQueue
             }
 
             $exists = ArticleMetric::query()
-                ->forArticle((int) $draft->article_id)
+                ->forArticle((int) $post->getKey())
                 ->where($column, true)
                 ->where('id', '!=', $metric->getKey())
                 ->exists();
@@ -323,89 +318,6 @@ class CollectArticleMetricsJob implements ShouldBeUnique, ShouldQueue
         if ($flags !== []) {
             $metric->forceFill($flags)->save();
         }
-    }
-
-    /**
-     * Abrutschende Artikel markieren (#24).
-     *
-     * Verglichen wird mit der Zeile, die dem Stichtag vor 14 Tagen am
-     * naechsten liegt. Zwei Ausloeser, jeder fuer sich ausreichend: ein
-     * Positionsverlust von mindestens fuenf Plaetzen oder ein CTR-Einbruch um
-     * mindestens 40 Prozent. Unterhalb einer Mindestzahl an Impressionen wird
-     * nicht geprueft — dort ist jede Bewegung Zufall.
-     */
-    private function checkRefresh(ArticleDraft $draft, ArticleMetric $metric, CarbonImmutable $windowEnd): void
-    {
-        $config = (array) config('content.metrics.refresh', []);
-        $compareDays = max(1, (int) ($config['compare_days'] ?? 14));
-        $minImpressions = max(0, (int) ($config['min_impressions'] ?? 100));
-
-        if ((int) $metric->impressions < $minImpressions) {
-            return;
-        }
-
-        $before = ArticleMetric::query()
-            ->forArticle((int) $draft->article_id)
-            ->where('date', '<=', $windowEnd->subDays($compareDays)->toDateString())
-            ->orderByDesc('date')
-            ->first();
-
-        if ($before === null || (int) $before->impressions < $minImpressions) {
-            return;
-        }
-
-        $reasons = [];
-
-        $positionDrop = $config['position_drop'] ?? 5.0;
-
-        if ($before->position !== null && $metric->position !== null
-            && ((float) $metric->position - (float) $before->position) >= (float) $positionDrop) {
-            $reasons[] = [
-                'type' => 'position_drop',
-                'from' => round((float) $before->position, 2),
-                'to' => round((float) $metric->position, 2),
-            ];
-        }
-
-        $ctrDrop = (float) ($config['ctr_drop_ratio'] ?? 0.4);
-
-        if ((float) $before->ctr > 0.0
-            && (1.0 - ((float) $metric->ctr / (float) $before->ctr)) >= $ctrDrop) {
-            $reasons[] = [
-                'type' => 'ctr_drop',
-                'from' => round((float) $before->ctr, 4),
-                'to' => round((float) $metric->ctr, 4),
-            ];
-        }
-
-        if ($reasons === []) {
-            return;
-        }
-
-        // Die Marken des letzten Refresh-Laufs bleiben stehen (#93): auf
-        // `last_attempt_at` haengt die Sperrfrist des RefreshSelector. Wuerde
-        // der Eintrag hier ueberschrieben, liefe ein Artikel, an dem ein Lauf
-        // nichts zu aendern fand, am naechsten Tag erneut an.
-        $previous = array_intersect_key(
-            (array) ($draft->refresh_reason_json ?? []),
-            array_flip(['last_attempt_at', 'last_attempt_result', 'refreshed_by_draft_id']),
-        );
-
-        $draft->forceFill([
-            'needs_refresh' => true,
-            'needs_refresh_at' => now(),
-            'refresh_reason_json' => $previous + [
-                'compared_with' => CarbonImmutable::parse($before->date)->toDateString(),
-                'window_end' => $windowEnd->toDateString(),
-                'reasons' => $reasons,
-            ],
-        ])->save();
-
-        Log::info('Metrik-Collector: Artikel zur Auffrischung vorgemerkt.', [
-            'tenant_id' => $this->tenantId,
-            'draft_id' => (int) $draft->getKey(),
-            'reasons' => array_column($reasons, 'type'),
-        ]);
     }
 
     private function prune(): void
