@@ -986,3 +986,39 @@ Auslieferung nach dem Deploy geprüft: `sanitaerfinden.com`, `firmenfreund.de`,
 den Commit `1542c19` (nur Dokumentation) und weitere nicht committete Änderungen.
 Beides ist **nicht** auf dem Server. Der nächste Deploy ist wieder ein
 `git pull --ff-only origin main` mit denselben Schritten wie oben.
+
+## 12. Git-Zugriff des App-Users (21.09.2026)
+
+Bis zum 21.09.2026 hatte nur **root** einen Schlüssel für GitHub; `git pull`
+als `sanitaerfinden` endete mit `Permission denied (publickey)`. Seitdem hat
+`sanitaerfinden` einen eigenen **Deploy-Key**:
+
+| Was | Stand |
+| --- | --- |
+| Schlüssel | `/home/sanitaerfinden/.ssh/github_sun` (ed25519, ohne Passphrase) |
+| GitHub | Repo `enesk/sun` → Settings → Deploy keys, Titel `sun-server sanitaerfinden`, **nur Lesen** |
+| SSH-Konfiguration | `~/.ssh/config`: `Host github.com`, `IdentityFile ~/.ssh/github_sun`, `IdentitiesOnly yes`; `github.com` in `~/.ssh/known_hosts` |
+| Probe | als `sanitaerfinden`: `git ls-remote origin refs/heads/main` liefert den aktuellen Stand |
+
+**Regel:** Alle git-Befehle im Installationsverzeichnis laufen als
+`sanitaerfinden`, nie als root. Ein Pull oder Fetch als root legt root-eigene
+Verzeichnisse unter `.git/objects/` an; der nächste Pull des App-Users scheitert
+dann mit `insufficient permission for adding an object`. Das `chown -R` nach dem
+Pull entfällt. `scripts/premium-rollout.sh` ist entsprechend umgestellt.
+
+Deploy ab jetzt:
+
+```bash
+su -s /bin/bash sanitaerfinden
+cd /home/sanitaerfinden/htdocs/sanitaerfinden.dev
+git pull --ff-only
+# je nach Commit: composer install / npm run build / migrate / config:cache / view:clear
+```
+
+Befund am 21.09.2026 nach der Umstellung: Stand `a6c75c9`, aber noch 101
+root-eigene Einträge unter `.git/objects/` aus früheren root-Pulls. Einmalig
+als root zu bereinigen:
+
+```bash
+chown -R sanitaerfinden:sanitaerfinden /home/sanitaerfinden/htdocs/sanitaerfinden.dev/.git
+```

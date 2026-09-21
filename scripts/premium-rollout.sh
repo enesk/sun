@@ -33,8 +33,10 @@ MODUS="${1:-}"
 
 remote() { ssh -o BatchMode=yes "$SSH_HOST" "$@"; }
 
-# Artisan laeuft nie als root: ein von root geschriebener Config-Cache sperrt
-# PHP-FPM aus.
+# Artisan und git laufen nie als root: ein von root geschriebener Config-Cache
+# sperrt PHP-FPM aus, und root-eigene Objekte in .git lassen den naechsten Pull
+# des App-Users scheitern. Seit 21.09.2026 hat der App-User einen eigenen
+# Deploy-Key (nur Lesen) fuer github.com/enesk/sun, root wird dafuer nicht mehr gebraucht.
 als_app() {
   remote "su -s /bin/bash ${APP_USER} -c 'HOME=/home/${APP_USER}; cd ${APP_DIR} && $1'"
 }
@@ -48,7 +50,7 @@ freigabe() {
 
 pruefen() {
   echo "== Stand =="
-  remote "cd ${APP_DIR} && git fetch -q origin && git rev-parse --short HEAD && git log --oneline -1 origin/main && git status --porcelain --untracked-files=no"
+  als_app "git fetch -q origin && git rev-parse --short HEAD && git log --oneline -1 origin/main && git status --porcelain --untracked-files=no"
   echo
   echo "== .env gegen bootstrap/cache/config.php (nur Schluesselnamen) =="
   # Baut einen frischen Cache nach /tmp und vergleicht ihn mit dem aktiven.
@@ -123,7 +125,7 @@ ausrollen() {
   echo "Wartungsmodus aktiv, Vorbeizugang: https://<portal>/${secret}"
 
   # Migrationen direkt nach dem Pull: bis dahin kommen 500er, auch mit Secret.
-  remote "cd ${APP_DIR} && git pull --ff-only && git rev-parse --short HEAD | grep -q '^${ZIEL}' && chown -R ${APP_USER}:${APP_USER} ."
+  als_app "git pull --ff-only && git rev-parse --short HEAD | grep -q '^${ZIEL}'"
   als_app "${PHP} artisan migrate --force && ${PHP} artisan tenants:migrate --force"
   # PREMIUM_ENTITLEMENT_CACHE_STORE bleibt bewusst ohne Zeile (Default-Store).
   remote "cd ${APP_DIR} && cp -p .env .env.bak-rollout-\$(date +%Y%m%d-%H%M%S) && grep -v '^TENANT_MULTIPLE_SUBSCRIPTIONS_ENABLED=' .env > .env.neu && echo TENANT_MULTIPLE_SUBSCRIPTIONS_ENABLED=true >> .env.neu && cat .env.neu > .env && rm -f .env.neu"
@@ -152,7 +154,7 @@ nachkontrolle() {
 # Grace Period und Plan stimmen. Nach dem Rollout erneut aufrufen.
 billing() {
   echo "== Stand =="
-  remote "cd ${APP_DIR} && git rev-parse --short HEAD"
+  als_app "git rev-parse --short HEAD"
   echo
   echo "== Central-Migration 000005 =="
   als_app "${PHP} artisan migrate:status | grep company_subscriptions" || echo "FEHLT: 2026_09_17_000005 (Rollout #29 noch nicht erfolgt)"
@@ -211,7 +213,7 @@ rollback() {
   freigabe "$ALT"
   als_app "${PHP} artisan down"
   # Neue Tabellen und Spalten bleiben stehen, der alte Code ignoriert sie.
-  remote "cd ${APP_DIR} && git reset --hard ${ALT} && chown -R ${APP_USER}:${APP_USER} ."
+  als_app "git reset --hard ${ALT}"
   als_app "composer install --no-dev --optimize-autoloader --no-interaction && npm ci && timeout 900 npm run build"
   als_app "${PHP} artisan config:cache && ${PHP} artisan route:cache && ${PHP} artisan view:clear"
   remote "systemctl reload php8.5-fpm && supervisorctl restart sanitaerfinden-horizon"
