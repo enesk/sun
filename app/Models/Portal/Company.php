@@ -4,9 +4,11 @@ namespace App\Models\Portal;
 
 use App\Enums\PlanTier;
 use App\Models\User;
+use App\Observers\CompanyActivationObserver;
 use App\Services\CompanyUrlService;
 use App\Services\Seo\StructuredDataService;
 use Database\Factories\Portal\CompanyFactory;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,6 +21,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Stancl\Tenancy\Database\Concerns\TenantConnection;
 
+#[ObservedBy(CompanyActivationObserver::class)]
 class Company extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia, TenantConnection;
@@ -62,6 +65,7 @@ class Company extends Model implements HasMedia
         'is_premium' => 'boolean',
         'is_verified' => 'boolean',
         'is_active' => 'boolean',
+        'activation_notified_at' => 'datetime',
         'google_added_at' => 'datetime',
         'plan_tier' => PlanTier::class,
         'plan_started_at' => 'datetime',

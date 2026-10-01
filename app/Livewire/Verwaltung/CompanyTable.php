@@ -137,8 +137,11 @@ class CompanyTable extends Component
             $query->where('user_id', auth()->id());
         }
 
-        $count = $query->count();
-        $query->update(['is_active' => $active]);
+        // Bewusst Model fuer Model: ein Massen-Update am Query Builder loest
+        // keine Model-Events aus, die Freischalt-Mail wuerde ausbleiben.
+        $companies = $query->get();
+        $count = $companies->count();
+        $companies->each(fn (Company $company) => $company->update(['is_active' => $active]));
 
         $this->selected = [];
         $this->selectAll = false;
