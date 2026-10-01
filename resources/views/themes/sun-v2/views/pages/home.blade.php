@@ -122,7 +122,7 @@
 @endif
 
 <!-- ========== RATGEBER ========== -->
-@if($latestPosts->isNotEmpty())
+@if(config('themes.sun-v2.nav.guide', true) && $latestPosts->isNotEmpty())
 <section class="section pt-0">
   <div class="container-portal">
     <x-sun.section-heading :title="__('portal.home.guide.heading')" :href="route('guide.index')" :link="__('portal.home.guide.all')" />
