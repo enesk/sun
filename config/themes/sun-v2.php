@@ -18,6 +18,14 @@ return [
 
     'brand_icon' => 'bolt',
 
+    // Navigationspunkte je Portal (#44). Portale ohne Ratgeber oder ohne
+    // Stellenanzeigen blenden den Punkt aus; die Routen bleiben erreichbar,
+    // nur Kopf- und Fusszeile verlinken sie dann nicht mehr.
+    'nav' => [
+        'guide' => true,
+        'jobs' => true,
+    ],
+
     // Voreinstellung fuer --brand, solange das Portal keine eigene
     // Primaerfarbe (branding.primary_color) gepflegt hat.
     'default_brand_color' => '#1d4ed8',
@@ -156,6 +164,17 @@ return [
             'Stellenanzeigen verwalten',
         ],
         'support_email' => 'info@widimedia.com',
+    ],
+
+    // Stellenanzeigen /jobs: Schnellfilter unter der Suche. Liste, damit ein
+    // Branchenpaket sie vollstaendig ersetzt statt sie zu ergaenzen (#44).
+    'jobs' => [
+        'quick_filters' => [
+            ['query' => 'Elektroniker', 'label' => 'Elektroniker EuG'],
+            ['query' => 'Ausbildung', 'label' => 'Ausbildung'],
+            ['query' => 'Meister', 'label' => 'Meister'],
+            ['query' => 'Quereinstieg', 'label' => 'Quereinstieg'],
+        ],
     ],
 
     'footer' => [

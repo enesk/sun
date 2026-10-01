@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Themes\SunV2\BranchConfig;
 use App\Themes\TenantStyleInjector;
 use App\Themes\ThemeManager;
 use App\Themes\ThemeViewFinder;
@@ -61,6 +62,11 @@ class ResolveTheme
 
         // 4. Mark active theme on ThemeManager
         $this->themeManager->activate($themeSlug);
+
+        // 4b. Branchenpaket des Portals ueber die Theme-Vorgabe legen (#44)
+        if ($themeSlug === 'sun-v2') {
+            BranchConfig::apply($tenant);
+        }
 
         // 5. Get theme options (merged with defaults from theme.json)
         $themeOptions = $this->themeManager->getTenantThemeOptions($tenant);

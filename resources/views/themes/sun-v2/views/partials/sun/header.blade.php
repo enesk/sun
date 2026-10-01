@@ -2,11 +2,18 @@
     $portalName = ($currentTenant?->terms ?? \App\Support\Tenancy\TenantTerms::defaults())['portal'];
     $ownedCompany = auth()->check() ? auth()->user()->getOwnedCompany() : null;
 
+    // Ratgeber und Stellenanzeigen sind je Portal abschaltbar (#44)
     $navLinks = [
         ['label' => __('portal.layout.header.cities'), 'href' => route('portal.cities.index')],
-        ['label' => __('portal.layout.header.guide'), 'href' => route('guide.index')],
-        ['label' => __('portal.layout.header.jobs'), 'href' => route('portal.jobs.index')],
     ];
+
+    if (config('themes.sun-v2.nav.guide', true)) {
+        $navLinks[] = ['label' => __('portal.layout.header.guide'), 'href' => route('guide.index')];
+    }
+
+    if (config('themes.sun-v2.nav.jobs', true)) {
+        $navLinks[] = ['label' => __('portal.layout.header.jobs'), 'href' => route('portal.jobs.index')];
+    }
 
     $cta = $ownedCompany
         ? ['label' => __('portal.layout.header.cta_owner'), 'href' => route('portal.owner.dashboard')]

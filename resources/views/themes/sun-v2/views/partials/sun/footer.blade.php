@@ -1,13 +1,22 @@
+@php
+    // Ratgeber und Stellenanzeigen sind je Portal abschaltbar (#44); faellt die
+    // Ratgeber-Spalte weg, ruecken die uebrigen drei zusammen.
+    $showGuide = config('themes.sun-v2.nav.guide', true);
+    $showJobs = config('themes.sun-v2.nav.jobs', true);
+    $columns = $showGuide ? 'md:grid-cols-4' : 'md:grid-cols-3';
+@endphp
 <footer class="bg-white border-t border-zinc-200">
   <div class="container-portal py-12">
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+    <div class="grid grid-cols-2 {{ $columns }} gap-8">
       <div>
         <h3 class="font-semibold text-zinc-900 mb-3">{{ __('portal.layout.footer.portal') }}</h3>
         <ul class="space-y-2 text-sm">
           <li><a href="{{ route('portal.companies.index') }}" class="hover:text-brand">{{ __('portal.layout.footer.directory') }}</a></li>
           <li><a href="{{ route('portal.categories.index') }}" class="hover:text-brand">{{ __('portal.layout.footer.services') }}</a></li>
           <li><a href="{{ route('portal.cities.index') }}" class="hover:text-brand">{{ __('portal.layout.footer.cities') }}</a></li>
-          <li><a href="{{ route('portal.jobs.index') }}" class="hover:text-brand">{{ __('portal.layout.footer.jobs') }}</a></li>
+          @if($showJobs)
+            <li><a href="{{ route('portal.jobs.index') }}" class="hover:text-brand">{{ __('portal.layout.footer.jobs') }}</a></li>
+          @endif
         </ul>
       </div>
       <div>
@@ -20,6 +29,7 @@
           @endguest
         </ul>
       </div>
+      @if($showGuide)
       <div>
         <h3 class="font-semibold text-zinc-900 mb-3">{{ __('portal.layout.footer.guide') }}</h3>
         <ul class="space-y-2 text-sm">
@@ -30,13 +40,16 @@
           @endforelse
         </ul>
       </div>
+      @endif
       <div>
         <h3 class="font-semibold text-zinc-900 mb-3">{{ __('portal.layout.footer.legal') }}</h3>
         <ul class="space-y-2 text-sm">
           <li><a href="{{ route('portal.impressum') }}" class="hover:text-brand">{{ __('portal.layout.footer.imprint') }}</a></li>
           <li><a href="{{ route('portal.datenschutz') }}" class="hover:text-brand">{{ __('portal.layout.footer.privacy') }}</a></li>
           <li><button type="button" class="hover:text-brand" data-cookie-action="settings">{{ __('portal.layout.footer.privacy_settings') }}</button></li>
-          <li><a href="{{ route('portal.blog.editorial') }}" class="hover:text-brand">{{ __('portal.layout.footer.editorial') }}</a></li>
+          @if($showGuide)
+            <li><a href="{{ route('portal.blog.editorial') }}" class="hover:text-brand">{{ __('portal.layout.footer.editorial') }}</a></li>
+          @endif
         </ul>
       </div>
     </div>

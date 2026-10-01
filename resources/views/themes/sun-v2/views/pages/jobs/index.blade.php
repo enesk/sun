@@ -83,8 +83,8 @@
 
     <div class="mt-4 flex flex-wrap items-center gap-2">
       <span class="text-sm text-zinc-500 mr-1 w-full sm:w-auto">{{ __('portal.layout.search_form.popular') }}</span>
-      @foreach(['Elektroniker' => 'Elektroniker EuG', 'Ausbildung' => 'Ausbildung', 'Meister' => 'Meister', 'Quereinstieg' => 'Quereinstieg'] as $query => $label)
-        <a href="{{ route('portal.jobs.index', ['q' => $query]) }}" class="pill-link">{{ $label }}</a>
+      @foreach(config('themes.sun-v2.jobs.quick_filters', []) as $filter)
+        <a href="{{ route('portal.jobs.index', ['q' => $filter['query']]) }}" class="pill-link">{{ $filter['label'] }}</a>
       @endforeach
     </div>
   </div>
