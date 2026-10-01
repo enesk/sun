@@ -67,7 +67,7 @@
                     </ul>
                     @if ($fromPrice)
                         <p style="margin: 0 0 4px; color: #18181b; font-weight: 600;">
-                            Ab {{ $fromPrice }}, monatlich kündbar.
+                            Ab {{ $fromPrice }} zzgl. {{ $vatPercent }} % USt., Vertragslaufzeit {{ $termMonths }} Monate.
                         </p>
                     @endif
                     <p style="margin: 8px 0 0;">

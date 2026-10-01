@@ -88,6 +88,7 @@
 </section>
 
 <!-- ========== LEISTUNGEN ========== -->
+@if($sun['services'] !== [])
 <section class="section">
   <div class="container-portal">
     <x-sun.section-heading :title="__('portal.home.services.heading')" :href="route('portal.categories.index')" :link="__('portal.home.services.all')" />
@@ -104,6 +105,7 @@
     </div>
   </div>
 </section>
+@endif
 
 <!-- ========== TOP BEWERTET ========== -->
 @if($sun['topRated']->isNotEmpty())

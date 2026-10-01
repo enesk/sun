@@ -25,12 +25,18 @@ return [
 
     'domains' => [
         'kfzwerkstatt.io' => 'kfz',
+        'sanitaerfinden.com' => 'sanitaer',
+        'sanitaerfinder.com' => 'sanitaer',
+        'klempner.firmenfreund.de' => 'sanitaer',
     ],
 
     'needles' => [
         'kfz' => 'kfz',
         'werkstatt' => 'kfz',
         'autowerkstatt' => 'kfz',
+        'sanitaer' => 'sanitaer',
+        'klempner' => 'sanitaer',
+        'installateur' => 'sanitaer',
     ],
 
 ];

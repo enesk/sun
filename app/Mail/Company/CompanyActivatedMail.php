@@ -55,6 +55,9 @@ class CompanyActivatedMail extends Mailable implements ShouldQueue
                 // Upsell nur, wenn das Portal Premium ueberhaupt verkauft.
                 'premiumSaleEnabled' => $pricing->isSaleEnabled(),
                 'premiumFromCents' => $this->cheapestMonthlyCents($pricing),
+                // Preise sind netto, Mindestlaufzeit 12 Monate (config/premium.php)
+                'vatPercent' => (int) config('premium.contract.vat_percent', 19),
+                'termMonths' => (int) config('premium.contract.term_months', 12),
             ],
         );
     }

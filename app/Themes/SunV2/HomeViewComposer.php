@@ -82,10 +82,15 @@ final class HomeViewComposer
             ])
             ->all());
 
-        return array_map(
-            fn (array $service): array => [...$service, 'count' => (int) ($counts[$service['query']] ?? 0)],
-            $services,
-        );
+        // Kacheln ohne einen einzigen Treffer fallen raus: eine Leistung, zu
+        // der das Portal keinen Betrieb kennt, fuehrt niemanden weiter (#44).
+        return array_values(array_filter(
+            array_map(
+                fn (array $service): array => [...$service, 'count' => (int) ($counts[$service['query']] ?? 0)],
+                $services,
+            ),
+            fn (array $service): bool => $service['count'] > 0,
+        ));
     }
 
     /**
