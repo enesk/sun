@@ -29,6 +29,7 @@ return [
         'sanitaerfinder.com' => 'sanitaer',
         'klempner.firmenfreund.de' => 'sanitaer',
         'fahrschulefinder.de' => 'fahrschule',
+        'findegutachter.de' => 'gutachter',
     ],
 
     'needles' => [
@@ -39,6 +40,8 @@ return [
         'klempner' => 'sanitaer',
         'installateur' => 'sanitaer',
         'fahrschule' => 'fahrschule',
+        'gutachter' => 'gutachter',
+        'sachverstaendig' => 'gutachter',
     ],
 
 ];
