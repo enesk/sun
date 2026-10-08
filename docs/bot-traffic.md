@@ -373,6 +373,9 @@ Alles Maschinelle liegt im Repo: die Ausdruecke in Abschnitt 2,
 tokenfreien Pruefungen, die Liste in `config/antispam.php` `bot_traffic`
 dazu abgeglichen. Was bleibt, ist Kontoarbeit und steht hier als Vorsatz.
 
+Vollstaendige Messung mit Ausgabe aller drei tokenfreien Pruefungen:
+`docs/messungen/waf-bestandsaufnahme-2026-10-08.md` (#40).
+
 **Ausgangsstand, gemessen am 08.10.2026** (gegen diese Werte wird nachher
 verglichen — beide Abweichungen bestehen *vor* dem Setzen, sie sind keine Folge
 der Regeln):
@@ -394,14 +397,22 @@ Reihenfolge:
 - [ ] **1. Token anlegen** (vormals #18). Cloudflare → My Profile → API Tokens →
   Create Token mit `Zone / Zone: Read`, `Zone / Firewall Services: Edit`,
   `Zone / Bot Management: Read`, Zonen: alle Portal-Zonen. Der Turnstile-Token
-  traegt hier nicht (Abschnitt 2.5). Dann einmalig
-  `scripts/cloudflare-waf-regeln-setzen.sh --token-ablegen`.
+  traegt hier nicht (Abschnitt 2.5) — er ist gueltig, sieht aber keine Zone
+  (`GET /zones` liefert `total_count: 0`); das Skript lehnt ihn seit #40 mit
+  Exit 65 ab, statt ihn abzulegen und erst in `--pruefen` zu scheitern. Dann
+  einmalig `scripts/cloudflare-waf-regeln-setzen.sh --token-ablegen`. Das
+  schreibt nur `CLOUDFLARE_API_TOKEN_SUN_WAF` neu und laesst den
+  Turnstile-Token in `/root/sun-zugang.txt` unberuehrt (die Datei liegt seit
+  08.10.2026 wieder dort, #38, aber ohne den WAF-Schluessel).
 - [ ] **2. Vorher festhalten.**
   `scripts/cloudflare-waf-regeln-setzen.sh --bestandsaufnahme` (Ausgabe als
   Kommentar ins Ticket) und im Dashboard Security → Events, 24 h, Filter
   „Bot Detection = not verified bot" (Abschnitt 2.6).
 - [ ] **3. Setzen.** `--pruefen`, dann ohne Option setzen, dann `--pruefen`
-  erneut: muss mit Exit 0 enden. Ohne Token: dieselben vier Regeln von Hand
+  erneut: muss mit Exit 0 enden. `--pruefen` endet seit #40 auch dann mit
+  Exit 71, wenn eine Zielzone fuer den Token nicht lesbar war — vorher konnte
+  ein zu eng geschnittener Token Erfolg melden, obwohl keine Zone geprueft
+  wurde. Ohne Token: dieselben vier Regeln von Hand
   nach Abschnitt 2, Reihenfolge Skip → Block → Managed Challenge →
   Rate Limiting.
 - [ ] **4. Abnahme.** `scripts/cloudflare-waf-regeln-setzen.sh --abnahme` —

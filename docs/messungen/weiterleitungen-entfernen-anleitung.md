@@ -8,11 +8,14 @@ beiden Portale nicht an (#35), und die vier WAF-Regeln aus
 `docs/bot-traffic.md` Abschnitt 2 greifen ins Leere, weil nie eine Anfrage am
 Ursprung ankommt.
 
-Das Entfernen ist Kontoarbeit im Cloudflare-Dashboard und bleibt Handarbeit:
-im Projekt gibt es keinen Cloudflare-Token mit Zonen- oder Ruleset-Rechten
-(#18, siehe `docs/messungen/cloudflare-token-anleitung.md`). Automatisiert ist
-nur die Probe: `scripts/cloudflare-waf-regeln-setzen.sh --abnahme`
-(tokenfrei, Exit 71 bei Abweichung).
+Das Entfernen braucht entweder einen Cloudflare-Token mit Zonen-Rechten oder
+die Klickarbeit im Dashboard. Im Projekt gibt es den Token nicht (#18, siehe
+`docs/messungen/cloudflare-token-anleitung.md`; Stand 08.10.2026 liegt in
+`/root/sun-zugang.txt` nur der Turnstile-Token, der keine Zone sieht).
+Mit Token erledigt `scripts/cloudflare-weiterleitungen-entfernen.sh
+--entfernen` die Arbeit (Abschnitt 2, „Mit Token statt im Dashboard"); tokenfrei
+sind die Proben `scripts/cloudflare-weiterleitungen-entfernen.sh --kante` und
+`scripts/cloudflare-waf-regeln-setzen.sh --abnahme` (je Exit 71 bei Abweichung).
 
 Jeder Abschnitt endet mit einer Probe. Ergebnisse unten in die Tabelle.
 
@@ -112,9 +115,36 @@ braucht dort keine Cloudflare-Regel.
 
 ### Mit Token statt im Dashboard
 
-Liegt ein Token mit `Zone / Zone Settings: Read` + `Zone / Config Rules: Edit`
-(bzw. `Zone / Zone: Edit` fuer Page Rules) vor, geht es auch ohne Klicken.
-Zonen-ID aus dem Dashboard (Overview, rechte Spalte):
+Liegt ein Token mit Zonen-Rechten vor, erledigt das Skript alle drei Stellen
+auf einmal — es sucht in Redirect Rules, Page Rules und den Bulk-Redirect-
+Listen des Kontos und entfernt nur, was wegfuehrt:
+
+```bash
+scripts/cloudflare-weiterleitungen-entfernen.sh --kante       # ohne Token: was antwortet die Kante heute?
+scripts/cloudflare-weiterleitungen-entfernen.sh               # nur nachsehen (Exit 71 bei Fund)
+scripts/cloudflare-weiterleitungen-entfernen.sh --entfernen   # loeschen
+```
+
+Gebraucht wird `Zone / Zone: Read` + `Zone / Config Rules: Edit` (Redirect
+Rules), `Zone / Zone: Edit` (Page Rules) und `Account / Account Filter Lists:
+Edit` (Bulk Redirects); fehlt eines davon, meldet das Skript die betroffene
+Stelle als „nicht lesbar" und macht mit den uebrigen weiter. Es liest den Token
+aus `CF_API_TOKEN`, sonst `CLOUDFLARE_API_TOKEN_SUN_REDIRECT` bzw.
+`CLOUDFLARE_API_TOKEN_SUN_WAF` aus `/root/sun-zugang.txt` am Ursprung.
+Der dort am 08.10.2026 hinterlegte Turnstile-Token traegt hier **nicht**: er ist
+auf „Account / Turnstile: Edit" geschnitten und sieht keine Zone
+(`/zones?name=firmenfreund.net` liefert mit ihm eine leere Liste) — das Skript
+bricht dann mit Exit 65 ab, ohne etwas anzufassen.
+
+Was als „fremd" gilt und entfernt wird: jede Weiterleitung, deren Ziel-Host
+nicht der Apex der Zone selbst ist. Damit bleibt `www` → Apex stehen, waehrend
+`solar-finden.de` und die eigene Unterdomain `pfotencheck.tierarztportal.com`
+erfasst werden. Beim Bulk Redirect faellt nur der einzelne Listeneintrag,
+nicht die Liste und nicht die Regel (sie koennen fremde Zonen des Kontos
+bedienen).
+
+Von Hand mit `curl` geht es auch. Zonen-ID aus dem Dashboard (Overview, rechte
+Spalte):
 
 ```bash
 TOKEN=…; ZONE=…

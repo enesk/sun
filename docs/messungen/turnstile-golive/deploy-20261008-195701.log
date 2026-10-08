@@ -1,0 +1,18 @@
+Deploy Bot-Schutz §1.3 — 08.10.2026 19:57
+Modus: Trockenlauf (nichts wird geaendert)
+Ziel: sun:/home/sanitaerfinden/htdocs/sanitaerfinden.dev
+
+=== Vorbedingungen ===
+  [ ] B2: config/turnstile.php liegt nicht auf origin/main.
+          Commit und Push brauchen die Freigabe von Enes — Gatter von #36.
+  [-] Produktion steht auf f5fa66ed, Ziel (fehlt)
+  [x] B1: sechs Schluesselwerte stehen in der .env
+  [x] B1: kein Testschluessel in der .env
+  [x] Keine geaenderte verfolgte Datei in Produktion (3 unverfolgte Pfade, unkritisch)
+  [x] 4416 GB frei unter /home
+  [!] Naechtliche Sicherung deckt nur 14 von 24 lebenden Datenbanken.
+      Das Skript dumpt deshalb in Schritt 3 selbst — ohne --ohne-dump kein Blocker.
+
+1 Vorbedingung(en) verletzt — kein Deploy. Reihenfolge und Handgriffe:
+  docs/turnstile-golive.md §1.1 bis §1.3, Stand: scripts/turnstile-golive-stand.sh
+Protokoll: docs/messungen/turnstile-golive/deploy-20261008-195701.log

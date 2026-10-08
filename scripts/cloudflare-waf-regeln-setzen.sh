@@ -27,6 +27,15 @@
 #   scripts/cloudflare-waf-regeln-setzen.sh                      # setzen
 #   scripts/cloudflare-waf-regeln-setzen.sh --zone=elektrikerportal.com
 #   scripts/cloudflare-waf-regeln-setzen.sh --token-ablegen       # Token hinterlegen
+#   scripts/cloudflare-waf-regeln-setzen.sh --soll-zeigen         # ohne Token: Soll-Ausdruecke je Zone
+#
+# Regel 1 ist zonenabhaengig: sanitaerfinden.com ist zugleich CENTRAL_DOMAIN /
+# APP_URL (deploy.php, config/tenancy.php) und traegt das Backoffice. Dort nimmt
+# die Ausnahme zusaetzlich /admin, /content, /dashboard, /horizon, /telescope
+# und /livewire heraus, sonst challenged Regel 4 die eigene Verwaltung und
+# Regel 2 sperrt eigene curl-Aufrufe. Auf den Portal-Zonen gilt das NICHT —
+# dort darf /livewire nicht aus dem Rate Limiting fallen, sonst laeuft der
+# Schreibpfad der oeffentlichen Formulare ungebremst (#43).
 #
 # Reihenfolge ist der Kern der Sache: die Ausnahme (Regel 1) steht VOR der
 # Sperre. Das Skript schreibt die drei Custom Rules deshalb immer als Block an
@@ -55,6 +64,11 @@ findegutachter.de bodenlegerfinden.com tierarztportal.com
 energieberaterportal.net firmenfreund.net firmenfreund.de geruestbauer.gmbh
 metallbauer.io mjet.net schluesseldienstportal.com speditionportal.com'
 
+# Die zentrale Zone (CENTRAL_DOMAIN/APP_URL) aus derselben Liste. Bewusst hier
+# benannt statt aus /zones oder der .env geholt: das Skript laeuft von aussen
+# und soll ohne Umgebung dieselbe Entscheidung treffen.
+ZENTRALE_ZONE='sanitaerfinden.com'
+
 # ---------------------------------------------------------------------------
 # Die vier Regeln. Wortgleich mit docs/bot-traffic.md Abschnitt 2 — wird hier
 # etwas geaendert, gehoert es dort hin, in config/antispam.php `bot_traffic`
@@ -62,6 +76,11 @@ metallbauer.io mjet.net schluesseldienstportal.com speditionportal.com'
 # ---------------------------------------------------------------------------
 
 BESCHREIBUNG_1="${KENNUNG} Ausnahme: verifizierte Bots, robots/sitemap/llms/ads.txt, IndexNow-Schluessel"
+BESCHREIBUNG_1_ZENTRAL="${BESCHREIBUNG_1}, Backoffice der zentralen Zone"
+# Nur fuer ZENTRALE_ZONE. Praefix-Muster, kein Pfadvergleich: unter /admin,
+# /content und /dashboard haengen Filament-Unterseiten, unter /livewire die
+# Update-Aufrufe der Komponenten.
+AUSDRUCK_1_BACKOFFICE='or (http.request.uri.path matches "^/(admin|content|dashboard|horizon|telescope|livewire)($|/)")'
 AUSDRUCK_1='(cf.client.bot) or (http.request.uri.path in {"/robots.txt" "/sitemap.xml" "/llms.txt" "/llms-full.txt" "/ads.txt"}) or (http.request.uri.path matches "^/sitemap[^/]*\.xml$") or (http.request.uri.path matches "^/[a-f0-9]{8,128}\.txt$") or (lower(http.user_agent) contains "bingbot") or (lower(http.user_agent) contains "googlebot")'
 
 BESCHREIBUNG_2="${KENNUNG} Sperre: selbstbenannte Datensammler"
@@ -89,8 +108,9 @@ while [ $# -gt 0 ]; do
     --zone=*) ZONEN="${ZONEN} ${1#--zone=}"; shift ;;
     --token-ablegen) MODUS=ablegen; shift ;;
     --kanten-pruefen) MODUS=kanten; shift ;;
+    --soll-zeigen) MODUS=soll; shift ;;
     --abnahme) MODUS=abnahme; shift ;;
-    -h|--help) sed -n '2,41p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '2,51p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "Unbekannte Option: $1" >&2; exit 64 ;;
   esac
 done
@@ -258,6 +278,47 @@ EOF
   echo 'Gegenprobe ueber alle Portale am Ursprung: php artisan guide:golive:check'
 }
 
+# Regel 1 je Zone: auf der zentralen Zone mit den Backoffice-Praefixen, auf
+# Portal-Zonen ohne. Wortlaut gleich mit docs/bot-traffic.md Abschnitt 2.1.
+beschreibung_1_fuer() {
+  [ "$1" = "$ZENTRALE_ZONE" ] && { printf '%s' "$BESCHREIBUNG_1_ZENTRAL"; return 0; }
+  printf '%s' "$BESCHREIBUNG_1"
+}
+
+ausdruck_1_fuer() {
+  [ "$1" = "$ZENTRALE_ZONE" ] && { printf '%s %s' "$AUSDRUCK_1" "$AUSDRUCK_1_BACKOFFICE"; return 0; }
+  printf '%s' "$AUSDRUCK_1"
+}
+
+# Zeigt das Soll je Zone, ohne Token und ohne Netz. Dient der Abnahme von #43:
+# der Ausdruck der zentralen Zone enthaelt die Backoffice-Praefixe, der einer
+# Portal-Zone nicht.
+soll_zeigen() {
+  local name
+  for name in $ZONEN; do
+    echo "== ${name} =="
+    if [ "$name" = "$ZENTRALE_ZONE" ]; then
+      echo '  Rolle: zentrale Zone (CENTRAL_DOMAIN/APP_URL, Backoffice)'
+    else
+      echo '  Rolle: Portal-Zone'
+    fi
+    echo "  Regel 1 [skip]              $(beschreibung_1_fuer "$name")"
+    echo "    $(ausdruck_1_fuer "$name")"
+    echo "  Regel 2 [block]             ${BESCHREIBUNG_2}"
+    echo "    ${AUSDRUCK_2}"
+    echo "  Regel 3 [managed_challenge] ${BESCHREIBUNG_3}"
+    echo "    ${AUSDRUCK_3}"
+    echo "  Regel 4 [managed_challenge] ${BESCHREIBUNG_4} (${RL_SCHWELLE}/${RL_FENSTER}s, Sperre ${RL_SPERRE}s)"
+    echo "    ${AUSDRUCK_4}"
+    echo
+  done
+}
+
+if [ "$MODUS" = 'soll' ]; then
+  soll_zeigen
+  exit 0
+fi
+
 if [ "$MODUS" = 'kanten' ]; then
   kanten_pruefen
   exit $?
@@ -320,6 +381,28 @@ pruefe_token() {
   fi
 }
 
+# Ein gueltiger Token ist noch kein brauchbarer Token: der Turnstile-Token aus
+# #18 ist auf "Account / Turnstile: Edit" geschnitten und sieht keine einzige
+# Zone. Ohne diese Probe laeuft er bis in --pruefen durch, dort faellt jede
+# Zone unter "nicht lesbar" und die Pruefung meldete bisher Erfolg.
+pruefe_zonenrecht() {
+  local antwort anzahl
+  antwort="$(cf GET '/zones?per_page=1')"
+  if [ "$(printf '%s' "$antwort" | jq -r '.success')" != 'true' ]; then
+    echo 'Der Token darf keine Zonen lesen ("Zone / Zone: Read" fehlt).' >&2
+    fehler_zeilen "$antwort"
+    exit 65
+  fi
+  anzahl="$(printf '%s' "$antwort" | jq -r '.result_info.total_count // 0')"
+  [ "$anzahl" -gt 0 ] || {
+    echo 'Der Token sieht keine einzige Zone — ihm fehlt "Zone / Zone: Read"' >&2
+    echo 'oder die Zone Resources sind leer. Der Turnstile-Token aus #18' >&2
+    echo 'taugt hier nicht; es braucht einen eigenen mit Zone: Read +' >&2
+    echo 'Firewall Services: Edit + Bot Management: Read (#40).' >&2
+    exit 65
+  }
+}
+
 # Liefert die Zone-ID zu einem Namen, oder leer, wenn der Token sie nicht sieht.
 zone_id() {
   local name="$1" antwort
@@ -374,8 +457,9 @@ ruleset_schreiben() {
 
 # Die drei Custom Rules in der vorgeschriebenen Reihenfolge.
 soll_custom_rules() {
+  local zone="$1"
   jq -n \
-    --arg b1 "$BESCHREIBUNG_1" --arg a1 "$AUSDRUCK_1" \
+    --arg b1 "$(beschreibung_1_fuer "$zone")" --arg a1 "$(ausdruck_1_fuer "$zone")" \
     --arg b2 "$BESCHREIBUNG_2" --arg a2 "$AUSDRUCK_2" \
     --arg b3 "$BESCHREIBUNG_3" --arg a3 "$AUSDRUCK_3" \
     '[
@@ -507,6 +591,7 @@ FERN
 }
 
 pruefe_token
+pruefe_zonenrecht
 
 if [ "$MODUS" = 'ablegen' ]; then
   token_ablegen
@@ -530,7 +615,7 @@ for name in $ZONEN; do
   bestand_zone "$id"
   [ "$MODUS" = 'bestand' ] && continue
 
-  phase_verarbeiten "$id" 'http_request_firewall_custom' "$(soll_custom_rules)" 'Custom Rules (Regeln 1-3)' || ABWEICHUNGEN=1
+  phase_verarbeiten "$id" 'http_request_firewall_custom' "$(soll_custom_rules "$name")" 'Custom Rules (Regeln 1-3)' || ABWEICHUNGEN=1
   phase_verarbeiten "$id" 'http_ratelimit' "$(soll_ratelimit_rules)" "Rate Limiting (Regel 4: ${RL_SCHWELLE}/${RL_FENSTER}s)" || ABWEICHUNGEN=1
 done
 
@@ -549,6 +634,7 @@ HINWEIS
 fi
 
 if [ "$MODUS" = 'pruefen' ]; then
+  [ -z "$FEHLENDE_ZONEN" ] || { echo 'Nicht jede Zielzone war lesbar — Pruefung unvollstaendig.'; exit 71; }
   [ "$ABWEICHUNGEN" = 0 ] || { echo 'Abweichungen gefunden. Ohne --pruefen setzen.'; exit 71; }
   echo 'Alle Zonen entsprechen docs/bot-traffic.md Abschnitt 2.'
   exit 0

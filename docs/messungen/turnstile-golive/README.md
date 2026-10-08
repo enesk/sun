@@ -7,6 +7,8 @@ als erledigt — Befehlsausgabe als `.txt`/`.json`, Sichtprüfung als Screenshot
 |---|---|---|
 | `vorpruefung-2026-10-08.md` | Maschinenanteil vor dem Deploy: was lokal und an der Produktion geprüft wurde, ohne Schlüssel | Agent (#13) |
 | `durchfuehrung-2026-10-08.md` | Nachprüfung 08.10.2026, Commit-Reife des Moduls, offene Zeilen | Agent (#36) |
+| `schluessel-2026-10-08.txt` | §1.1: Tokenablage, Soll-Ist der drei Widgets, sechs `.env`-Werte, Siteverify je Gruppe, Config-Cache-Drift | Agent (#36) |
+| `deploy-<zeitstempel>.log` | Protokoll von `scripts/turnstile-golive-deploy.sh` (Trockenlauf und Ausführung) | #36 |
 | `keys-check-<datum>.txt` | `turnstile:keys:check --siteverify` in Produktion, Exit 0 | #36 |
 | `deploy-<stempel>.log` | Protokoll von `scripts/turnstile-golive-deploy.sh` — Vorbedingungen, jeder Befehl, Ausgabe von `migrate`, `tenants:migrate`, Seeder und Backfill. Ersetzt `migrate-<datum>.txt`, wenn der Deploy über das Skript lief | #36 |
 | `migrate-<datum>.txt` | `migrate --force` und `tenants:migrate --force`, falls von Hand gefahren | #36 |
