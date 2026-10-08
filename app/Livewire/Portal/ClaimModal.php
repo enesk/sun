@@ -8,6 +8,7 @@ use App\AntiSpam\Support\RateLimitGuard;
 use App\Models\Portal\Company;
 use App\Services\ClaimService;
 use App\Services\UserService;
+use App\Turnstile\Concerns\InteractsWithTurnstile;
 use App\Turnstile\Enums\TurnstileAction;
 use App\Turnstile\Rules\TurnstileRule;
 use Illuminate\Auth\Events\Registered;
@@ -24,6 +25,7 @@ class ClaimModal extends Component
     // sein Feldname war fest verdrahtet, eine Mindest-Ausfuellzeit gab es
     // nicht, und seine Treffer landeten in keinem Log.
     use InteractsWithAntiSpam;
+    use InteractsWithTurnstile;
 
     public Company $company;
 
@@ -51,9 +53,6 @@ class ClaimModal extends Component
     public string $loginPassword = '';
 
     public bool $remember = false;
-
-    // Turnstile-Token des Registrierungs-Tabs (#6)
-    public string $turnstileToken = '';
 
     /**
      * Turnstile-Token der Uebernahme-Bestaetigung (#7), Aktion company_listing.
@@ -149,9 +148,7 @@ class ClaimModal extends Component
         // Turnstile zuletzt: erst wenn alle Felder stimmen, wird ein Token
         // eingeloest — Cloudflare nimmt jedes Token nur einmal an. Kontoanlage
         // wie auf /register (#6).
-        $this->validate([
-            'turnstileToken' => [new TurnstileRule(TurnstileAction::Registration)],
-        ]);
+        $this->validateTurnstile(TurnstileAction::Registration);
 
         /** @var UserService $userService */
         $userService = app(UserService::class);
@@ -296,7 +293,7 @@ class ClaimModal extends Component
             'confirmOwner.accepted' => 'Bitte bestätigen Sie, dass Sie der Inhaber sind.',
         ]);
 
-        $this->validateTurnstile();
+        $this->validateClaimToken();
 
         $user = Auth::user();
         $claimService = app(ClaimService::class);
@@ -333,7 +330,7 @@ class ClaimModal extends Component
             'confirmOwner.accepted' => 'Bitte bestätigen Sie, dass Sie der Inhaber sind.',
         ]);
 
-        $this->validateTurnstile();
+        $this->validateClaimToken();
 
         $user = Auth::user();
         $claimService = app(ClaimService::class);
@@ -384,11 +381,12 @@ class ClaimModal extends Component
     }
 
     /**
-     * Turnstile der Uebernahme (#7). Eigener Aufruf nach den Feldregeln: ein
-     * Token ist bei Cloudflare nur einmal einloesbar und soll nicht von einem
-     * fehlenden Haken verbraucht werden.
+     * Turnstile der Uebernahme (#7), eigene Property `claimToken`: ein Token
+     * gilt nur fuer eine Aktion. Eigener Aufruf nach den Feldregeln, weil ein
+     * Token bei Cloudflare nur einmal einloesbar ist und nicht von einem
+     * fehlenden Haken verbraucht werden soll.
      */
-    private function validateTurnstile(): void
+    private function validateClaimToken(): void
     {
         $this->validate([
             'claimToken' => [new TurnstileRule(TurnstileAction::CompanyListing)],

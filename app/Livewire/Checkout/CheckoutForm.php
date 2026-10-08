@@ -9,6 +9,7 @@ use App\Services\LoginService;
 use App\Services\OneTimePasswordService;
 use App\Services\PaymentProviders\PaymentService;
 use App\Services\UserService;
+use App\Turnstile\Concerns\InteractsWithTurnstile;
 use App\Turnstile\View\Components\Turnstile;
 use App\Validator\LoginValidator;
 use App\Validator\RegisterValidator;
@@ -19,6 +20,13 @@ use Throwable;
 
 class CheckoutForm extends Component
 {
+    /**
+     * Turnstile-Token des Widgets im Kontoschritt (#6), Property aus dem
+     * Trait. Greift nur, wenn im Checkout ein neues Konto entsteht — die
+     * Anmeldung bleibt ohne Pruefung.
+     */
+    use InteractsWithTurnstile;
+
     public $intro;
 
     public $name;
@@ -30,12 +38,6 @@ class CheckoutForm extends Component
     public $paymentProvider;
 
     public $recaptcha;
-
-    /**
-     * Turnstile-Token des Widgets im Kontoschritt (#6). Greift nur, wenn im
-     * Checkout ein neues Konto entsteht — die Anmeldung bleibt ohne Pruefung.
-     */
-    public string $turnstileToken = '';
 
     public $oneTimePassword;
 

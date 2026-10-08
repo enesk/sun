@@ -11,6 +11,7 @@ use App\Models\Portal\City;
 use App\Models\Portal\Company;
 use App\Services\NewCompanyNotifier;
 use App\Services\TenantPermissionService;
+use App\Turnstile\Concerns\InteractsWithTurnstile;
 use App\Turnstile\Enums\TurnstileAction;
 use App\Turnstile\Rules\TurnstileRule;
 use Illuminate\Support\Facades\Auth;
@@ -25,6 +26,16 @@ class CompanyRegistrationWizard extends Component
     // Honeypot und Ausfuellzeit (#8/#25); die Properties kommen aus dem
     // Trait, gebunden von <x-antispam-fields wire /> in der Ansicht.
     use InteractsWithAntiSpam;
+
+    /**
+     * Turnstile-Token (#7), Aktion company_listing; die Property kommt aus dem
+     * Trait. Das Widget steht nur in Schritt 5 (Zusammenfassung): ein Token
+     * gilt 300 s, in Schritt 1 gerendert waere es beim Abschicken abgelaufen.
+     * Geprueft wird es als letzte Regel, damit der Logo-Upload aus Schritt 4
+     * bei einem Turnstile-Fehler nicht verloren geht (docs/turnstile.md §12).
+     */
+    use InteractsWithTurnstile;
+
     use WithFileUploads;
 
     // Step-Management
@@ -77,15 +88,6 @@ class CompanyRegistrationWizard extends Component
     public bool $duplicate = false;
 
     public ?string $selectedCityName = null;
-
-    /**
-     * Turnstile-Token (#7), Aktion company_listing. Das Widget steht nur in
-     * Schritt 5 (Zusammenfassung): ein Token gilt 300 s, in Schritt 1 gerendert
-     * waere es beim Abschicken abgelaufen. Geprueft wird es als letzte Regel,
-     * damit der Logo-Upload aus Schritt 4 bei einem Turnstile-Fehler nicht
-     * verloren geht (docs/turnstile.md §12).
-     */
-    public string $turnstileToken = '';
 
     public function mount(string $prefillName = '', string $prefillPlace = ''): void
     {

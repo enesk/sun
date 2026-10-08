@@ -964,6 +964,46 @@ Drei Teile, mehr gibt es nicht:
 | `gate` | sichtbares Widget = `true` | Submit sperren, bis ein Token da ist |
 | `size` | `normal` | Cloudflare-Groesse (`normal`, `flexible`, `compact`) |
 
+### Die Livewire-Seite: `InteractsWithTurnstile` (#52)
+
+In Livewire loest `$this->validate([...])` den Feldnamen gegen die **Properties**
+der Komponente auf. Fehlt die Property, wirft Livewire
+`No property found for validation` — eine Ausnahme VOR der Rule, also ein 500,
+unabhaengig davon, ob der Bot-Schutz des Portals scharf ist. Genau so war
+`/eintragen` auf allen Portalen unbenutzbar (#52).
+
+Deshalb kommt die Property aus einem Trait und wird nicht je Komponente
+wiederholt:
+
+```php
+use App\Turnstile\Concerns\InteractsWithTurnstile;
+
+class CompanySignup extends Component
+{
+    use InteractsWithTurnstile;   // public string $turnstileToken = ''
+
+    private function submitAccount(): void
+    {
+        // ... alle uebrigen Feldregeln zuerst ...
+
+        // Turnstile zuletzt: ein Token ist bei Cloudflare nur einmal
+        // einloesbar und soll nicht von einem anderen Fehler verbraucht werden.
+        $this->validateTurnstile(TurnstileAction::CompanyListing);
+    }
+}
+```
+
+`validateTurnstile()` haengt die Rule an und raeumt das Token nach einem
+Fehlschlag weg; das Widget stellt sich im Browser passend dazu neu
+(`resources/js/turnstile.js`, Livewire-`commit`-Hook). Braucht eine Komponente
+ein zweites Token fuer eine zweite Aktion — `ClaimModal` mit `claimToken` —,
+bleibt das eine eigene Property mit eigenem Aufruf.
+
+Bewacht wird das Paar von `tests/Unit/Turnstile/TurnstileComponentPropertiesTest.php`:
+der Test sucht in allen Livewire-Komponenten jede Turnstile-Pruefung und
+verlangt die passende `public string`-Property. Der Gastweg von `/eintragen`
+selbst steht in `tests/Feature/Livewire/Portal/CompanySignupTest.php`.
+
 Der Hidden-Input heisst immer `cf-turnstile-response` — daraus liest die Rule
 das Token bei einem klassischen POST. Cloudflares eigenes Antwortfeld ist
 abgeschaltet (`response-field: false`), sonst stuenden zwei gleichnamige Felder

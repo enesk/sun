@@ -4,6 +4,7 @@ namespace App\Livewire\Auth\Register;
 
 use App\Services\OneTimePasswordService;
 use App\Services\UserService;
+use App\Turnstile\Concerns\InteractsWithTurnstile;
 use App\Turnstile\View\Components\Turnstile;
 use App\Validator\RegisterValidator;
 use Illuminate\Contracts\View\View;
@@ -12,14 +13,14 @@ use Livewire\Component;
 
 class OneTimePasswordRegistration extends Component
 {
+    /** Turnstile-Token des Widgets (#6), Property aus dem Trait; geprueft im RegisterValidator. */
+    use InteractsWithTurnstile;
+
     public string $email;
 
     public string $name;
 
     public $recaptcha;
-
-    /** Turnstile-Token des Widgets (#6); geprueft im RegisterValidator. */
-    public string $turnstileToken = '';
 
     private RegisterValidator $registerValidator;
 
