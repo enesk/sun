@@ -122,6 +122,12 @@
        in Schritt 2, Angemeldete in Schritt 1 (dort wird direkt eingetragen).
        Ein Token gilt 300 s — in Schritt 1 gerendert waere es beim Absenden
        moeglicherweise abgelaufen. --}}
+  {{-- Unbedingt, auch in Schritt 1: die Skripte liegen im Stack 'scripts', und
+       der wird nur beim Rendern des Layouts geleert. Erst in Schritt 2
+       angefordert kaemen sie nie an — das Widget blieb leer und Cloudflare
+       meldete beim Abschicken missing-input-response (#53). --}}
+  <x-turnstile-scripts action="company_listing" />
+
   @if(! $guest || $step === 2)
     <x-turnstile action="company_listing" wire="turnstileToken" field="turnstileToken" />
   @endif

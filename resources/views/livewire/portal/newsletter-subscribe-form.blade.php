@@ -1,4 +1,7 @@
 <div>
+    {{-- Skripte unbedingt, auch wenn das Widget erst nach einem Livewire-Umlauf erscheint: der Stack 'scripts' wird nur beim Rendern des Layouts geleert (#53). --}}
+    <x-turnstile-scripts action="contact" />
+
     @if($submitted)
         <div class="flex items-center gap-3 text-white" role="status">
             <svg class="w-6 h-6 text-green-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">

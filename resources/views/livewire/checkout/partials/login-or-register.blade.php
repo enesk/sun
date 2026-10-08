@@ -1,4 +1,7 @@
 @guest()
+    {{-- Skripte unbedingt, auch wenn das Widget erst nach einem Livewire-Umlauf erscheint: der Stack 'scripts' wird nur beim Rendern des Layouts geleert (#53). --}}
+    <x-turnstile-scripts action="registration" />
+
     <div class="mb-4">
 
         <h2 class="checkout-card__title">Ihre Daten</h2>

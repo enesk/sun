@@ -1,4 +1,7 @@
 <div>
+    {{-- Skripte unbedingt, auch wenn das Widget erst nach einem Livewire-Umlauf erscheint: der Stack 'scripts' wird nur beim Rendern des Layouts geleert (#53). --}}
+    <x-turnstile-scripts action="contact" />
+
     @if(!$submitted)
         <form wire:submit="submit" class="space-y-5">
             {{-- Honigtopf mit Zufallsnamen und Mindest-Ausfuellzeit (#22);

@@ -1,6 +1,10 @@
 {{-- Claim-Modal: 4 Szenarien nach Rathanas V5-Spec --}}
 {{-- Livewire-Component: #160 (Dimitri) liefert $company, $scenario, $showModal, $activeTab --}}
 <div>
+    {{-- Skripte unbedingt, auch wenn das Widget erst nach einem Livewire-Umlauf erscheint: der Stack 'scripts' wird nur beim Rendern des Layouts geleert (#53). --}}
+    <x-turnstile-scripts action="registration" />
+    <x-turnstile-scripts action="company_listing" />
+
     @if($showModal)
         <div class="claim-modal-overlay"
              x-data="claimModal"

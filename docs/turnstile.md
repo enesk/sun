@@ -827,8 +827,30 @@ Namen, statt Cloudflares nackten `Authentication error` weiterzugeben.
 Das Skript legt die drei Widgets mit genau den Hostnames, `mode: managed` und
 `clearance_level: no_clearance` an, laesst vorhandene Widgets unangetastet,
 vergleicht deren Einstellungen und Hostnames mit den Tabellen oben und gibt
-Sitekey und Secret je Gruppe aus. Ohne Token: dieselben Angaben im Dashboard
+den Sitekey je Gruppe aus. Ohne Token: dieselben Angaben im Dashboard
 klicken, Schritt 2 ueberspringen.
+
+Das **Secret** steht im Klartext nur beim frisch angelegten Widget — dort
+braucht es der Mensch einmal. Bei vorhandenen Widgets, also bei jedem
+`--pruefen`, meldet das Skript nur `Secret: vorhanden`; wer den Wert wirklich
+braucht, setzt `--secrets-zeigen` dazu (#45). Grund: `--pruefen` laeuft auch in
+Agentenlaeufen, in der CI und durch `tee` — jede dieser Ausgaben ist ein
+Protokoll, in dem ein Produktions-Secret nichts verloren hat.
+
+**Secrets wechseln** (nach dem Rollout, oder wenn ein Secret in einem Protokoll
+gelandet ist):
+
+```bash
+scripts/turnstile-widgets-anlegen.sh --secrets-rotieren           # 2 h Gnadenfrist
+scripts/turnstile-widgets-anlegen.sh --secrets-rotieren --sofort  # altes Secret sofort tot
+```
+
+Die Sitekeys bleiben, nur die Secrets wechseln — im Frontend ist nichts zu
+aendern, und weil der Resolver das Secret je Anfrage aus der Config liest,
+kostet der Wechsel keine Ausfallzeit. Ohne `--sofort` gilt das alte Secret noch
+zwei Stunden weiter; in diesem Fenster die neuen Werte mit
+`scripts/turnstile-schluessel-eintragen.sh` nachtragen und den
+Passwort-Manager aktualisieren.
 
 **2. Im Dashboard nachziehen** (von Hand, die API kennt den Schalter nicht):
 "Allow a domain to be added automatically" **ausschalten**. Bleibt er an,
@@ -945,6 +967,10 @@ Drei Teile, mehr gibt es nicht:
 * `resources/views/components/turnstile.blade.php` — Markup.
 * `resources/js/turnstile.js` — Verhalten im Browser; eigener Vite-Eintrag,
   damit das Modul nur dort geladen wird, wo die Komponente rendert.
+* `App\Turnstile\View\Components\TurnstileScripts` mit
+  `resources/views/components/turnstile-scripts.blade.php` — nur die beiden
+  Skripte, `@once` je Anfrage. `<x-turnstile />` bindet sie selbst ein; separat
+  gebraucht werden sie bei verzoegert eingeblendeten Widgets (siehe unten).
 
 ### Einbinden
 
@@ -963,6 +989,48 @@ Drei Teile, mehr gibt es nicht:
 | `field` | `cf-turnstile-response` | Schluessel, unter dem die Meldung der Rule erwartet wird; bei Livewire der Property-Name |
 | `gate` | sichtbares Widget = `true` | Submit sperren, bis ein Token da ist |
 | `size` | `normal` | Cloudflare-Groesse (`normal`, `flexible`, `compact`) |
+
+### Verzoegert eingeblendete Widgets: `<x-turnstile-scripts />` (#53)
+
+Das Widget legt seine beiden Skripte in den Blade-Stack `scripts`, und der wird
+**ausschliesslich beim Rendern des Layouts** geleert. In einem Livewire-Umlauf
+gibt es kein `@stack` mehr: was die Komponente dort pusht, verfaellt.
+
+Erscheint das Widget also erst nach einem Umlauf — Schritt 2 der
+Firmeneintragung, ein Dialog, ein aufgeklapptes Formular — dann kommt beim
+Abschicken nur das Markup an. `api.js` und `resources/js/turnstile.js` fehlen,
+der Kasten bleibt leer, der Hidden-Input leer, und Cloudflare antwortet mit
+`missing-input-response` **ohne Siteverify-Aufruf** (`duration_ms NULL`). Genau
+so sah es auf `/eintragen` aus (#53); `/register` war nie betroffen, weil das
+Widget dort schon im ersten Aufbau steht.
+
+Deshalb gilt: **steht ein `<x-turnstile />` hinter einer Bedingung, die sich
+per Livewire aendern kann, gehoert `<x-turnstile-scripts />` unbedingt
+daneben** — ausserhalb der Bedingung.
+
+```blade
+<x-turnstile-scripts action="company_listing" />
+
+@if($step === 2)
+    <x-turnstile action="company_listing" wire="turnstileToken" field="turnstileToken" />
+@endif
+```
+
+Mehrfach auf einer Seite ist unschaedlich (`@once`), bei ausgeschalteter Aktion
+wird Cloudflare gar nicht geladen. Abgesichert ist die Regel in
+`tests/Feature/Turnstile/TurnstileScriptsTest.php`: der Test durchsucht alle
+Livewire-Ansichten und verlangt die Skript-Komponente ueberall, wo das Widget
+in einer Bedingung steht.
+
+Zwei Nebenbefunde aus derselben Suche, beide in `resources/js/turnstile.js`:
+
+* Ein Livewire-Morph ersetzt den Submit-Knopf samt seinem `disabled`, waehrend
+  das Widget im `wire:ignore`-Bereich stehen bleibt. `boote()` zieht die Sperre
+  deshalb nach jedem Umlauf am Token-Stand nach.
+* Freigegeben werden weiter nur Knoepfe mit eigener Marke
+  `data-turnstile-gesperrt`. Das ist kein Schoenheitsfehler: `@disabled($done)`
+  der Firmeneintragung verhindert nach dem Abschluss einen zweiten Eintrag
+  (#16), und ein Gate, das auch fremde Sperren aufhebt, haette das ausgehebelt.
 
 ### Die Livewire-Seite: `InteractsWithTurnstile` (#52)
 
@@ -1554,7 +1622,7 @@ sie ab — eine Adressaenderung wirkt damit an genau einer Stelle:
 | Wert | Wirkung |
 | --- | --- |
 | `off` | Kein Header |
-| `report` | `Content-Security-Policy-Report-Only` — der Browser meldet in der Konsole, blockiert nichts |
+| `report` | `Content-Security-Policy-Report-Only` — der Browser meldet in der Konsole **und an die Sammelstelle** (#51), blockiert nichts |
 | `enforce` | `Content-Security-Policy` — der Browser blockiert. **Vorgabe seit #21.** |
 
 #### Kein `'unsafe-inline'`, aber `'unsafe-eval'` (#21)
@@ -1601,6 +1669,84 @@ kennt. In den Views steht dafuer `{!! \App\Services\Security\CspNonce::inject($s
 Beim Nachladen unterhalb des Falzes legt `ads.js` jedes Skript aus dem
 `<template>` neu an und setzt das Nonce ausdruecklich — ein geklontes
 `<script>` fuehrt der Browser sonst nicht zuverlaessig aus.
+
+#### Sammelstelle fuer Verstoesse (#51)
+
+Bis #51 setzte die Policy weder `report-uri` noch `report-to`: der Browser
+meldete nur in seine eigene Konsole, serverseitig wurde nichts gesammelt. Der
+Schritt „24 Stunden Meldungen sichten“ aus `docs/turnstile-golive.md` §1.5
+konnte deshalb von sich aus nichts einsammeln — und genau darum fiel der eine
+echte Befund (zwei `onsubmit="return false"` auf `/jobs`) erst durch eine
+serverseitige Messung des ausgelieferten HTML auf, nicht durch den
+`report`-Modus.
+
+Seit #51 steht die Adresse in **beiden** Direktiven und zusaetzlich im eigenen
+Header:
+
+```
+Content-Security-Policy-Report-Only: …; report-uri /csp-bericht; report-to csp-bericht
+Reporting-Endpoints: csp-bericht="https://fahrschulefinder.de/csp-bericht"
+```
+
+Beide, weil sich die Browser nicht einig sind: Chrome liest `report-to` (und
+die Gruppe aus `Reporting-Endpoints`), Safari und Firefox lesen weiter
+`report-uri`. `report-uri` steht als **relativer** Pfad in der Policy — der
+Browser loest ihn gegen das Dokument auf und trifft damit immer das eigene
+Portal; eine feste URL waere bei 23 Portalen falsch.
+
+| Teil | Wo |
+| --- | --- |
+| Direktiven und Header | `App\Http\Middleware\ContentSecurityPolicy` (`reportPath()`, `reportGroup()`) |
+| Schalter und Grenzen | `config('csp.report.*')`, `.env`: `CSP_REPORT_*` |
+| Route | `POST /csp-bericht`, `portal.csp-report` in `routes/tenant.php` (`universal`, `throttle:60,1`) |
+| Annahme | `App\Http\Controllers\Portal\CspReportController` |
+| Format-Normalisierung | `App\Csp\Support\CspReportPayload` → `App\Csp\Dto\CspViolation` |
+| Schreiben und Entdopplung | `App\Csp\Support\CspReportCollector` |
+| Tabelle | `csp_reports`, **zentral** (`App\Csp\Models\CspReport`) |
+| Auswertung | `php artisan csp:berichte` (Exit 70 = Befunde) |
+| Pruning | `php artisan csp:prune`, naechtlich 03:50, 30 Tage |
+
+Beide Berichtsformate muessen rein: `application/csp-report`
+(`{"csp-report": {"violated-directive": …}}`, Safari/Firefox) und
+`application/reports+json` (`[{"type":"csp-violation","body":{…}}]`, Chrome,
+mehrere Berichte je Anfrage und camelCase-Schluessel wie `blockedURL`).
+`CspReportPayload` sucht jeden Schluessel in beiden Schreibweisen.
+
+Entdoppelt wird beim **Schreiben**, nicht beim Auswerten: ein kaputtes
+Drittanbieter-Schnipsel im Layout meldet von jedem Seitenaufruf, und das waeren
+bei 23 Portalen Tausende gleicher Zeilen je Stunde. Schluessel ist SHA-256 aus
+Portal + Direktive + normalisierter blockierter Quelle (UNIQUE-Index auf
+`fingerprint`); ein weiterer Treffer erhoeht `hits` und `last_seen_at`.
+Normalisiert heisst: URLs verlieren Query und Fragment, sonst zaehlt jede
+Cache-Busting-Variante derselben Werbe-URL als eigener Verstoss.
+`document_uri` geht bewusst **nicht** in den Schluessel — ein Schnipsel im
+Layout meldet von jeder Unterseite, sonst waere je Seite eine Zeile.
+
+Zentral, nicht in der Tenant-DB (anders als `turnstile_verifications`): die
+Auswertung ist „eine Liste je Portal“ ueber alle Portale, und das heisst eine
+Tabelle, ein Pruning-Lauf und keine Tenant-Migration je Portal. `tenant_id`
+wird mitgeschrieben, wenn ein Tenant initialisiert ist; `portal` ist immer der
+**Host der Anfrage**, nie ein Wert aus dem Rumpf.
+
+Die Route ist unauthentifiziert und ohne CSRF — der Browser schickt den
+Bericht ohne Session und oft erst nach dem Verlassen der Seite. Abgesichert ist
+sie durch vier Grenzen statt durch Auth: Route-Throttle je IP (60/min),
+Rumpfgroesse (`CSP_REPORT_MAX_BODY_BYTES`, 64 kB), hoechstens 20 Verstoesse je
+Anfrage, und hoechstens `CSP_REPORT_MAX_NEW_ROWS_PER_HOUR` (200) **neue** Zeilen
+je Portal und Stunde. Die letzte Grenze trifft nie Erhoehungen bestehender
+Zeilen, der Zaehler bleibt also richtig. Geantwortet wird immer `204`, auch auf
+Unsinn: der Browser wertet die Antwort nicht aus, und eine Fehlermeldung wuerde
+nur verraten, was durchkommt. `CSP_REPORT_ENABLED=false` laesst die Route
+stehen, setzt aber keine der beiden Direktiven und schreibt nichts.
+
+`csp:prune` geht nach `last_seen_at`, nicht nach `first_seen_at`: eine Zeile,
+die immer noch Treffer sammelt, ist ein offener Befund und bleibt stehen.
+
+Was die Sammelstelle **nicht** ersetzt: `scripts/csp-live-pruefen.sh` prueft
+das ausgelieferte HTML ohne einen einzigen Besucher. Die Sammelstelle sieht
+dafuer, was erst zur Laufzeit entsteht (dynamisch eingefuegte Skripte, `eval`,
+fremde Stylesheets) — aber erst, wenn jemand die Seite besucht. Beides
+zusammen deckt §1.5 Schritt 3 ab.
 
 #### Was die Middleware nicht anfasst
 

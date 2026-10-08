@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\OrderService;
 use App\Services\SubscriptionService;
 use App\Turnstile\View\Components\Turnstile;
+use App\Turnstile\View\Components\TurnstileScripts;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 
@@ -28,6 +29,7 @@ class BladeProvider extends ServiceProvider
         // Liegt im Modul app/Turnstile (docs/turnstile.md §2) und nicht unter
         // App\View\Components, darum die Zuordnung von Hand: <x-turnstile />.
         Blade::component(Turnstile::class, 'turnstile');
+        Blade::component(TurnstileScripts::class, 'turnstile-scripts');
 
         Blade::if('subscribed', function (?string $productSlug = null, ?Tenant $tenant = null) {
             /** @var User $user */
