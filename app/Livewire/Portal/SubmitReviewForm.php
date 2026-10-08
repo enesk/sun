@@ -7,8 +7,8 @@ use App\AntiSpam\Support\RateLimitGuard;
 use App\Mail\NewReviewNotification;
 use App\Models\Portal\Company;
 use App\Models\Portal\Review;
+use App\Turnstile\Concerns\InteractsWithTurnstile;
 use App\Turnstile\Enums\TurnstileAction;
-use App\Turnstile\Rules\TurnstileRule;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
@@ -18,11 +18,9 @@ class SubmitReviewForm extends Component
     // Honigtopf und Mindest-Ausfuellzeit (#22); die Properties kommen aus dem
     // Trait, gebunden von <x-antispam-fields wire /> in der Ansicht.
     use InteractsWithAntiSpam;
+    use InteractsWithTurnstile;
 
     public Company $company;
-
-    /** Turnstile-Token, gesetzt von <x-turnstile wire="turnstileToken" />. */
-    public string $turnstileToken = '';
 
     public float $rating = 0;
     public string $authorName = '';
@@ -101,9 +99,7 @@ class SubmitReviewForm extends Component
 
         // Turnstile zuletzt: erst wenn alle Felder stimmen, wird ein Token
         // eingeloest — Cloudflare nimmt jedes Token nur einmal an.
-        $this->validate([
-            'turnstileToken' => [new TurnstileRule(TurnstileAction::LeadRequest, null)],
-        ]);
+        $this->validateTurnstile(TurnstileAction::LeadRequest, null);
 
         $review = Review::create([
             'company_id' => $this->company->id,
