@@ -44,7 +44,7 @@
       <label for="password" class="mt-4 block text-sm font-medium text-zinc-700 mb-1">{{ __('portal.auth.new_password.password_label') }}</label>
       <div class="relative">
         <input id="password" name="password" type="password" @class(['input pr-12', 'border-red-500' => $errors->has('password')]) autocomplete="new-password" required minlength="8" @if(!empty($email)) autofocus @endif data-pass @error('password') aria-invalid="true" aria-describedby="password-error" @enderror>
-        <button type="button" class="absolute right-1 top-1/2 -translate-y-1/2 size-10 rounded-lg text-zinc-400 hover:text-zinc-700 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" data-toggle-pass aria-label="{{ __('portal.signup.account.password_show') }}"><x-sun.icon name="eye" class="size-5" /></button>
+        <button type="button" class="absolute right-1 top-1/2 -translate-y-1/2 size-10 rounded-lg text-zinc-400 hover:text-zinc-700 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" data-toggle-pass data-pass-scope="#resetCard" data-label-show="{{ __('portal.signup.account.password_show') }}" data-label-hide="{{ __('portal.signup.account.password_hide') }}" aria-label="{{ __('portal.signup.account.password_show') }}"><x-sun.icon name="eye" class="size-5" /></button>
       </div>
       @error('password')
         <p id="password-error" class="mt-1 text-sm text-red-600" role="alert">{{ $message }}</p>
@@ -63,16 +63,3 @@
 </div>
 @endsection
 
-@push('scripts')
-<script>
-(() => {
-  const card = document.getElementById('resetCard');
-  card?.querySelector('[data-toggle-pass]')?.addEventListener('click', event => {
-    const fields = card.querySelectorAll('[data-pass]');
-    const isHidden = fields[0].type === 'password';
-    fields.forEach(field => { field.type = isHidden ? 'text' : 'password'; });
-    event.currentTarget.setAttribute('aria-label', isHidden ? @js(__('portal.signup.account.password_hide')) : @js(__('portal.signup.account.password_show')));
-  });
-})();
-</script>
-@endpush

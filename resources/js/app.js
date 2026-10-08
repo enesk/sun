@@ -1,5 +1,15 @@
 import intersect from '@alpinejs/intersect'
 import focus from '@alpinejs/focus'
+import { initAnalytics } from './analytics'
+import { initAds } from './ads'
+import { registerAlpineData } from './modules/alpine-data'
+import { initContactTracking } from './modules/contact-tracking'
+import { initCookieBar } from './modules/cookie-bar'
+import { initLucideIcons } from './modules/lucide-icons'
+import { initPaddleCheckout } from './modules/paddle-checkout'
+import { initReadingProgress } from './modules/reading-progress'
+import { initRecaptchaBridge } from './modules/recaptcha-bridge'
+import { initTrustBar } from './modules/trust-bar'
 
 // ============================================================
 // Livewire v4 bundles Alpine.js — DO NOT import/start Alpine separately.
@@ -8,6 +18,9 @@ import focus from '@alpinejs/focus'
 document.addEventListener('alpine:init', () => {
     window.Alpine.plugin(intersect)
     window.Alpine.plugin(focus)
+
+    // Komponenten, die vorher als Inline-Fabrik in Blade standen (#21)
+    registerAlpineData(window.Alpine)
 
     // LEGAL-3: DSGVO Cookie-Consent (Alpine.js Component)
     window.Alpine.data('cookieConsent', () => ({
@@ -215,10 +228,28 @@ function initRipple() {
     });
 }
 
+// ============================================================
+// Module, die vorher als Inline-Skript in den Views standen (#21).
+// Alle haengen an data-Attributen bzw. Meta-Angaben und machen nichts,
+// wenn ihr Markup auf der Seite fehlt.
+// ============================================================
+function initInlineErsatz() {
+    initAnalytics();
+    initAds();
+    initCookieBar();
+    initRecaptchaBridge();
+    initLucideIcons();
+    initTrustBar();
+    initReadingProgress();
+    initContactTracking();
+    initPaddleCheckout();
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     assignTabSliderEvents();
     initScrollReveal();
     initRipple();
+    initInlineErsatz();
 });
 
 function assignTabSliderEvents() {

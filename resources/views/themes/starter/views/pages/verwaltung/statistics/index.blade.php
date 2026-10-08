@@ -3,7 +3,10 @@
 @section('title', 'Statistiken — Verwaltung')
 
 @section('content')
-    <div x-data="statsOverview()" x-init="load()">
+    <div x-data="statsOverview(@js([
+        'overview' => route('verwaltung.statistics.api.overview'),
+        'topCompanies' => route('verwaltung.statistics.api.top-companies'),
+    ]))" x-init="load()">
         {{-- Page Header --}}
         <div class="dash-page-header">
             <div>
@@ -164,60 +167,5 @@
         </template>
     </div>
 
-    <script>
-    function statsOverview() {
-        return {
-            period: '30d',
-            loading: true,
-            summary: null,
-            trend: [],
-            topCompanies: [],
-            maxViews: 0,
-            tooltip: null,
-
-            async load() {
-                this.loading = true;
-                try {
-                    const [overviewRes, topRes] = await Promise.all([
-                        fetch(`{{ route('verwaltung.statistics.api.overview') }}?period=${this.period}`),
-                        fetch(`{{ route('verwaltung.statistics.api.top-companies') }}?period=${this.period}&limit=20`),
-                    ]);
-                    const overview = await overviewRes.json();
-                    const top = await topRes.json();
-
-                    this.summary = overview.summary;
-                    this.trend = overview.trend || [];
-                    this.maxViews = Math.max(...this.trend.map(d => d.page_views || 0), 1);
-                    this.topCompanies = top.companies || [];
-                } catch (e) {
-                    console.error('Stats load error:', e);
-                    this.summary = null;
-                } finally {
-                    this.loading = false;
-                }
-            },
-
-            setPeriod(p) {
-                this.period = p;
-                this.load();
-            },
-
-            fmt(n) {
-                return new Intl.NumberFormat('de-DE').format(n || 0);
-            },
-
-            trendClass(change) {
-                if (change > 0) return 'dash-stat-trend dash-stat-trend-up';
-                if (change < 0) return 'dash-stat-trend dash-stat-trend-down';
-                return 'dash-stat-trend';
-            },
-
-            trendText(change) {
-                if (change > 0) return '+' + Math.round(change) + '%';
-                if (change < 0) return Math.round(change) + '%';
-                return 'stabil';
-            },
-        };
-    }
-    </script>
+    {{-- statsOverview: resources/js/modules/alpine-data.js (#21) --}}
 @endsection

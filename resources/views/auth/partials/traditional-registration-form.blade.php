@@ -1,5 +1,10 @@
-<form method="POST" action="{{ route('register') }}" class="space-y-4" x-data="passwordStrength()">
+<form method="POST" action="{{ route('register') }}" class="space-y-4" x-data="passwordStrength">
     @csrf
+
+    {{-- Tiefenverteidigung (#8): Honeypot und verschluesselter Zeitstempel.
+         Geprueft in RegisterController::register() vor der Validierung; ein
+         Treffer wird still abgewiesen. --}}
+    <x-antispam-fields />
 
     {{-- Name --}}
     <div>
@@ -102,6 +107,9 @@
         @endpush
     @endif
 
+    {{-- Turnstile (#6): Pflicht fuer jede Kontoanlage, geprueft in TurnstileRule --}}
+    <x-turnstile action="registration" />
+
     {{-- Submit --}}
     <button type="submit"
             class="w-full btn-portal py-3 text-sm font-semibold rounded-lg transition-all duration-200 hover:shadow-lg touch-target">
@@ -129,31 +137,3 @@
     </x-auth.social-login>
 </form>
 
-<script>
-function passwordStrength() {
-    return {
-        password: '',
-        strength: 0,
-        strengthLabel: '',
-        strengthColor: 'bg-base-300',
-        strengthTextColor: 'text-base-content/50',
-        checkStrength() {
-            let score = 0;
-            const p = this.password;
-            if (p.length >= 8) score++;
-            if (p.length >= 12) score++;
-            if (/[A-Z]/.test(p) && /[a-z]/.test(p)) score++;
-            if (/[0-9]/.test(p)) score++;
-            if (/[^A-Za-z0-9]/.test(p)) score++;
-            this.strength = Math.min(4, score);
-
-            const labels = ['', 'Schwach', 'Ausreichend', 'Gut', 'Stark'];
-            const colors = ['bg-base-300', 'bg-red-400', 'bg-yellow-400', 'bg-blue-400', 'bg-green-500'];
-            const textColors = ['text-base-content/50', 'text-red-500', 'text-yellow-600', 'text-blue-500', 'text-green-600'];
-            this.strengthLabel = labels[this.strength] || '';
-            this.strengthColor = colors[this.strength] || 'bg-base-300';
-            this.strengthTextColor = textColors[this.strength] || 'text-base-content/50';
-        }
-    }
-}
-</script>

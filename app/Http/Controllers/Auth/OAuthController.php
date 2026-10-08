@@ -47,8 +47,17 @@ class OAuthController extends RegisterController
         }
 
         $isRegistration = false;
-        DB::transaction(function () use ($provider, $oauthUser, &$isRegistration) {
+        $isBlocked = false;
+        DB::transaction(function () use ($provider, $oauthUser, &$isRegistration, &$isBlocked) {
             $user = User::where('email', $oauthUser->email)->first();
+
+            // #6: Der Callback traegt kein Turnstile-Token, hier darf also kein
+            // Konto entstehen (config('turnstile.oauth_registration')).
+            if (! $user && ! config('turnstile.oauth_registration')) {
+                $isBlocked = true;
+
+                return;
+            }
 
             if ($user) {
                 $user->update([
@@ -116,6 +125,12 @@ class OAuthController extends RegisterController
 
             Auth::login($user);
         });
+
+        if ($isBlocked) {
+            return redirect()->route('register')->withErrors([
+                'email' => __('turnstile.oauth_registration_blocked'),
+            ]);
+        }
 
         if ($isRegistration) {
             return redirect()->route('registration.thank-you');

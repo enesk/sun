@@ -27,7 +27,7 @@
     @include('ratgeber.partials.organization-jsonld', ['organization' => $organization ?? []])
     <script type="application/ld+json">
     {!! json_encode([
-        '@context' => 'https://schema.org',
+        '@'.'context' => 'https://schema.org', /* Schluessel zusammengesetzt: sonst macht Blade daraus eine Direktive (#30) */
         '@type' => 'CollectionPage',
         'name' => __('portal.layout.header.guide').' — '.$portalName,
         'description' => $sunBlog['text'],

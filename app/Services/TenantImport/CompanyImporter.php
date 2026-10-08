@@ -209,7 +209,10 @@ class CompanyImporter
         $slug = $baseSlug;
         $suffix = 2;
 
-        while (Company::where('slug', $slug)->exists()) {
+        // withTrashed(): `slug` ist unique, und ein soft-geloeschter Eintrag
+        // (#10) belegt den Wert weiter — ohne ihn liefe das Anlegen in einen
+        // Unique-Fehler statt in den naechsten freien Slug.
+        while (Company::withTrashed()->where('slug', $slug)->exists()) {
             $slug = "{$baseSlug}-{$suffix}";
             $suffix++;
         }

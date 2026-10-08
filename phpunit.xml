@@ -27,5 +27,7 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <!-- Turnstile aus: die Testsuite schickt kein Token und soll Cloudflare nicht anrufen (#6) -->
+        <env name="TURNSTILE_ENABLED" value="false"/>
     </php>
 </phpunit>

@@ -1,0 +1,73 @@
+# Wegwerf-E-Mail-Domains — Sperrliste fuer die Registrierung (#8)
+#
+# Verwendet von App\AntiSpam\DisposableDomainList, geprueft in
+# App\AntiSpam\Rules\NotDisposableEmailRule.
+#
+# Stand:   08.10.2026
+# Pflege:  php artisan antispam:refresh-domains
+# Quelle:  https://github.com/disposable-email-domains/disposable-email-domains
+#          (disposable_email_blocklist.conf, Public Domain / CC0, ~9.200 Domains)
+#
+# Format: eine Domain je Zeile, Kleinschreibung. Leerzeilen und Zeilen mit `#`
+# werden uebersprungen. `*` ist ein Platzhalter fuer genau ein Label:
+#   tempmail.*     trifft tempmail.de, tempmail.net, nicht a.tempmail.de
+#   *.tempmail.com trifft a.tempmail.com, nicht tempmail.com
+# Subdomains einer gelisteten Domain sind immer mit gesperrt.
+#
+# Zwei Bloecke, und die Reihenfolge ist wichtig:
+#
+#   "Dauerhaft im Repo"  — von Hand gepflegt, ueberlebt jeden Lauf von
+#                          antispam:refresh-domains unveraendert.
+#   "Aus der Quelle"     — wird vom Command komplett neu geschrieben. Steht
+#                          hier noch nichts: die Startliste kommt absichtlich
+#                          ohne die ~9.200 fremden Domains aus (siehe unten).
+#
+# WARUM SO KURZ: die Bot-Analyse in #2 hat in 30 Tagen NULL Treffer auf
+# Wegwerf-Domains gefunden (docs/turnstile.md §1.2). Die Liste ist vorsorglich,
+# nicht die Antwort auf eine gemessene Welle — jede zusaetzliche Domain ist vor
+# allem ein moegliches falsches Positiv gegen einen echten Interessenten. Wer
+# die vollstaendige fremde Liste will, laesst antispam:refresh-domains laufen;
+# die Aenderung geht dann durch ein Code-Review wie jede andere.
+
+# --- Dauerhaft im Repo (ueberlebt antispam:refresh-domains) ---
+
+# R6 aus docs/turnstile.md §7 — die im Ticket namentlich verlangten Domains.
+mailinator.com
+tempmail.*
+tempmail.com
+temp-mail.org
+tempr.email
+guerrillamail.*
+guerrillamailblock.com
+10minutemail.*
+yopmail.com
+yopmail.fr
+yopmail.net
+trashmail.*
+trash-mail.com
+sharklasers.com
+dropmail.me
+mohmal.com
+getnada.com
+
+# Haeufige Wegwerf-Dienste im deutschsprachigen Raum.
+wegwerfemail.de
+wegwerfmail.*
+muellmail.com
+spoofmail.de
+byom.de
+discard.email
+einrot.com
+fakeinbox.com
+grr.la
+mailcatch.com
+maildrop.cc
+mailnesia.com
+mintemail.com
+mytrashmail.com
+nurfuerspam.de
+spam4.me
+spambog.*
+throwawaymail.com
+
+# --- Aus der Quelle (wird von antispam:refresh-domains neu geschrieben) ---

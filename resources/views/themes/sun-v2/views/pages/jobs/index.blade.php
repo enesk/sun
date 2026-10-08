@@ -46,14 +46,33 @@
 @section('title', __('portal.jobs.meta_title').' | '.$portalName)
 @section('meta_description', trans_choice('portal.jobs.meta_description', $totalJobs, ['anzahl' => number_format($totalJobs, 0, ',', '.')]))
 
+{{-- CollectionPage der Stellenuebersicht (#31). Die einzelne JobPosting steht
+     auf pages/jobs/show. Schluessel zusammengesetzt: '@'.'context' waere als
+     Literal eine Blade-Direktive. --}}
+@push('scripts')
+<script type="application/ld+json">
+{!! json_encode([
+    '@'.'context' => 'https://schema.org',
+    '@type' => 'CollectionPage',
+    'name' => __('portal.jobs.headline'),
+    'description' => trans_choice('portal.jobs.meta_description', $totalJobs, ['anzahl' => number_format($totalJobs, 0, ',', '.')]),
+    'url' => route('portal.jobs.index'),
+    'isPartOf' => [
+        '@type' => 'WebSite',
+        'name' => $portalName,
+        'url' => route('home'),
+    ],
+    'numberOfItems' => (int) $jobCount,
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}
+</script>
+@endpush
+
 @section('content')
 
 <!-- ===== HERO mit Job-Suche ===== -->
 <section class="bg-brand-50 py-10 md:py-16">
   <div class="container-portal">
-    <nav aria-label="{{ __('portal.layout.breadcrumb.label') }}" class="text-sm text-zinc-500 flex items-center gap-1.5">
-      <a href="{{ route('home') }}" class="hover:text-brand">{{ __('portal.layout.breadcrumb.home') }}</a><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" /><span class="text-zinc-900">{{ __('portal.layout.header.jobs') }}</span>
-    </nav>
+    <x-sun.breadcrumb :items="\App\Support\Breadcrumb::forJobs()" :wrap="false" :hide-home="false" />
     <div class="mt-4 max-w-2xl">
       <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-zinc-900">{{ __('portal.jobs.headline') }}</h1>
       <p class="mt-3 text-base md:text-lg leading-relaxed text-zinc-700">{{ trans_choice('portal.jobs.meta_description', $totalJobs, ['anzahl' => number_format($totalJobs, 0, ',', '.')]) }}</p>

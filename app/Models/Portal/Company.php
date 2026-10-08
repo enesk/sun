@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
@@ -24,7 +25,9 @@ use Stancl\Tenancy\Database\Concerns\TenantConnection;
 #[ObservedBy(CompanyActivationObserver::class)]
 class Company extends Model implements HasMedia
 {
-    use HasFactory, InteractsWithMedia, TenantConnection;
+    // SoftDeletes fuer die Bestandsbereinigung (#10): ein markierter
+    // Eintrag wird nach der Sichtung nur soft-deleted, nie hart geloescht.
+    use HasFactory, InteractsWithMedia, SoftDeletes, TenantConnection;
 
     protected static function newFactory(): CompanyFactory
     {
@@ -57,6 +60,9 @@ class Company extends Model implements HasMedia
         'social_linkedin',
         'social_youtube',
         'video_url',
+        // Herkunft einer Selbsteintragung (#8), IP nur als HMAC-Hash.
+        'created_ip_hash',
+        'created_user_agent',
     ];
 
     protected $casts = [
@@ -73,6 +79,11 @@ class Company extends Model implements HasMedia
         'plan_grace_until' => 'datetime',
         'verified_at' => 'datetime',
         'monthly_report_opted_out_at' => 'datetime',
+        // Quarantaene (#10); gesetzt wird ausschliesslich ueber
+        // App\AntiSpam\BotQuarantine, deshalb nicht in $fillable.
+        'suspected_bot_at' => 'datetime',
+        'suspected_bot_cleared_at' => 'datetime',
+        'suspected_bot_reasons_json' => 'array',
     ];
 
     protected static function booted(): void

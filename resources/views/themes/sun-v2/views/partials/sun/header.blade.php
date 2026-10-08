@@ -3,9 +3,14 @@
     $ownedCompany = auth()->check() ? auth()->user()->getOwnedCompany() : null;
 
     // Ratgeber und Stellenanzeigen sind je Portal abschaltbar (#44)
-    $navLinks = [
-        ['label' => __('portal.layout.header.cities'), 'href' => route('portal.cities.index')],
-    ];
+    $navLinks = [];
+
+    // Nur wo der Eintragsknopf sonst der einzige Handlungsaufruf ist (#15)
+    if (config('themes.sun-v2.nav.directory', false)) {
+        $navLinks[] = ['label' => __('portal.layout.header.directory'), 'href' => route('portal.companies.index')];
+    }
+
+    $navLinks[] = ['label' => __('portal.layout.header.cities'), 'href' => route('portal.cities.index')];
 
     if (config('themes.sun-v2.nav.guide', true)) {
         $navLinks[] = ['label' => __('portal.layout.header.guide'), 'href' => route('guide.index')];

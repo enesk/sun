@@ -1,0 +1,1820 @@
+{
+  "gemessen": "2026-10-08T15:31:35.262Z",
+  "seiten": [
+    {
+      "name": "sun-v2 Startseite",
+      "url": "http://elektriker.test/",
+      "htmlLaenge": 48667,
+      "verstoesse": [
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://pagead2.googlesyndication.com",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://pagead2.googlesyndication.com",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://pagead2.googlesyndication.com",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://pagead2.googlesyndication.com",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/",
+          "muster": ""
+        },
+        {
+          "direktive": "connect-src",
+          "blockiert": "https://ep1.adtrafficquality.google/getconfig/sodar?sv=200&tid=gda&tv=r20261006&st=env&sjk=3571121007592043",
+          "quelle": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202610010101/show_ads_impl.js",
+          "zeile": 152,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://ep2.adtrafficquality.google",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://ep2.adtrafficquality.google",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/",
+          "muster": ""
+        }
+      ],
+      "protokoll": [
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://pagead2.googlesyndication.com/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://pagead2.googlesyndication.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://pagead2.googlesyndication.com/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://pagead2.googlesyndication.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://pagead2.googlesyndication.com/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://pagead2.googlesyndication.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://pagead2.googlesyndication.com/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://pagead2.googlesyndication.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Connecting to 'https://ep1.adtrafficquality.google/getconfig/sodar?sv=200&tid=gda&tv=r20261006&st=env&sjk=3571121007592043' violates the following Content Security Policy directive: \"connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://leads.widimedia.com https://challenges.cloudflare.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202610010101/show_ads_impl.js?bust=122881372"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://ep2.adtrafficquality.google/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://ep2.adtrafficquality.google/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://ep2.adtrafficquality.google/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://ep2.adtrafficquality.google/"
+        }
+      ],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "sun-v2 Suche",
+      "url": "http://elektriker.test/firmen?q=elektro",
+      "htmlLaenge": 94820,
+      "verstoesse": [
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://pagead2.googlesyndication.com",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/firmen?q=elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://pagead2.googlesyndication.com",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/firmen?q=elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://pagead2.googlesyndication.com",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/firmen?q=elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://pagead2.googlesyndication.com",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/firmen?q=elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "connect-src",
+          "blockiert": "https://ep1.adtrafficquality.google/getconfig/sodar?sv=200&tid=gda&tv=r20261006&st=env&sjk=8552619882006301",
+          "quelle": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202610010101/show_ads_impl.js",
+          "zeile": 152,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/firmen?q=elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://ep2.adtrafficquality.google",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/firmen?q=elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://ep2.adtrafficquality.google",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/firmen?q=elektro",
+          "muster": ""
+        }
+      ],
+      "protokoll": [
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://pagead2.googlesyndication.com/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://pagead2.googlesyndication.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://pagead2.googlesyndication.com/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://pagead2.googlesyndication.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://pagead2.googlesyndication.com/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://pagead2.googlesyndication.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://pagead2.googlesyndication.com/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://pagead2.googlesyndication.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Connecting to 'https://ep1.adtrafficquality.google/getconfig/sodar?sv=200&tid=gda&tv=r20261006&st=env&sjk=8552619882006301' violates the following Content Security Policy directive: \"connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://leads.widimedia.com https://challenges.cloudflare.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202610010101/show_ads_impl.js?bust=122881372"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://ep2.adtrafficquality.google/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://ep2.adtrafficquality.google/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://ep2.adtrafficquality.google/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://ep2.adtrafficquality.google/"
+        }
+      ],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "sun-v2 Firmenprofil (Werbung aktiv)",
+      "url": "http://elektriker.test/7626-elektro-polz",
+      "htmlLaenge": 69808,
+      "verstoesse": [
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://pagead2.googlesyndication.com",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/7626-elektro-polz",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://pagead2.googlesyndication.com",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/7626-elektro-polz",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://pagead2.googlesyndication.com",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/7626-elektro-polz",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://pagead2.googlesyndication.com",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/7626-elektro-polz",
+          "muster": ""
+        },
+        {
+          "direktive": "connect-src",
+          "blockiert": "https://ep1.adtrafficquality.google/getconfig/sodar?sv=200&tid=gda&tv=r20261006&st=env&sjk=3494830662050685",
+          "quelle": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202610010101/show_ads_impl.js",
+          "zeile": 152,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/7626-elektro-polz",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://ep2.adtrafficquality.google",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/7626-elektro-polz",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://ep2.adtrafficquality.google",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/7626-elektro-polz",
+          "muster": ""
+        }
+      ],
+      "protokoll": [
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://pagead2.googlesyndication.com/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://pagead2.googlesyndication.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://pagead2.googlesyndication.com/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://pagead2.googlesyndication.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://pagead2.googlesyndication.com/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://pagead2.googlesyndication.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://pagead2.googlesyndication.com/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://pagead2.googlesyndication.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Connecting to 'https://ep1.adtrafficquality.google/getconfig/sodar?sv=200&tid=gda&tv=r20261006&st=env&sjk=3494830662050685' violates the following Content Security Policy directive: \"connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://leads.widimedia.com https://challenges.cloudflare.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202610010101/show_ads_impl.js?bust=122881372"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://ep2.adtrafficquality.google/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://ep2.adtrafficquality.google/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://ep2.adtrafficquality.google/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://ep2.adtrafficquality.google/"
+        }
+      ],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "sun-v2 Registrierung",
+      "url": "http://elektriker.test/register",
+      "htmlLaenge": 22507,
+      "verstoesse": [
+        {
+          "direktive": "style-src-elem",
+          "blockiert": "https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap",
+          "quelle": "http://elektriker.test/register",
+          "zeile": 33,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiAyp8kv8JHgFVrJJLmE0tDMPKhSkFEkm8.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiAyp8kv8JHgFVrJJLmE0tMMPKhSkFEkm8.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiAyp8kv8JHgFVrJJLmE0tCMPKhSkFE.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmv1pVFteOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmv1pVGdeOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmv1pVF9eOYktMqg.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm21lVFteOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm21lVGdeOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm21lVF9eOYktMqg.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiGyp8kv8JHgFVrJJLucXtAOvWDSHFF.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiGyp8kv8JHgFVrJJLufntAOvWDSHFF.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiGyp8kv8JHgFVrJJLucHtAOvWDSA.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmg1hVFteOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmg1hVGdeOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmg1hVF9eOYktMqg.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmr19VFteOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmr19VGdeOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmr19VF9eOYktMqg.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmy15VFteOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmy15VGdeOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmy15VF9eOYktMqg.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm111VFteOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm111VGdeOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm111VF9eOYktMqg.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm81xVFteOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm81xVGdeOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm81xVF9eOYktMqg.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiGyp8kv8JHgFVrLPTucXtAOvWDSHFF.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiGyp8kv8JHgFVrLPTufntAOvWDSHFF.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiGyp8kv8JHgFVrLPTucHtAOvWDSA.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLFj_Z11lFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLFj_Z1JlFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLFj_Z1xlFd2JQEk.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDz8Z11lFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDz8Z1JlFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDz8Z1xlFd2JQEk.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJbecnFHGPezSQ.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJnecnFHGPezSQ.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecnFHGPc.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLGT9Z11lFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLGT9Z1JlFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLGT9Z1xlFd2JQEk.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLEj6Z11lFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLEj6Z1JlFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLEj6Z1xlFd2JQEk.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLCz7Z11lFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLCz7Z1JlFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLCz7Z1xlFd2JQEk.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDD4Z11lFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDD4Z1JlFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDD4Z1xlFd2JQEk.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLBT5Z11lFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLBT5Z1JlFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLBT5Z1xlFd2JQEk.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/register",
+          "muster": ""
+        }
+      ],
+      "protokoll": [
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektriker.test/register"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'https://fonts.gstatic.com/s/poppins/v24/pxiAyp8kv8JHgFVrJJLmE0tDMPKhSkFEkm8.woff2' violates the following Content Security Policy directive: \"font-src 'self' data:\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektriker.test/register"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'https://fonts.gstatic.com/s/poppins/v24/pxiAyp8kv8JHgFVrJJLmE0tMMPKhSkFEkm8.woff2' violates the following Content Security Policy directive: \"font-src 'self' data:\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektriker.test/register"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'https://fonts.gstatic.com/s/poppins/v24/pxiAyp8kv8JHgFVrJJLmE0tCMPKhSkFE.woff2' violates the following Content Security Policy directive: \"font-src 'self' data:\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektriker.test/register"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmv1pVFteOYktMqlap.woff2' violates the following Content Security Policy directive: \"font-src 'self' data:\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektriker.test/register"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmv1pVGdeOYktMqlap.woff2' violates the following Content Security Policy directive: \"font-src 'self' data:\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektriker.test/register"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmv1pVF9eOYktMqg.woff2' violates the following Content Security Policy directive: \"font-src 'self' data:\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektriker.test/register"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm21lVFteOYktMqlap.woff2' violates the following Content Security Policy directive: \"font-src 'self' data:\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektriker.test/register"
+        }
+      ],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "sun-v2 Eintragung",
+      "url": "http://elektriker.test/eintragen",
+      "htmlLaenge": 30085,
+      "verstoesse": [
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://pagead2.googlesyndication.com",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/eintragen",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://pagead2.googlesyndication.com",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/eintragen",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://pagead2.googlesyndication.com",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/eintragen",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://pagead2.googlesyndication.com",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/eintragen",
+          "muster": ""
+        },
+        {
+          "direktive": "connect-src",
+          "blockiert": "https://ep1.adtrafficquality.google/getconfig/sodar?sv=200&tid=gda&tv=r20261006&st=env&sjk=2492547797885039",
+          "quelle": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202610010101/show_ads_impl.js",
+          "zeile": 152,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/eintragen",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://ep2.adtrafficquality.google",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/eintragen",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://ep2.adtrafficquality.google",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/eintragen",
+          "muster": ""
+        }
+      ],
+      "protokoll": [
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://pagead2.googlesyndication.com/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://pagead2.googlesyndication.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://pagead2.googlesyndication.com/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://pagead2.googlesyndication.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://pagead2.googlesyndication.com/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://pagead2.googlesyndication.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://pagead2.googlesyndication.com/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://pagead2.googlesyndication.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Connecting to 'https://ep1.adtrafficquality.google/getconfig/sodar?sv=200&tid=gda&tv=r20261006&st=env&sjk=2492547797885039' violates the following Content Security Policy directive: \"connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://leads.widimedia.com https://challenges.cloudflare.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202610010101/show_ads_impl.js?bust=122881372"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://ep2.adtrafficquality.google/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://ep2.adtrafficquality.google/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://ep2.adtrafficquality.google/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://ep2.adtrafficquality.google/"
+        }
+      ],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "sun-v2 Checkout",
+      "url": "http://elektriker.test/checkout/plan/premium-monthly",
+      "htmlLaenge": 34491,
+      "verstoesse": [
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://pagead2.googlesyndication.com",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/checkout/plan/premium-monthly",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://pagead2.googlesyndication.com",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/checkout/plan/premium-monthly",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://pagead2.googlesyndication.com",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/checkout/plan/premium-monthly",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://pagead2.googlesyndication.com",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/checkout/plan/premium-monthly",
+          "muster": ""
+        },
+        {
+          "direktive": "connect-src",
+          "blockiert": "https://ep1.adtrafficquality.google/getconfig/sodar?sv=200&tid=gda&tv=r20261006&st=env&sjk=573222739235227",
+          "quelle": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202610010101/show_ads_impl.js",
+          "zeile": 152,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/checkout/plan/premium-monthly",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://ep2.adtrafficquality.google",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/checkout/plan/premium-monthly",
+          "muster": ""
+        },
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://ep2.adtrafficquality.google",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektriker.test/checkout/plan/premium-monthly",
+          "muster": ""
+        }
+      ],
+      "protokoll": [
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://pagead2.googlesyndication.com/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://pagead2.googlesyndication.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://pagead2.googlesyndication.com/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://pagead2.googlesyndication.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://pagead2.googlesyndication.com/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://pagead2.googlesyndication.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://pagead2.googlesyndication.com/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://pagead2.googlesyndication.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Connecting to 'https://ep1.adtrafficquality.google/getconfig/sodar?sv=200&tid=gda&tv=r20261006&st=env&sjk=573222739235227' violates the following Content Security Policy directive: \"connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://leads.widimedia.com https://challenges.cloudflare.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202610010101/show_ads_impl.js?bust=122881372"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://ep2.adtrafficquality.google/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://ep2.adtrafficquality.google/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://ep2.adtrafficquality.google/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "https://ep2.adtrafficquality.google/"
+        }
+      ],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "default Startseite",
+      "url": "http://sanitaer.test/",
+      "htmlLaenge": 237934,
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "default Suche",
+      "url": "http://sanitaer.test/firmen?q=heizung",
+      "htmlLaenge": 229304,
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "default Firmenprofil",
+      "url": "http://sanitaer.test/59398-haustechnik-bruening-bad-heizung-solar",
+      "htmlLaenge": 111447,
+      "verstoesse": [
+        {
+          "direktive": "frame-src",
+          "blockiert": "https://maps.google.com",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/59398-haustechnik-bruening-bad-heizung-solar",
+          "muster": ""
+        }
+      ],
+      "protokoll": [
+        {
+          "quelle": "security",
+          "stufe": "error",
+          "text": "Framing 'https://maps.google.com/' violates the following report-only Content Security Policy directive: \"frame-src 'self' https://www.google.com https://www.gstatic.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://buy.paddle.com https://sandbox-buy.paddle.com https://challenges.cloudflare.com\". The violation has been logged, but no further action has been taken.\n",
+          "url": "http://sanitaer.test/59398-haustechnik-bruening-bad-heizung-solar"
+        }
+      ],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "default Registrierung",
+      "url": "http://sanitaer.test/register",
+      "htmlLaenge": 22462,
+      "verstoesse": [
+        {
+          "direktive": "style-src-elem",
+          "blockiert": "https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap",
+          "quelle": "http://sanitaer.test/register",
+          "zeile": 33,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiAyp8kv8JHgFVrJJLmE0tDMPKhSkFEkm8.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiAyp8kv8JHgFVrJJLmE0tMMPKhSkFEkm8.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiAyp8kv8JHgFVrJJLmE0tCMPKhSkFE.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmv1pVFteOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmv1pVGdeOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmv1pVF9eOYktMqg.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm21lVFteOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm21lVGdeOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm21lVF9eOYktMqg.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiGyp8kv8JHgFVrJJLucXtAOvWDSHFF.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiGyp8kv8JHgFVrJJLufntAOvWDSHFF.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiGyp8kv8JHgFVrJJLucHtAOvWDSA.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmg1hVFteOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmg1hVGdeOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmg1hVF9eOYktMqg.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmr19VFteOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmr19VGdeOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmr19VF9eOYktMqg.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmy15VFteOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmy15VGdeOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmy15VF9eOYktMqg.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm111VFteOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm111VGdeOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm111VF9eOYktMqg.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm81xVFteOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm81xVGdeOYktMqlap.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm81xVF9eOYktMqg.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiGyp8kv8JHgFVrLPTucXtAOvWDSHFF.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiGyp8kv8JHgFVrLPTufntAOvWDSHFF.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiGyp8kv8JHgFVrLPTucHtAOvWDSA.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLFj_Z11lFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLFj_Z1JlFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLFj_Z1xlFd2JQEk.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDz8Z11lFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDz8Z1JlFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDz8Z1xlFd2JQEk.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJbecnFHGPezSQ.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJnecnFHGPezSQ.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecnFHGPc.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLGT9Z11lFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLGT9Z1JlFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLGT9Z1xlFd2JQEk.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLEj6Z11lFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLEj6Z1JlFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLEj6Z1xlFd2JQEk.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLCz7Z11lFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLCz7Z1JlFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLCz7Z1xlFd2JQEk.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDD4Z11lFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDD4Z1JlFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDD4Z1xlFd2JQEk.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLBT5Z11lFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLBT5Z1JlFd2JQEl8qw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLBT5Z1xlFd2JQEk.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://sanitaer.test/register",
+          "muster": ""
+        }
+      ],
+      "protokoll": [
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the stylesheet 'https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap' violates the following Content Security Policy directive: \"style-src 'self' 'unsafe-inline'\". Note that 'style-src-elem' was not explicitly set, so 'style-src' is used as a fallback. The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://sanitaer.test/register"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'https://fonts.gstatic.com/s/poppins/v24/pxiAyp8kv8JHgFVrJJLmE0tDMPKhSkFEkm8.woff2' violates the following Content Security Policy directive: \"font-src 'self' data:\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://sanitaer.test/register"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'https://fonts.gstatic.com/s/poppins/v24/pxiAyp8kv8JHgFVrJJLmE0tMMPKhSkFEkm8.woff2' violates the following Content Security Policy directive: \"font-src 'self' data:\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://sanitaer.test/register"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'https://fonts.gstatic.com/s/poppins/v24/pxiAyp8kv8JHgFVrJJLmE0tCMPKhSkFE.woff2' violates the following Content Security Policy directive: \"font-src 'self' data:\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://sanitaer.test/register"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmv1pVFteOYktMqlap.woff2' violates the following Content Security Policy directive: \"font-src 'self' data:\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://sanitaer.test/register"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmv1pVGdeOYktMqlap.woff2' violates the following Content Security Policy directive: \"font-src 'self' data:\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://sanitaer.test/register"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmv1pVF9eOYktMqg.woff2' violates the following Content Security Policy directive: \"font-src 'self' data:\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://sanitaer.test/register"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm21lVFteOYktMqlap.woff2' violates the following Content Security Policy directive: \"font-src 'self' data:\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://sanitaer.test/register"
+        }
+      ],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "default Eintragung",
+      "url": "http://sanitaer.test/eintragen",
+      "htmlLaenge": 45453,
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "default Checkout",
+      "url": "http://sanitaer.test/checkout/plan/premium-monthly",
+      "htmlLaenge": 51341,
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    }
+  ],
+  "zusammenfassung": {
+    "frame-src https://pagead2.googlesyndication.com": 20,
+    "connect-src https://ep1.adtrafficquality.google/getconfig/sodar?sv=200&tid=gda&tv=r20261006&st=env&sjk=3571121007592043": 1,
+    "frame-src https://ep2.adtrafficquality.google": 10,
+    "connect-src https://ep1.adtrafficquality.google/getconfig/sodar?sv=200&tid=gda&tv=r20261006&st=env&sjk=8552619882006301": 1,
+    "connect-src https://ep1.adtrafficquality.google/getconfig/sodar?sv=200&tid=gda&tv=r20261006&st=env&sjk=3494830662050685": 1,
+    "style-src-elem https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiAyp8kv8JHgFVrJJLmE0tDMPKhSkFEkm8.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiAyp8kv8JHgFVrJJLmE0tMMPKhSkFEkm8.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiAyp8kv8JHgFVrJJLmE0tCMPKhSkFE.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmv1pVFteOYktMqlap.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmv1pVGdeOYktMqlap.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmv1pVF9eOYktMqg.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm21lVFteOYktMqlap.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm21lVGdeOYktMqlap.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm21lVF9eOYktMqg.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiGyp8kv8JHgFVrJJLucXtAOvWDSHFF.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiGyp8kv8JHgFVrJJLufntAOvWDSHFF.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiGyp8kv8JHgFVrJJLucHtAOvWDSA.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmg1hVFteOYktMqlap.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmg1hVGdeOYktMqlap.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmg1hVF9eOYktMqg.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmr19VFteOYktMqlap.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmr19VGdeOYktMqlap.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmr19VF9eOYktMqg.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmy15VFteOYktMqlap.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmy15VGdeOYktMqlap.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLmy15VF9eOYktMqg.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm111VFteOYktMqlap.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm111VGdeOYktMqlap.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm111VF9eOYktMqg.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm81xVFteOYktMqlap.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm81xVGdeOYktMqlap.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiDyp8kv8JHgFVrJJLm81xVF9eOYktMqg.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiGyp8kv8JHgFVrLPTucXtAOvWDSHFF.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiGyp8kv8JHgFVrLPTufntAOvWDSHFF.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiGyp8kv8JHgFVrLPTucHtAOvWDSA.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLFj_Z11lFd2JQEl8qw.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLFj_Z1JlFd2JQEl8qw.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLFj_Z1xlFd2JQEk.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDz8Z11lFd2JQEl8qw.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDz8Z1JlFd2JQEl8qw.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDz8Z1xlFd2JQEk.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJbecnFHGPezSQ.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJnecnFHGPezSQ.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecnFHGPc.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLGT9Z11lFd2JQEl8qw.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLGT9Z1JlFd2JQEl8qw.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLGT9Z1xlFd2JQEk.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLEj6Z11lFd2JQEl8qw.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLEj6Z1JlFd2JQEl8qw.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLEj6Z1xlFd2JQEk.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLCz7Z11lFd2JQEl8qw.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLCz7Z1JlFd2JQEl8qw.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLCz7Z1xlFd2JQEk.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDD4Z11lFd2JQEl8qw.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDD4Z1JlFd2JQEl8qw.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLDD4Z1xlFd2JQEk.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLBT5Z11lFd2JQEl8qw.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLBT5Z1JlFd2JQEl8qw.woff2": 2,
+    "font-src https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLBT5Z1xlFd2JQEk.woff2": 2,
+    "connect-src https://ep1.adtrafficquality.google/getconfig/sodar?sv=200&tid=gda&tv=r20261006&st=env&sjk=2492547797885039": 1,
+    "connect-src https://ep1.adtrafficquality.google/getconfig/sodar?sv=200&tid=gda&tv=r20261006&st=env&sjk=573222739235227": 1,
+    "frame-src https://maps.google.com": 1
+  }
+}

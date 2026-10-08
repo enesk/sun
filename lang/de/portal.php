@@ -68,6 +68,8 @@ return [
             'nav_mobile_label' => 'Mobile Navigation',
             'menu_open' => 'Menü öffnen',
             'cities' => 'Städte',
+            // Nur bei nav.directory im Kopf, siehe config/themes/sun-v2.php (#15)
+            'directory' => ':branche_plural finden',
             'guide' => 'Ratgeber',
             'jobs' => 'Stellenanzeigen',
             'login' => 'Anmelden',
@@ -444,8 +446,27 @@ return [
     'signup' => [
         'meta_title' => ':betrieb kostenlos eintragen',
         'meta_description' => ':betrieb kostenlos eintragen: gefunden werden, Anfragen aufs Handy bekommen und Bewertungen sammeln.',
-        'headline' => 'Trag dich kostenlos ein',
-        'intro' => 'In zwei Minuten erledigt. Erst die Angaben zu deinem Eintrag, dann ein Konto zum Verwalten.',
+        // Ueberschrift und Intro sagen zuerst, WER sich hier eintraegt (#15):
+        // auf fahrschulefinder.de haben Fahrschueler /eintragen fuer eine
+        // Schueleranmeldung gehalten.
+        'headline' => 'Hier tragen sich :betrieb_plural kostenlos ein',
+        'intro' => 'Das Formular ist für Inhaber:innen und Mitarbeitende: erst die Angaben zum Eintrag, dann ein Konto zum Verwalten. In zwei Minuten erledigt.',
+
+        // Hinweis fuer Suchende, damit der Eintragsknopf nicht der einzige
+        // Handlungsaufruf der Seite ist (#15)
+        'seeker' => [
+            'heading' => 'Du suchst :branche_akk?',
+            'text' => ':portal ist ein Verzeichnis und vermittelt selbst nichts – keine Termine, keine Kurse, keine Anmeldungen. Such dir :branche_akk in deiner Nähe und melde dich direkt dort.',
+            'button' => ':branche_plural in deiner Nähe finden',
+        ],
+
+        // Rueckfrage, wenn im Firmennamen ein Personenname steht (#15)
+        'name_question' => [
+            'heading' => 'Ist „:firma“ wirklich der Name des Betriebs?',
+            'text' => 'Das sieht nach einem Personennamen aus. Gesucht ist der Name, unter dem der Betrieb auftritt – so, wie er am Schild oder auf der Rechnung steht. Heißt der Betrieb wirklich so, geht es direkt weiter.',
+            'confirm' => 'Ja, so heißt der Betrieb',
+            'search' => 'Ich suche selbst :branche_akk',
+        ],
 
         'progress' => [
             'label' => 'Fortschritt',
@@ -454,7 +475,7 @@ return [
         ],
 
         'business' => [
-            'name_label' => 'Name, wie er auf dem Schild steht',
+            'name_label' => 'Name des Betriebs, wie er auf dem Schild steht',
             'street_label' => 'Straße und Hausnummer',
             'zip_label' => 'PLZ',
             'city_label' => 'Ort',
@@ -496,6 +517,11 @@ return [
             'complete_profile' => 'Profil vervollständigen',
             'resend' => 'E-Mail noch mal senden',
             'resent' => 'E-Mail ist unterwegs',
+            // Dieser Betrieb stand schon in deinem Konto (#16): kein zweiter
+            // Eintrag, der Weg geht in die Verwaltung des bestehenden.
+            'duplicate_heading' => 'Dieser Eintrag besteht schon',
+            'duplicate_text' => 'Du hast diesen Betrieb bereits eingetragen. Wir haben keinen zweiten Eintrag angelegt – du findest ihn in deiner Verwaltung.',
+            'duplicate_button' => 'Zum bestehenden Eintrag',
         ],
 
         'panel' => [

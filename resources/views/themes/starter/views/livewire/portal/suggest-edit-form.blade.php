@@ -1,11 +1,9 @@
 <div>
     @if(!$submitted)
         <form wire:submit="submit" class="space-y-5">
-            {{-- Honeypot (unsichtbar für echte User) --}}
-            <div class="hidden" aria-hidden="true">
-                <label for="website_url_hp_form">Website</label>
-                <input type="text" id="website_url_hp_form" wire:model="website_url" tabindex="-1" autocomplete="off">
-            </div>
+            {{-- Honigtopf mit Zufallsnamen und Mindest-Ausfuellzeit (#22);
+                 ersetzt den handgeschriebenen Honigtopf website_url --}}
+            <x-antispam-fields wire />
 
             {{-- Was ändern? --}}
             <div>
@@ -75,6 +73,9 @@
                     @enderror
                 </div>
             </div>
+
+            {{-- Turnstile (#22), Modus non_interactive --}}
+            <x-turnstile action="contact" wire="turnstileToken" field="turnstileToken" size="flexible" />
 
             {{-- Submit --}}
             <div class="pt-2">

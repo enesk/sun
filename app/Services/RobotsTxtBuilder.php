@@ -48,6 +48,43 @@ class RobotsTxtBuilder
     ];
 
     /**
+     * Scraper, die sich selbst benennen (#17, docs/turnstile.md §1.3 C).
+     * Eine eigene Gruppe mit `Disallow: /` — hoeflicher Weg, bevor die
+     * Cloudflare-WAF greift (docs/bot-traffic.md §2). Dass diese Bots sich
+     * daran halten, ist nicht zu erwarten; die Gruppe dokumentiert aber den
+     * Willen des Betreibers und kostet nichts. Suchmaschinen und KI-Crawler
+     * stehen hier NIE drin, siehe AI_CRAWLERS und docs/guide-golive.md §1.4.
+     *
+     * @var array<int, string>
+     */
+    public const UNWANTED_CRAWLERS = [
+        'HIMZO-DataQuality',
+        'NoscienceLeadResearch',
+        'CloppenburgerLeadResearch',
+        'VexaraLeadResearch',
+        'BilbaoLeadResearch',
+        'PRYXLeadResearch',
+        'webapp-mapper-authorized-probe',
+        'Google-Apps-Script',
+        'python-httpx',
+        'Python-urllib',
+        'python-requests',
+        'aiohttp',
+        'axios',
+        'node-fetch',
+        'Scrapy',
+        'Go-http-client',
+        'DataForSeoBot',
+        'SemrushBot',
+        'AhrefsBot',
+        'MJ12bot',
+        'DotBot',
+        'Barkrowler',
+        'PetalBot',
+        'Bytespider',
+    ];
+
+    /**
      * @param  array<int, string>  $disallow
      */
     public function build(string $baseUrl, array $disallow = self::DEFAULT_DISALLOW): string
@@ -72,6 +109,15 @@ class RobotsTxtBuilder
         foreach ($disallow as $path) {
             $lines[] = 'Disallow: '.$path;
         }
+
+        $lines[] = '';
+        $lines[] = '# Datensammler und Scraper ohne Bezug zur Suche.';
+
+        foreach (self::UNWANTED_CRAWLERS as $crawler) {
+            $lines[] = 'User-agent: '.$crawler;
+        }
+
+        $lines[] = 'Disallow: /';
 
         $lines[] = '';
         $lines[] = 'Sitemap: '.$baseUrl.'/sitemap.xml';

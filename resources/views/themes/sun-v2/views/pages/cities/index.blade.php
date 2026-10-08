@@ -20,19 +20,32 @@
     @section('meta_robots', 'noindex, follow')
 @endif
 
+{{-- CollectionPage der Staedteuebersicht (#31). Schluessel zusammengesetzt:
+     '@'.'context' waere als Literal eine Blade-Direktive. --}}
+@push('scripts')
+<script type="application/ld+json">
+{!! json_encode([
+    '@'.'context' => 'https://schema.org',
+    '@type' => 'CollectionPage',
+    'name' => $citiesSun['heading'],
+    'description' => $citiesSun['intro'] ?: $citiesSun['heading'],
+    'url' => $canonical,
+    'isPartOf' => [
+        '@type' => 'WebSite',
+        'name' => $portalName,
+        'url' => route('home'),
+    ],
+    'numberOfItems' => (int) $citiesSun['totalCities'],
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}
+</script>
+@endpush
+
 @section('content')
 
 <!-- ========== HERO ========== -->
 <section class="bg-brand-50 py-10 md:py-16">
   <div class="container-portal">
-    <nav aria-label="{{ __('portal.layout.breadcrumb.label') }}" class="text-sm text-zinc-500 flex items-center gap-1.5 flex-wrap">
-      <a href="{{ route('home') }}" class="hover:text-brand">{{ __('portal.layout.breadcrumb.home') }}</a><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" />
-      @if($citiesSun['land'])
-        <a href="{{ route('portal.cities.index') }}" class="hover:text-brand">{{ __('portal.layout.header.cities') }}</a><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" /><span class="text-zinc-900">{{ $citiesSun['land'] }}</span>
-      @else
-        <span class="text-zinc-900">{{ __('portal.layout.header.cities') }}</span>
-      @endif
-    </nav>
+    <x-sun.breadcrumb :items="\App\Support\Breadcrumb::forCities($citiesSun['land'], $citiesSun['landSlug'] ?? null)" :hide-home="false" />
 
     <div class="mt-4 max-w-2xl">
       <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-zinc-900">{{ $citiesSun['heading'] }}</h1>

@@ -9,7 +9,7 @@
     @push('scripts')
     <script type="application/ld+json">
     {!! json_encode(array_filter([
-        '@context' => 'https://schema.org',
+        '@'.'context' => 'https://schema.org', /* Schluessel zusammengesetzt: sonst macht Blade daraus eine Direktive (#30) */
         '@type' => 'CollectionPage',
         'name' => "Firmen in {$city->name}",
         'description' => $metaDescription,

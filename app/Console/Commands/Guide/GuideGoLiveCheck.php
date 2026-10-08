@@ -115,14 +115,35 @@ class GuideGoLiveCheck extends Command
             }
 
             try {
-                $status = Http::timeout(10)->get($location)->status();
+                // withoutRedirecting: Bing liest die Datei nur unter der
+                // gemeldeten Adresse. Einer Weiterleitung zu folgen wuerde ein
+                // fremdes 200 als Erfolg buchen (#35).
+                $response = Http::timeout(10)->withoutRedirecting()->get($location);
+                $status = $response->status();
+                $target = (string) $response->header('Location');
             } catch (Throwable) {
                 $status = null;
+                $target = '';
             }
 
-            $status === 200
-                ? $this->result(self::OK, $label, 'Schlüsseldatei HTTP 200')
-                : $this->result(self::FAIL, $label, $status !== null ? "Schlüsseldatei HTTP {$status}" : 'Schlüsseldatei nicht erreichbar');
+            if ($status === 200) {
+                $this->result(self::OK, $label, 'Schlüsseldatei HTTP 200');
+
+                continue;
+            }
+
+            if ($status === null) {
+                $this->result(self::FAIL, $label, 'Schlüsseldatei nicht erreichbar');
+
+                continue;
+            }
+
+            // Nur der Zielhost: der Pfad der Weiterleitung traegt den Schlüssel.
+            $host = $target === '' ? null : parse_url($target, PHP_URL_HOST);
+
+            $this->result(self::FAIL, $label, is_string($host)
+                ? "Schlüsseldatei HTTP {$status} — Weiterleitung auf {$host}"
+                : "Schlüsseldatei HTTP {$status}");
         }
     }
 

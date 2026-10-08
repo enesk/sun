@@ -12,6 +12,9 @@
 
 @section('content')
 
+    {{-- Kontaktklicks melden (STAT-1): resources/js/modules/contact-tracking.js (#21) --}}
+    <div data-contact-tracking="{{ $company->id }}" hidden></div>
+
     {{-- VR-6 + IMG-4: Company Hero Header with optional Cover Image --}}
     @if($company->cover_url)
         {{-- Hero WITH Cover Image --}}
@@ -726,52 +729,5 @@
         <x-ad-slot position="sidebar_after_claim" />
     </div>
 
-    {{-- STAT-1: Contact Click Tracking --}}
-    @push('scripts')
-    <script>
-    (function() {
-        var companyId = {{ $company->id }};
-        var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-        var tracked = {};
-
-        document.addEventListener('click', function(e) {
-            var link = e.target.closest('a[href]');
-            if (!link) return;
-
-            var href = link.getAttribute('href') || '';
-            var type = null;
-
-            if (href.startsWith('tel:')) type = 'phone';
-            else if (href.startsWith('mailto:')) type = 'email';
-            else if (href.match(/^https?:\/\//) && link.target === '_blank') type = 'website';
-
-            if (!type) return;
-
-            var key = type + '_' + companyId;
-            if (tracked[key]) return;
-            tracked[key] = true;
-
-            var payload = { company_id: companyId, contact_type: type, _token: csrfToken };
-
-            // Betriebsstatistik (#15)
-            var statsEvent = type === 'phone' ? 'phone_click' : (type === 'website' ? 'website_click' : null);
-            if (statsEvent && navigator.sendBeacon) {
-                navigator.sendBeacon('/stats/beacon', new Blob([JSON.stringify({ company_id: companyId, event: statsEvent, source: 'profile', _token: csrfToken })], { type: 'application/json' }));
-            }
-
-            if (navigator.sendBeacon) {
-                navigator.sendBeacon('/tracking/contact-click', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
-            } else {
-                fetch('/tracking/contact-click', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-                    body: JSON.stringify(payload),
-                    keepalive: true
-                });
-            }
-        });
-    })();
-    </script>
-    @endpush
 
 @endsection

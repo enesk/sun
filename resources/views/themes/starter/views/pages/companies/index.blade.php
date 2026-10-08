@@ -9,7 +9,7 @@
     @push('scripts')
     <script type="application/ld+json">
     {!! json_encode([
-        '@context' => 'https://schema.org',
+        '@'.'context' => 'https://schema.org', /* Schluessel zusammengesetzt: sonst macht Blade daraus eine Direktive (#30) */
         '@type' => 'CollectionPage',
         'name' => 'Firmenverzeichnis',
         'description' => 'Alle Unternehmen im Überblick. Finden Sie lokale Firmen, Handwerker und Dienstleister in Ihrer Nähe.',

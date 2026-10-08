@@ -1,22 +1,12 @@
-{{-- GA4: Vollständiges Tracking — lädt immer mit granted consent --}}
+{{-- GA4: Vollständiges Tracking — lädt immer mit granted consent.
+     Eingerichtet wird in resources/js/analytics.js aus diesen Meta-Angaben;
+     kein Inline-Skript, damit die Policy ohne 'unsafe-inline' auskommt (#21). --}}
 @if (!empty(config('app.google_tracking_id')))
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('consent', 'default', {
-            'analytics_storage': 'granted',
-            'ad_storage': 'granted',
-            'ad_user_data': 'granted',
-            'ad_personalization': 'granted'
-        });
-        gtag('js', new Date());
-        gtag('config', '{{ config('app.google_tracking_id') }}', {
-            'anonymize_ip': true
-        });
-    </script>
-    <script async src="https://www.googletagmanager.com/gtag/js?id={{ config('app.google_tracking_id') }}"></script>
+    <meta name="ga-id" content="{{ config('app.google_tracking_id') }}">
 @endif
 
+{{-- Fremdes Tracking-HTML aus der Verwaltung: bringt eigene <script>-Bloecke mit
+     und bekommt darum das Nonce des Requests. --}}
 @if (!empty(config('app.tracking_scripts')))
-    {!! config('app.tracking_scripts') !!}
+    {!! \App\Services\Security\CspNonce::inject(config('app.tracking_scripts')) !!}
 @endif

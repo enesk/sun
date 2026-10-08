@@ -2,17 +2,21 @@
 
 namespace App\Http\Controllers\Portal;
 
+use App\AntiSpam\SpamGuard;
+use App\AntiSpam\Support\RateLimitGuard;
 use App\Http\Controllers\Controller;
 use App\Models\Portal\City;
 use App\Models\Portal\Job;
 use App\Models\Portal\JobApplication;
 use App\Services\TrackingService;
+use App\Support\Breadcrumb;
 use App\Support\TenantCache;
+use App\Turnstile\Enums\TurnstileAction;
+use App\Turnstile\Rules\TurnstileRule;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\View\View;
 
 class PublicJobController extends Controller
@@ -199,12 +203,9 @@ class PublicJobController extends Controller
                 ->get();
         }
 
-        // Breadcrumb
-        $breadcrumb = [
-            ['label' => 'Home', 'url' => route('home')],
-            ['label' => 'Stellenanzeigen', 'url' => route('portal.jobs.index')],
-            ['label' => $job->title],
-        ];
+        // Brotkrumen aus der einzigen Quelle (App\Support\Breadcrumb, #33) —
+        // Texte aus lang/de/portal.php, letzter Eintrag mit absoluter URL.
+        $breadcrumb = Breadcrumb::forJob($job);
 
         return view('pages.jobs.show', compact(
             'job',
@@ -224,14 +225,22 @@ class PublicJobController extends Controller
             ->published()
             ->firstOrFail();
 
-        // Rate Limiting: max 5 Bewerbungen pro IP pro Stunde
-        $rateLimitKey = 'job-apply:' . $request->ip();
-        if (RateLimiter::tooManyAttempts($rateLimitKey, 5)) {
-            return back()
-                ->with('error', 'Sie haben zu viele Bewerbungen abgeschickt. Bitte versuchen Sie es später erneut.')
-                ->withInput();
+        // Rate-Limit je IP-Hash, E-Mail-Hash und Portal (#22), Grenzen in
+        // config/antispam.php. Ersetzt den handgeschriebenen Zaehler, der auf
+        // der Klartext-IP und portaluebergreifend lief. Wirft bei einem
+        // Treffer 429 mit Retry-After und deutscher Meldung.
+        RateLimitGuard::enforce(RateLimitGuard::JOB_APPLICATION, TurnstileAction::Contact, [
+            'email' => is_string($request->input('email')) ? $request->input('email') : null,
+        ]);
+
+        // Honigtopf und Mindest-Ausfuellzeit (#22): still abweisen. Der
+        // Besucher sieht dieselbe Erfolgsmeldung, es entsteht aber keine
+        // Bewerbung. Der Treffer steht in turnstile_verifications.
+        if (app(SpamGuard::class)->rejectsSilently(TurnstileAction::Contact, $request->all())) {
+            return redirect()
+                ->route('portal.jobs.show', $slug)
+                ->with('application_success', true);
         }
-        RateLimiter::hit($rateLimitKey, 3600);
 
         // Duplikat-Check: gleiche E-Mail für gleichen Job
         $existing = JobApplication::where('job_id', $job->id)
@@ -251,6 +260,9 @@ class PublicJobController extends Controller
             'phone' => 'nullable|string|max:50',
             'message' => 'required|string|min:20|max:5000',
             'cv' => 'nullable|file|mimes:pdf,doc,docx|max:10240', // max 10MB
+            // Turnstile, Modus non_interactive (#22). Der Feldname ist der
+            // Hidden-Input, den Cloudflare selbst setzt.
+            'cf-turnstile-response' => [new TurnstileRule(TurnstileAction::Contact)],
         ], [
             'name.required' => 'Bitte geben Sie Ihren Namen an.',
             'email.required' => 'Bitte geben Sie Ihre E-Mail-Adresse an.',

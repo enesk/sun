@@ -2,57 +2,14 @@
 
     @include('cookie-consent::dialogContents')
 
-    <script>
-
-        window.laravelCookieConsent = (function () {
-
-            const COOKIE_VALUE = 1;
-            const COOKIE_DOMAIN = '{{ config('session.domain') ?? request()->getHost() }}';
-
-            function consentWithCookies() {
-                setCookie('{{ $cookieConsentConfig['cookie_name'] }}', COOKIE_VALUE, {{ $cookieConsentConfig['cookie_lifetime'] }});
-                hideCookieDialog();
-
-                window.location.reload();
-            }
-
-            function cookieExists(name) {
-                return (document.cookie.split('; ').indexOf(name + '=' + COOKIE_VALUE) !== -1);
-            }
-
-            function hideCookieDialog() {
-                const dialogs = document.getElementsByClassName('js-cookie-consent');
-
-                for (let i = 0; i < dialogs.length; ++i) {
-                    dialogs[i].style.display = 'none';
-                }
-            }
-
-            function setCookie(name, value, expirationInDays) {
-                const date = new Date();
-                date.setTime(date.getTime() + (expirationInDays * 24 * 60 * 60 * 1000));
-                document.cookie = name + '=' + value
-                    + ';expires=' + date.toUTCString()
-                    + ';domain=' + COOKIE_DOMAIN
-                    + ';path=/{{ config('session.secure') ? ';secure' : null }}'
-                    + '{{ config('session.same_site') ? ';samesite='.config('session.same_site') : null }}';
-            }
-
-            if (cookieExists('{{ $cookieConsentConfig['cookie_name'] }}')) {
-                hideCookieDialog();
-            }
-
-            const buttons = document.getElementsByClassName('js-cookie-consent-agree');
-
-            for (let i = 0; i < buttons.length; ++i) {
-                buttons[i].addEventListener('click', consentWithCookies);
-            }
-
-            return {
-                consentWithCookies: consentWithCookies,
-                hideCookieDialog: hideCookieDialog
-            };
-        })();
-    </script>
+    {{-- Verhalten in resources/js/modules/cookie-bar.js: die Paketvorlage trug
+         ihr JavaScript inline, hier stehen nur noch die Werte (#21). --}}
+    <div data-cookie-consent
+         data-cookie-name="{{ $cookieConsentConfig['cookie_name'] }}"
+         data-cookie-lifetime="{{ $cookieConsentConfig['cookie_lifetime'] }}"
+         data-cookie-domain="{{ config('session.domain') ?? request()->getHost() }}"
+         @if(config('session.secure')) data-cookie-secure @endif
+         @if(config('session.same_site')) data-cookie-same-site="{{ config('session.same_site') }}" @endif
+         hidden></div>
 
 @endif

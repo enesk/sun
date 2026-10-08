@@ -1,0 +1,73 @@
+{
+  "gemessen": "2026-10-08T16:17:15.371Z",
+  "engine": "WebKit 27.2 (Playwright)",
+  "seiten": [
+    {
+      "name": "Startseite (footer_above)",
+      "url": "http://sanitaer.test:8129/",
+      "htmlLaenge": 244593,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "adsSkripte": 2,
+        "adsbygoogleGeladen": true,
+        "anzeigenRahmen": 2,
+        "eingesetzteAnzeigen": 2,
+        "offeneVorlagen": 0,
+        "werbeSkripte": [
+          "mit Nonce",
+          "mit Nonce"
+        ],
+        "dataLayer": -1,
+        "livewire": "object",
+        "alpine": "object"
+      },
+      "fremdeHosts": [
+        "ep1.adtrafficquality.google",
+        "ep2.adtrafficquality.google",
+        "pagead2.googlesyndication.com",
+        "sanitaer.test:8129",
+        "unpkg.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "fehlgeschlagen": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "Firmenseite (footer_above + listing_detail)",
+      "url": "http://sanitaer.test:8129/59399-rohr-profis-nuernberg",
+      "htmlLaenge": 117638,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "adsSkripte": 2,
+        "adsbygoogleGeladen": true,
+        "anzeigenRahmen": 2,
+        "eingesetzteAnzeigen": 2,
+        "offeneVorlagen": 0,
+        "werbeSkripte": [
+          "mit Nonce",
+          "mit Nonce"
+        ],
+        "dataLayer": -1,
+        "livewire": "object",
+        "alpine": "object"
+      },
+      "fremdeHosts": [
+        "ep1.adtrafficquality.google",
+        "ep2.adtrafficquality.google",
+        "maps.google.com",
+        "maps.googleapis.com",
+        "maps.gstatic.com",
+        "pagead2.googlesyndication.com",
+        "sanitaer.test:8129",
+        "unpkg.com",
+        "www.google.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "fehlgeschlagen": [],
+      "konsolenfehler": []
+    }
+  ],
+  "zusammenfassung": {}
+}

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\AntiSpam\Support\RequestOrigin;
 use App\Constants\SessionConstants;
 use App\Mail\NewRegistrationNotification;
 use App\Models\User;
@@ -19,11 +20,14 @@ class UserService
 
     public function createUser(array $data, bool $dispatchRegisterEvent = false): User
     {
+        // Herkunft mitschreiben (#8): IP nur als HMAC-Hash, User-Agent im
+        // Klartext. Bis hierhin fehlte beides ganz (docs/turnstile.md §1.4),
+        // weshalb die Bot-Analyse in #2 keine IP-Auswertung machen konnte.
         $user = User::create([
             'name' => $data['name'],
             'email' => strtolower($data['email']),
             'password' => isset($data['password']) ? Hash::make($data['password']) : Hash::make(Str::random(32)),
-        ]);
+        ] + RequestOrigin::forUser());
 
         if (session()->has(SessionConstants::REFERRAL_CODE)) {
             $this->referralService->trackReferral($user, session(SessionConstants::REFERRAL_CODE));

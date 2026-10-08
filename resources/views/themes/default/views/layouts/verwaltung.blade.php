@@ -329,64 +329,7 @@
     @vite(['resources/js/app.js'])
     @livewireScripts
 
-    <script>
-        function dashboardApp() {
-            return {
-                sidebarOpen: false,
-                _previousFocus: null,
-
-                toggleSidebar() {
-                    this.sidebarOpen = !this.sidebarOpen;
-                    if (this.sidebarOpen) {
-                        this._previousFocus = document.activeElement;
-                        this.$nextTick(() => {
-                            const sidebar = document.querySelector('.dash-sidebar');
-                            const firstLink = sidebar?.querySelector('.dash-nav-item');
-                            if (firstLink) firstLink.focus();
-                        });
-                    } else {
-                        if (this._previousFocus) this._previousFocus.focus();
-                    }
-                },
-
-                closeSidebarOnEscape(e) {
-                    if (e.key === 'Escape' && this.sidebarOpen && window.innerWidth < 768) {
-                        this.sidebarOpen = false;
-                        if (this._previousFocus) this._previousFocus.focus();
-                    }
-                },
-
-                init() {
-                    document.addEventListener('keydown', (e) => this.closeSidebarOnEscape(e));
-                    this.announce = (msg) => {
-                        const el = document.getElementById('dash-announcements');
-                        if (el) { el.textContent = ''; requestAnimationFrame(() => { el.textContent = msg; }); }
-                    };
-                }
-            }
-        }
-
-        function toastManager() {
-            return {
-                toasts: [],
-                nextId: 0,
-                addToast({ type = 'info', message = '', duration = 5000 }) {
-                    const id = this.nextId++;
-                    this.toasts.push({ id, type, message, visible: true });
-                    if (duration > 0) {
-                        setTimeout(() => this.removeToast(id), duration);
-                    }
-                },
-                removeToast(id) {
-                    const toast = this.toasts.find(t => t.id === id);
-                    if (toast) toast.visible = false;
-                    setTimeout(() => {
-                        this.toasts = this.toasts.filter(t => t.id !== id);
-                    }, 300);
-                }
-            }
-        }
-    </script>
+    {{-- dashboardApp und toastManager: resources/js/modules/alpine-data.js (#21) --}}
 
     @stack('scripts')
 </body>

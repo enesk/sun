@@ -14,7 +14,7 @@
     @push('scripts')
     <script type="application/ld+json">
     {!! json_encode([
-        '@context' => 'https://schema.org',
+        '@'.'context' => 'https://schema.org', /* Schluessel zusammengesetzt: sonst macht Blade daraus eine Direktive (#30) */
         '@type' => 'CollectionPage',
         'name' => $category->name,
         'description' => $category->description ?? ('Firmen in der Kategorie ' . $category->name),

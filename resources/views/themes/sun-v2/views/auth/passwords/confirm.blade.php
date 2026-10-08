@@ -27,8 +27,8 @@
         @endif
       </div>
       <div class="relative mt-1">
-        <input id="password" name="password" type="password" @class(['input pr-12', 'border-red-500' => $errors->has('password')]) autocomplete="current-password" required autofocus @error('password') aria-invalid="true" aria-describedby="password-error" @enderror>
-        <button type="button" class="absolute right-1 top-1/2 -translate-y-1/2 size-10 rounded-lg text-zinc-400 hover:text-zinc-700 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" data-toggle-pass aria-label="{{ __('portal.signup.account.password_show') }}"><x-sun.icon name="eye" class="size-5" /></button>
+        <input id="password" name="password" type="password" @class(['input pr-12', 'border-red-500' => $errors->has('password')]) autocomplete="current-password" required autofocus data-pass @error('password') aria-invalid="true" aria-describedby="password-error" @enderror>
+        <button type="button" class="absolute right-1 top-1/2 -translate-y-1/2 size-10 rounded-lg text-zinc-400 hover:text-zinc-700 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" data-toggle-pass data-pass-scope="#confirmCard" data-label-show="{{ __('portal.signup.account.password_show') }}" data-label-hide="{{ __('portal.signup.account.password_hide') }}" aria-label="{{ __('portal.signup.account.password_show') }}"><x-sun.icon name="eye" class="size-5" /></button>
       </div>
       @error('password')
         <p id="password-error" class="mt-1 text-sm text-red-600" role="alert">{{ $message }} {{ __('portal.auth.confirm.failed_hint') }}</p>
@@ -40,15 +40,3 @@
 </div>
 @endsection
 
-@push('scripts')
-<script>
-(() => {
-  const pass = document.getElementById('password');
-  document.querySelector('#confirmCard [data-toggle-pass]')?.addEventListener('click', event => {
-    const isHidden = pass.type === 'password';
-    pass.type = isHidden ? 'text' : 'password';
-    event.currentTarget.setAttribute('aria-label', isHidden ? @js(__('portal.signup.account.password_hide')) : @js(__('portal.signup.account.password_show')));
-  });
-})();
-</script>
-@endpush

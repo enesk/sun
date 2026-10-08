@@ -348,12 +348,48 @@ export function initLeadDialog() {
             .reduce((answers, step) => ({ ...answers, ...answersFromStep(stepElement(step)) }), {});
     }
 
+    /*
+     * Schutzfelder des Portal-Formulars (#22): Honigtopf mit Zufallsnamen und
+     * verschluesselter Zeitstempel aus <x-antispam-fields />, dazu das
+     * Turnstile-Token. Gelesen wird nach Feldname, damit der Zufallsname des
+     * Honigtopfs nicht im Skript stehen muss. Gehen nur an den eigenen
+     * Endpunkt, nie an das Leadsystem.
+     */
+    function protectionFields() {
+        const payload = {};
+
+        form.querySelectorAll('[data-antispam-fields] input[name]').forEach((field) => {
+            payload[field.name] = field.value;
+        });
+
+        const tokenField = form.querySelector('[data-turnstile-input]');
+
+        if (tokenField) {
+            payload[tokenField.name] = tokenField.value;
+        }
+
+        return payload;
+    }
+
+    // Token ist bei Cloudflare einmal einloesbar: nach jedem Versuch eine
+    // frische Aufgabe anfordern (resources/js/turnstile.js hoert darauf).
+    function resetTurnstile() {
+        window.dispatchEvent(new CustomEvent('turnstile:reset', { detail: { action: 'lead_request' } }));
+    }
+
     // true = exklusiv zugestellt; false = Portal verweist auf den Marktplatz
     async function submitExclusive() {
-        const state = await portalApi('POST', exclusiveUrl, {
-            answers: collectedAnswers(),
-            website: form.querySelector('[name="website"]')?.value ?? '',
-        });
+        let state;
+
+        try {
+            state = await portalApi('POST', exclusiveUrl, {
+                answers: collectedAnswers(),
+                website: form.querySelector('[name="website"]')?.value ?? '',
+                ...protectionFields(),
+            });
+        } finally {
+            resetTurnstile();
+        }
 
         if (state?.route !== 'exclusive') {
             setRoute('marketplace', false);

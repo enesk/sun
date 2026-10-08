@@ -158,16 +158,9 @@ return [
     'stats' => [
         'queue' => 'default',
         'raw_retention_days' => 14,
-        // Teilstrings im User-Agent (klein geschrieben); leerer User-Agent gilt ebenfalls als Bot
-        'bot_user_agents' => [
-            'bot', 'crawl', 'spider', 'slurp', 'mediapartners', 'adsbot',
-            'facebookexternalhit', 'linkedinbot', 'twitterbot', 'embedly',
-            'whatsapp', 'telegram', 'preview', 'headless', 'phantomjs',
-            'lighthouse', 'pagespeed', 'gtmetrix', 'pingdom', 'uptimerobot',
-            'statuscake', 'python-requests', 'python-urllib', 'curl/', 'wget/',
-            'go-http-client', 'java/', 'php/', 'ruby/', 'okhttp', 'axios/',
-            'node-fetch', 'scrapy', 'httpclient', 'monitor',
-        ],
+        // Bot-Erkennung (#17) steht in config/antispam.php `bot_traffic` und
+        // wird von App\AntiSpam\Support\BotTraffic ausgewertet — eine Liste
+        // fuer tracking_events und company_events, siehe docs/bot-traffic.md.
     ],
 
     /*

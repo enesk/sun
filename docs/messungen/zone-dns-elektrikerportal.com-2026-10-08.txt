@@ -1,0 +1,21 @@
+# DNS-Bestand elektrikerportal.com, aufgenommen 2026-10-08 am autoritativen Nameserver ns1hwy.name.com
+# Erzeugt von scripts/zone-dns-umzug.sh --bestand (#34).
+# Spalten: name<TAB>typ<TAB>wert. Apex ist "@", TTL absichtlich nicht erfasst.
+@	NS	ns1hwy.name.com.
+@	NS	ns2jqz.name.com.
+@	NS	ns3nrz.name.com.
+@	NS	ns4qxz.name.com.
+@	A	88.198.64.145
+@	MX	1 smtp.google.com.
+@	TXT	"google-site-verification=t-26ZoAlvXDSaNfwQSqh48uftUDBIAAtKEQgzmPUBFo"
+@	TXT	"google-site-verification=wQltY5Z2KbS2epSLhogwe5ePeoV96mw7GcQz1rUZWmU"
+*	A	88.198.64.145
+www	A	88.198.64.145
+mail	A	88.198.64.145
+smtp	A	88.198.64.145
+imap	A	88.198.64.145
+pop	A	88.198.64.145
+webmail	A	88.198.64.145
+autodiscover	A	88.198.64.145
+autoconfig	A	88.198.64.145
+ftp	A	88.198.64.145

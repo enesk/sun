@@ -19,6 +19,10 @@ import { initCopyLink } from './modules/copy-link';
 import { initMdEditor } from './modules/md-editor';
 import { initStatsChart } from './modules/stats-chart';
 import { initStatsBeacon } from '../../../../js/stats-beacon';
+import { initAnalytics } from '../../../../js/analytics';
+import { initAds } from '../../../../js/ads';
+import { initPasswordToggle } from './modules/password-toggle';
+import { initLoginPanels } from './modules/login-panels';
 
 function boot() {
     initMobileMenu();
@@ -31,6 +35,11 @@ function boot() {
     initMdEditor();
     initStatsChart();
     initStatsBeacon();
+    // Vorher Inline-Skripte der Views (#21)
+    initAnalytics();
+    initAds();
+    initPasswordToggle();
+    initLoginPanels();
 }
 
 if (document.readyState === 'loading') {

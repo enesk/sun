@@ -128,13 +128,7 @@
     @livewireScripts
     @stack('scripts')
 
-    {{-- Initialize Lucide icons + re-init on Livewire/Alpine updates --}}
-    <script>
-        function initLucide() { if (window.lucide) lucide.createIcons(); }
-        document.addEventListener('DOMContentLoaded', initLucide);
-        document.addEventListener('livewire:navigated', initLucide);
-        document.addEventListener('livewire:morph.updated', initLucide);
-    </script>
+    {{-- Lucide-Icons zeichnen: resources/js/modules/lucide-icons.js (#21) --}}
 
     {{-- Global Mobile Sticky CTA --}}
     @php

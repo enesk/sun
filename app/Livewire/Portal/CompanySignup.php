@@ -4,12 +4,19 @@ declare(strict_types=1);
 
 namespace App\Livewire\Portal;
 
+use App\AntiSpam\Concerns\InteractsWithAntiSpam;
+use App\AntiSpam\Rules\NotDisposableEmailRule;
+use App\AntiSpam\Support\RateLimitGuard;
+use App\AntiSpam\Support\RequestOrigin;
 use App\Constants\TenancyPermissionConstants;
 use App\Models\Portal\City;
 use App\Models\Portal\Company;
 use App\Services\NewCompanyNotifier;
 use App\Services\TenantPermissionService;
 use App\Services\UserService;
+use App\Support\PersonalNameDetector;
+use App\Turnstile\Enums\TurnstileAction;
+use App\Turnstile\Rules\TurnstileRule;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +33,10 @@ use Livewire\Component;
  */
 class CompanySignup extends Component
 {
+    // Honeypot und Ausfuellzeit (#8); die Properties kommen aus dem Trait,
+    // gebunden von <x-antispam-fields wire /> in der Ansicht.
+    use InteractsWithAntiSpam;
+
     public int $step = 1;
 
     // Schritt 1: Betrieb
@@ -50,10 +61,22 @@ class CompanySignup extends Component
 
     public bool $agb = false;
 
-    // Honeypot
-    public string $website_url = '';
+    /**
+     * Rueckfrage, wenn in `firma` ein Personenname steht (#15). Sie haelt das
+     * Absenden nur einmal auf: wer bestaetigt, kommt durch.
+     */
+    public bool $nameQuestion = false;
+
+    public bool $nameConfirmed = false;
 
     public bool $done = false;
+
+    /**
+     * Der Eintrag gab es schon (#16): gleicher Nutzer, gleicher Name, gleiche
+     * PLZ. Dann entsteht kein zweiter Datensatz, der Abschluss nennt den
+     * bestehenden und fuehrt in die Verwaltung.
+     */
+    public bool $duplicate = false;
 
     public bool $resent = false;
 
@@ -71,6 +94,23 @@ class CompanySignup extends Component
     public function next(): void
     {
         $this->step === 1 ? $this->submitCompany() : $this->submitAccount();
+    }
+
+    /**
+     * Ein geaenderter Firmenname wird neu beurteilt.
+     */
+    public function updatedFirma(): void
+    {
+        $this->nameQuestion = false;
+        $this->nameConfirmed = false;
+    }
+
+    public function confirmName(): void
+    {
+        $this->nameConfirmed = true;
+        $this->nameQuestion = false;
+
+        $this->next();
     }
 
     public function back(): void
@@ -103,6 +143,12 @@ class CompanySignup extends Component
             'web.url' => __('portal.errors.signup.website_format'),
         ]);
 
+        if (! $this->nameConfirmed && PersonalNameDetector::looksPersonal($this->firma)) {
+            $this->nameQuestion = true;
+
+            return;
+        }
+
         if (! $this->resolveCity()) {
             $this->addError('ort', __('portal.errors.signup.city_mismatch'));
 
@@ -123,25 +169,36 @@ class CompanySignup extends Component
 
     private function submitAccount(): void
     {
-        if ($this->website_url !== '') {
+        // Honeypot und Mindest-Ausfuellzeit (#8): still abweisen. Der
+        // Besucher sieht dieselbe Erfolgsseite, es entsteht aber weder Konto
+        // noch Eintrag. Der Treffer steht in turnstile_verifications.
+        if ($this->antiSpamRejects(TurnstileAction::CompanyListing, Auth::user()?->email ?? $this->email)) {
             $this->done = true;
 
             return;
         }
 
+        // Rate-Limit je IP-Hash und Portal (#8), Grenze in
+        // config/antispam.php. Gilt jetzt auch fuer Angemeldete — bisher
+        // zaehlte nur der Gastweg, weshalb in den Produktionsdaten 10
+        // Eintraege desselben Nutzers in 23 Sekunden stehen
+        // (docs/turnstile.md §1.3 B). Die Dublettenerkennung selbst bleibt #16.
+        $wartezeit = $this->antiSpamLimit(RateLimitGuard::COMPANY_LISTING);
+
+        if ($wartezeit !== null) {
+            RateLimitGuard::log(RateLimitGuard::COMPANY_LISTING, TurnstileAction::CompanyListing, Auth::user()?->email ?? $this->email);
+            $this->addError('email', $this->antiSpamThrottleMessage($wartezeit));
+
+            return;
+        }
+
         if (Auth::guest()) {
-            $key = 'company-signup:'.request()->ip();
-
-            if (RateLimiter::tooManyAttempts($key, 5)) {
-                $minutes = (int) ceil(RateLimiter::availableIn($key) / 60);
-                $this->addError('email', trans_choice('portal.errors.signup.throttled', $minutes, ['minuten' => $minutes]));
-
-                return;
-            }
-
             $this->validate([
                 'name' => ['required', 'string', 'max:255'],
-                'email' => ['required', 'string', 'email', 'max:255', 'unique:central.users,email'],
+                // Wegwerf-Adressen sichtbar abweisen (#8). Dieser Weg legt ein
+                // Konto an, ohne durch App\Validator\RegisterValidator zu
+                // laufen, deshalb haengt die Regel hier eigens.
+                'email' => ['required', 'string', 'email', 'max:255', 'unique:central.users,email', new NotDisposableEmailRule(TurnstileAction::CompanyListing)],
                 'password' => ['required', 'string', 'min:8'],
                 'agb' => ['accepted'],
             ], [
@@ -153,8 +210,19 @@ class CompanySignup extends Component
                 'password.min' => __('portal.errors.signup.password_min'),
                 'agb.accepted' => __('portal.errors.signup.terms_required'),
             ]);
+        }
 
-            RateLimiter::hit($key, 3600);
+        // Firmenname gleich dem Personennamen: dasselbe Muster wie in #15,
+        // nur in Schritt 2 sichtbar. Rueckfrage am Namensfeld in Schritt 1.
+        $person = Auth::check() ? (string) Auth::user()->name : $this->name;
+
+        if (! $this->nameConfirmed && PersonalNameDetector::isSamePerson($this->firma, $person)) {
+            $this->nameQuestion = true;
+            $this->step = 1;
+            $this->resetValidation();
+            $this->dispatch('signup-step');
+
+            return;
         }
 
         $city = $this->resolveCity();
@@ -164,6 +232,25 @@ class CompanySignup extends Component
 
             return;
         }
+
+        // Dublette desselben Nutzers (#16): hat er denselben Betrieb schon
+        // eingetragen, fuehrt der Abschluss auf den bestehenden Eintrag statt
+        // einen zweiten anzulegen. Steht vor der Turnstile-Pruefung, damit ein
+        // Doppelklick kein Token verbraucht; fuer Gaeste greift es nie, weil
+        // das Konto erst unten entsteht.
+        if ($this->existingCompany() !== null) {
+            $this->duplicate = true;
+            $this->done = true;
+
+            return;
+        }
+
+        // Turnstile zuletzt: erst wenn alle Felder stimmen, wird ein Token
+        // eingeloest. Cloudflare nimmt jedes Token nur einmal an, ein Fehler in
+        // einem anderen Feld soll es also nicht verbrauchen.
+        $this->validate([
+            'turnstileToken' => [new TurnstileRule(TurnstileAction::CompanyListing)],
+        ]);
 
         if (Auth::guest()) {
             $user = app(UserService::class)->createUser([
@@ -189,7 +276,8 @@ class CompanySignup extends Component
             'is_active' => false,
             'is_premium' => false,
             'is_verified' => false,
-        ]));
+            // Herkunft der Selbsteintragung (#8), IP nur als HMAC-Hash.
+        ] + RequestOrigin::forCompany()));
 
         if ($tenant = tenant()) {
             $permissions = app(TenantPermissionService::class);
@@ -199,6 +287,10 @@ class CompanySignup extends Component
         }
 
         app(NewCompanyNotifier::class)->notify($company, Auth::user());
+
+        // Erst jetzt zaehlen: ein Tippfehler in der Validierung soll keinen
+        // Versuch kosten.
+        $this->antiSpamCount(RateLimitGuard::COMPANY_LISTING);
 
         $this->password = '';
         $this->done = true;
@@ -234,6 +326,35 @@ class CompanySignup extends Component
             ->implode(''));
     }
 
+    /**
+     * Bestehender Eintrag desselben Nutzers mit gleichem Namen und gleicher
+     * PLZ (#16). Verglichen wird der slug-normalisierte Name, damit
+     * "Gutachten Franken", "gutachten-franken" und "Gutachten  Franken" als
+     * derselbe Betrieb gelten. Die Kandidaten sind wenige Zeilen (ein Nutzer,
+     * eine PLZ), deshalb wird in PHP verglichen statt in SQL.
+     */
+    private function existingCompany(): ?Company
+    {
+        $userId = Auth::id();
+        $name = $this->normalizedName($this->firma);
+
+        if ($userId === null || $name === '') {
+            return null;
+        }
+
+        return Company::query()
+            ->where('user_id', $userId)
+            ->where('zipcode', $this->plz)
+            ->orderBy('id')
+            ->get()
+            ->first(fn (Company $company): bool => $this->normalizedName((string) $company->name) === $name);
+    }
+
+    private function normalizedName(string $value): string
+    {
+        return Str::slug($value, '-', 'de');
+    }
+
     private function resolveCity(): ?City
     {
         $ort = trim($this->ort);
@@ -255,7 +376,10 @@ class CompanySignup extends Component
         $base = Str::slug($this->firma) ?: 'betrieb';
         $slug = $base;
 
-        for ($i = 2; Company::where('slug', $slug)->exists(); $i++) {
+        // withTrashed(): `slug` ist unique, und ein soft-geloeschter Eintrag
+        // (#10) belegt den Wert weiter — ohne ihn liefe das Anlegen in einen
+        // Unique-Fehler statt in den naechsten freien Slug.
+        for ($i = 2; Company::withTrashed()->where('slug', $slug)->exists(); $i++) {
             $slug = "{$base}-{$i}";
         }
 

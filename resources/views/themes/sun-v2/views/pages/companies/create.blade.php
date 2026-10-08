@@ -27,6 +27,16 @@
   <div class="max-w-xl">
     <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-zinc-900">{{ __('portal.signup.headline') }}</h1>
     <p class="mt-3 text-base md:text-lg leading-relaxed">{{ __('portal.signup.intro') }}</p>
+
+    {{-- Eigener Weg fuer Suchende (#15): ohne ihn ist der Eintragsknopf der einzige Handlungsaufruf der Seite --}}
+    <div class="mt-5 card p-4 md:p-5 flex items-start gap-3" role="note">
+      <span class="shrink-0 text-zinc-400 mt-0.5"><x-sun.icon name="info" class="size-5" /></span>
+      <div class="min-w-0">
+        <p class="font-semibold text-zinc-900">{{ __('portal.signup.seeker.heading') }}</p>
+        <p class="mt-1 text-sm text-zinc-700">{{ __('portal.signup.seeker.text') }}</p>
+        <a href="{{ route('portal.companies.index') }}" class="btn-secondary mt-3">{{ __('portal.signup.seeker.button') }}</a>
+      </div>
+    </div>
   </div>
 
   <div class="mt-8 grid gap-8 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,32rem)_minmax(0,20rem)] xl:items-start">

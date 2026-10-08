@@ -11,10 +11,32 @@
     $betweenAd = \App\View\Components\AdSlot::hasSlotsForPosition('listing_between_results');
     $skyscraperAd = $hasMap && \App\View\Components\AdSlot::hasSlotsForPosition('sidebar_sticky');
     $center = $search['pins']['center'];
+    $portalName = $currentTenant->name ?? config('app.name');
 @endphp
 
 @section('title', $search['heading'].' | '.($currentTenant->name ?? config('app.name')))
 @section('meta_description', __('portal.search.meta_description', ['ueberschrift' => $search['heading']]))
+
+{{-- CollectionPage der Firmensuche (#31). Die URL zeigt auf die parameterlose,
+     indexierbare Liste (Canonical-Regel des SeoService, #7). Schluessel
+     zusammengesetzt: '@'.'context' waere als Literal eine Blade-Direktive. --}}
+@push('scripts')
+<script type="application/ld+json">
+{!! json_encode([
+    '@'.'context' => 'https://schema.org',
+    '@type' => 'CollectionPage',
+    'name' => $search['heading'],
+    'description' => __('portal.search.meta_description', ['ueberschrift' => $search['heading']]),
+    'url' => route('portal.companies.index'),
+    'isPartOf' => [
+        '@type' => 'WebSite',
+        'name' => $portalName,
+        'url' => route('home'),
+    ],
+    'numberOfItems' => (int) $companies->total(),
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}
+</script>
+@endpush
 
 @section('content')
 
@@ -43,15 +65,7 @@
 
 <div class="container-portal pt-6 pb-12 md:pb-16">
 
-  <nav aria-label="{{ __('portal.layout.breadcrumb.label') }}" class="text-sm text-zinc-500 flex items-center gap-1.5">
-    <a href="{{ route('home') }}" class="hover:text-brand hidden sm:inline">{{ __('portal.layout.breadcrumb.home') }}</a><x-sun.icon name="chevron-right" class="hidden sm:block size-4 text-zinc-400" />
-    @if($search['crumb'])
-      <a href="{{ route('portal.companies.index') }}" class="hover:text-brand">{{ __('portal.search.crumb') }}</a><x-sun.icon name="chevron-right" class="size-4 text-zinc-400" />
-      <span class="text-zinc-900">{{ $search['crumb'] }}</span>
-    @else
-      <span class="text-zinc-900">{{ __('portal.search.crumb') }}</span>
-    @endif
-  </nav>
+  <x-sun.breadcrumb :items="\App\Support\Breadcrumb::forCompanySearch($search['crumb'])" :wrap="false" />
 
   <h1 class="mt-4 text-3xl md:text-4xl font-bold tracking-tight text-zinc-900">{{ $search['heading'] }}</h1>
   @if($companies->total() > 0)

@@ -2,12 +2,17 @@
 
 namespace App\Livewire\Portal;
 
+use App\AntiSpam\Concerns\InteractsWithAntiSpam;
+use App\AntiSpam\Support\RateLimitGuard;
+use App\AntiSpam\Support\RequestOrigin;
 use App\Constants\TenancyPermissionConstants;
 use App\Models\Portal\Category;
 use App\Models\Portal\City;
 use App\Models\Portal\Company;
 use App\Services\NewCompanyNotifier;
 use App\Services\TenantPermissionService;
+use App\Turnstile\Enums\TurnstileAction;
+use App\Turnstile\Rules\TurnstileRule;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -17,6 +22,9 @@ use Livewire\WithFileUploads;
 
 class CompanyRegistrationWizard extends Component
 {
+    // Honeypot und Ausfuellzeit (#8/#25); die Properties kommen aus dem
+    // Trait, gebunden von <x-antispam-fields wire /> in der Ansicht.
+    use InteractsWithAntiSpam;
     use WithFileUploads;
 
     // Step-Management
@@ -61,7 +69,23 @@ class CompanyRegistrationWizard extends Component
 
     public ?Company $createdCompany = null;
 
+    /**
+     * Der Eintrag gab es schon (#25, wie #16 fuer CompanySignup): gleicher
+     * Nutzer, slug-normalisierter Name, gleiche PLZ. Dann entsteht kein
+     * zweiter Datensatz, der Abschluss nennt den bestehenden.
+     */
+    public bool $duplicate = false;
+
     public ?string $selectedCityName = null;
+
+    /**
+     * Turnstile-Token (#7), Aktion company_listing. Das Widget steht nur in
+     * Schritt 5 (Zusammenfassung): ein Token gilt 300 s, in Schritt 1 gerendert
+     * waere es beim Abschicken abgelaufen. Geprueft wird es als letzte Regel,
+     * damit der Logo-Upload aus Schritt 4 bei einem Turnstile-Fehler nicht
+     * verloren geht (docs/turnstile.md §12).
+     */
+    public string $turnstileToken = '';
 
     public function mount(string $prefillName = '', string $prefillPlace = ''): void
     {
@@ -121,6 +145,9 @@ class CompanyRegistrationWizard extends Component
             ],
             4 => [
                 'logo' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
+            ],
+            5 => [
+                'turnstileToken' => [new TurnstileRule(TurnstileAction::CompanyListing)],
             ],
             default => [],
         };
@@ -231,6 +258,27 @@ class CompanyRegistrationWizard extends Component
             return;
         }
 
+        // Honeypot und Mindest-Ausfuellzeit (#8): still abweisen. Der
+        // Besucher sieht dieselbe Erfolgsseite, es entsteht aber kein
+        // Eintrag. Der Treffer steht in turnstile_verifications.
+        if ($this->antiSpamRejects(TurnstileAction::CompanyListing, (string) Auth::user()->email)) {
+            $this->submitted = true;
+
+            return;
+        }
+
+        // Rate-Limit je IP-Hash und Nutzer (#8), Grenzen in
+        // config/antispam.php. Gezaehlt wird erst nach dem Anlegen, damit ein
+        // Validierungsfehler keinen Versuch kostet.
+        $wartezeit = $this->antiSpamLimit(RateLimitGuard::COMPANY_LISTING);
+
+        if ($wartezeit !== null) {
+            RateLimitGuard::log(RateLimitGuard::COMPANY_LISTING, TurnstileAction::CompanyListing, (string) Auth::user()->email);
+            $this->addError('antispamLimit', $this->antiSpamThrottleMessage($wartezeit));
+
+            return;
+        }
+
         // Validiere alle Steps nochmal
         $this->currentStep = 1;
         $this->validate();
@@ -240,13 +288,34 @@ class CompanyRegistrationWizard extends Component
         $this->validate();
         $this->currentStep = 4;
         $this->validate();
+
+        // Dublette desselben Nutzers (#25): hat er denselben Betrieb schon
+        // eingetragen, fuehrt der Abschluss auf den bestehenden Eintrag statt
+        // einen zweiten anzulegen. Steht vor der Turnstile-Pruefung, damit ein
+        // Doppelklick kein Token verbraucht.
+        $bestehender = $this->existingCompany();
+
+        if ($bestehender !== null) {
+            $this->createdCompany = $bestehender;
+            $this->duplicate = true;
+            $this->submitted = true;
+
+            return;
+        }
+
+        // Turnstile als letzte Pruefung: schlaegt sie an, bleiben die
+        // temporaeren Uploads aus Schritt 4 unberuehrt in der Property.
         $this->currentStep = 5;
+        $this->validate();
 
         // Slug generieren mit Uniqueness-Check
         $baseSlug = Str::slug($this->name);
         $slug = $baseSlug;
         $counter = 1;
-        while (Company::where('slug', $slug)->exists()) {
+        // withTrashed(): `slug` ist unique, und ein soft-geloeschter Eintrag
+        // (#10) belegt den Wert weiter — ohne ihn liefe das Anlegen in einen
+        // Unique-Fehler statt in den naechsten freien Slug.
+        while (Company::withTrashed()->where('slug', $slug)->exists()) {
             $slug = "{$baseSlug}-{$counter}";
             $counter++;
         }
@@ -264,10 +333,14 @@ class CompanyRegistrationWizard extends Component
                 'tel' => $this->tel ?: null,
                 'email' => $this->email,
                 'website' => $this->website ?: null,
-                'is_active' => true,
+                // Freischaltung durch das Portal-Team (Verwaltung > Firmen).
+                // Fail-closed nach #7: ein frischer Eintrag ist nicht sofort
+                // oeffentlich, auch nicht von einem angemeldeten Konto.
+                'is_active' => false,
                 'is_premium' => false,
                 'is_verified' => false,
-            ]);
+                // Herkunft der Selbsteintragung (#8), IP nur als HMAC-Hash.
+            ] + RequestOrigin::forCompany());
 
             $this->createdCompany->categories()->sync($this->selectedCategories);
         });
@@ -296,9 +369,37 @@ class CompanyRegistrationWizard extends Component
 
         app(NewCompanyNotifier::class)->notify($this->createdCompany, Auth::user());
 
+        // Erst jetzt zaehlen: ein Tippfehler in der Validierung soll keinen
+        // Versuch kosten.
+        $this->antiSpamCount(RateLimitGuard::COMPANY_LISTING);
+
         $this->submitted = true;
 
-        session()->flash('success', 'Ihre Firma wurde erfolgreich eingetragen!');
+        session()->flash('success', 'Ihre Firma wurde eingetragen und wird jetzt geprüft.');
+    }
+
+    /**
+     * Bestehender Eintrag desselben Nutzers mit gleichem Namen und gleicher
+     * PLZ (#25). Verglichen wird der slug-normalisierte Name, damit
+     * "Gutachten Franken", "gutachten-franken" und "Gutachten  Franken" als
+     * derselbe Betrieb gelten. Die Kandidaten sind wenige Zeilen (ein Nutzer,
+     * eine PLZ), deshalb wird in PHP verglichen statt in SQL.
+     */
+    private function existingCompany(): ?Company
+    {
+        $userId = Auth::id();
+        $name = Str::slug($this->name, '-', 'de');
+
+        if ($userId === null || $name === '') {
+            return null;
+        }
+
+        return Company::query()
+            ->where('user_id', $userId)
+            ->where('zipcode', $this->zipcode)
+            ->orderBy('id')
+            ->get()
+            ->first(fn (Company $company): bool => Str::slug((string) $company->name, '-', 'de') === $name);
     }
 
     public function render()

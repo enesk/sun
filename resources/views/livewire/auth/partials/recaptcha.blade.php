@@ -15,27 +15,10 @@
         </span>
     @enderror
 
+    {{-- onRecaptchaSuccess und das Zuruecksetzen stehen in
+         resources/js/modules/recaptcha-bridge.js — kein Inline-Skript (#21). --}}
+    @push('tail')
+        {!! htmlScriptTagJsApi() !!}
+    @endpush
+
 @endif
-
-@push('tail')
-    <script>
-
-        function onRecaptchaSuccess(token) {
-            Livewire.dispatch('captcha-success', { token: token });
-        }
-
-        document.addEventListener('livewire:initialized', () => {
-            Livewire.on('reset-recaptcha', (event) => {
-                // wait .5 seconds before resetting the recaptcha
-                setTimeout(() => {
-                    grecaptcha.reset();
-                }, 500);
-            });
-        });
-
-    </script>
-@endpush
-
-@push('tail')
-    {!! htmlScriptTagJsApi() !!}
-@endpush

@@ -9,7 +9,7 @@
     @push('scripts')
     <script type="application/ld+json">
     {!! json_encode(array_filter([
-        '@context' => 'https://schema.org',
+        '@'.'context' => 'https://schema.org', /* Schluessel zusammengesetzt: sonst macht Blade daraus eine Direktive (#30) */
         '@type' => 'JobPosting',
         'title' => $job->title,
         'description' => strip_tags($job->description),
@@ -301,6 +301,10 @@
                                         <p class="mt-1 text-xs text-red-500" role="alert">{{ $message }}</p>
                                     @enderror
                                 </div>
+
+                                {{-- Honigtopf, Ausfuellzeit und Turnstile (#22) --}}
+                                <x-antispam-fields />
+                                <x-turnstile action="contact" size="flexible" class="mb-4 mt-0" />
 
                                 {{-- Submit --}}
                                 <button type="submit"

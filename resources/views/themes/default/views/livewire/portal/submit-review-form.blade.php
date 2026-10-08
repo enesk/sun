@@ -147,6 +147,13 @@
                 Ihre Bewertung wird geprüft und erscheint erst nach der Freigabe.
             </p>
 
+            {{-- Honigtopf, Ausfuellzeit und Turnstile (#22). gate="false":
+                 die Knoepfe hier tragen kein type-Attribut und haengen an
+                 wire:click — ein gesperrter Submit wuerde auch "Abbrechen"
+                 treffen. Durchgesetzt wird serverseitig in der Rule. --}}
+            <x-antispam-fields wire />
+            <x-turnstile action="lead_request" wire="turnstileToken" field="turnstileToken" size="flexible" gate="false" class="mb-3 sm:mb-4 mt-0" />
+
             {{-- Aktionen — Mobile: Full-Width gestackt, Desktop: inline --}}
             <div class="flex flex-col-reverse sm:flex-row sm:items-center gap-2 sm:gap-3">
                 <button

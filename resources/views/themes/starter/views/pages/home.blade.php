@@ -9,7 +9,7 @@
     @push('scripts')
     <script type="application/ld+json">
     {!! json_encode([
-        '@context' => 'https://schema.org',
+        '@'.'context' => 'https://schema.org', /* Schluessel zusammengesetzt: sonst macht Blade daraus eine Direktive (#30) */
         '@type' => 'WebSite',
         'name' => $currentTenant->name ?? config('app.name'),
         'url' => route('home'),
