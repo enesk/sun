@@ -7,8 +7,8 @@ use App\AntiSpam\Support\RateLimitGuard;
 use App\Mail\EditSuggestionNotification;
 use App\Models\Portal\Company;
 use App\Models\Portal\CompanyEditSuggestion;
+use App\Turnstile\Concerns\InteractsWithTurnstile;
 use App\Turnstile\Enums\TurnstileAction;
-use App\Turnstile\Rules\TurnstileRule;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Attributes\On;
@@ -21,11 +21,9 @@ class SuggestEditModal extends Component
     // frueher hier handgeschriebene Honigtopf `website_url` ist damit weg —
     // sein Feldname war fest und seine Treffer landeten in keinem Log.
     use InteractsWithAntiSpam;
+    use InteractsWithTurnstile;
 
     public Company $company;
-
-    /** Turnstile-Token, gesetzt von <x-turnstile wire="turnstileToken" />. */
-    public string $turnstileToken = '';
 
     public string $field = '';
     public string $suggestedValue = '';
@@ -98,9 +96,7 @@ class SuggestEditModal extends Component
 
         // Turnstile zuletzt: erst wenn alle Felder stimmen, wird ein Token
         // eingeloest — Cloudflare nimmt jedes Token nur einmal an.
-        $this->validate([
-            'turnstileToken' => [new TurnstileRule(TurnstileAction::Contact, 'reporterEmail')],
-        ]);
+        $this->validateTurnstile(TurnstileAction::Contact, 'reporterEmail');
 
         $suggestion = CompanyEditSuggestion::create([
             'company_id' => $this->company->id,

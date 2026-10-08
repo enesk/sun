@@ -5,8 +5,8 @@ namespace App\Livewire\Portal;
 use App\AntiSpam\Concerns\InteractsWithAntiSpam;
 use App\AntiSpam\Support\RateLimitGuard;
 use App\Models\Portal\NewsletterSubscriber;
+use App\Turnstile\Concerns\InteractsWithTurnstile;
 use App\Turnstile\Enums\TurnstileAction;
-use App\Turnstile\Rules\TurnstileRule;
 use Livewire\Component;
 
 class NewsletterSubscribeForm extends Component
@@ -14,12 +14,10 @@ class NewsletterSubscribeForm extends Component
     // Honigtopf und Mindest-Ausfuellzeit (#22); die Properties kommen aus dem
     // Trait, gebunden von <x-antispam-fields wire /> in der Ansicht.
     use InteractsWithAntiSpam;
+    use InteractsWithTurnstile;
 
     public string $email = '';
     public bool $submitted = false;
-
-    /** Turnstile-Token, gesetzt von <x-turnstile wire="turnstileToken" />. */
-    public string $turnstileToken = '';
 
     protected function rules(): array
     {
@@ -61,9 +59,7 @@ class NewsletterSubscribeForm extends Component
 
         // Turnstile zuletzt: erst wenn die Adresse stimmt, wird ein Token
         // eingeloest — Cloudflare nimmt jedes Token nur einmal an.
-        $this->validate([
-            'turnstileToken' => [new TurnstileRule(TurnstileAction::Contact)],
-        ]);
+        $this->validateTurnstile(TurnstileAction::Contact);
 
         $existing = NewsletterSubscriber::where('email', $this->email)->first();
 

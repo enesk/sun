@@ -15,8 +15,8 @@ use App\Services\NewCompanyNotifier;
 use App\Services\TenantPermissionService;
 use App\Services\UserService;
 use App\Support\PersonalNameDetector;
+use App\Turnstile\Concerns\InteractsWithTurnstile;
 use App\Turnstile\Enums\TurnstileAction;
-use App\Turnstile\Rules\TurnstileRule;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -36,6 +36,10 @@ class CompanySignup extends Component
     // Honeypot und Ausfuellzeit (#8); die Properties kommen aus dem Trait,
     // gebunden von <x-antispam-fields wire /> in der Ansicht.
     use InteractsWithAntiSpam;
+
+    // Turnstile-Token (#52); die Property kommt aus dem Trait, gebunden von
+    // <x-turnstile wire="turnstileToken" field="turnstileToken" /> in der Ansicht.
+    use InteractsWithTurnstile;
 
     public int $step = 1;
 
@@ -248,9 +252,7 @@ class CompanySignup extends Component
         // Turnstile zuletzt: erst wenn alle Felder stimmen, wird ein Token
         // eingeloest. Cloudflare nimmt jedes Token nur einmal an, ein Fehler in
         // einem anderen Feld soll es also nicht verbrauchen.
-        $this->validate([
-            'turnstileToken' => [new TurnstileRule(TurnstileAction::CompanyListing)],
-        ]);
+        $this->validateTurnstile(TurnstileAction::CompanyListing);
 
         if (Auth::guest()) {
             $user = app(UserService::class)->createUser([
