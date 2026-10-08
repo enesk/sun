@@ -14,14 +14,32 @@
 @section('meta_description', __('portal.categories.index.meta_description', ['anzahl' => $count($totalCompanies)]))
 @section('canonical', route('portal.categories.index'))
 
+{{-- CollectionPage der Leistungsuebersicht (#31). Schluessel zusammengesetzt:
+     '@'.'context' waere als Literal eine Blade-Direktive. --}}
+@push('scripts')
+<script type="application/ld+json">
+{!! json_encode([
+    '@'.'context' => 'https://schema.org',
+    '@type' => 'CollectionPage',
+    'name' => __('portal.categories.index.heading'),
+    'description' => __('portal.categories.index.meta_description', ['anzahl' => $count($totalCompanies)]),
+    'url' => route('portal.categories.index'),
+    'isPartOf' => [
+        '@type' => 'WebSite',
+        'name' => $portalName,
+        'url' => route('home'),
+    ],
+    'numberOfItems' => $categories->count(),
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}
+</script>
+@endpush
+
 @section('content')
 
 <!-- ========== HERO ========== -->
 <section class="bg-brand-50 py-10 md:py-16">
   <div class="container-portal">
-    <nav aria-label="{{ __('portal.layout.breadcrumb.label') }}" class="text-sm text-zinc-500 flex items-center gap-1.5 flex-wrap">
-      <a href="{{ route('home') }}" class="hover:text-brand">{{ __('portal.layout.breadcrumb.home') }}</a><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" /><span class="text-zinc-900">{{ __('portal.layout.footer.services') }}</span>
-    </nav>
+    <x-sun.breadcrumb :items="\App\Support\Breadcrumb::forCategories()" :hide-home="false" />
     <div class="mt-4 max-w-2xl">
       <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-zinc-900">{{ __('portal.categories.index.heading') }}</h1>
       <p class="mt-3 text-base md:text-lg leading-relaxed text-zinc-700">{{ trans_choice('portal.categories.index.intro', $totalCompanies, ['anzahl' => $count($totalCompanies)]) }}</p>

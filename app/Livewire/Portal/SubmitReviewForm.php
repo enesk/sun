@@ -2,16 +2,27 @@
 
 namespace App\Livewire\Portal;
 
+use App\AntiSpam\Concerns\InteractsWithAntiSpam;
+use App\AntiSpam\Support\RateLimitGuard;
 use App\Mail\NewReviewNotification;
 use App\Models\Portal\Company;
 use App\Models\Portal\Review;
+use App\Turnstile\Enums\TurnstileAction;
+use App\Turnstile\Rules\TurnstileRule;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
 
 class SubmitReviewForm extends Component
 {
+    // Honigtopf und Mindest-Ausfuellzeit (#22); die Properties kommen aus dem
+    // Trait, gebunden von <x-antispam-fields wire /> in der Ansicht.
+    use InteractsWithAntiSpam;
+
     public Company $company;
+
+    /** Turnstile-Token, gesetzt von <x-turnstile wire="turnstileToken" />. */
+    public string $turnstileToken = '';
 
     public float $rating = 0;
     public string $authorName = '';
@@ -61,16 +72,38 @@ class SubmitReviewForm extends Component
 
     public function submit(): void
     {
+        // Honigtopf und Mindest-Ausfuellzeit (#22): still abweisen. Der
+        // Besucher sieht dieselbe Dankesmeldung, es entsteht aber keine
+        // Bewertung. Der Treffer steht in turnstile_verifications.
+        if ($this->antiSpamRejects(TurnstileAction::LeadRequest)) {
+            $this->submitted = true;
+            return;
+        }
+
         $this->validate();
 
-        // Rate-Limiting: Max 1 Bewertung pro Company pro IP pro Tag
-        $ip = request()->ip();
-        // Simple IP-based check via session
+        // Eine Bewertung je Betrieb und Sitzung
         $sessionKey = 'review_submitted_' . $this->company->id;
         if (session()->has($sessionKey)) {
             $this->addError('rating', 'Sie haben heute bereits eine Bewertung für dieses Unternehmen abgegeben.');
             return;
         }
+
+        // Rate-Limit je IP-Hash und Portal (#22), Grenze in
+        // config/antispam.php. Greift auch, wenn die Sitzung weggeworfen wird.
+        $wartezeit = $this->antiSpamLimit(RateLimitGuard::REVIEW);
+
+        if ($wartezeit !== null) {
+            RateLimitGuard::log(RateLimitGuard::REVIEW, TurnstileAction::LeadRequest);
+            $this->addError('rating', $this->antiSpamThrottleMessage($wartezeit));
+            return;
+        }
+
+        // Turnstile zuletzt: erst wenn alle Felder stimmen, wird ein Token
+        // eingeloest — Cloudflare nimmt jedes Token nur einmal an.
+        $this->validate([
+            'turnstileToken' => [new TurnstileRule(TurnstileAction::LeadRequest, null)],
+        ]);
 
         $review = Review::create([
             'company_id' => $this->company->id,
@@ -93,6 +126,10 @@ class SubmitReviewForm extends Component
         }
 
         session()->put($sessionKey, true);
+
+        // Erst jetzt zaehlen: ein Tippfehler in der Validierung soll keinen
+        // Versuch kosten.
+        $this->antiSpamCount(RateLimitGuard::REVIEW);
 
         $this->submitted = true;
     }

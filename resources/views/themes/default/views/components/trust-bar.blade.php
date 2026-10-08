@@ -62,53 +62,5 @@
     </div>
 </section>
 
-{{-- Count-Up Animation mit Stagger (IntersectionObserver) --}}
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) return;
-
-    const cards = document.querySelectorAll('.trust-card');
-    if (!cards.length) return;
-
-    const observer = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-            if (!entry.isIntersecting) return;
-            observer.unobserve(entry.target);
-
-            const el = entry.target.querySelector('.trust-bar-value');
-            const isRating = entry.target.dataset.isRating === 'true';
-            const target = parseFloat(entry.target.dataset.target);
-            const staggerDelay = parseInt(entry.target.dataset.staggerDelay) || 0;
-            const duration = 1200;
-
-            setTimeout(function () {
-                const start = performance.now();
-
-                function animate(now) {
-                    const elapsed = now - start;
-                    const progress = Math.min(elapsed / duration, 1);
-                    const eased = 1 - Math.pow(1 - progress, 3);
-                    const current = target * eased;
-
-                    if (isRating) {
-                        el.textContent = current.toFixed(1).replace('.', ',');
-                    } else {
-                        el.textContent = Math.round(current).toLocaleString('de-DE');
-                    }
-
-                    if (progress < 1) {
-                        requestAnimationFrame(animate);
-                    }
-                }
-
-                el.textContent = isRating ? '0,0' : '0';
-                requestAnimationFrame(animate);
-            }, staggerDelay);
-        });
-    }, { threshold: 0.3 });
-
-    cards.forEach(function (card) { observer.observe(card); });
-});
-</script>
+{{-- Count-Up mit Stagger: resources/js/modules/trust-bar.js (#21) --}}
 @endif

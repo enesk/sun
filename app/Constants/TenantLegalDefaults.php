@@ -169,6 +169,51 @@ IMPRESSUM_HTML;
         <strong>Speicherdauer:</strong> Logfiles werden nach 30 Tagen automatisch gelöscht.
     </p>
 
+    <h3>3.1 Bot-Schutz mit Cloudflare Turnstile</h3>
+    <p>
+        Formulare auf <strong>[PORTAL_NAME]</strong> — insbesondere die Registrierung eines
+        Nutzerkontos und die Eintragung eines Betriebs — sind mit „Cloudflare Turnstile“ gegen
+        automatisierte Zugriffe (Bots) geschützt. Anbieter ist die Cloudflare Germany GmbH,
+        Rosental 7, 80331 München, als Teil der Cloudflare, Inc., 101 Townsend Street,
+        San Francisco, CA 94107, USA.
+    </p>
+    <p>
+        Beim Aufruf eines geschützten Formulars wird ein Skript von Cloudflare geladen. Dabei werden
+        folgende Daten an Cloudflare übermittelt und dort ausgewertet, um zu unterscheiden, ob die
+        Eingabe von einem Menschen oder von einem Programm stammt:
+    </p>
+    <ul>
+        <li>IP-Adresse</li>
+        <li>Browser- und Geräteangaben (unter anderem Browsertyp und -version, Betriebssystem, Spracheinstellung, Bildschirmauflösung)</li>
+        <li>Adresse der aufgerufenen Seite und Referrer-URL</li>
+        <li>Interaktionsdaten im Bereich des Formulars (zum Beispiel Maus-, Tastatur- und Touch-Ereignisse)</li>
+        <li>Ein von Cloudflare erzeugtes, kurzlebiges Prüf-Token, das wir nach dem Absenden einmalig bei Cloudflare bestätigen lassen</li>
+    </ul>
+    <p>
+        Turnstile setzt nach Angaben des Anbieters keine Cookies zur Wiedererkennung oder
+        Profilbildung und nutzt die Daten nicht für Werbung. Wir erfahren von Cloudflare nur, ob eine
+        Prüfung bestanden wurde; die Inhalte Ihrer Formulareingaben werden nicht an Cloudflare
+        übermittelt.
+    </p>
+    <p>
+        <strong>Zweck:</strong> Abwehr automatisierter Massenregistrierungen, von Spam-Einträgen und
+        sonstigem Missbrauch unserer Formulare.<br />
+        <strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an der
+        Sicherheit und Funktionsfähigkeit des Portals und am Schutz vor Missbrauch). Eine Einwilligung
+        ist nicht erforderlich, weil der Bot-Schutz technisch notwendig ist und keine Cookies zur
+        Wiedererkennung einsetzt.<br />
+        <strong>Empfänger:</strong> Cloudflare Germany GmbH und Cloudflare, Inc.<br />
+        <strong>Drittlandtransfer:</strong> Eine Verarbeitung in den USA ist nicht ausgeschlossen.
+        Cloudflare, Inc. ist unter dem EU-US Data Privacy Framework zertifiziert; ergänzend bestehen
+        Standardvertragsklauseln nach Art. 46 Abs. 2 lit. c DSGVO.<br />
+        <strong>Speicherdauer:</strong> Das Prüf-Token ist nur wenige Minuten gültig und wird von uns
+        nicht gespeichert. Zu jeder Prüfung halten wir Ergebnis, Zeitpunkt, betroffenes Formular sowie
+        einen nicht umkehrbaren Prüfwert (Hash) von IP-Adresse und E-Mail-Adresse für höchstens
+        90 Tage fest, um Missbrauch erkennen zu können.<br />
+        <strong>Weitere Informationen:</strong>
+        <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noreferrer noopener">cloudflare.com/privacypolicy</a>
+    </p>
+
     <h2>4. Registrierung und Nutzerkonto</h2>
     <p>
         Sie können auf unserem Portal ein Nutzerkonto erstellen, um Firmeneinträge zu verwalten oder Bewertungen

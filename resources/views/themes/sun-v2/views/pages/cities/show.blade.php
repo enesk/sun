@@ -8,12 +8,43 @@
 
 @php
     $filters = $citySun['filters'];
+    $portalName = $currentTenant->name ?? config('app.name');
     $betweenAd = \App\View\Components\AdSlot::hasSlotsForPosition('listing_between_results');
 @endphp
 
 {{-- Title/Description/H1 aus SeoService::cityMeta() (#10) --}}
 @section('title', $metaTitle)
 @section('meta_description', $metaDescription)
+
+{{-- CollectionPage der Stadtseite (#31). Die ItemList der sichtbaren Betriebe und
+     die FAQPage liefert der SeoService (#9/#12), hier kommt nur der Seitenknoten
+     dazu. Schluessel zusammengesetzt: '@'.'context' waere eine Blade-Direktive. --}}
+@push('scripts')
+<script type="application/ld+json">
+{!! json_encode(array_filter([
+    '@'.'context' => 'https://schema.org',
+    '@type' => 'CollectionPage',
+    'name' => $citySun['heading'],
+    'description' => $metaDescription,
+    'url' => \App\Support\CityUrl::show($city),
+    'isPartOf' => [
+        '@type' => 'WebSite',
+        'name' => $portalName,
+        'url' => route('home'),
+    ],
+    'about' => array_filter([
+        '@type' => 'City',
+        'name' => $city->name,
+        'geo' => ($city->latitude && $city->longitude) ? [
+            '@type' => 'GeoCoordinates',
+            'latitude' => (float) $city->latitude,
+            'longitude' => (float) $city->longitude,
+        ] : null,
+    ]),
+    'numberOfItems' => (int) $companies->total(),
+]), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}
+</script>
+@endpush
 
 @section('content')
 

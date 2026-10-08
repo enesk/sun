@@ -22,7 +22,15 @@
                 <span wire:loading.remove>{{ __('portal.newsletter.submit') }}</span>
                 <span wire:loading>…</span>
             </button>
+            {{-- Honigtopf und Ausfuellzeit (#22) --}}
+            <x-antispam-fields wire />
         </form>
+        {{-- Turnstile (#22) steht ausserhalb des Formulars: die Zeile ist ein
+             Flex-Container, der Kasten wuerde darin zur dritten Spalte. Die
+             Bindung laeuft ueber die Livewire-Komponente, nicht ueber das
+             Formular. Modus non_interactive, gate="false" — im Fuss darf der
+             Knopf nicht warten, bis Cloudflare geantwortet hat. --}}
+        <x-turnstile action="contact" wire="turnstileToken" field="turnstileToken" size="flexible" gate="false" class="mt-2" />
         @error('email')
             <p class="text-red-200 text-xs mt-1">{{ $message }}</p>
         @enderror

@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
@@ -29,6 +30,9 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
 {
     use CentralConnection;
     use HasApiTokens, HasFactory, HasOneTimePasswords, HasRoles, InteractsWithContentPanel, Notifiable, TwoFactorAuthentication;
+    // Bestandsbereinigung (#10): markierte Konten werden nach der Sichtung
+    // nur soft-deleted, nie hart geloescht.
+    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -47,6 +51,10 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
         'last_seen_at',
         'first_claim_at',
         'onboarding_dismissed_at',
+        // Herkunft der Registrierung (#8). IP nur als HMAC-Hash, nie im
+        // Klartext — gesetzt in App\Services\UserService::createUser().
+        'registration_ip_hash',
+        'registration_user_agent',
     ];
 
     /**
@@ -71,6 +79,11 @@ class User extends Authenticatable implements FilamentUser, HasTenants, MustVeri
         'last_seen_at' => 'datetime',
         'first_claim_at' => 'datetime',
         'onboarding_dismissed_at' => 'datetime',
+        // Quarantaene (#10); gesetzt wird ausschliesslich ueber
+        // App\AntiSpam\BotQuarantine, deshalb nicht in $fillable.
+        'suspected_bot_at' => 'datetime',
+        'suspected_bot_cleared_at' => 'datetime',
+        'suspected_bot_reasons_json' => 'array',
     ];
 
     public function roadmapItems(): HasMany

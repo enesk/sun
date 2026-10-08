@@ -14,6 +14,7 @@ return Illuminate\Foundation\Application::configure(basePath: dirname(__DIR__))
         $middleware->prepend(App\Http\Middleware\RedirectWwwToNonWww::class);
 
         $middleware->appendToGroup('web', [
+            App\Http\Middleware\ContentSecurityPolicy::class,
             App\Http\Middleware\BlockedUser::class,
             App\Http\Middleware\UpdateUserLastSeenAt::class,
             App\Http\Middleware\TrackReferralCode::class,

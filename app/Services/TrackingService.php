@@ -2,25 +2,13 @@
 
 namespace App\Services;
 
+use App\AntiSpam\Support\BotTraffic;
 use App\Models\Portal\TrackingEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class TrackingService
 {
-    /**
-     * Bekannte Bot-Pattern im User-Agent.
-     * Wir wollen keine Crawler/Bots in der Statistik.
-     */
-    private const BOT_PATTERNS = [
-        'bot', 'crawl', 'spider', 'slurp', 'mediapartners',
-        'facebookexternalhit', 'linkedinbot', 'twitterbot',
-        'whatsapp', 'telegram', 'preview', 'headless',
-        'lighthouse', 'pagespeed', 'gtmetrix', 'pingdom',
-        'uptimerobot', 'python-requests', 'curl/', 'wget/',
-        'go-http-client', 'java/', 'php/', 'ruby/',
-    ];
-
     /**
      * Profilaufruf tracken.
      */
@@ -135,23 +123,15 @@ class TrackingService
     }
 
     /**
-     * Bot-Erkennung per User-Agent.
+     * Bot-Erkennung (#17): User-Agent und Netz, Liste in
+     * config/antispam.php `bot_traffic`. Einzige Quelle ist
+     * App\AntiSpam\Support\BotTraffic — die frueher hier verdrahtete
+     * Teilstring-Liste kannte die belegten Scraper nicht
+     * (docs/bot-traffic.md).
      */
     private function isBot(Request $request): bool
     {
-        $ua = strtolower($request->userAgent() ?? '');
-
-        if (empty($ua)) {
-            return true;
-        }
-
-        foreach (self::BOT_PATTERNS as $pattern) {
-            if (str_contains($ua, $pattern)) {
-                return true;
-            }
-        }
-
-        return false;
+        return BotTraffic::isBot($request);
     }
 
     /**
@@ -191,6 +171,7 @@ class TrackingService
             for ($i = 6; $i < 16; $i++) {
                 $packed[$i] = "\0";
             }
+
             return inet_ntop($packed);
         }
 

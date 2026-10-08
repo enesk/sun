@@ -19,8 +19,11 @@
   </ol>
   @endif
 
-  {{-- Honeypot --}}
-  <div class="sr-only" aria-hidden="true"><input type="text" wire:model="website_url" tabindex="-1" autocomplete="off"></div>
+  {{-- Tiefenverteidigung (#8): Honeypot mit zufaelligem Feldnamen und
+       verschluesselter Zeitstempel. Ersetzt den fruehen Honeypot `website_url`
+       von Hand; geprueft in CompanySignup::submitAccount() vor allem anderen,
+       ein Treffer wird still abgewiesen. --}}
+  <x-antispam-fields wire />
 
   @if($step === 1)
     <!-- ===== SCHRITT 1: BETRIEB ===== -->
@@ -31,6 +34,18 @@
       <label for="firma" class="block text-sm font-medium text-zinc-700 mb-1">{{ __('portal.signup.business.name_label') }}</label>
       <input id="firma" wire:model="firma" class="input @error('firma') border-red-500 @enderror" autocomplete="organization" required>
       @error('firma')<p class="{{ $hint }} text-red-600">{{ $message }}</p>@enderror
+
+      {{-- Rueckfrage bei einem Personennamen im Feld (#15): nie eine Ablehnung, Bestaetigen fuehrt weiter --}}
+      @if($nameQuestion)
+        <div class="mt-3 card border-amber-200 bg-amber-50 p-4" role="status">
+          <p class="font-semibold text-amber-900">{{ __('portal.signup.name_question.heading', ['firma' => $firma]) }}</p>
+          <p class="mt-1 text-sm text-amber-900">{{ __('portal.signup.name_question.text') }}</p>
+          <div class="mt-3 flex flex-col gap-2 sm:flex-row">
+            <button type="button" wire:click="confirmName" wire:loading.attr="disabled" wire:target="confirmName" class="btn-secondary">{{ __('portal.signup.name_question.confirm') }}</button>
+            <a href="{{ route('portal.companies.index') }}" class="btn-ghost text-center">{{ __('portal.signup.name_question.search') }}</a>
+          </div>
+        </div>
+      @endif
 
       <label for="strasse" class="block mt-4 text-sm font-medium text-zinc-700 mb-1">{{ __('portal.signup.business.street_label') }}</label>
       <input id="strasse" wire:model="strasse" class="input @error('strasse') border-red-500 @enderror" autocomplete="street-address" required>
@@ -103,7 +118,17 @@
     </div>
   @endif
 
-  <button type="submit" class="mt-6 btn-primary w-full" wire:loading.attr="disabled" wire:target="next">{{ __($guest ? ($step === 2 ? 'portal.signup.submit_guest' : 'portal.signup.next') : 'portal.signup.submit_user') }}</button>
+  {{-- Turnstile (#7), Aktion company_listing. Nur im Abschluss-Schritt: Gaeste
+       in Schritt 2, Angemeldete in Schritt 1 (dort wird direkt eingetragen).
+       Ein Token gilt 300 s — in Schritt 1 gerendert waere es beim Absenden
+       moeglicherweise abgelaufen. --}}
+  @if(! $guest || $step === 2)
+    <x-turnstile action="company_listing" wire="turnstileToken" field="turnstileToken" />
+  @endif
+
+  {{-- Gesperrt, solange ein Request laeuft, und nach dem Abschluss dauerhaft:
+       ein zweiter Klick soll keinen zweiten Eintrag erzeugen (#16). --}}
+  <button type="submit" class="mt-6 btn-primary w-full" wire:loading.attr="disabled" wire:target="next,confirmName" @disabled($done)>{{ __($guest ? ($step === 2 ? 'portal.signup.submit_guest' : 'portal.signup.next') : 'portal.signup.submit_user') }}</button>
   <p class="mt-3 text-sm text-zinc-500 text-center">{{ __($step === 2 ? 'portal.signup.note_step_two' : 'portal.signup.note_step_one') }}</p>
   @if($guest)
     <p class="mt-4 pt-4 border-t border-zinc-200 text-sm text-zinc-500 text-center">{{ __('portal.signup.has_account') }} <a href="{{ route('login') }}" class="text-brand font-medium hover:underline">{{ __('portal.signup.login') }}</a></p>
@@ -115,7 +140,12 @@
       <div class="absolute inset-x-0 bottom-0 sm:inset-0 sm:flex sm:items-center sm:justify-center sm:p-4">
         <div class="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md p-6 text-center flex flex-col items-center gap-3 shadow-lg" style="padding-bottom:max(1.5rem,env(safe-area-inset-bottom))">
           <span class="size-14 rounded-full bg-brand-50 text-brand flex items-center justify-center"><x-sun.icon name="check" class="size-7" /></span>
-          @if(auth()->user()?->hasVerifiedEmail())
+          @if($duplicate)
+            {{-- Derselbe Betrieb stand schon im Konto (#16): kein zweiter Eintrag --}}
+            <h2 id="doneTitle" class="text-lg font-semibold text-zinc-900">{{ __('portal.signup.done.duplicate_heading') }}</h2>
+            <p class="text-zinc-500">{{ __('portal.signup.done.duplicate_text') }}</p>
+            <a href="{{ route('portal.owner.dashboard') }}" class="btn-primary w-full mt-2">{{ __('portal.signup.done.duplicate_button') }}</a>
+          @elseif(auth()->user()?->hasVerifiedEmail())
             <h2 id="doneTitle" class="text-lg font-semibold text-zinc-900">{{ __('portal.signup.done.heading') }}</h2>
             <p class="text-zinc-500">{{ __('portal.signup.done.text') }}</p>
             <a href="{{ route('portal.owner.dashboard') }}" class="btn-primary w-full mt-2">{{ __('portal.signup.done.complete_profile') }}</a>

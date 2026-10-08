@@ -54,6 +54,11 @@
 
       <p class="text-sm text-zinc-500">{{ __('portal.review_form.moderation_note') }}</p>
 
+      {{-- Honigtopf, Ausfuellzeit und Turnstile (#22). gate="false":
+           die Knoepfe haengen an wire:click, nicht an einem Submit. --}}
+      <x-antispam-fields wire />
+      <x-turnstile action="lead_request" wire="turnstileToken" field="turnstileToken" size="flexible" gate="false" class="mt-0" />
+
       <div class="flex flex-col-reverse sm:flex-row gap-2">
         <button type="button" wire:click="toggleForm" class="btn-ghost">{{ __('portal.review_form.cancel') }}</button>
         <button type="button" wire:click="submit" wire:loading.attr="disabled" class="btn-primary" x-bind:disabled="selected === 0">

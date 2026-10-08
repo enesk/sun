@@ -31,6 +31,11 @@
                 </x-auth.social-login>
             @endif
 
+            {{-- Turnstile (#6): das Konto entsteht beim Bestellen, also gilt hier
+                 dieselbe Pflicht wie auf /register. Beim reinen Anmelden bleibt
+                 das Token ungenutzt. --}}
+            <x-turnstile action="registration" wire="turnstileToken" />
+
             {{-- Inline CTA + Terms --}}
             <button
                 type="submit"

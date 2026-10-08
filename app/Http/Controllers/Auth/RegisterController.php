@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\AntiSpam\SpamGuard;
+use App\AntiSpam\Support\RateLimitGuard;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\UserService;
 use App\Support\IntendedUrl;
+use App\Turnstile\Enums\TurnstileAction;
 use App\Validator\RegisterValidator;
 use Illuminate\Foundation\Auth\RegistersUsers;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
@@ -24,7 +28,9 @@ class RegisterController extends Controller
     |
     */
 
-    use RegistersUsers;
+    use RegistersUsers {
+        RegistersUsers::register as traitRegister;
+    }
 
     /**
      * Where to redirect users after registration.
@@ -38,6 +44,56 @@ class RegisterController extends Controller
         protected UserService $userService,
     ) {
         $this->middleware('guest');
+    }
+
+    /**
+     * Honeypot und Mindest-Ausfuellzeit laufen VOR der Validierung und weisen
+     * STILL ab (#8): der Besucher sieht denselben Ablauf wie bei einer
+     * erfolgreichen Registrierung, es entsteht aber kein Konto. Ein Bot soll
+     * nicht lernen, woran er gescheitert ist — eine Validierungsmeldung wuerde
+     * genau das verraten.
+     *
+     * Der Treffer steht in turnstile_verifications (outcome failed,
+     * error_codes ['honeypot'] bzw. ['too_fast']), geschrieben vom SpamGuard.
+     *
+     * Alles Weitere bleibt bei Illuminate\Foundation\Auth\RegistersUsers.
+     */
+    public function register(Request $request)
+    {
+        // Rate-Limit (#8): 5/Stunde je IP-Hash und 3/Tag je E-Mail, Schluessel
+        // mit Portal-Praefix. Wirft bei einem Treffer 429 mit Retry-After und
+        // deutscher Meldung. Steht hier und nicht als `throttle`-Middleware,
+        // weil die erst VOR der Tenancy laeuft — Begruendung im Docblock von
+        // RateLimitGuard.
+        RateLimitGuard::enforce(RateLimitGuard::REGISTRATION, TurnstileAction::Registration, [
+            'email' => is_string($request->input('email')) ? $request->input('email') : null,
+        ]);
+
+        if (app(SpamGuard::class)->rejectsSilently(TurnstileAction::Registration, $request->all())) {
+            return $this->fakeRegistrationSuccess();
+        }
+
+        return $this->traitRegister($request);
+    }
+
+    /**
+     * Die vorgespielte Erfolgserwiderung: genau dieselbe Antwort, die
+     * RegistersUsers::register() nach einer echten Anmeldung schickt — 201
+     * bei JSON, sonst die Weiterleitung auf redirectPath(). Angemeldet ist
+     * dabei niemand, ein Gast landet also auf der Anmeldeseite; von aussen
+     * ist das nicht von einem Erfolg zu unterscheiden.
+     *
+     * Bewusst OHNE eigene Meldung in der Session: die Anmeldeseite des Themes
+     * sun-v2 liest session('status') als "Passwort-Link verschickt" und wuerde
+     * die falsche Karte oeffnen.
+     */
+    private function fakeRegistrationSuccess()
+    {
+        if (request()->wantsJson()) {
+            return response()->json([], 201);
+        }
+
+        return redirect($this->redirectPath());
     }
 
     public function redirectPath()

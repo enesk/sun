@@ -33,6 +33,9 @@
 
             @include('livewire.auth.partials.recaptcha')
 
+            {{-- Turnstile (#6): Token landet in der Property turnstileToken --}}
+            <x-turnstile action="registration" wire="turnstileToken" />
+
         </div>
 
         <div>

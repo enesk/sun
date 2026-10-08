@@ -38,8 +38,8 @@
     <div class="mt-4"><x-sun.claim-company :company="$company" /></div>
     <p class="mt-4 text-sm text-zinc-500">{{ __('portal.claim.confirm.not_yours') }} <a href="{{ route('portal.companies.create') }}" class="text-brand hover:underline">{{ __('portal.claim.confirm.create') }}</a></p>
 
-    {{-- Honeypot --}}
-    <div class="sr-only" aria-hidden="true"><input type="text" wire:model="website_url" tabindex="-1" autocomplete="off"></div>
+    {{-- Honigtopf und Mindest-Ausfuellzeit (#26); Feldname je Session zufaellig --}}
+    <x-antispam-fields wire />
 
     @if($scenario === 'guest' && $activeTab === 'register')
       <label for="cname" class="block mt-6 text-sm font-medium text-zinc-700 mb-1">{{ __('portal.signup.account.name_label') }}</label>
@@ -61,6 +61,9 @@
       @else
         <p class="mt-1 text-sm text-zinc-500">{{ __('portal.signup.account.password_hint') }}</p>
       @enderror
+
+      {{-- Turnstile (#6/#7): hier entsteht ein Konto und daran haengend der Uebernahme-Antrag --}}
+      <x-turnstile action="registration" wire="turnstileToken" field="turnstileToken" />
 
       <div class="mt-6 pt-6 border-t border-zinc-200 flex gap-2">
         <button type="button" wire:click="register" wire:loading.attr="disabled" class="btn-primary flex-1 whitespace-nowrap">{{ __('portal.signup.next') }}</button>
@@ -97,6 +100,9 @@
         <span class="text-sm text-zinc-700">{{ __('portal.claim.logged_in.confirm_owner', ['firma' => $company->name]) }}</span>
       </label>
       @error('confirmOwner')<p class="{{ $errorClass }}">{{ $message }}</p>@enderror
+
+      {{-- Turnstile (#7), Aktion company_listing: hier entsteht der Uebernahme-Antrag --}}
+      <x-turnstile action="company_listing" wire="claimToken" field="claimToken" />
 
       <div class="mt-6 pt-6 border-t border-zinc-200 flex gap-2">
         <button type="button" wire:click="{{ $scenario === 'logged_in_has_company' ? 'claimAdditional' : 'claim' }}" wire:loading.attr="disabled" class="btn-primary flex-1 whitespace-nowrap">{{ __('portal.signup.next') }}</button>

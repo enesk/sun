@@ -59,6 +59,20 @@ SaaSykit Tenancy is built with the TALL stack (Tailwind CSS, Alpine.js, Laravel,
 - `php scripts/secret-scan.php` - Secret-Scan über alle versionierten Dateien
   (auch als `composer run secrets:scan`; läuft zusätzlich im Pre-Commit-Hook und
   in der CI, siehe `docs/secret-scan.md`)
+- `php artisan view:clear && php artisan tinker --execute='require "scripts/jsonld-context-pruefen.php";'`
+  - prüft, dass Blade keinen JSON-LD-Schlüssel zu einer Direktive kompiliert
+
+### JSON-LD in Blade
+`@context` ist eine Blade-Direktive. In einem Blade-Ausdruck außerhalb eines
+`@php`-Blocks — etwa `{!! json_encode([...]) !!}` — ersetzt Blade den Schlüssel
+`'@context'` durch PHP-Code und das Snippet wird ungültig; Google verwirft es
+komplett. Deshalb den Schlüssel immer zusammensetzen (`'@'.'context'`) oder den
+Aufbau in einen `@php`-Block legen. Das Literal gehört auch nicht in einen
+Kommentar innerhalb des Ausdrucks — Blade ersetzt es dort genauso.
+`'@graph'`, `'@type'` und `'@id'` sind keine Direktiven und bleiben stehen;
+innerhalb von `@json(...)` ist auch `'@context'` sicher, weil der
+Direktiven-Parser das Argument zuerst übernimmt. Prüfskript:
+`scripts/jsonld-context-pruefen.php` (Blade-Cache vorher leeren).
 
 ### Credentials
 Zugangsschlüssel gehören ausschließlich in die lokale `.env`. Im Code werden sie

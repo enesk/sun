@@ -10,6 +10,8 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/js/blog.js',
                 'resources/js/components.js',
+                // Nur auf Seiten mit <x-turnstile /> (#5), via Stack 'scripts'.
+                'resources/js/turnstile.js',
                 'resources/css/filament/admin/theme.css',
                 'resources/css/filament/dashboard/theme.css',
                 'resources/css/content/theme.css',

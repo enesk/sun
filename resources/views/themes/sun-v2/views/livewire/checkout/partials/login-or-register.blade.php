@@ -15,6 +15,11 @@
       @endif
     </div>
 
+    {{-- Turnstile (#6): das Konto entsteht beim Bestellen, also gilt hier
+         dieselbe Pflicht wie auf /register. Beim reinen Anmelden bleibt das
+         Token ungenutzt. --}}
+    <x-turnstile action="registration" wire="turnstileToken" />
+
     @if(empty($email))
       <x-auth.social-login>
         <x-slot name="before">

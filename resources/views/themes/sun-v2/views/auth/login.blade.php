@@ -7,7 +7,7 @@
     Die drei Zustaende der Karte (Anmelden, Passwort zuruecksetzen, Link
     gesendet) waehlt der Server vor — nach einem Rueckweg mit Fehler oder
     Status-Meldung steht die passende Karte offen. Das Umschalten ohne
-    Neuladen ist nur Zugabe (Skript unten).
+    Neuladen ist nur Zugabe: js/modules/login-panels.js, an data-panel-group (#21).
 --}}
 @extends('layouts.sun')
 
@@ -33,7 +33,7 @@
   <div class="grid gap-8 lg:grid-cols-2 lg:gap-12 lg:items-center max-w-5xl mx-auto">
 
     <!-- ===== LOGIN-KARTE ===== -->
-    <div class="card p-5 md:p-8 w-full max-w-md mx-auto lg:mx-0 lg:order-2" id="loginCard">
+    <div class="card p-5 md:p-8 w-full max-w-md mx-auto lg:mx-0 lg:order-2" id="loginCard" data-panel-group>
 
       <!-- Anmelden -->
       <div data-panel="login" @class(['hidden' => $panel !== 'login'])>
@@ -50,8 +50,8 @@
             <a href="{{ route('password.request') }}" class="text-sm text-brand font-medium hover:underline" data-goto="reset">{{ __('portal.auth.login.forgot') }}</a>
           </div>
           <div class="relative mt-1">
-            <input id="pass" name="password" type="password" @class(['input pr-12', 'border-red-500' => $loginFailed]) autocomplete="current-password" required>
-            <button type="button" class="absolute right-1 top-1/2 -translate-y-1/2 size-10 rounded-lg text-zinc-400 hover:text-zinc-700 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" data-toggle-pass aria-label="{{ __('portal.signup.account.password_show') }}"><x-sun.icon name="eye" class="size-5" /></button>
+            <input id="pass" name="password" type="password" @class(['input pr-12', 'border-red-500' => $loginFailed]) autocomplete="current-password" required data-pass>
+            <button type="button" class="absolute right-1 top-1/2 -translate-y-1/2 size-10 rounded-lg text-zinc-400 hover:text-zinc-700 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" data-toggle-pass data-pass-scope="#loginCard" data-label-show="{{ __('portal.signup.account.password_show') }}" data-label-hide="{{ __('portal.signup.account.password_hide') }}" aria-label="{{ __('portal.signup.account.password_show') }}"><x-sun.icon name="eye" class="size-5" /></button>
           </div>
 
           @if($loginFailed)
@@ -122,32 +122,3 @@
 </div>
 @endsection
 
-@push('scripts')
-<script>
-(() => {
-  const card = document.getElementById('loginCard');
-  if (!card) return;
-
-  const show = name => {
-    card.querySelectorAll('[data-panel]').forEach(panel => {
-      const active = panel.dataset.panel === name;
-      panel.classList.toggle('hidden', !active);
-      if (panel.dataset.panel === 'sent') panel.classList.toggle('flex', active);
-    });
-    card.querySelector(`[data-panel="${name}"] input:not([type=hidden])`)?.focus();
-  };
-
-  card.querySelectorAll('[data-goto]').forEach(link => link.addEventListener('click', event => {
-    event.preventDefault();
-    show(link.dataset.goto);
-  }));
-
-  const pass = card.querySelector('#pass');
-  card.querySelector('[data-toggle-pass]')?.addEventListener('click', event => {
-    const isHidden = pass.type === 'password';
-    pass.type = isHidden ? 'text' : 'password';
-    event.currentTarget.setAttribute('aria-label', isHidden ? @js(__('portal.signup.account.password_hide')) : @js(__('portal.signup.account.password_show')));
-  });
-})();
-</script>
-@endpush

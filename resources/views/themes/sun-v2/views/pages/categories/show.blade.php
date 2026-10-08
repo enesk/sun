@@ -29,6 +29,26 @@
 @endif
 @section('canonical', route('portal.categories.show', $category->slug))
 
+{{-- CollectionPage der Leistungsseite (#31). Schluessel zusammengesetzt:
+     '@'.'context' waere als Literal eine Blade-Direktive. --}}
+@push('scripts')
+<script type="application/ld+json">
+{!! json_encode([
+    '@'.'context' => 'https://schema.org',
+    '@type' => 'CollectionPage',
+    'name' => $heading,
+    'description' => $category->description ?: trans_choice('portal.categories.show.meta_description', (int) $category->companies_count, ['anzahl' => $count((int) $category->companies_count), 'leistung' => $category->name]),
+    'url' => route('portal.categories.show', $category->slug),
+    'isPartOf' => [
+        '@type' => 'WebSite',
+        'name' => $portalName,
+        'url' => route('home'),
+    ],
+    'numberOfItems' => (int) $total,
+], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}
+</script>
+@endpush
+
 @section('content')
 
 <form action="{{ route('portal.categories.show', $category->slug) }}" method="get" role="search" class="sticky top-16 z-30 bg-white border-b border-zinc-200 py-3">
@@ -45,10 +65,7 @@
 </form>
 
 <div class="container-portal pt-6 pb-12 md:pb-16">
-  <nav aria-label="{{ __('portal.layout.breadcrumb.label') }}" class="text-sm text-zinc-500 flex items-center gap-1.5 flex-wrap">
-    <a href="{{ route('home') }}" class="hover:text-brand hidden sm:inline">{{ __('portal.layout.breadcrumb.home') }}</a><span class="hidden sm:inline"><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" /></span>
-    <a href="{{ route('portal.categories.index') }}" class="hover:text-brand">{{ __('portal.layout.footer.services') }}</a><x-sun.icon name="chevron-right" class="size-4 text-zinc-400 shrink-0" /><span class="text-zinc-900">{{ $category->name }}</span>
-  </nav>
+  <x-sun.breadcrumb :items="\App\Support\Breadcrumb::forCategory($category)" />
 
   <h1 class="mt-4 text-3xl md:text-4xl font-bold tracking-tight text-zinc-900">{{ $heading }}</h1>
   @if($category->description)

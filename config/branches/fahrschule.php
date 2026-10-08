@@ -21,9 +21,13 @@ return [
 
     'brand_icon' => 'car',
 
-    // Ratgeber ist auf diesem Portal noch leer (0 Themen, 0 Artikel)
+    // Ratgeber ist auf diesem Portal noch leer (0 Themen, 0 Artikel).
+    // Dafuer ein Link auf das Verzeichnis: ohne ihn ist "Fahrschule
+    // eintragen" der einzige Knopf im Kopf, und Fahrschueler halten ihn fuer
+    // eine Schueleranmeldung (#15).
     'nav' => [
         'guide' => false,
+        'directory' => true,
     ],
 
     'services' => [],

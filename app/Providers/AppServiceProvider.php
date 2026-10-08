@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\AntiSpam\Support\RateLimitGuard;
 use App\Listeners\Mail\SetPortalSender;
 use App\Services\PaymentProviders\LemonSqueezy\LemonSqueezyProvider;
 use App\Services\PaymentProviders\Offline\OfflineProvider;
@@ -61,6 +62,9 @@ class AppServiceProvider extends ServiceProvider
         // Robots/Canonical je Anfrage (#7)
         $this->app->scoped(\App\Services\Seo\SeoService::class);
 
+        // CSP-Nonce je Anfrage fuer fremde Schnipsel (Werbung, Tracking) (#21)
+        $this->app->scoped(\App\Services\Security\CspNonce::class);
+
         // payment providers
         $this->app->tag([
             StripeProvider::class,
@@ -90,6 +94,12 @@ class AppServiceProvider extends ServiceProvider
     {
         // Absendername jeder Mail ist der Portalname, nicht MAIL_FROM_NAME
         Event::listen(MessageSending::class, SetPortalSender::class);
+
+        // Rate-Limits der Tiefenverteidigung (#8). Benannte Limiter, an die
+        // sich RegisterController und LoginController per `throttle:` haengen;
+        // der Schluessel traegt den Portal-Praefix, damit die Limits je Portal
+        // zaehlen. Grenzen in config/antispam.php, je Tenant ueberschreibbar.
+        RateLimitGuard::register();
 
         FilamentAsset::register([
             Js::make('components-script', __DIR__.'/../../resources/js/components.js'),

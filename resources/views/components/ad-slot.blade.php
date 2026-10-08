@@ -1,20 +1,17 @@
 @foreach($slots as $slot)
     @if($position === 'auto_ads')
-        {{-- Kein CLS-Container: das Skript fuegt ausserhalb ein (Vorgabe #100, 3.2) --}}
-        {!! $slot->code !!}
+        {{-- Kein CLS-Container: das Skript fuegt ausserhalb ein (Vorgabe #100, 3.2).
+             Der Code kommt aus der Verwaltung und bringt eigene <script>-Bloecke
+             mit — darum das Nonce des Requests statt 'unsafe-inline' (#21). --}}
+        {!! \App\Services\Security\CspNonce::inject($slot->code) !!}
         @php
             $autoAdsPublisherId = \App\View\Components\AdSlot::publisherIdFrom($slot->code);
         @endphp
         @if($autoAdsPublisherId)
             @once
-                {{-- Seitenweiser Opt-out fuer den unteren Overlay/Anker-Banner --}}
-                <script>
-                    (window.adsbygoogle = window.adsbygoogle || []).push({
-                        google_ad_client: @json($autoAdsPublisherId),
-                        enable_page_level_ads: true,
-                        overlays: { bottom: false }
-                    });
-                </script>
+                {{-- Seitenweiser Opt-out fuer den unteren Overlay/Anker-Banner.
+                     Ausgefuehrt in resources/js/ads.js. --}}
+                <meta name="adsense-auto-client" content="{{ $autoAdsPublisherId }}">
             @endonce
         @endif
     @else
@@ -28,37 +25,11 @@
             @if($isLazy && $hasCode) data-lazy-ad @endif>
             @if($isLazy && $hasCode)
                 <template data-ad-code>
-                    {!! $slot->code !!}
+                    {!! \App\Services\Security\CspNonce::inject($slot->code) !!}
                 </template>
             @else
-                {!! $slot->code !!}
+                {!! \App\Services\Security\CspNonce::inject($slot->code) !!}
             @endif
         </div>
     @endif
 @endforeach
-
-@once
-@push('scripts')
-<script>
-(function(){
-    var els = document.querySelectorAll('[data-lazy-ad]');
-    if (!els.length) return;
-    var io = new IntersectionObserver(function(entries, observer) {
-        entries.forEach(function(entry) {
-            if (!entry.isIntersecting) return;
-            var tpl = entry.target.querySelector('template[data-ad-code]');
-            if (tpl) {
-                var frag = tpl.content.cloneNode(true);
-                frag.querySelectorAll('iframe').forEach(function(iframe) {
-                    iframe.setAttribute('loading', 'lazy');
-                });
-                tpl.parentNode.replaceChild(frag, tpl);
-            }
-            observer.unobserve(entry.target);
-        });
-    }, { rootMargin: '0px 0px 200px 0px' });
-    els.forEach(function(el) { io.observe(el); });
-})();
-</script>
-@endpush
-@endonce

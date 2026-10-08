@@ -6,7 +6,7 @@
         <div class="claim-verify-card">
             {{-- Dropzone zuerst — Action First, Info Second --}}
             <div class="claim-verify-dropzone"
-                 x-data="claimUploadDropzone()"
+                 x-data="claimUploadDropzone"
                  x-on:dragover.prevent="dragover = true"
                  x-on:dragleave.prevent="dragover = false"
                  x-on:drop.prevent="handleDrop($event)"
@@ -211,20 +211,3 @@
     @endif
 </div>
 
-@push('scripts')
-<script>
-    function claimUploadDropzone() {
-        return {
-            dragover: false,
-            handleDrop(event) {
-                this.dragover = false;
-                const files = event.dataTransfer.files;
-                if (files.length > 0) {
-                    this.$refs.fileInput.files = files;
-                    this.$refs.fileInput.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-            }
-        }
-    }
-</script>
-@endpush

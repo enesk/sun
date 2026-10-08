@@ -1,0 +1,20 @@
+# DNS-Bestand sanitaerfinden.com, aufgenommen 2026-10-08 am autoritativen Nameserver ns1hwy.name.com
+# Erzeugt von scripts/zone-dns-umzug.sh --bestand (#34).
+# Spalten: name<TAB>typ<TAB>wert. Apex ist "@", TTL absichtlich nicht erfasst.
+@	NS	ns1hwy.name.com.
+@	NS	ns2jqz.name.com.
+@	NS	ns3nrz.name.com.
+@	NS	ns4qxz.name.com.
+@	A	88.198.64.145
+@	TXT	"google-site-verification=iNL-qSl4clFcIe5ZTGXFN7V1Ew5Prxgs39PGwfH5AEM"
+*	A	88.198.64.145
+www	A	88.198.64.145
+mail	A	88.198.64.145
+smtp	A	88.198.64.145
+imap	A	88.198.64.145
+pop	A	88.198.64.145
+webmail	A	88.198.64.145
+autodiscover	A	88.198.64.145
+autoconfig	A	88.198.64.145
+ftp	A	88.198.64.145
+_acme-challenge	TXT	"jOgR4LWqZvXMnIkT0a9_YfV-gKKRoIRIYiVQwW5aIvU"

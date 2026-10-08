@@ -29,8 +29,9 @@
     <p class="mt-1 text-sm text-zinc-500">{{ __('portal.suggest_edit.intro') }}</p>
     <div class="mt-4"><x-sun.claim-company :company="$company" /></div>
 
-    {{-- Honeypot --}}
-    <div class="sr-only" aria-hidden="true"><input type="text" wire:model="website_url" tabindex="-1" autocomplete="off"></div>
+    {{-- Honigtopf mit Zufallsnamen und Mindest-Ausfuellzeit (#22);
+         ersetzt den handgeschriebenen Honigtopf website_url --}}
+    <x-antispam-fields wire />
 
     <fieldset class="mt-5">
       <legend class="sr-only">{{ __('portal.suggest_edit.legend') }}</legend>
@@ -57,6 +58,10 @@
     @else
       <p class="mt-1 text-sm text-zinc-500">{{ __('portal.suggest_edit.email_hint') }}</p>
     @enderror
+
+    {{-- Turnstile (#22), Modus non_interactive. gate="false": der Knopf
+         haengt an wire:click, nicht an einem Submit. --}}
+    <x-turnstile action="contact" wire="turnstileToken" field="turnstileToken" size="flexible" gate="false" />
 
     <div class="mt-6 pt-6 border-t border-zinc-200">
       <button type="button" wire:click="submit" wire:loading.attr="disabled" class="btn-primary w-full sm:w-auto">{{ __('portal.suggest_edit.submit') }}</button>

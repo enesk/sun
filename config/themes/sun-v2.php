@@ -24,6 +24,10 @@ return [
     'nav' => [
         'guide' => true,
         'jobs' => true,
+        // Direkter Weg fuer Suchende (#15): wo der Eintragsknopf sonst der
+        // einzige Handlungsaufruf im Kopf ist, blendet das Branchenpaket
+        // einen Link auf das Verzeichnis ein.
+        'directory' => false,
     ],
 
     // Voreinstellung fuer --brand, solange das Portal keine eigene

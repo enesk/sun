@@ -2,13 +2,24 @@
 
 namespace App\Livewire\Portal;
 
+use App\AntiSpam\Concerns\InteractsWithAntiSpam;
+use App\AntiSpam\Support\RateLimitGuard;
 use App\Models\Portal\NewsletterSubscriber;
+use App\Turnstile\Enums\TurnstileAction;
+use App\Turnstile\Rules\TurnstileRule;
 use Livewire\Component;
 
 class NewsletterSubscribeForm extends Component
 {
+    // Honigtopf und Mindest-Ausfuellzeit (#22); die Properties kommen aus dem
+    // Trait, gebunden von <x-antispam-fields wire /> in der Ansicht.
+    use InteractsWithAntiSpam;
+
     public string $email = '';
     public bool $submitted = false;
+
+    /** Turnstile-Token, gesetzt von <x-turnstile wire="turnstileToken" />. */
+    public string $turnstileToken = '';
 
     protected function rules(): array
     {
@@ -27,7 +38,32 @@ class NewsletterSubscribeForm extends Component
 
     public function subscribe(): void
     {
+        // Honigtopf und Mindest-Ausfuellzeit (#22): still abweisen. Der
+        // Besucher sieht dieselbe Erfolgsmeldung, es entsteht aber kein
+        // Eintrag. Der Treffer steht in turnstile_verifications.
+        if ($this->antiSpamRejects(TurnstileAction::Contact, $this->email)) {
+            $this->submitted = true;
+            return;
+        }
+
         $this->validate();
+
+        // Rate-Limit je IP-Hash, E-Mail-Hash und Portal (#22), Grenzen in
+        // config/antispam.php. In Livewire wird daraus eine Meldung am Feld
+        // und kein 429 — sonst stuende der Besucher vor einem toten Formular.
+        $wartezeit = $this->antiSpamLimit(RateLimitGuard::NEWSLETTER, ['email' => $this->email]);
+
+        if ($wartezeit !== null) {
+            RateLimitGuard::log(RateLimitGuard::NEWSLETTER, TurnstileAction::Contact, $this->email);
+            $this->addError('email', $this->antiSpamThrottleMessage($wartezeit));
+            return;
+        }
+
+        // Turnstile zuletzt: erst wenn die Adresse stimmt, wird ein Token
+        // eingeloest — Cloudflare nimmt jedes Token nur einmal an.
+        $this->validate([
+            'turnstileToken' => [new TurnstileRule(TurnstileAction::Contact)],
+        ]);
 
         $existing = NewsletterSubscriber::where('email', $this->email)->first();
 
@@ -40,6 +76,7 @@ class NewsletterSubscribeForm extends Component
                 ]);
             } else {
                 // Already subscribed — still show success (no info leak)
+                $this->antiSpamCount(RateLimitGuard::NEWSLETTER, ['email' => $this->email]);
                 $this->submitted = true;
                 return;
             }
@@ -49,6 +86,10 @@ class NewsletterSubscribeForm extends Component
                 'ip_address' => request()->ip(),
             ]);
         }
+
+        // Erst jetzt zaehlen: ein Tippfehler in der Adresse soll keinen
+        // Versuch kosten.
+        $this->antiSpamCount(RateLimitGuard::NEWSLETTER, ['email' => $this->email]);
 
         $this->submitted = true;
     }

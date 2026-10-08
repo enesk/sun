@@ -3,7 +3,7 @@
 @section('title', $company->name . ' — Statistiken')
 
 @section('content')
-    <div x-data="statsCompany({{ $company->id }})" x-init="load()">
+    <div x-data="statsCompany({{ $company->id }}, @js(url('/verwaltung/statistiken/api/company')))" x-init="load()">
         {{-- Page Header --}}
         <div class="dash-page-header">
             <div>
@@ -224,61 +224,5 @@
         </template>
     </div>
 
-    <script>
-    function statsCompany(companyId) {
-        return {
-            companyId,
-            period: '30d',
-            loading: true,
-            summary: null,
-            trend: [],
-            referrers: [],
-            searchQueries: [],
-            weekly: [],
-            maxViews: 0,
-            tooltip: null,
-
-            async load() {
-                this.loading = true;
-                try {
-                    const res = await fetch(`{{ url('/verwaltung/statistiken/api/company') }}/${this.companyId}?period=${this.period}`);
-                    const data = await res.json();
-
-                    this.summary = data.summary;
-                    this.trend = data.trend || [];
-                    this.referrers = data.referrers || [];
-                    this.searchQueries = data.search_queries || [];
-                    this.weekly = data.weekly || [];
-                    this.maxViews = Math.max(...this.trend.map(d => d.page_views || 0), 1);
-                } catch (e) {
-                    console.error('Stats load error:', e);
-                    this.summary = null;
-                } finally {
-                    this.loading = false;
-                }
-            },
-
-            setPeriod(p) {
-                this.period = p;
-                this.load();
-            },
-
-            fmt(n) {
-                return new Intl.NumberFormat('de-DE').format(n || 0);
-            },
-
-            trendClass(change) {
-                if (change > 0) return 'dash-stat-trend dash-stat-trend-up';
-                if (change < 0) return 'dash-stat-trend dash-stat-trend-down';
-                return 'dash-stat-trend';
-            },
-
-            trendText(change) {
-                if (change > 0) return '+' + Math.round(change) + '%';
-                if (change < 0) return Math.round(change) + '%';
-                return 'stabil';
-            },
-        };
-    }
-    </script>
+    {{-- statsCompany: resources/js/modules/alpine-data.js (#21) --}}
 @endsection

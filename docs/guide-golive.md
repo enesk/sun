@@ -113,6 +113,12 @@ Kein gespeicherter Wert: der Key ist `HMAC-SHA256('indexnow|<tenant-key>', APP_K
 | speditionportal.com | [ ] | schluesseldienstportal.com | [ ] | | |
 
 - [ ] Cloudflare-Regeln blockieren `/<key>.txt` nicht (Bot-Fight/WAF): Abruf mit User-Agent `Bingbot` liefert 200
+- [ ] **Ohne Weiterleitung**: der Abruf muss direkt 200 liefern, nicht erst nach einem 301/302.
+  Bing liest die Schlüsseldatei nur unter der gemeldeten Adresse; eine Weiterleitung der Zone
+  lässt die Meldungen des Portals verfallen, auch wenn das Ziel 200 liefert. Geprüft wird das
+  ohne `-L` von `guide:golive:check` und `scripts/cloudflare-waf-regeln-setzen.sh --abnahme`
+  (#35). Weiterleitungen dieser Art stehen bei Cloudflare, nicht am Ursprung: Single Redirect
+  (Rules → Redirect Rules), Page Rule oder Bulk Redirect der Zone.
 
 ### 1.5 Supervisor / Horizon / Scheduler
 

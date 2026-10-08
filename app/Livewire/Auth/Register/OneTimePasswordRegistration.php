@@ -4,6 +4,7 @@ namespace App\Livewire\Auth\Register;
 
 use App\Services\OneTimePasswordService;
 use App\Services\UserService;
+use App\Turnstile\View\Components\Turnstile;
 use App\Validator\RegisterValidator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Validation\ValidationException;
@@ -16,6 +17,9 @@ class OneTimePasswordRegistration extends Component
     public string $name;
 
     public $recaptcha;
+
+    /** Turnstile-Token des Widgets (#6); geprueft im RegisterValidator. */
+    public string $turnstileToken = '';
 
     private RegisterValidator $registerValidator;
 
@@ -48,6 +52,8 @@ class OneTimePasswordRegistration extends Component
         if (config('app.recaptcha_enabled')) {
             $userFields[recaptchaFieldName()] = $this->recaptcha;
         }
+
+        $userFields[Turnstile::FIELD] = $this->turnstileToken;
 
         $validator = $this->registerValidator->validate($userFields);
 

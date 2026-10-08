@@ -73,6 +73,10 @@
           <p class="flex items-start gap-2 rounded-xl bg-brand-50 p-3 text-sm text-zinc-900"><x-sun.icon name="check" class="icon shrink-0 text-brand" />{{ __('portal.request.exclusive_hint', $firma) }}</p>
         </div>
         <div class="sr-only" aria-hidden="true"><label for="lead-website">{{ __('portal.request.honeypot_label') }}</label><input id="lead-website" type="text" name="website" tabindex="-1" autocomplete="off"></div>
+        {{-- Honigtopf mit Zufallsnamen und Mindest-Ausfuellzeit (#22). Die
+             Felder gehen nur auf dem exklusiven Weg mit; lead-dialog.js liest
+             sie aus [data-antispam-fields]. --}}
+        <div data-antispam-fields><x-antispam-fields /></div>
 
         @foreach($funnel->steps as $step)
           <fieldset data-step="{{ $step->position }}" @class(['space-y-5', 'hidden' => $step->position !== $firstStep->position])>
@@ -93,6 +97,13 @@
           <p class="text-zinc-500 max-w-sm" data-done-text>{{ __('portal.request.done.text', $firma) }}</p>
         </div>
       </div>
+
+      {{-- Turnstile (#22), Modus non_interactive: ein echter Interessent loest
+           kein Puzzle. Geprueft wird nur der exklusive Weg
+           (ExclusiveLeadController); gate="false", weil der Dialog nicht mit
+           einem Submit-Knopf arbeitet und ein gesperrter Knopf hier nichts
+           bewirken wuerde. --}}
+      <x-turnstile action="lead_request" size="flexible" gate="false" class="px-5 pt-3 mt-0" />
 
       <p class="px-5 pt-3 text-sm text-red-600 hidden" role="alert" data-lead-error></p>
       <div class="p-5 border-t border-zinc-200 flex gap-2" data-step-footer>

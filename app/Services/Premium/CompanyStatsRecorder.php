@@ -2,6 +2,7 @@
 
 namespace App\Services\Premium;
 
+use App\AntiSpam\Support\BotTraffic;
 use App\Constants\CompanyEventType;
 use App\Jobs\Premium\RecordCompanyEvents;
 use App\Models\Portal\CompanyEvent;
@@ -55,21 +56,16 @@ class CompanyStatsRecorder
         $this->record(CompanyEventType::REVIEW_REPLY, [$companyId], $request, null, CompanyEvent::SOURCE_PROFILE);
     }
 
+    /**
+     * Bot-Erkennung (#17): User-Agent und Netz. Liste und Begruendung in
+     * config/antispam.php `bot_traffic`, Auswertung in
+     * App\AntiSpam\Support\BotTraffic. Die frueher hier gelesene Liste
+     * config/premium.php `stats.bot_user_agents` ist dorthin gewandert,
+     * damit es nur noch eine gibt.
+     */
     public function isBot(Request $request): bool
     {
-        $userAgent = strtolower((string) $request->userAgent());
-
-        if ($userAgent === '') {
-            return true;
-        }
-
-        foreach ((array) config('premium.stats.bot_user_agents', []) as $pattern) {
-            if (str_contains($userAgent, (string) $pattern)) {
-                return true;
-            }
-        }
-
-        return false;
+        return BotTraffic::isBot($request);
     }
 
     /**

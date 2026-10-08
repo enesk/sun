@@ -1,5 +1,17 @@
 <div x-data x-on:step-changed.window="$nextTick(() => { const card = document.querySelector('.wizard-card'); if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' }); })">
-    @if($submitted && $createdCompany)
+    @if($submitted && ! $createdCompany)
+        {{-- Honigtopf oder zu schnell abgeschickt (#8/#25): dieselbe
+             Erfolgsmeldung, aber es ist nichts angelegt worden. --}}
+        <div class="p-6 sm:p-8 text-center">
+            <h2 class="text-2xl font-bold text-base-content mb-2">Firma erfolgreich eingetragen!</h2>
+            <p class="text-base-content/60 mb-8">Ihr Eintrag wird jetzt geprüft.</p>
+            <a href="{{ route('home') }}"
+               class="btn-portal-outline inline-flex items-center justify-center py-3 px-6 rounded-xl"
+               style="border-radius: 0.75rem;">
+                Zur Startseite
+            </a>
+        </div>
+    @elseif($submitted && $createdCompany)
         {{-- Erfolgs-Seite --}}
         <div class="p-6 sm:p-8 text-center" x-data="{ show: false }" x-init="$nextTick(() => show = true)">
             {{-- Animated checkmark --}}
@@ -19,12 +31,17 @@
             <h2 class="text-2xl font-bold text-base-content mb-2"
                 x-show="show" x-transition:enter="transition ease-out duration-500 delay-500"
                 x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
-                Firma erfolgreich eingetragen!
+                {{ $duplicate ? 'Dieser Eintrag besteht schon' : 'Firma erfolgreich eingetragen!' }}
             </h2>
             <p class="text-base-content/60 mb-8"
                x-show="show" x-transition:enter="transition ease-out duration-500 delay-700"
                x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
-                <strong class="text-base-content">{{ $createdCompany->name }}</strong> ist jetzt im Portal sichtbar.
+                <strong class="text-base-content">{{ $createdCompany->name }}</strong>
+                @if($duplicate)
+                    haben Sie bereits eingetragen — wir haben keinen zweiten Eintrag angelegt.
+                @else
+                    ist jetzt im Portal sichtbar.
+                @endif
             </p>
 
             {{-- Mini-Preview Card --}}
@@ -691,6 +708,21 @@
                     </div>
                 </div>
 
+                {{-- Turnstile (#7), Aktion company_listing. Bewusst erst hier im
+                     Abschluss-Schritt: ein Token gilt 300 s und waere nach dem
+                     Durchklicken der vier Schritte abgelaufen. --}}
+                <x-turnstile action="company_listing" wire="turnstileToken" field="turnstileToken" />
+
+                {{-- Honigtopf und Ausfuellzeit (#8/#25): Logik in
+                     App\AntiSpam\Concerns\InteractsWithAntiSpam. --}}
+                <x-antispam-fields wire />
+
+                {{-- Rate-Limit erreicht (#8/#25): hier statt als 429, sonst
+                     stuende der Besucher vor einem toten Formular. --}}
+                @error('antispamLimit')
+                    <p class="text-error text-sm mt-3" role="alert">{{ $message }}</p>
+                @enderror
+
                 {{-- Kostenlos-Hinweis --}}
                 <div class="mt-6 rounded-xl p-3.5 flex gap-3" style="background: rgba(16, 185, 129, 0.05);">
                     <svg class="w-4 h-4 text-green-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -725,7 +757,10 @@
                     <span wire:loading wire:target="nextStep" class="loading loading-spinner loading-sm"></span>
                 </button>
             @else
+                {{-- disabled waehrend des Absendens (#25): ohne das erzeugt
+                     ein Doppelklick zwei Requests. --}}
                 <button type="button" wire:click="submit"
+                        wire:loading.attr="disabled" wire:target="submit"
                         class="btn-portal inline-flex items-center gap-1.5 py-2.5 px-5 rounded-xl font-semibold"
                         style="border-radius: 0.75rem;">
                     <span wire:loading.remove wire:target="submit">

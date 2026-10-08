@@ -2,40 +2,67 @@
 
 namespace App\Livewire\Portal;
 
-use App\Models\Portal\ClaimRequest;
+use App\AntiSpam\Concerns\InteractsWithAntiSpam;
+use App\AntiSpam\Rules\NotDisposableEmailRule;
+use App\AntiSpam\Support\RateLimitGuard;
 use App\Models\Portal\Company;
-use App\Models\User;
 use App\Services\ClaimService;
 use App\Services\UserService;
+use App\Turnstile\Enums\TurnstileAction;
+use App\Turnstile\Rules\TurnstileRule;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
 class ClaimModal extends Component
 {
+    // Honigtopf und Mindest-Ausfuellzeit (#26): die Properties kommen aus dem
+    // Trait, gebunden von <x-antispam-fields wire /> in der Ansicht. Der
+    // frueher hier handgeschriebene Honigtopf `website_url` ist damit weg —
+    // sein Feldname war fest verdrahtet, eine Mindest-Ausfuellzeit gab es
+    // nicht, und seine Treffer landeten in keinem Log.
+    use InteractsWithAntiSpam;
+
     public Company $company;
 
     // Modal state
     public bool $showModal = false;
+
     public string $scenario = 'guest'; // guest, logged_in_no_company, logged_in_has_company, already_claimed, pending_claim
+
     public string $activeTab = 'register'; // register, login
+
     public bool $claimSuccess = false;
+
     public ?Company $existingCompany = null;
 
     // Register fields (match blade wire:model names)
     public string $name = '';
+
     public string $email = '';
+
     public string $password = '';
 
     // Login fields
     public string $loginEmail = '';
+
     public string $loginPassword = '';
+
     public bool $remember = false;
 
-    // Honeypot
-    public string $website_url = '';
+    // Turnstile-Token des Registrierungs-Tabs (#6)
+    public string $turnstileToken = '';
+
+    /**
+     * Turnstile-Token der Uebernahme-Bestaetigung (#7), Aktion company_listing.
+     * Eigene Property, weil ein Token immer nur fuer eine Aktion gilt: im
+     * Registrierungs-Tab entsteht ein Konto (registration), beim Bestaetigen
+     * entsteht ein Uebernahme-Antrag (company_listing). Beide Formulare sind
+     * nie gleichzeitig sichtbar.
+     */
+    public string $claimToken = '';
 
     // Claim confirmation (Scenario 2 + 3)
     public bool $confirmOwner = false;
@@ -82,26 +109,33 @@ class ClaimModal extends Component
      */
     public function register(): void
     {
-        // Honeypot
-        if (!empty($this->website_url)) {
+        // Honigtopf und Mindest-Ausfuellzeit (#26): still abweisen. Der
+        // Besucher sieht dieselbe Erfolgsmeldung, es entsteht aber kein Konto
+        // und kein Antrag. Der Treffer steht in turnstile_verifications.
+        if ($this->antiSpamRejects(TurnstileAction::Registration, $this->email)) {
             $this->claimSuccess = true;
+
             return;
         }
 
-        // Rate Limiting: 5 Registrierungen pro IP pro Stunde
-        $ip = request()->ip();
-        $rateLimitKey = 'claim-register:' . $ip;
+        // Rate-Limit je IP-Hash, Mailadresse und Portal (#26), Grenzen in
+        // config/antispam.php. Ersetzt den handgeschriebenen Zaehler, der auf
+        // der Klartext-IP, ohne Portal-Praefix und nur je IP lief.
+        $wartezeit = $this->antiSpamLimit(RateLimitGuard::CLAIM_REGISTRATION, ['email' => $this->email]);
 
-        if (RateLimiter::tooManyAttempts($rateLimitKey, 5)) {
-            $seconds = RateLimiter::availableIn($rateLimitKey);
-            $minutes = ceil($seconds / 60);
-            $this->addError('email', "Zu viele Versuche. Bitte versuchen Sie es in {$minutes} Minuten erneut.");
+        if ($wartezeit !== null) {
+            RateLimitGuard::log(RateLimitGuard::CLAIM_REGISTRATION, TurnstileAction::Registration, $this->email);
+            $this->addError('email', $this->antiSpamThrottleMessage($wartezeit));
+
             return;
         }
 
         $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:central.users,email'],
+            // Wegwerf-Adressen sichtbar abweisen (#26). Dieser Weg legt ein
+            // Konto an, ohne durch App\Validator\RegisterValidator zu laufen,
+            // deshalb haengt die Regel hier eigens.
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:central.users,email', new NotDisposableEmailRule(TurnstileAction::Registration)],
             'password' => ['required', 'string', 'min:8'],
         ], [
             'name.required' => 'Bitte geben Sie Ihren Namen ein.',
@@ -112,7 +146,12 @@ class ClaimModal extends Component
             'password.min' => 'Das Passwort muss mindestens 8 Zeichen lang sein.',
         ]);
 
-        RateLimiter::hit($rateLimitKey, 3600);
+        // Turnstile zuletzt: erst wenn alle Felder stimmen, wird ein Token
+        // eingeloest — Cloudflare nimmt jedes Token nur einmal an. Kontoanlage
+        // wie auf /register (#6).
+        $this->validate([
+            'turnstileToken' => [new TurnstileRule(TurnstileAction::Registration)],
+        ]);
 
         /** @var UserService $userService */
         $userService = app(UserService::class);
@@ -132,6 +171,7 @@ class ClaimModal extends Component
 
         if ($claimRequest === false) {
             $this->addError('email', 'Die Anfrage konnte nicht erstellt werden. Bitte versuchen Sie es erneut.');
+
             return;
         }
 
@@ -146,6 +186,10 @@ class ClaimModal extends Component
         session()->put('claimed_company_id', $this->company->id);
         session()->put('claimed_company_name', $this->company->name);
 
+        // Erst jetzt zaehlen: ein Tippfehler in der Validierung soll keinen
+        // Versuch kosten, ein angelegtes Konto schon.
+        $this->antiSpamCount(RateLimitGuard::CLAIM_REGISTRATION, ['email' => $this->email]);
+
         $this->claimSuccess = true;
     }
 
@@ -154,20 +198,30 @@ class ClaimModal extends Component
      */
     public function login(): void
     {
-        // Honeypot
-        if (!empty($this->website_url)) {
+        // Honigtopf und Mindest-Ausfuellzeit (#26): still abweisen. Die
+        // Aktion dient nur dem Log — zu TurnstileAction gibt es kein `login`,
+        // und der Anmeldereiter gehoert zum Kontoschritt der Uebernahme.
+        if ($this->antiSpamRejects(TurnstileAction::Registration, $this->loginEmail)) {
             $this->claimSuccess = true;
+
             return;
         }
 
-        // Rate Limiting: 10 Login-Versuche pro IP pro Stunde
-        $ip = request()->ip();
-        $rateLimitKey = 'claim-login:' . $ip;
+        // Rate-Limit je IP-Hash UND Mailadresse, mit Portal-Praefix (#26).
+        // Eigener Zaehler, damit der Reiter die zentrale Anmeldung nicht
+        // mitsperrt; Grenze in config/antispam.php.
+        $wartezeit = $this->antiSpamLimit(RateLimitGuard::CLAIM_LOGIN, ['email' => $this->loginEmail]);
 
-        if (RateLimiter::tooManyAttempts($rateLimitKey, 10)) {
-            $seconds = RateLimiter::availableIn($rateLimitKey);
-            $minutes = ceil($seconds / 60);
-            $this->addError('loginEmail', "Zu viele Versuche. Bitte versuchen Sie es in {$minutes} Minuten erneut.");
+        if ($wartezeit !== null) {
+            // Nur ins Laravel-Log, nicht nach turnstile_verifications: die
+            // Spalte `action` kennt nur die TurnstileAction-Werte, und ein
+            // Anmeldeversuch ist keiner davon (wie im LoginController).
+            Log::info('Antispam: Rate-Limit erreicht', [
+                'limiter' => RateLimitGuard::CLAIM_LOGIN,
+                'sekunden' => $wartezeit,
+            ]);
+            $this->addError('loginEmail', $this->antiSpamThrottleMessage($wartezeit));
+
             return;
         }
 
@@ -180,13 +234,16 @@ class ClaimModal extends Component
             'loginPassword.required' => 'Bitte geben Sie Ihr Passwort ein.',
         ]);
 
-        RateLimiter::hit($rateLimitKey, 3600);
-
-        if (!Auth::attempt([
+        if (! Auth::attempt([
             'email' => strtolower($this->loginEmail),
             'password' => $this->loginPassword,
         ], $this->remember)) {
+            // Gezaehlt wird der Fehlversuch, nicht das Absenden: ein
+            // Tippfehler im Formular soll keinen Versuch kosten, ein falsches
+            // Passwort schon.
+            $this->antiSpamCount(RateLimitGuard::CLAIM_LOGIN, ['email' => $this->loginEmail]);
             $this->addError('loginEmail', 'E-Mail-Adresse oder Passwort ist falsch.');
+
             return;
         }
 
@@ -198,11 +255,13 @@ class ClaimModal extends Component
 
         if ($newScenario === 'already_claimed') {
             $this->scenario = 'already_claimed';
+
             return;
         }
 
         if ($newScenario === 'pending_claim') {
             $this->scenario = 'pending_claim';
+
             return;
         }
 
@@ -211,6 +270,7 @@ class ClaimModal extends Component
 
         if ($claimRequest === false) {
             $this->addError('loginEmail', 'Die Anfrage konnte nicht erstellt werden.');
+
             return;
         }
 
@@ -226,11 +286,17 @@ class ClaimModal extends Component
      */
     public function claim(): void
     {
+        if ($this->claimGuardRejects()) {
+            return;
+        }
+
         $this->validate([
             'confirmOwner' => ['accepted'],
         ], [
             'confirmOwner.accepted' => 'Bitte bestätigen Sie, dass Sie der Inhaber sind.',
         ]);
+
+        $this->validateTurnstile();
 
         $user = Auth::user();
         $claimService = app(ClaimService::class);
@@ -239,12 +305,15 @@ class ClaimModal extends Component
 
         if ($claimRequest === false) {
             $this->addError('confirmOwner', 'Die Anfrage konnte nicht erstellt werden. Bitte versuchen Sie es erneut.');
+
             return;
         }
 
         session()->put('claim_request_id', $claimRequest->id);
         session()->put('claimed_company_id', $this->company->id);
         session()->put('claimed_company_name', $this->company->name);
+
+        $this->antiSpamCount(RateLimitGuard::CLAIM);
 
         $this->claimSuccess = true;
     }
@@ -254,11 +323,17 @@ class ClaimModal extends Component
      */
     public function claimAdditional(): void
     {
+        if ($this->claimGuardRejects()) {
+            return;
+        }
+
         $this->validate([
             'confirmOwner' => ['accepted'],
         ], [
             'confirmOwner.accepted' => 'Bitte bestätigen Sie, dass Sie der Inhaber sind.',
         ]);
+
+        $this->validateTurnstile();
 
         $user = Auth::user();
         $claimService = app(ClaimService::class);
@@ -267,6 +342,7 @@ class ClaimModal extends Component
 
         if ($claimRequest === false) {
             $this->addError('confirmOwner', 'Die Anfrage konnte nicht erstellt werden. Bitte versuchen Sie es erneut.');
+
             return;
         }
 
@@ -274,7 +350,49 @@ class ClaimModal extends Component
         session()->put('claimed_company_id', $this->company->id);
         session()->put('claimed_company_name', $this->company->name);
 
+        $this->antiSpamCount(RateLimitGuard::CLAIM);
+
         $this->claimSuccess = true;
+    }
+
+    /**
+     * Honigtopf, Mindest-Ausfuellzeit und Rate-Limit des angemeldeten Wegs
+     * (#26). True heisst: der Aufrufer hoert auf. Eigener Limiter, weil hier
+     * kein Konto entsteht, sondern ein Uebernahme-Antrag — und weil der
+     * Zaehler fuer Angemeldete auf der Nutzerkennung laeuft, nicht nur auf
+     * der Herkunft.
+     */
+    private function claimGuardRejects(): bool
+    {
+        // Still abweisen: dieselbe Erfolgsmeldung, kein Antrag.
+        if ($this->antiSpamRejects(TurnstileAction::CompanyListing, Auth::user()?->email)) {
+            $this->claimSuccess = true;
+
+            return true;
+        }
+
+        $wartezeit = $this->antiSpamLimit(RateLimitGuard::CLAIM);
+
+        if ($wartezeit !== null) {
+            RateLimitGuard::log(RateLimitGuard::CLAIM, TurnstileAction::CompanyListing, Auth::user()?->email);
+            $this->addError('confirmOwner', $this->antiSpamThrottleMessage($wartezeit));
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Turnstile der Uebernahme (#7). Eigener Aufruf nach den Feldregeln: ein
+     * Token ist bei Cloudflare nur einmal einloesbar und soll nicht von einem
+     * fehlenden Haken verbraucht werden.
+     */
+    private function validateTurnstile(): void
+    {
+        $this->validate([
+            'claimToken' => [new TurnstileRule(TurnstileAction::CompanyListing)],
+        ]);
     }
 
     /**
@@ -282,15 +400,19 @@ class ClaimModal extends Component
      */
     public function requestDispute(): void
     {
-        // Rate Limiting
-        $ip = request()->ip();
-        $rateLimitKey = 'claim-dispute:' . $ip;
+        // Rate-Limit je IP-Hash und Portal (#26), Grenze in
+        // config/antispam.php. Sichtbar, nicht still: ein Einspruch ist ein
+        // Anliegen eines Menschen, da darf die Restzeit stehen.
+        $wartezeit = $this->antiSpamLimit(RateLimitGuard::CLAIM_DISPUTE);
 
-        if (RateLimiter::tooManyAttempts($rateLimitKey, 3)) {
+        if ($wartezeit !== null) {
+            RateLimitGuard::log(RateLimitGuard::CLAIM_DISPUTE, TurnstileAction::CompanyListing, Auth::user()?->email);
+            $this->dispatch('toast', type: 'error', message: $this->antiSpamThrottleMessage($wartezeit));
+
             return;
         }
 
-        RateLimiter::hit($rateLimitKey, 3600);
+        $this->antiSpamCount(RateLimitGuard::CLAIM_DISPUTE);
 
         // TODO: E-Mail an Admin senden / Dispute-Record erstellen
         $this->dispatch('toast', type: 'success', message: 'Ihre Anfrage wurde gesendet. Wir melden uns innerhalb von 48 Stunden.');
@@ -324,7 +446,9 @@ class ClaimModal extends Component
         $this->loginEmail = '';
         $this->loginPassword = '';
         $this->remember = false;
-        $this->website_url = '';
+        $this->antispamHoneypot = '';
+        $this->turnstileToken = '';
+        $this->claimToken = '';
         $this->confirmOwner = false;
         $this->existingCompany = null;
     }

@@ -276,58 +276,7 @@
         </section>
     @endif
 
-    {{-- Lesefortschritt: Zugabe, ueber transform bewegt und bei
-         prefers-reduced-motion per CSS abgeschaltet. --}}
-    @push('scripts')
-    <script>
-    (function() {
-        const bar = document.getElementById('reading-progress');
-        const article = document.getElementById('blog-article');
-        if (!bar || !article) return;
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-        bar.classList.add('blog-reading-progress--active');
-
-        function update() {
-            const rect = article.getBoundingClientRect();
-            const total = article.offsetHeight - window.innerHeight;
-            const pct = total <= 0 ? 1 : Math.min(1, Math.max(0, -rect.top / total));
-            bar.style.transform = 'scaleX(' + pct + ')';
-        }
-
-        window.addEventListener('scroll', update, { passive: true });
-        window.addEventListener('resize', update, { passive: true });
-        update();
-    })();
-
-    // Aktiven Abschnitt im Inhaltsverzeichnis hervorheben — reine Zugabe.
-    (function() {
-        const links = document.querySelectorAll('.ratgeber-toc__link');
-        if (!links.length || !('IntersectionObserver' in window)) return;
-
-        // Artikel und Seitenspalte tragen dieselbe Liste, je Ziel gibt es also
-        // mehrere Verweise. Beide werden hervorgehoben; sichtbar ist immer nur einer.
-        const map = new Map();
-        links.forEach(link => {
-            const target = document.getElementById(decodeURIComponent(link.hash.slice(1)));
-            if (!target) return;
-            if (!map.has(target)) map.set(target, []);
-            map.get(target).push(link);
-        });
-
-        const observer = new IntersectionObserver(entries => {
-            entries.forEach(entry => {
-                const group = map.get(entry.target);
-                if (group && entry.isIntersecting) {
-                    links.forEach(l => l.classList.remove('is-active'));
-                    group.forEach(l => l.classList.add('is-active'));
-                }
-            });
-        }, { rootMargin: '-88px 0px -70% 0px' });
-
-        map.forEach((_, target) => observer.observe(target));
-    })();
-    </script>
-    @endpush
+    {{-- Lesefortschritt und aktiver Abschnitt im Inhaltsverzeichnis:
+         resources/js/modules/reading-progress.js (#21) --}}
 
 @endsection

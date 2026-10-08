@@ -48,7 +48,7 @@
                     </p>
 
                     {{-- Resend mit Countdown --}}
-                    <form method="POST" action="{{ route('verification.send') }}" x-data="resendTimer()">
+                    <form method="POST" action="{{ route('verification.send') }}" x-data="resendTimer({{ session('sent') ? 60 : 0 }})">
                         @csrf
                         <button type="submit"
                                 class="w-full btn-portal py-3 text-sm font-semibold rounded-lg transition-all duration-200 hover:shadow-lg touch-target"
@@ -139,27 +139,3 @@
     </x-slot>
 </x-layouts.focus>
 
-@push('scripts')
-<script>
-    function resendTimer() {
-        return {
-            cooldown: {{ session('sent') ? 60 : 0 }},
-            interval: null,
-            startCooldown() {
-                this.cooldown = 60;
-                this.interval = setInterval(() => {
-                    this.cooldown--;
-                    if (this.cooldown <= 0) {
-                        clearInterval(this.interval);
-                    }
-                }, 1000);
-            },
-            init() {
-                if (this.cooldown > 0) {
-                    this.startCooldown();
-                }
-            }
-        }
-    }
-</script>
-@endpush

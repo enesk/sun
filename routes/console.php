@@ -104,3 +104,56 @@ Schedule::command('guide:daily --stage=report')
     ->timezone($guideTimezone)
     ->withoutOverlapping()
     ->onOneServer();
+
+/*
+| Bestandsbereinigung (#10): Ablauf der Quarantaene
+|
+| Setzt `deleted_at` bei allem, was laenger als
+| antispam.suspected_bots.quarantine_days (14 Tage) markiert ist und im Admin
+| nicht freigegeben wurde — Soft-Delete, nie ein hartes Loeschen. Jeder Lauf
+| schreibt einen Bericht nach storage/app/antispam/.
+|
+| 03:20, also nach den uebrigen Loeschlaeufen und lange vor dem ersten
+| Sitemap-Lauf des Tages. `antispam:scan` steht absichtlich NICHT im
+| Scheduler: markiert wird nur nach Sichtung, von Hand.
+*/
+Schedule::command('antispam:expire-quarantine')
+    ->dailyAt('03:20')
+    ->withoutOverlapping()
+    ->onOneServer();
+
+/*
+| Bot-Schutz: Ueberwachung, Tagesbericht, Log-Pruning (#12)
+|
+| Alle drei laufen ZENTRAL ueber alle Portale (TurnstileLogConnection haengt
+| nur die Verbindung `tenant` um), nicht ueber `tenants:run` — ein Lauf je
+| Nacht statt 23.
+|
+| turnstile:monitor  stuendlich, wertet die zurueckliegende Stunde je Portal
+|                    aus und mailt bei Fehlerquote, Fehlerzahl oder
+|                    auffaelliger Blockierungsquote. Zur Minute 5, damit die
+|                    Stunde vollstaendig geschrieben ist.
+| turnstile:report   07:10, Bericht ueber den Vortag (Registrierungen,
+|                    Eintraege, blockiert, Quarantaene).
+| turnstile:prune    03:40, loescht Log-Zeilen aelter als
+|                    turnstile.log.retention_days (90 Tage) in Runden. Nach
+|                    antispam:expire-quarantine (03:20) und vor dem ersten
+|                    Sitemap-Lauf.
+|
+| withoutOverlapping, damit ein langer Lauf sich nicht selbst ueberholt;
+| onOneServer, damit nicht zwei Anwendungsserver dieselbe Mail schicken.
+*/
+Schedule::command('turnstile:monitor')
+    ->hourlyAt(5)
+    ->withoutOverlapping()
+    ->onOneServer();
+
+Schedule::command('turnstile:report')
+    ->dailyAt('07:10')
+    ->withoutOverlapping()
+    ->onOneServer();
+
+Schedule::command('turnstile:prune')
+    ->dailyAt('03:40')
+    ->withoutOverlapping()
+    ->onOneServer();

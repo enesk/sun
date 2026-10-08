@@ -3,7 +3,7 @@
 <div>
     @if($showModal)
         <div class="claim-modal-overlay"
-             x-data="claimModal()"
+             x-data="claimModal"
              x-on:keydown.escape.window="$wire.closeModal()"
              role="dialog"
              aria-modal="true"
@@ -21,6 +21,11 @@
                 <div class="claim-modal__drag-handle sm:hidden" aria-hidden="true">
                     <div class="claim-modal__drag-bar"></div>
                 </div>
+
+                {{-- Honigtopf und Mindest-Ausfuellzeit (#26). Einmal fuer den
+                     ganzen Dialog: der Feldname ist je Session zufaellig, und
+                     alle Formulare hier binden dieselbe Property. --}}
+                <x-antispam-fields wire />
 
                 {{-- ==========================================
                      SUCCESS STATE: Claim erfolgreich!
@@ -183,10 +188,8 @@
                                     @enderror
                                 </div>
 
-                                {{-- Honeypot --}}
-                                <div class="hidden" aria-hidden="true">
-                                    <input type="text" wire:model="website_url" tabindex="-1" autocomplete="off">
-                                </div>
+                                {{-- Turnstile (#6): hier entsteht ein Konto --}}
+                                <x-turnstile action="registration" wire="turnstileToken" field="turnstileToken" />
 
                                 <button type="submit"
                                         class="claim-modal__cta"
@@ -362,6 +365,9 @@
                                 <p class="claim-modal__error" role="alert">{{ $message }}</p>
                             @enderror
 
+                            {{-- Turnstile (#7): hier entsteht ein Uebernahme-Antrag --}}
+                            <x-turnstile action="company_listing" wire="claimToken" field="claimToken" />
+
                             <button type="submit"
                                     class="claim-modal__cta"
                                     wire:loading.attr="disabled"
@@ -428,6 +434,12 @@
                                        required>
                                 <span>{!! __('portal.claim_modal.has_company.confirm', ['firma' => '<strong>'.e($company->name).'</strong>']) !!}</span>
                             </label>
+                            @error('confirmOwner')
+                                <p class="claim-modal__error" role="alert">{{ $message }}</p>
+                            @enderror
+
+                            {{-- Turnstile (#7): hier entsteht ein Uebernahme-Antrag --}}
+                            <x-turnstile action="company_listing" wire="claimToken" field="claimToken" />
 
                             <button type="submit"
                                     class="claim-modal__cta"
@@ -509,18 +521,3 @@
     @endif
 </div>
 
-@script
-<script>
-    function claimModal() {
-        return {
-            init() {
-                // Lock body scroll when modal is open
-                document.body.style.overflow = 'hidden';
-                this.$cleanup(() => {
-                    document.body.style.overflow = '';
-                });
-            }
-        }
-    }
-</script>
-@endscript

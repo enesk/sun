@@ -2,10 +2,11 @@
 
 namespace App\Livewire\Portal;
 
+use App\AntiSpam\Support\RateLimitGuard;
 use App\Models\Portal\ClaimRequest;
 use App\Models\Portal\Company;
+use App\Turnstile\Enums\TurnstileAction;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -70,14 +71,17 @@ class ClaimVerification extends Component
      */
     public function submit(): void
     {
-        // Rate Limiting
-        $ip = request()->ip();
-        $rateLimitKey = 'claim-upload:' . $ip;
+        // Rate-Limit je IP-Hash, Nutzer und Portal (#27), Grenzen in
+        // config/antispam.php. Ersetzt den handgeschriebenen Zaehler, der auf
+        // der Klartext-IP und ohne Portal-Praefix lief. Kein Captcha und kein
+        // Honigtopf: der Weg setzt einen angemeldeten Nutzer mit offenem
+        // Antrag voraus, ein Bot kaeme hier gar nicht an.
+        $wartezeit = RateLimitGuard::exceeded(RateLimitGuard::CLAIM_UPLOAD);
 
-        if (RateLimiter::tooManyAttempts($rateLimitKey, 10)) {
-            $seconds = RateLimiter::availableIn($rateLimitKey);
-            $minutes = ceil($seconds / 60);
-            $this->addError('documents', "Zu viele Versuche. Bitte versuchen Sie es in {$minutes} Minuten erneut.");
+        if ($wartezeit !== null) {
+            RateLimitGuard::log(RateLimitGuard::CLAIM_UPLOAD, TurnstileAction::CompanyListing, Auth::user()?->email);
+            $minuten = max(1, (int) ceil($wartezeit / 60));
+            $this->addError('documents', trans_choice('antispam.throttled', $minuten, ['minuten' => $minuten]));
             return;
         }
 
@@ -97,8 +101,6 @@ class ClaimVerification extends Component
             'documents.*.max' => 'Jede Datei darf maximal 10 MB groß sein.',
             'documents.*.mimes' => 'Erlaubte Formate: PDF, JPG, PNG.',
         ]);
-
-        RateLimiter::hit($rateLimitKey, 3600);
 
         if (!$this->claimRequest) {
             $this->addError('documents', 'Kein Claim-Request gefunden.');
@@ -124,6 +126,10 @@ class ClaimVerification extends Component
                 ->usingFileName($document->getClientOriginalName())
                 ->toMediaCollection('claim_documents');
         }
+
+        // Erst jetzt zaehlen: ein zu grosses Dokument oder ein falsches
+        // Format soll keinen Versuch kosten.
+        RateLimitGuard::hit(RateLimitGuard::CLAIM_UPLOAD);
 
         $this->submitted = true;
         $this->state = 'pending';

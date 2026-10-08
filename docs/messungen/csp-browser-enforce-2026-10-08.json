@@ -1,0 +1,379 @@
+{
+  "gemessen": "2026-10-08T15:45:39.967Z",
+  "seiten": [
+    {
+      "name": "sun-v2 Startseite",
+      "url": "http://elektriker.test/",
+      "htmlLaenge": 48785,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "turnstileRahmen": 0,
+        "adsSkripte": 2,
+        "adsbygoogleGeladen": true,
+        "anzeigenRahmen": 1,
+        "dataLayer": 6,
+        "gtag": "function",
+        "livewire": "undefined",
+        "alpine": "undefined",
+        "offeneVorlagen": 0,
+        "eingesetzteAnzeigen": 2,
+        "dialogOffen": true
+      },
+      "fremdeHosts": [
+        "ep1.adtrafficquality.google",
+        "ep2.adtrafficquality.google",
+        "pagead2.googlesyndication.com",
+        "region1.google-analytics.com",
+        "www.googletagmanager.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "sun-v2 Suche",
+      "url": "http://elektriker.test/firmen?q=elektro",
+      "htmlLaenge": 94974,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "turnstileRahmen": 0,
+        "adsSkripte": 2,
+        "adsbygoogleGeladen": true,
+        "anzeigenRahmen": 1,
+        "dataLayer": 6,
+        "gtag": "function",
+        "livewire": "undefined",
+        "alpine": "undefined",
+        "offeneVorlagen": 0,
+        "eingesetzteAnzeigen": 2,
+        "dialogOffen": true
+      },
+      "fremdeHosts": [
+        "ep1.adtrafficquality.google",
+        "ep2.adtrafficquality.google",
+        "pagead2.googlesyndication.com",
+        "region1.google-analytics.com",
+        "www.googletagmanager.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "sun-v2 Firmenprofil (Werbung aktiv)",
+      "url": "http://elektriker.test/7626-elektro-polz",
+      "htmlLaenge": 87408,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "turnstileRahmen": 0,
+        "adsSkripte": 2,
+        "adsbygoogleGeladen": true,
+        "anzeigenRahmen": 1,
+        "dataLayer": 6,
+        "gtag": "function",
+        "livewire": "object",
+        "alpine": "object",
+        "offeneVorlagen": 0,
+        "eingesetzteAnzeigen": 2,
+        "dialogOffen": false
+      },
+      "fremdeHosts": [
+        "ep1.adtrafficquality.google",
+        "ep2.adtrafficquality.google",
+        "pagead2.googlesyndication.com",
+        "region1.google-analytics.com",
+        "www.googletagmanager.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "sun-v2 Registrierung",
+      "url": "http://elektriker.test/register",
+      "htmlLaenge": 22649,
+      "pruefung": {
+        "turnstileSkript": 1,
+        "turnstileRahmen": 0,
+        "adsSkripte": 0,
+        "adsbygoogleGeladen": false,
+        "anzeigenRahmen": 0,
+        "dataLayer": 6,
+        "gtag": "function",
+        "livewire": "object",
+        "alpine": "object",
+        "offeneVorlagen": 0,
+        "eingesetzteAnzeigen": 0,
+        "dialogOffen": true
+      },
+      "fremdeHosts": [
+        "challenges.cloudflare.com",
+        "fonts.googleapis.com",
+        "region1.google-analytics.com",
+        "www.googletagmanager.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "sun-v2 Eintragung",
+      "url": "http://elektriker.test/eintragen",
+      "htmlLaenge": 30250,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "turnstileRahmen": 0,
+        "adsSkripte": 2,
+        "adsbygoogleGeladen": true,
+        "anzeigenRahmen": 1,
+        "dataLayer": 6,
+        "gtag": "function",
+        "livewire": "object",
+        "alpine": "object",
+        "offeneVorlagen": 0,
+        "eingesetzteAnzeigen": 2,
+        "dialogOffen": true
+      },
+      "fremdeHosts": [
+        "ep1.adtrafficquality.google",
+        "ep2.adtrafficquality.google",
+        "pagead2.googlesyndication.com",
+        "region1.google-analytics.com",
+        "www.googletagmanager.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "sun-v2 Checkout",
+      "url": "http://elektriker.test/checkout/plan/premium-monthly",
+      "htmlLaenge": 34602,
+      "pruefung": {
+        "turnstileSkript": 1,
+        "turnstileRahmen": 0,
+        "adsSkripte": 2,
+        "adsbygoogleGeladen": true,
+        "anzeigenRahmen": 1,
+        "dataLayer": 6,
+        "gtag": "function",
+        "livewire": "object",
+        "alpine": "object",
+        "offeneVorlagen": 0,
+        "eingesetzteAnzeigen": 2,
+        "dialogOffen": true
+      },
+      "fremdeHosts": [
+        "challenges.cloudflare.com",
+        "ep1.adtrafficquality.google",
+        "ep2.adtrafficquality.google",
+        "pagead2.googlesyndication.com",
+        "region1.google-analytics.com",
+        "www.googletagmanager.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "default Startseite",
+      "url": "http://sanitaer.test/",
+      "htmlLaenge": 237475,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "turnstileRahmen": 0,
+        "adsSkripte": 0,
+        "adsbygoogleGeladen": false,
+        "anzeigenRahmen": 0,
+        "dataLayer": -1,
+        "gtag": "undefined",
+        "livewire": "object",
+        "alpine": "object",
+        "offeneVorlagen": 0,
+        "eingesetzteAnzeigen": 0,
+        "dialogOffen": true
+      },
+      "fremdeHosts": [
+        "unpkg.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "default Suche",
+      "url": "http://sanitaer.test/firmen?q=heizung",
+      "htmlLaenge": 229331,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "turnstileRahmen": 0,
+        "adsSkripte": 0,
+        "adsbygoogleGeladen": false,
+        "anzeigenRahmen": 0,
+        "dataLayer": -1,
+        "gtag": "undefined",
+        "livewire": "object",
+        "alpine": "object",
+        "offeneVorlagen": 0,
+        "eingesetzteAnzeigen": 0,
+        "dialogOffen": true
+      },
+      "fremdeHosts": [
+        "unpkg.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "default Firmenprofil",
+      "url": "http://sanitaer.test/59398-haustechnik-bruening-bad-heizung-solar",
+      "htmlLaenge": 111447,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "turnstileRahmen": 0,
+        "adsSkripte": 0,
+        "adsbygoogleGeladen": false,
+        "anzeigenRahmen": 0,
+        "dataLayer": -1,
+        "gtag": "undefined",
+        "livewire": "object",
+        "alpine": "object",
+        "offeneVorlagen": 0,
+        "eingesetzteAnzeigen": 0,
+        "dialogOffen": true
+      },
+      "fremdeHosts": [
+        "maps.google.com",
+        "unpkg.com",
+        "www.google.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "default Registrierung",
+      "url": "http://sanitaer.test/register",
+      "htmlLaenge": 22462,
+      "pruefung": {
+        "turnstileSkript": 1,
+        "turnstileRahmen": 0,
+        "adsSkripte": 0,
+        "adsbygoogleGeladen": false,
+        "anzeigenRahmen": 0,
+        "dataLayer": 6,
+        "gtag": "function",
+        "livewire": "object",
+        "alpine": "object",
+        "offeneVorlagen": 0,
+        "eingesetzteAnzeigen": 0,
+        "dialogOffen": true
+      },
+      "fremdeHosts": [
+        "challenges.cloudflare.com",
+        "fonts.googleapis.com",
+        "region1.google-analytics.com",
+        "www.googletagmanager.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "default Eintragung",
+      "url": "http://sanitaer.test/eintragen",
+      "htmlLaenge": 45453,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "turnstileRahmen": 0,
+        "adsSkripte": 0,
+        "adsbygoogleGeladen": false,
+        "anzeigenRahmen": 0,
+        "dataLayer": -1,
+        "gtag": "undefined",
+        "livewire": "object",
+        "alpine": "object",
+        "offeneVorlagen": 0,
+        "eingesetzteAnzeigen": 0,
+        "dialogOffen": true
+      },
+      "fremdeHosts": [
+        "unpkg.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "default Checkout",
+      "url": "http://sanitaer.test/checkout/plan/premium-monthly",
+      "htmlLaenge": 51341,
+      "pruefung": {
+        "turnstileSkript": 1,
+        "turnstileRahmen": 0,
+        "adsSkripte": 0,
+        "adsbygoogleGeladen": false,
+        "anzeigenRahmen": 0,
+        "dataLayer": -1,
+        "gtag": "undefined",
+        "livewire": "object",
+        "alpine": "object",
+        "offeneVorlagen": 0,
+        "eingesetzteAnzeigen": 0,
+        "dialogOffen": true
+      },
+      "fremdeHosts": [
+        "challenges.cloudflare.com",
+        "unpkg.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "sun-v2 Firmenprofil + Anfrage-Dialog",
+      "url": "http://elektriker.test/7626-elektro-polz",
+      "htmlLaenge": 87469,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "turnstileRahmen": 0,
+        "adsSkripte": 2,
+        "adsbygoogleGeladen": true,
+        "anzeigenRahmen": 1,
+        "dataLayer": 6,
+        "gtag": "function",
+        "livewire": "object",
+        "alpine": "object",
+        "offeneVorlagen": 0,
+        "eingesetzteAnzeigen": 2,
+        "dialogOffen": true
+      },
+      "fremdeHosts": [
+        "ep1.adtrafficquality.google",
+        "ep2.adtrafficquality.google",
+        "leads.widimedia.com",
+        "pagead2.googlesyndication.com",
+        "region1.google-analytics.com",
+        "www.googletagmanager.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    }
+  ],
+  "zusammenfassung": {}
+}

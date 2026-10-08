@@ -1,8 +1,7 @@
 {{--
     Stellenanzeige (Detail) im Theme sun-v2.
     Daten: PublicJobController::show() — $job, $relatedJobs, $similarJobs.
-    Die Brotkrumen baut die View selbst (Texte aus portal.*), $breadcrumb des
-    Controllers traegt feste Texte fuers Default-Theme.
+    Brotkrumen: $breadcrumb des Controllers (App\Support\Breadcrumb::forJob, #33).
 
     Bewerbung: POST portal.jobs.apply (multipart). Nach Erfolg setzt der
     Controller session('application_success'), Fehler kommen als session('error').
@@ -20,12 +19,6 @@
     $logoUrl = $company->getFirstMediaUrl('logo', 'thumb');
     $initials = \App\Themes\SunV2\ProfileViewComposer::initials($company->name);
     $deadlineOpen = $job->application_deadline && ! $job->application_deadline->isPast();
-
-    $breadcrumb = [
-        ['label' => __('portal.layout.breadcrumb.home'), 'url' => route('home')],
-        ['label' => __('portal.layout.header.jobs'), 'url' => route('portal.jobs.index')],
-        ['label' => $job->title, 'url' => $jobUrl],
-    ];
 
     $sections = array_filter([
         'beschreibung' => $job->description ? [__('portal.jobs.show.description_heading'), $job->description] : null,
@@ -215,6 +208,11 @@
               <input type="file" id="cv" name="cv" accept=".pdf,.doc,.docx" aria-describedby="cv-hinweis" class="block w-full text-sm text-zinc-500 file:mr-3 file:min-h-11 file:px-4 file:rounded-xl file:border-0 file:bg-zinc-100 file:text-sm file:font-semibold file:text-zinc-900 hover:file:bg-zinc-200 file:cursor-pointer">
               <p id="cv-hinweis" @class([$fieldHint, 'text-red-600' => $errors->has('cv'), 'text-zinc-500' => ! $errors->has('cv')]) @error('cv') role="alert" @enderror>{{ $errors->first('cv') ?: __('portal.jobs.show.apply.cv_hint') }}</p>
             </div>
+
+            {{-- Honigtopf, Ausfuellzeit und Turnstile (#22). Modus
+                 non_interactive: ein echter Bewerber loest kein Puzzle. --}}
+            <x-antispam-fields />
+            <x-turnstile action="contact" size="flexible" class="mt-0" />
 
             <button type="submit" class="btn-primary w-full">{{ __('portal.jobs.show.apply.submit') }}</button>
 

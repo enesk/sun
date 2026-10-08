@@ -2,27 +2,36 @@
 
 namespace App\Livewire\Portal;
 
+use App\AntiSpam\Concerns\InteractsWithAntiSpam;
+use App\AntiSpam\Support\RateLimitGuard;
 use App\Mail\EditSuggestionNotification;
 use App\Models\Portal\Company;
 use App\Models\Portal\CompanyEditSuggestion;
+use App\Turnstile\Enums\TurnstileAction;
+use App\Turnstile\Rules\TurnstileRule;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
 class SuggestEditModal extends Component
 {
+    // Honigtopf und Mindest-Ausfuellzeit (#22); die Properties kommen aus dem
+    // Trait, gebunden von <x-antispam-fields wire /> in der Ansicht. Der
+    // frueher hier handgeschriebene Honigtopf `website_url` ist damit weg —
+    // sein Feldname war fest und seine Treffer landeten in keinem Log.
+    use InteractsWithAntiSpam;
+
     public Company $company;
+
+    /** Turnstile-Token, gesetzt von <x-turnstile wire="turnstileToken" />. */
+    public string $turnstileToken = '';
 
     public string $field = '';
     public string $suggestedValue = '';
     public string $reason = '';
     public string $reporterName = '';
     public string $reporterEmail = '';
-
-    // Honeypot
-    public string $website_url = '';
 
     public bool $showModal = false;
     public bool $submitted = false;
@@ -64,27 +73,34 @@ class SuggestEditModal extends Component
 
     public function submit(): void
     {
-        // Honeypot — Bots füllen das versteckte Feld aus
-        if (!empty($this->website_url)) {
-            // Fake-Success für Bots
+        // Honigtopf und Mindest-Ausfuellzeit (#22): still abweisen. Der
+        // Besucher sieht dieselbe Erfolgsmeldung, es entsteht aber kein
+        // Vorschlag. Der Treffer steht in turnstile_verifications.
+        if ($this->antiSpamRejects(TurnstileAction::Contact, $this->reporterEmail ?: null)) {
             $this->submitted = true;
             return;
         }
 
         $this->validate();
 
-        // Rate Limiting: 5 Vorschläge pro IP pro Stunde
         $ip = request()->ip();
-        $rateLimitKey = 'suggest-edit:' . $ip;
 
-        if (RateLimiter::tooManyAttempts($rateLimitKey, 5)) {
-            $seconds = RateLimiter::availableIn($rateLimitKey);
-            $minutes = ceil($seconds / 60);
-            $this->addError('field', "Zu viele Vorschläge. Bitte versuchen Sie es in {$minutes} Minuten erneut.");
+        // Rate-Limit je IP-Hash und Portal (#22), Grenze in
+        // config/antispam.php. Ersetzt den handgeschriebenen Zaehler, der auf
+        // der Klartext-IP und portaluebergreifend lief.
+        $wartezeit = $this->antiSpamLimit(RateLimitGuard::SUGGEST_EDIT);
+
+        if ($wartezeit !== null) {
+            RateLimitGuard::log(RateLimitGuard::SUGGEST_EDIT, TurnstileAction::Contact, $this->reporterEmail ?: null);
+            $this->addError('field', $this->antiSpamThrottleMessage($wartezeit));
             return;
         }
 
-        RateLimiter::hit($rateLimitKey, 3600);
+        // Turnstile zuletzt: erst wenn alle Felder stimmen, wird ein Token
+        // eingeloest — Cloudflare nimmt jedes Token nur einmal an.
+        $this->validate([
+            'turnstileToken' => [new TurnstileRule(TurnstileAction::Contact, 'reporterEmail')],
+        ]);
 
         $suggestion = CompanyEditSuggestion::create([
             'company_id' => $this->company->id,
@@ -105,6 +121,10 @@ class SuggestEditModal extends Component
                 'error' => $e->getMessage(),
             ]);
         }
+
+        // Erst jetzt zaehlen: ein Tippfehler in der Validierung soll keinen
+        // Versuch kosten.
+        $this->antiSpamCount(RateLimitGuard::SUGGEST_EDIT);
 
         $this->submitted = true;
     }
