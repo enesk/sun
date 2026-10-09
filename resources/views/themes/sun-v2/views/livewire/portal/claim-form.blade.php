@@ -11,6 +11,10 @@
     $errorClass = 'mt-1 text-sm text-red-600';
 @endphp
 <div>
+  {{-- Skripte unbedingt, auch wenn das Widget erst nach einem Livewire-Umlauf erscheint: der Stack 'scripts' wird nur beim Rendern des Layouts geleert (#53). --}}
+  <x-turnstile-scripts action="registration" />
+  <x-turnstile-scripts action="company_listing" />
+
   @if($claimSuccess || $scenario === 'pending_claim')
     {{-- ===== SCHRITT 2/3: NACHWEIS DIREKT HOCHLADEN ===== --}}
     @if(auth()->check() && \App\Models\Portal\Company::where('user_id', auth()->id())->exists())

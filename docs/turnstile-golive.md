@@ -1,8 +1,11 @@
 # Go-Live des Bot-Schutzes — Checkliste, gestaffelter Rollout, Abnahme
 
-Status: **bereit zur Durchführung, nicht begonnen** (Stufe 1 startet erst, wenn §0 leer ist).
-Durchführungsversuch 08.10.2026 in #36 vor §1.3 abgebrochen, weil B1 offen ist —
-Protokoll `docs/messungen/turnstile-golive/durchfuehrung-2026-10-08.md`.
+Status: **B1 erledigt (08.10.2026), B2 fast — der Deploy wartet auf einen Handgriff.**
+Schlüssel, Widgets und Siteverify stehen; es fehlt der Merge des Zweigs
+`feature/bot-schutz-turnstile` (`ddfe1fd9`) nach `main`, danach läuft
+`scripts/turnstile-golive-deploy.sh --los`. Belege:
+`docs/messungen/turnstile-golive/schluessel-2026-10-08.txt` und
+`durchfuehrung-2026-10-08.md`.
 Zweite Nachprüfung am 08.10.2026 (#36): Produktion unverändert `f5fa66ed`,
 `/root/sun-zugang.txt` fehlt weiter, `grep -c '^TURNSTILE' .env` = 0,
 `grep -c '^CSP_MODE' .env` = 0 — B1 unverändert offen, keine Änderung am Server.
@@ -41,8 +44,8 @@ Deprecated-Zeilen aus `saasykit/laravel-open-graphy` — Rauschen, kein Befund
 
 | # | Blocker | Folge | Erledigt durch |
 |---|---|---|---|
-| B1 | **Keine Produktionsschlüssel.** `grep -c '^TURNSTILE' .env` in der Produktion gibt **0** (erneut geprüft 08.10.2026). Die drei Cloudflare-Widgets sind nicht angelegt. Der Cloudflare-API-Token mit „Account / Turnstile: Edit“ fehlt ebenfalls (#38, `/root/sun-zugang.txt` existiert nicht), **ist aber nicht die Ursache**: er automatisiert nur das Anlegen der Widgets. Ohne ihn geht §1.1 über Weg B — drei Widgets im Dashboard von Hand, sechs Werte über `scripts/turnstile-schluessel-eintragen.sh`; weder dieses Skript noch `turnstile:keys:check --siteverify` reden mit der Cloudflare-API. | Ohne Schlüsselpaar wirft der Resolver in Produktion `TurnstileNotConfiguredException`; die Rule behandelt das wie einen Ausfall (Fail-Mode `open`): jedes Formular läuft ungeschützt weiter und meldet SUN-TS-011. | §1.1 Weg B (Dashboard, Mensch) oder Weg A nach #18/#14; Durchführung in #36 |
-| B2 | **Das Modul ist nicht eingecheckt.** `app/Turnstile/`, `app/AntiSpam/`, `config/turnstile.php`, `config/antispam.php`, `config/csp.php`, die sieben `2026_10_09_*`-Migrationen, die Filament-Seiten und die Blade-Komponente stehen als `??` in `git status`; die Produktion steht auf `f5fa66ed` und kennt nichts davon (geprüft 08.10.2026). | Nichts davon ist deploybar. | eigener Commit, Freigabe Enes — Schritt 1 in #36 |
+| B1 | ~~Keine Produktionsschlüssel.~~ **Erledigt 08.10.2026 ST.** Enes hat den Token mit „Account / Turnstile: Edit“ erzeugt und über `scripts/cloudflare-token-ablegen.sh` nach `/root/sun-zugang.txt` gelegt (19:50), die drei Widgets `SUN Welle 1|2|3` im Dashboard angelegt; `scripts/turnstile-schluessel-eintragen.sh` hat die sechs Werte in die Produktions-`.env` geschrieben, `grep -c '^TURNSTILE' .env` gibt **6**, die Siteverify-Probe meldet für alle drei Gruppen „Secret gilt“. Beleg `docs/messungen/turnstile-golive/schluessel-2026-10-08.txt`. | — | #18 / #14, durchgeführt in #36 |
+| B2 | **Das Modul liegt nicht auf `main`.** Der gesamte Bot-Schutz ist am 08.10.2026 als **ein** Commit `ddfe1fd9` auf dem Zweig `feature/bot-schutz-turnstile` eingecheckt und zum Ursprung geschoben (283 Dateien, Secret-Scan sauber). Die Produktion zieht `main` und steht auf `f5fa66ed`. | Nichts davon ist deploybar, solange der Zweig nicht auf `main` ist. | **Merge durch Enes** (`git checkout main && git merge --ff-only feature/bot-schutz-turnstile && git push`) — das ist die Freigabe, einziger offener Handgriff vor §1.3 |
 
 Erledigt seit der ersten Fassung dieses Dokuments:
 
@@ -51,11 +54,11 @@ Erledigt seit der ersten Fassung dieses Dokuments:
 | B3 | SUN-TS-011 ohne Empfänger | **weg**, #19: `App\Listeners\Turnstile\AlertOnSiteverifyUnreachable` hängt über Event-Discovery an `SiteverifyUnreachable` (`php artisan event:list` belegt die Bindung) und meldet ab 20 Ausfällen in 5 Minuten, danach höchstens halbstündlich. Der stündliche `turnstile:monitor` bleibt die Quotenaufsicht. |
 | B4 | CSP auf `off`, Themes mit Inline-Skripten | **weg**, #21: die Themes liefern keine Inline-Skripte mehr, fremdes HTML bekommt das Nonce aus `CspNonce`, die Vorgabe in `config/csp.php:41` ist `enforce`. Im echten Browser nachgemessen in #28 (Chrome 154) und #29 (WebKit), Protokolle unter `docs/messungen/csp-browser-*`. §1.5 bleibt trotzdem beim Zwischenschritt `report` für 24 h, weil in Produktion echte `TRACKING_SCRIPTS` und echte `ad_slots` aus der Datenbank kommen; `CSP_MODE=report` wird nach §1.3 gesetzt, noch vor dem ersten `config:cache` des Deploys. |
 
-Start von Stufe 1 erst, wenn B1 und B2 erledigt sind. Beides sind Handgriffe eines
-Menschen: B1 braucht eine Dashboard-Anmeldung am Cloudflare-Konto (kein API-Token, siehe
-§1.1 Weg B), B2 einen Commit mit Freigabe. Alles andere in diesem Dokument ist
-vorbereitet und mit Werkzeug hinterlegt — der Deploy als Ganzes in
-`scripts/turnstile-golive-deploy.sh`.
+B1 ist seit dem 08.10.2026 erledigt; von B2 fehlt nur noch der Merge nach `main` — das
+ist die Freigabe. Den jeweiligen Stand nennt `scripts/turnstile-golive-stand.sh`, die
+Vorbedingungen prüft der Trockenlauf `scripts/turnstile-golive-deploy.sh` (ohne `--los`
+ändert er nichts) — am 08.10.2026 um 19:57 meldete er B1 grün und B2 als einzige
+verletzte Vorbedingung.
 
 **Stand jederzeit nachlesen, statt die Befehle von Hand zu wiederholen:**
 
@@ -128,23 +131,25 @@ nicht Teil der Welle ist.
 Widgets und die `--pruefen`-Gegenprobe. Nichts weiter unten in diesem Dokument braucht
 ihn: `scripts/turnstile-schluessel-eintragen.sh` schreibt nur die `.env` und fährt die
 Siteverify-Probe, `turnstile:keys:check --siteverify` liest Konfiguration und ruft
-Siteverify — beide reden nie mit der Cloudflare-API. Stand 08.10.2026 fehlt der Token
-(#38, nachgewiesen in `docs/messungen/turnstile-golive/durchfuehrung-2026-10-08.md` §5
-und §7); deshalb läuft §1.1 über **Weg B**, und der Token wird nachgeholt, wann es passt.
+Siteverify — beide reden nie mit der Cloudflare-API.
 
-*Weg A — mit Token (schneller, wenn er liegt):* Der Token existiert nirgends und lässt
-sich nicht finden, nur im Dashboard erzeugen (abschließend gesucht am 08.10.2026,
-Protokoll §10.1). **#38 ist geschlossen; dieser Handgriff lebt ab jetzt hier** — er ist
-kein Blocker, Weg B führt ohne ihn zum Go-Live.
+**Erledigt am 08.10.2026.** Enes hat den Token erzeugt und abgelegt (19:50) und die drei
+Widgets im Dashboard angelegt (Weg B); der Rest lief über die Skripte. Gegengeprüft mit
+`scripts/cloudflare-token-ablegen.sh --pruefen` (Exit 0, Konto bekannt, Turnstile lesbar)
+und `scripts/turnstile-widgets-anlegen.sh --pruefen` (drei Widgets, Soll-Ist passt).
+Beide Skripte brauchten dafür eine Korrektur, siehe §1.1.1.
 
-- [ ] Token mit „Account / Turnstile: Edit“ liegt über
+*Weg A — mit Token:*
+
+- [x] 2026-10-08 ST Token mit „Account / Turnstile: Edit“ liegt über
   `scripts/cloudflare-token-ablegen.sh` in `/root/sun-zugang.txt` (chmod 600),
   Gegenprobe `scripts/cloudflare-token-ablegen.sh --pruefen` → Exit 0. In derselben
   Ablage steht der WAF-Token `CLOUDFLARE_API_TOKEN_SUN_WAF` aus #24 — beide in einem
   Durchgang ablegen
-- [ ] `scripts/turnstile-widgets-anlegen.sh` legt die drei Widgets an,
-  `--pruefen` meldet 3 + 10 + 5 Hostnames, `mode: managed`,
-  `clearance_level: no_clearance`
+- [x] 2026-10-08 ST `--pruefen` meldet für alle drei Widgets 3 + 10 + 5 Hostnames,
+  `mode: managed`, `clearance_level: no_clearance` und „Einstellungen passen zu
+  docs/turnstile.md Abschnitt 8“. Angelegt wurden sie von Hand (Weg B), das Skript hat
+  nur verglichen und nichts geändert
 
 *Weg B — ohne Token, drei Widgets von Hand (Dashboard → Turnstile → Add widget):*
 
@@ -155,7 +160,7 @@ die Namen und Hostnames aus derselben Stelle, die später `--pruefen` vergleicht
 scripts/turnstile-widgets-anlegen.sh --weg-b
 ```
 
-- [ ] Drei Widgets, Namen genau `SUN Welle 1`, `SUN Welle 2`, `SUN Welle 3` (unter
+- [x] 2026-10-08 ST (Enes im Dashboard) Drei Widgets, Namen genau `SUN Welle 1`, `SUN Welle 2`, `SUN Welle 3` (unter
   diesen Namen findet `turnstile-widgets-anlegen.sh` sie später wieder, statt
   Dubletten anzulegen), je `Widget Mode: Managed`,
   `Pre-clearance: no clearance level`, Hostnames genau nach
@@ -167,11 +172,20 @@ scripts/turnstile-widgets-anlegen.sh --weg-b
     (der letzte Eintrag deckt apotheke./arztfinder./klempner./unfallarzt./zahnarzt. mit ab)
   * **Welle 3 (C):** geruestbauer.gmbh, metallbauer.io, mjet.net,
     schluesseldienstportal.com, speditionportal.com
-- [ ] Kein Hostname steht in zwei Widgets und keiner fehlt — die Gegenprobe macht
-  `turnstile:keys:check` in §1.2 (Spalte `hostname_fehler`, Summe 18)
-- [ ] Das am 08.10.2026 von Hand angelegte Widget mit den vier gemischten Hostnames
-  (Sitekey `0x4AAAAAAFRd_ph0Sz_IuU2u`) ist gelöscht — es passt zu keiner Gruppe,
-  Entscheidung Enes im Ticket #36
+- [x] 2026-10-08 ST Kein Hostname steht in zwei Widgets und keiner fehlt: die
+  Widget-Liste der API ergibt 3 + 10 + 5 = 18 Hostnames ohne Schnittmenge, Soll laut
+  `config/turnstile.php` 'groups'. Die zweite Gegenprobe über `turnstile:keys:check`
+  folgt in §1.2 nach dem Deploy
+- [x] 2026-10-08 ST Das von Hand angelegte Widget „fahrschulefinder.de +4 (Spin)“
+  (Sitekey `0x4AAAAAAFRd_ph0Sz_IuU2u`, Hostnames quer über A und B plus `localhost`
+  und `127.0.0.1`) ist gelöscht (`DELETE … success: true`) — es passte zu keiner
+  Gruppe, Entscheidung Enes. Vorher geprüft: der Sitekey stand in keiner `.env`-Zeile
+  der Produktion.
+  **Stehen geblieben ist bewusst** das ältere Widget „Turnstile“
+  (`0x4AAAAAACYmqmb6YCbUgJW_`, u. a. `fensterbau.io`, `gartenbauer.io`,
+  `metallbauer.de` — Hostnames, die zu keinem der 23 SUN-Portale gehören). SUN benutzt
+  es nicht; ob ein anderes Projekt daran hängt, weiß nur Enes. Löschen ist seine
+  Entscheidung, nicht die des Go-Lives
 
 Für beide Wege gilt:
 
@@ -180,11 +194,31 @@ Für beide Wege gilt:
   ins Widget und der Hostname-Check verliert seinen Sinn
 - [ ] Passwort-Manager: je Gruppe ein Eintrag `SUN / Cloudflare Turnstile / Gruppe A|B|C`
   mit `sitekey`, `secret` und der Hostname-Liste als Notiz
-- [ ] Sechs Werte in der Produktions-`.env`:
+- [x] 2026-10-08 ST Sechs Werte in der Produktions-`.env`
+  (`grep -c '^TURNSTILE' .env` → 6, Siteverify je Gruppe „Secret gilt“):
   `scripts/turnstile-schluessel-eintragen.sh` (sichert die `.env`, weist Testschlüssel
   ab, baut den Config-Cache neu, lädt `php8.5-fpm` nach, startet
   `sanitaerfinden-horizon` durch, fährt je Gruppe die Siteverify-Probe)
-- [ ] Kein Schlüssel im Repo: `php scripts/secret-scan.php` sauber
+- [x] 2026-10-08 ST Kein Schlüssel im Repo: `php scripts/secret-scan.php` sauber
+  (2475 verfolgte Dateien) und `--staged` sauber (283 Dateien des Commits `ddfe1fd9`)
+
+#### 1.1.1 Zwei Skripte mussten dafür korrigiert werden
+
+Beide Ablege-/Prüfskripte scheiterten an einem **richtig** geschnittenen Token
+(Befund von Uwe in #38): ein Token mit ausschließlich „Account / Turnstile: Edit“
+darf die Turnstile-Endpunkte seines Kontos bedienen, das Konto aber nicht
+*auflisten* — `GET /accounts` braucht zusätzlich „Account Settings: Read“ und
+antwortet sonst mit `count: 0`.
+
+* `scripts/cloudflare-token-ablegen.sh` kannte keinen Weg, die Konto-ID
+  vorzugeben, und meldete irreführend „Der Token sieht 0 Konten — auf genau ein
+  Konto begrenzen“. Jetzt nimmt es die ID aus `CF_ACCOUNT_ID`, sonst aus
+  `CLOUDFLARE_ACCOUNT_ID_SUN` in der Ablage, sonst aus der Kontoliste; prüft sie
+  auf 32 Hexzeichen (sie geht in einen Fernaufruf) und nennt bei 0 Konten den
+  wahren Grund samt Fundstelle der ID im Dashboard. Neuer Exit-Code 3.
+* `scripts/turnstile-widgets-anlegen.sh` las den Token aus der Ablage, die
+  Konto-ID aber nur aus der Umgebung — und brach deshalb bei jedem Lauf mit
+  „sieht 0 Konten“ ab. Es liest nun beides aus `/root/sun-zugang.txt`.
 
 ### 1.2 Keine Testschlüssel in Produktion (Akzeptanzkriterium 1b)
 
@@ -193,6 +227,11 @@ frische Installation läuft. In Produktion sind sie wertlos: sie bestehen auf je
 Domain und liefern `hostname: example.com` ohne `action`, der Hostname- und
 Action-Check wäre damit tot. Der Resolver wirft deshalb in Produktion, wenn ein
 Testschlüssel hinterlegt ist (`TurnstileConfigResolver::TEST_SITE_KEYS`).
+
+Stand 08.10.2026: in der Produktions-`.env` steht **kein** Testschlüssel — das
+Eintrage-Skript weist `1x0000*`, `2x0000*`, `3x0000*` ab, und der Trockenlauf
+`turnstile-golive-deploy.sh` hakt „kein Testschluessel in der .env“ ab. Die drei Zeilen
+unten brauchen den Code auf der Produktion und gehen erst nach §1.3.
 
 - [ ] `sudo -u sanitaerfinden /usr/bin/php8.4 artisan turnstile:keys:check --siteverify`
   meldet für **alle drei** Gruppen `ok`, zählt 18 Hostnames, nennt kein falsch
@@ -222,8 +261,11 @@ läuft, dumpt alle 24 Datenbanken selbst und lädt nach jeder `.env`-Änderung
 `php8.5-fpm` nach. Exit 70 heißt: ein Schritt ist gescheitert, der Stand steht im
 Protokoll.
 
-- [ ] B2 erledigt: Commit mit dem Bot-Schutz liegt auf `origin/main`, Hash hier
-  eintragen: `________`
+- [ ] B2 erledigt: Commit mit dem Bot-Schutz liegt auf `origin/main`.
+  Der Commit **existiert** und ist geschoben — `ddfe1fd9` auf
+  `origin/feature/bot-schutz-turnstile` (283 Dateien, 08.10.2026 ST). Offen ist nur die
+  Freigabe, also der Merge:
+  `git checkout main && git merge --ff-only feature/bot-schutz-turnstile && git push`
 - [ ] **Backup vor der Migration** — die sieben `2026_10_09_*`-Migrationen legen
   Tabellen und Spalten in der zentralen und in jeder Portal-Datenbank an. Die
   nächtliche Sicherung ist dafür **nicht** ausreichend: `clpctl db:backup` sichert nur,

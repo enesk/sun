@@ -1,4 +1,7 @@
 <div x-data x-on:step-changed.window="$nextTick(() => { const card = document.querySelector('.wizard-card'); if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' }); })">
+    {{-- Skripte unbedingt, auch wenn das Widget erst nach einem Livewire-Umlauf erscheint: der Stack 'scripts' wird nur beim Rendern des Layouts geleert (#53). --}}
+    <x-turnstile-scripts action="company_listing" />
+
     @if($submitted && ! $createdCompany)
         {{-- Honigtopf oder zu schnell abgeschickt (#8/#25): dieselbe
              Erfolgsmeldung, aber es ist nichts angelegt worden. --}}

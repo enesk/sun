@@ -4,15 +4,11 @@ declare(strict_types=1);
 
 namespace App\Turnstile\View\Components;
 
-use App\Turnstile\Config\ResolvedTurnstileConfig;
-use App\Turnstile\Config\TurnstileConfigResolver;
 use App\Turnstile\Enums\TurnstileAction;
 use App\Turnstile\Enums\TurnstileMode;
-use App\Turnstile\Exceptions\TurnstileNotConfiguredException;
+use App\Turnstile\View\Components\Concerns\ResolvesTurnstileConfig;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\Log;
 use Illuminate\View\Component;
-use InvalidArgumentException;
 
 /**
  * <x-turnstile action="registration" /> — das Widget am Formular (#5).
@@ -33,16 +29,17 @@ use InvalidArgumentException;
  *
  *   {{-- Livewire: Token landet zusaetzlich in der Property --}}
  *   <x-turnstile action="company_listing" wire="turnstileToken" field="turnstileToken" />
+ *
+ * Blendet das Formular sein Widget erst nach einem Livewire-Umlauf ein (Schritt
+ * eines Assistenten, Dialog, aufklappbares Formular), dann gehoert
+ * <x-turnstile-scripts /> unbedingt daneben — sonst fehlen die Skripte (#53).
  */
 class Turnstile extends Component
 {
+    use ResolvesTurnstileConfig;
+
     /** Feldname, den Cloudflare im Formular erwartet und den die Rule prueft. */
     public const FIELD = 'cf-turnstile-response';
-
-    public TurnstileAction $action;
-
-    /** Null = Modul/Portal/Aktion aus oder in Produktion nicht konfiguriert. */
-    public ?ResolvedTurnstileConfig $config = null;
 
     /** Fortlaufend je Anfrage, damit mehrere Formulare eigene DOM-Ids bekommen. */
     private static int $instances = 0;
@@ -65,32 +62,10 @@ class Turnstile extends Component
         /** Hinweistext am Formular. Null = ja (#11). */
         public ?bool $notice = null,
     ) {
-        $this->action = $action instanceof TurnstileAction
-            ? $action
-            : (TurnstileAction::tryFromValue($action) ?? throw new InvalidArgumentException(
-                "Unbekannte Turnstile-Aktion [{$action}]."
-            ));
+        $this->resolveTurnstileConfig($action);
 
         $this->field ??= self::FIELD;
         $this->domId = 'turnstile-'.$this->action->value.(++self::$instances > 1 ? '-'.self::$instances : '');
-
-        try {
-            $this->config = TurnstileConfigResolver::for($this->action);
-        } catch (TurnstileNotConfiguredException $e) {
-            // Fail-open wie in docs/turnstile.md §5: eine kaputte Konfiguration
-            // darf kein Formular unbenutzbar machen. Lautstark wird es in der
-            // Rule (#4) und im Alarm (#12), nicht auf der Seite des Besuchers.
-            Log::warning('Turnstile: Widget nicht gerendert, Konfiguration unvollstaendig.', [
-                'action' => $this->action->value,
-                'fehler' => $e->getMessage(),
-            ]);
-        }
-    }
-
-    /** Bei deaktivierter Aktion steht am Formular nichts — auch kein leeres Feld. */
-    public function shouldRender(): bool
-    {
-        return $this->config?->enabled === true;
     }
 
     /**
@@ -134,17 +109,6 @@ class Turnstile extends Component
     public function gatesSubmit(): bool
     {
         return $this->gate ?? $this->isVisible();
-    }
-
-    /**
-     * api.js mit explizitem Rendering. Der Callback-Name ist der, den
-     * resources/js/turnstile.js auf window legt.
-     */
-    public function scriptUrl(): string
-    {
-        $base = (string) config('turnstile.script_url');
-
-        return $base.(str_contains($base, '?') ? '&' : '?').'render=explicit&onload=onTurnstileLoad';
     }
 
     public function render(): View

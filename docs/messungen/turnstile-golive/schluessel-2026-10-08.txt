@@ -1,0 +1,84 @@
+Beleg zu docs/turnstile-golive.md §1.1 — Schluessel je Widget
+Datum: 08.10.2026, 19:55 (Agent, #36)
+
+Keine Secrets in dieser Datei. Sitekeys sind oeffentlich, werden hier aber
+gekuerzt, weil die Probe sie selbst kuerzt.
+
+1. Tokenablage am Ursprung (von Enes angelegt, 08.10.2026 19:50)
+--------------------------------------------------------------
+ssh sun 'ls -l /root/sun-zugang.txt'
+  -rw------- 1 root root 239 Oct  8 19:50 /root/sun-zugang.txt
+ssh sun 'grep -oE "^[A-Z_]+=" /root/sun-zugang.txt'
+  CLOUDFLARE_API_TOKEN_SUN_TURNSTILE=
+  CLOUDFLARE_ACCOUNT_ID_SUN=
+
+scripts/cloudflare-token-ablegen.sh --pruefen
+  Token: active
+  Konto: f276d90490cc9334981e533367b650b9 (vorgegeben)
+  Turnstile: lesbar, 5 Widget(s) im Konto
+  Pruefung bestanden.
+  Exit 0
+
+2. Die drei Widgets (Soll-Ist gegen docs/turnstile.md Abschnitt 8)
+-----------------------------------------------------------------
+scripts/turnstile-widgets-anlegen.sh --pruefen
+
+  == Gruppe A — "SUN Welle 1" ==
+    Widget existiert bereits — nichts angelegt.
+    Einstellungen passen zu docs/turnstile.md Abschnitt 8.
+  == Gruppe B — "SUN Welle 2" ==
+    Widget existiert bereits — nichts angelegt.
+    Einstellungen passen zu docs/turnstile.md Abschnitt 8.
+  == Gruppe C — "SUN Welle 3" ==
+    Widget existiert bereits — nichts angelegt.
+    Einstellungen passen zu docs/turnstile.md Abschnitt 8.
+
+Angelegt hat die Widgets Enes im Dashboard (Weg B). Das Skript hat nichts
+geaendert, nur verglichen: Name, Modus (managed), clearance_level
+(no_clearance) und die Hostnames 3 / 10 / 5 stimmen.
+
+3. Sechs Werte in der Produktions-.env
+--------------------------------------
+scripts/turnstile-schluessel-eintragen.sh   (nicht interaktiv, Werte direkt aus
+der Cloudflare-API, nie ueber die Kommandozeile)
+
+  TURNSTILE_SITE_KEY: gesetzt
+  TURNSTILE_SECRET_KEY: gesetzt
+  TURNSTILE_SITE_KEY_B: gesetzt
+  TURNSTILE_SECRET_KEY_B: gesetzt
+  TURNSTILE_SITE_KEY_C: gesetzt
+  TURNSTILE_SECRET_KEY_C: gesetzt
+  INFO  Configuration cache cleared successfully.
+  INFO  Configuration cached successfully.
+  sanitaerfinden-horizon: stopped
+  sanitaerfinden-horizon: started
+
+  == Siteverify-Probe je Gruppe ==
+  Gruppe A: ok — Secret gilt, nur der Probe-Token nicht (Sitekey 0x4AAAAAAF...)
+  Gruppe B: ok — Secret gilt, nur der Probe-Token nicht (Sitekey 0x4AAAAAAF...)
+  Gruppe C: ok — Secret gilt, nur der Probe-Token nicht (Sitekey 0x4AAAAAAF...)
+
+  == Sitekey im Config-Cache ==
+  ERROR  Configuration file or key turnstile.site_key does not exist.
+
+Die letzte Zeile ist erwartet und kein Befund: config/turnstile.php liegt noch
+nicht auf der Produktion (B2). Die .env-Werte sind bis zum Deploy wirkungslos.
+
+4. Config-Cache vor dem Neubau gesichtet (Auflage aus §1.3)
+-----------------------------------------------------------
+Die Warnung in §1.3 ("der Cache ist alt, der Neubau schaltet alles seit Mai
+Aufgelaufene scharf") trifft nicht mehr zu:
+
+  bootstrap/cache/config.php   2026-10-02 22:49
+  .env                         2026-09-21 05:51
+
+Der Cache war also neuer als die .env — kein aufgelaufener Drift. Abgeglichen
+wurden app.env=production, app.debug=false, app.url, queue.default=redis,
+cache.default=file, session.driver=redis, mail.default=smtp: gecachter Wert
+gleich .env-Wert. csp und turnstile waren im Cache nicht vorhanden, der Neubau
+konnte CSP_MODE=enforce also nicht nebenbei scharf schalten.
+
+5. Kein Schluessel im Repo
+--------------------------
+php scripts/secret-scan.php            → sauber (2475 Dateien)
+php scripts/secret-scan.php --staged   → sauber (283 Dateien, Commit ddfe1fd9)

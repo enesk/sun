@@ -1,4 +1,7 @@
 <div>
+    {{-- Skripte unbedingt, auch wenn das Widget erst nach einem Livewire-Umlauf erscheint: der Stack 'scripts' wird nur beim Rendern des Layouts geleert (#53). --}}
+    <x-turnstile-scripts action="contact" />
+
     {{-- Trigger Button (hidden when external trigger is used) --}}
     @if(!$hideTrigger && (!$submitted || $showModal))
         <button

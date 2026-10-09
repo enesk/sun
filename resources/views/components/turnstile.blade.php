@@ -54,12 +54,8 @@
     @endif
 </div>
 
-@once
-    @push('scripts')
-        {{-- Reihenfolge: erst das Modul (legt window.onTurnstileLoad), dann api.js.
-             Beide laufen deferred in Dokumentreihenfolge; laedt das Modul doch
-             spaeter, bootet es sich selbst ueber window.turnstile. --}}
-        @vite('resources/js/turnstile.js')
-        <script src="{{ $scriptUrl() }}" defer></script>
-    @endpush
-@endonce
+{{-- Die Skripte liegen in einer eigenen Komponente, damit Formulare sie auch
+     dann schon beim ersten Laden anfordern koennen, wenn das Widget erst nach
+     einem Livewire-Umlauf erscheint (#53). Das @once dort liefert sie genau
+     einmal je Anfrage, mehrfache Einbindung ist unschaedlich. --}}
+<x-turnstile-scripts :action="$action" />

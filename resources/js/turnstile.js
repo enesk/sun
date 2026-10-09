@@ -63,8 +63,11 @@ function livewireKomponente(wurzel) {
 
 /**
  * Submit sperren, bis ein Token vorliegt. Nur Knoepfe, die wir selbst gesperrt
- * haben, werden spaeter wieder freigegeben — fremde disabled-Zustaende
- * (wire:loading.attr) bleiben unberuehrt.
+ * haben, werden spaeter wieder freigegeben — fremde disabled-Zustaende bleiben
+ * unberuehrt: wire:loading.attr waehrend eines Requests, und vor allem das
+ * @disabled($done) der Firmeneintragung, das nach dem Abschluss einen zweiten
+ * Eintrag verhindert (#16). Ein Gate, das auch die freigibt, haette den
+ * Dublettenschutz ausgehebelt.
  */
 function schalte(wurzel, frei) {
     if (wurzel.dataset.gate !== 'submit') {
@@ -189,7 +192,14 @@ function rendere(wurzel) {
 }
 
 function boote(bereich = document) {
-    wurzeln(bereich).forEach(rendere);
+    wurzeln(bereich).forEach((wurzel) => {
+        rendere(wurzel);
+        // Ein Morph ersetzt den Submit-Knopf samt seinem disabled, waehrend das
+        // Widget im ignorierten Bereich stehen bleibt. Die Sperre deshalb nach
+        // jedem Umlauf am Token-Stand ausrichten — sonst ist der Knopf nach dem
+        // ersten Livewire-Request frei, obwohl kein Token vorliegt (#53).
+        schalte(wurzel, hatToken(wurzel));
+    });
 }
 
 /* --- Livewire ------------------------------------------------------------- */

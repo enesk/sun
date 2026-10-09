@@ -1,0 +1,101 @@
+Beleg zu docs/turnstile-golive.md §1.5 Schritt 2 und 3 — CSP in Produktion
+Datum: 08.10.2026, 22:4x (Agent, #36)
+Werkzeug: scripts/csp-live-pruefen.sh (neu, in diesem Lauf angelegt)
+
+WAS DIESER BELEG ABDECKT UND WAS NICHT
+--------------------------------------
+config/csp.php setzt **keine** `report-uri` und keine `report-to`. Im Modus
+`report` meldet der Browser Verstoesse also ausschliesslich in seine eigene
+Konsole; serverseitig wird nichts gesammelt. Die 24-Stunden-Sichtung aus §1.5
+Schritt 3 kann deshalb nichts einsammeln — sie ist nur als Mensch mit offener
+Konsole durchfuehrbar, und genau das ist in #28 (Chrome 154) und #29 (WebKit)
+schon passiert, allerdings lokal gegen `php artisan serve` mit Testwerten.
+
+Dieser Beleg schliesst die Luecke, die §1.5 als Begruendung fuer den
+Zwischenschritt nennt — "in Produktion stehen echte TRACKING_SCRIPTS und echte
+ad_slots aus der Verwaltung, und genau die sind fremdes HTML": gemessen wird am
+echten Auslieferungsstand der Produktion, serverseitig, ueber alle acht
+Seitentypen der drei Gruppe-A-Portale.
+
+Nicht abgedeckt bleibt, was erst zur Laufzeit entsteht (dynamisch eingefuegte
+Skripte, eval, Stylesheets fremder Einbettungen). Dafuer braucht es eine
+Browser-Konsole.
+
+1. Modus und Header
+-------------------
+.env: CSP_MODE=report
+curl -skI https://fahrschulefinder.de/ | grep -i content-security-policy
+  -> content-security-policy-report-only
+
+Ausgelieferte Direktiven (gekuerzt, Nonce je Anfrage):
+  script-src  'self' 'unsafe-eval' googletagmanager google-analytics
+              pagead2.googlesyndication tpc.googlesyndication
+              partner.googleadservices adservice.google
+              googleads.g.doubleclick fundingchoicesmessages.google
+              www.google www.gstatic unpkg cdn.paddle funnels.widimedia
+              'nonce-<je Anfrage>' https://challenges.cloudflare.com
+  frame-src   ... https://challenges.cloudflare.com
+  connect-src ... https://challenges.cloudflare.com
+
+Damit ist die Gegenprobe aus §1.5 Schritt 2 erfuellt: challenges.cloudflare.com
+steht in script-src, frame-src UND connect-src. AdSense und Analytics sind in
+allen drei Direktiven genannt.
+
+2. Messung des ausgelieferten HTML (scripts/csp-live-pruefen.sh)
+----------------------------------------------------------------
+Gezaehlt je Seite: <script> ohne src und ohne nonce (JSON-LD herausgerechnet,
+weil <script type="application/ld+json"> nicht ausgefuehrt und von CSP nicht
+geblockt wird), on*-Attribute, fremde Script-Hosts.
+
+=== fahrschulefinder.de     (Header: content-security-policy-report-only)
+  /            200  inline=0  on*=0  fremd=pagead2.googlesyndication.com
+  /firmen      200  inline=0  on*=0  fremd=pagead2.googlesyndication.com
+  /staedte     200  inline=0  on*=0  fremd=pagead2.googlesyndication.com
+  /kategorien  200  inline=0  on*=0  fremd=pagead2.googlesyndication.com
+  /jobs        200  inline=0  on*=2  fremd=pagead2.googlesyndication.com  <== BEFUND
+  /ratgeber    200  inline=0  on*=0  fremd=keine
+  /eintragen   200  inline=0  on*=0  fremd=pagead2.googlesyndication.com
+  /register    200  inline=0  on*=0  fremd=keine
+=== elektrikerportal.com    (identisch, ohne AdSense-Einbettung)
+  /jobs        200  inline=0  on*=2                                      <== BEFUND
+=== sanitaerfinden.com      (wie fahrschulefinder.de)
+  /jobs        200  inline=0  on*=2  fremd=pagead2.googlesyndication.com <== BEFUND
+
+Alle acht Seitentypen antworten mit 200. Kein einziges ausfuehrbares
+Inline-Skript ohne Nonce — #21 ist insoweit bestaetigt, und zwar erstmals am
+echten Produktionsstand.
+
+Nebenbefund zur Checkliste: §1.5 Schritt 3 nennt die Seiten "Suche" und
+"Eintragsformular" unter /suche und /firma-eintragen. Beide Pfade gibt es
+nicht (404). Richtig sind /firmen, /staedte, /kategorien (Suche) und
+/eintragen (Eintragsformular) — in der Checkliste korrigiert.
+
+3. Befund: zwei on*-Attribute auf /jobs, von enforce geblockt
+-------------------------------------------------------------
+resources/views/themes/sun-v2/views/pages/jobs/index.blade.php, Zeilen 207
+und 245:
+
+  <form class="mt-3 grid gap-2" onsubmit="return false">
+  <form class="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto]" onsubmit="return false">
+
+script-src traegt bewusst kein 'unsafe-inline' (Begruendung im Kopf von
+config/csp.php), und CSP blockt Inline-Eventhandler mit derselben Direktive wie
+Inline-Skripte. Unter CSP_MODE=enforce laeuft `onsubmit="return false"` also
+nicht mehr: ein Enter im E-Mail-Feld der Job-Mail-Kaesten schickt das Formular
+ab und laedt die Seite neu, statt nichts zu tun.
+
+Beide Kaesten sind Platzhalter — der Knopf ist `type="button"`, es gibt kein
+`action` und keinen Endpunkt. Das `onsubmit` war nur die Enter-Sperre. Behoben
+durch Wegfall der Formular-Semantik: `<form>` -> `<div>` an beiden Stellen,
+schliessende Tags mit. Keine Aenderung an Aussehen, Klassen oder Verhalten der
+Knoepfe; Blade kompiliert.
+
+  Nach dem Fix erneut gemessen: lokal kompiliert, auf der Produktion erst nach
+  dem naechsten Pull wirksam — siehe §1.5 Schritt 4, dort als Vorbedingung
+  eingetragen.
+
+4. Offen
+--------
+* Der Fix muss auf der Produktion liegen, BEVOR CSP_MODE=enforce gesetzt wird.
+* Die Browser-Sichtung auf einem Live-Portal (mobil und Desktop) bleibt
+  Menschenarbeit, weil es keine serverseitige Sammelstelle gibt.

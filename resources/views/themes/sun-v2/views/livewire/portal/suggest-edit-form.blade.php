@@ -18,6 +18,9 @@
     ];
 @endphp
 <div>
+  {{-- Skripte unbedingt, auch wenn das Widget erst nach einem Livewire-Umlauf erscheint: der Stack 'scripts' wird nur beim Rendern des Layouts geleert (#53). --}}
+  <x-turnstile-scripts action="contact" />
+
   @if($submitted)
     <div class="text-center py-4 flex flex-col items-center gap-3">
       <span class="size-14 rounded-full bg-brand-50 text-brand flex items-center justify-center"><x-sun.icon name="check" class="size-7" /></span>

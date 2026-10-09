@@ -204,11 +204,11 @@
         <div class="card p-5">
           <h2 class="font-semibold text-zinc-900">{{ __('portal.jobs.alert.heading') }}</h2>
           <p class="mt-1 text-sm text-zinc-500">{{ __('portal.jobs.alert.text') }}</p>
-          <form class="mt-3 grid gap-2" onsubmit="return false">
+          <div class="mt-3 grid gap-2">
             <label class="sr-only" for="alert-mail">{{ __('portal.jobs.alert.email_label') }}</label>
             <input id="alert-mail" type="email" class="input" placeholder="{{ __('portal.jobs.alert.email_placeholder') }}">
             <button type="button" class="btn-secondary w-full">{{ __('portal.jobs.alert.button') }}</button>
-          </form>
+          </div>
         </div>
         <x-ad-slot position="sidebar_sticky" />
       </div>
@@ -242,13 +242,13 @@
   <section class="mt-12 md:mt-16 card p-5 md:p-8 xl:hidden">
     <h2 class="text-2xl font-semibold text-zinc-900">{{ __('portal.jobs.alert.heading_mobile') }}</h2>
     <p class="mt-2 text-zinc-700 leading-relaxed">{{ __('portal.jobs.alert.text_mobile') }}</p>
-    <form class="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto]" onsubmit="return false">
+    <div class="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
       <label class="sr-only" for="alert-ort">{{ __('portal.layout.search_form.where_placeholder') }}</label>
       <input id="alert-ort" class="input" placeholder="{{ __('portal.layout.search_form.where_placeholder') }}">
       <label class="sr-only" for="alert-mail-m">{{ __('portal.jobs.alert.email_label') }}</label>
       <input id="alert-mail-m" type="email" class="input" placeholder="{{ __('portal.jobs.alert.email_placeholder') }}">
       <button type="button" class="btn-primary">{{ __('portal.jobs.alert.button_mobile') }}</button>
-    </form>
+    </div>
   </section>
 
   <!-- ===== SEO-LINKLISTEN ===== -->

@@ -5,6 +5,9 @@
     aufgeklapptes Formular im Kopf der Bewertungskarte als eigene Zeilen umbrechen.
 --}}
 <div class="contents">
+  {{-- Skripte unbedingt, auch wenn das Widget erst nach einem Livewire-Umlauf erscheint: der Stack 'scripts' wird nur beim Rendern des Layouts geleert (#53). --}}
+  <x-turnstile-scripts action="lead_request" />
+
   @if(! $submitted)
     <button type="button" wire:click="toggleForm" class="btn-secondary self-start sm:self-auto" aria-expanded="{{ $showForm ? 'true' : 'false' }}" aria-controls="review-form-{{ $company->id }}">
       {{ __('portal.empty.reviews.button') }}
