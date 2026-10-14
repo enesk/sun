@@ -92,13 +92,74 @@ Er liest nur und darf deshalb auch in der Geschaeftszeit laufen.
 * Aufbewahrung: ein Tagesordner mit Datum vor 7 Tagen wurde entfernt, der vom
   Vortag blieb stehen.
 
-## Tote Sicherungsordner
+## Tote Sicherungsordner und ihre Registrierungen (#41, erledigt 08.10.2026)
 
 Die neun Ordner geloeschter Tenants sind entfernt; vorher in
 `/home/sanitaerfinden/backups/tote-sicherungsordner-39-20261008.tar.gz`
-(29 KB) gesichert. Ihre Eintraege in CloudPanels `db.sq3` bestehen noch,
-`clpctl db:backup` legt die Ordner also neu an — Entfernen ueber
-`clpctl db:delete` braucht eine eigene Freigabe — #41.
+(29 KB) gesichert — es waren ausschliesslich 520-522-Byte-Dumps mit reinem
+`mariadb-dump`-Kopf, keine Nutzdaten.
+
+Ihre neun Eintraege in CloudPanels `db.sq3` sind am 08.10.2026 ebenfalls
+entfernt, damit `clpctl db:backup` (03:15) die Ordner nicht jede Nacht neu
+anlegt. Die echte Sicherung haengt daran nicht, sie laeuft ueber
+`/usr/local/sbin/sun-db-sicherung.sh` (23:40).
+
+### Abnahme 08.10.2026
+
+Gemessen mit `scripts/cloudpanel-tote-db-eintraege-entfernen.sh --abnahme`,
+nach einem von Hand angestossenen `clpctl db:backup` (also nicht erst nach
+der Nacht):
+
+| Groesse | vorher | nachher | Ziel |
+|---|---|---|---|
+| lebende `tenant_`-Datenbanken | 23 | 23 | 23, unveraendert |
+| Tenants in `sun.tenants` | 23 | 23 | 23, unveraendert |
+| Eintraege in `db.sq3` | 22 | 13 | 13 |
+| davon tot | 9 | 0 | 0 |
+| `clpctl`-Sicherungsordner mit `tenant_` | 13 | 13 | 13 |
+| Waechter der eigenen Sicherung | Exit 0 | Exit 0 | Exit 0 |
+
+Keiner der neun hatte einen `database_user`-Eintrag, `clpctl db:delete` hat
+also auch keinen MariaDB-Nutzer entfernt. Die Sicherungen von vorher liegen
+unter `/root/db.sq3.vor-41-20261008-201035` und
+`/root/db-eintraege-vor-41-20261008-201035.csv` (chmod 600).
+
+### Das Skript
+
+`scripts/cloudpanel-tote-db-eintraege-entfernen.sh` laeuft lokal ueber
+`ssh sun` und ist wiederverwendbar, falls weitere Tenants geloescht werden.
+Es ermittelt die Kandidaten selbst und laesst nur Namen durch, die alle vier
+Pruefungen bestehen (in `db.sq3`, nicht in `show databases`, nicht in
+`sun.tenants`, Muster `tenant_<uuid>`); eine verletzte Bedingung bricht den
+Lauf ab, statt den Namen zu ueberspringen. Die Pruefung laeuft noch einmal
+unmittelbar vor jedem einzelnen Loeschen. Vor dem ersten Eingriff sichert es
+`db.sq3` nach `/root/db.sq3.vor-41-<stempel>` und die Eintraege als CSV;
+danach vergleicht es die Zahl der lebenden Datenbanken mit der vorher
+gemessenen und endet mit Exit 70, falls sie sich geaendert hat.
+
+```bash
+# ansehen, aendert nichts
+scripts/cloudpanel-tote-db-eintraege-entfernen.sh
+
+# nur den ersten Namen loeschen, Ausgabe lesen
+scripts/cloudpanel-tote-db-eintraege-entfernen.sh --einzeln
+
+# die restlichen
+scripts/cloudpanel-tote-db-eintraege-entfernen.sh --los
+
+# zaehlen (liest nur)
+scripts/cloudpanel-tote-db-eintraege-entfernen.sh --abnahme
+```
+
+`clpctl db:delete` fragt interaktiv `Confirm to delete the database ...
+(yes/no)`; das Skript speist die Antwort ein, weil die Freigabe in den vier
+Pruefungen unmittelbar davor liegt. `clpctl db:backup` braucht zwingend
+`--ignoreDatabases` **und** `--retentionPeriod` und laeuft als Nutzer `clp`:
+`su -s /bin/bash clp -c "/usr/bin/clpctl db:backup --ignoreDatabases='db1,db2' --retentionPeriod=7"`.
+
+Bleibt ein Eintrag stehen, weil `clpctl` ohne vorhandene Datenbank abbricht:
+`--nur-sq3` macht dieselben vier Pruefungen und entfernt ausschliesslich die
+Zeile in `db.sq3`, nie eine Datenbank.
 
 ## Von Hand
 

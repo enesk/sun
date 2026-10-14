@@ -1,0 +1,529 @@
+Trockenlauf der sieben 2026_10_09_*-Migrationen auf der Produktion — 08.10.2026 20:2x
+Ticket #47. Gefahren mit --pretend, es wurde nichts geaendert.
+Ziel: sun:/home/sanitaerfinden/htdocs/sanitaerfinden.dev, PHP 8.4 CLI, Benutzer sanitaerfinden
+
+=== Befund vorher ===
+Codestand Produktion: a0bc8016 (Merge #1)
+Startseiten: 500 an der Kante UND am Ursprung (malerfinder.de, sanitaerfinder.com, fahrschulefinder.de)
+Haeufigster Fehler im Tageslog: Unknown column 'companies.deleted_at'
+public/build: vom 01.10.2026, kein turnstile-Eintrag im manifest.json
+vendor/composer/installed.json: 21.09.2026 — composer.lock ist zwischen f5fa66ed und a0bc8016 unveraendert, composer install also nicht zwingend
+storage/logs/laravel-2026-10-08.log: 198 MB
+
+=== migrate --force --pretend (zentral) ===
+
+   INFO  Running migrations.  
+
+  2026_10_09_000001_create_tenant_turnstile_settings_table ...................  
+  ⇂ create table `tenant_turnstile_settings` (`id` bigint unsigned not null auto_increment primary key, `tenant_id` bigint unsigned not null, `is_enabled` tinyint(1) not null default '1', `site_key` varchar(255) null, `secret_key` text null, `fail_mode` varchar(16) null, `actions_json` json null, `updated_by` bigint unsigned null, `created_at` timestamp null, `updated_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `tenant_turnstile_settings` add constraint `tenant_turnstile_settings_tenant_id_foreign` foreign key (`tenant_id`) references `tenants` (`id`) on delete cascade  
+  ⇂ alter table `tenant_turnstile_settings` add constraint `tenant_turnstile_settings_updated_by_foreign` foreign key (`updated_by`) references `users` (`id`) on delete set null  
+  ⇂ alter table `tenant_turnstile_settings` add unique `tenant_turnstile_settings_tenant_id_unique`(`tenant_id`)  
+  2026_10_09_000003_add_blocklist_and_rate_limits_to_tenant_turnstile_settings_table   
+  ⇂ alter table `tenant_turnstile_settings` add `blocklist_domains_json` json null after `actions_json`  
+  ⇂ alter table `tenant_turnstile_settings` add `rate_limits_json` json null after `blocklist_domains_json`  
+  2026_10_09_000003_add_origin_columns_to_users_table ........................  
+  ⇂ alter table `users` add `registration_ip_hash` char(64) null  
+  ⇂ alter table `users` add `registration_user_agent` varchar(255) null  
+  ⇂ alter table `users` add index `users_registration_ip_hash_idx`(`registration_ip_hash`)  
+  2026_10_09_000005_add_suspected_bot_columns_to_users_table .................  
+  ⇂ alter table `users` add `suspected_bot_at` timestamp null  
+  ⇂ alter table `users` add `suspected_bot_score` tinyint unsigned null  
+  ⇂ alter table `users` add `suspected_bot_reasons_json` json null  
+  ⇂ alter table `users` add `suspected_bot_cleared_at` timestamp null  
+  ⇂ alter table `users` add `deleted_at` timestamp null  
+  ⇂ alter table `users` add index `users_suspected_bot_at_idx`(`suspected_bot_at`)  
+
+
+=== tenants:migrate --force --pretend (alle Portale) ===
+Tenant: bf0c6b7f-2e7b-4a30-bfbb-18beeb4b1f4b
+
+   INFO  Running migrations.  
+
+  2026_10_09_000002_create_turnstile_verifications_table .....................  
+  ⇂ create table `turnstile_verifications` (`id` bigint unsigned not null auto_increment primary key, `action` varchar(32) not null, `outcome` varchar(16) not null, `error_codes_json` json null, `hostname_reported` varchar(255) null, `hostname_expected` varchar(255) null, `ip_hash` char(64) null, `user_agent` varchar(255) null, `email_hash` char(64) null, `duration_ms` int unsigned null, `created_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_action_outcome_created_idx`(`action`, `outcome`, `created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_created_idx`(`created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_ip_hash_idx`(`ip_hash`)  
+  2026_10_09_000003_add_origin_columns_to_companies_table ....................  
+  ⇂ alter table `companies` add `created_ip_hash` char(64) null  
+  ⇂ alter table `companies` add `created_user_agent` varchar(255) null  
+  ⇂ alter table `companies` add index `companies_created_ip_hash_idx`(`created_ip_hash`)  
+  2026_10_09_000004_add_suspected_bot_columns_to_companies_table .............  
+  ⇂ alter table `companies` add `suspected_bot_at` timestamp null  
+  ⇂ alter table `companies` add `suspected_bot_score` tinyint unsigned null  
+  ⇂ alter table `companies` add `suspected_bot_reasons_json` json null  
+  ⇂ alter table `companies` add `suspected_bot_cleared_at` timestamp null  
+  ⇂ alter table `companies` add `deleted_at` timestamp null  
+  ⇂ alter table `companies` add index `companies_suspected_bot_at_idx`(`suspected_bot_at`)  
+
+Tenant: 65333d83-be98-408d-bb9e-340ef2c59a86
+
+   INFO  Running migrations.  
+
+  2026_10_09_000002_create_turnstile_verifications_table .....................  
+  ⇂ create table `turnstile_verifications` (`id` bigint unsigned not null auto_increment primary key, `action` varchar(32) not null, `outcome` varchar(16) not null, `error_codes_json` json null, `hostname_reported` varchar(255) null, `hostname_expected` varchar(255) null, `ip_hash` char(64) null, `user_agent` varchar(255) null, `email_hash` char(64) null, `duration_ms` int unsigned null, `created_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_action_outcome_created_idx`(`action`, `outcome`, `created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_created_idx`(`created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_ip_hash_idx`(`ip_hash`)  
+  2026_10_09_000003_add_origin_columns_to_companies_table ....................  
+  ⇂ alter table `companies` add `created_ip_hash` char(64) null  
+  ⇂ alter table `companies` add `created_user_agent` varchar(255) null  
+  ⇂ alter table `companies` add index `companies_created_ip_hash_idx`(`created_ip_hash`)  
+  2026_10_09_000004_add_suspected_bot_columns_to_companies_table .............  
+  ⇂ alter table `companies` add `suspected_bot_at` timestamp null  
+  ⇂ alter table `companies` add `suspected_bot_score` tinyint unsigned null  
+  ⇂ alter table `companies` add `suspected_bot_reasons_json` json null  
+  ⇂ alter table `companies` add `suspected_bot_cleared_at` timestamp null  
+  ⇂ alter table `companies` add `deleted_at` timestamp null  
+  ⇂ alter table `companies` add index `companies_suspected_bot_at_idx`(`suspected_bot_at`)  
+
+Tenant: 7504ca94-24de-47ac-b062-10ca282a51a1
+
+   INFO  Running migrations.  
+
+  2026_10_09_000002_create_turnstile_verifications_table .....................  
+  ⇂ create table `turnstile_verifications` (`id` bigint unsigned not null auto_increment primary key, `action` varchar(32) not null, `outcome` varchar(16) not null, `error_codes_json` json null, `hostname_reported` varchar(255) null, `hostname_expected` varchar(255) null, `ip_hash` char(64) null, `user_agent` varchar(255) null, `email_hash` char(64) null, `duration_ms` int unsigned null, `created_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_action_outcome_created_idx`(`action`, `outcome`, `created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_created_idx`(`created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_ip_hash_idx`(`ip_hash`)  
+  2026_10_09_000003_add_origin_columns_to_companies_table ....................  
+  ⇂ alter table `companies` add `created_ip_hash` char(64) null  
+  ⇂ alter table `companies` add `created_user_agent` varchar(255) null  
+  ⇂ alter table `companies` add index `companies_created_ip_hash_idx`(`created_ip_hash`)  
+  2026_10_09_000004_add_suspected_bot_columns_to_companies_table .............  
+  ⇂ alter table `companies` add `suspected_bot_at` timestamp null  
+  ⇂ alter table `companies` add `suspected_bot_score` tinyint unsigned null  
+  ⇂ alter table `companies` add `suspected_bot_reasons_json` json null  
+  ⇂ alter table `companies` add `suspected_bot_cleared_at` timestamp null  
+  ⇂ alter table `companies` add `deleted_at` timestamp null  
+  ⇂ alter table `companies` add index `companies_suspected_bot_at_idx`(`suspected_bot_at`)  
+
+Tenant: bba4bdc8-d585-42e4-9dbf-8294cc45554e
+
+   INFO  Running migrations.  
+
+  2026_10_09_000002_create_turnstile_verifications_table .....................  
+  ⇂ create table `turnstile_verifications` (`id` bigint unsigned not null auto_increment primary key, `action` varchar(32) not null, `outcome` varchar(16) not null, `error_codes_json` json null, `hostname_reported` varchar(255) null, `hostname_expected` varchar(255) null, `ip_hash` char(64) null, `user_agent` varchar(255) null, `email_hash` char(64) null, `duration_ms` int unsigned null, `created_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_action_outcome_created_idx`(`action`, `outcome`, `created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_created_idx`(`created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_ip_hash_idx`(`ip_hash`)  
+  2026_10_09_000003_add_origin_columns_to_companies_table ....................  
+  ⇂ alter table `companies` add `created_ip_hash` char(64) null  
+  ⇂ alter table `companies` add `created_user_agent` varchar(255) null  
+  ⇂ alter table `companies` add index `companies_created_ip_hash_idx`(`created_ip_hash`)  
+  2026_10_09_000004_add_suspected_bot_columns_to_companies_table .............  
+  ⇂ alter table `companies` add `suspected_bot_at` timestamp null  
+  ⇂ alter table `companies` add `suspected_bot_score` tinyint unsigned null  
+  ⇂ alter table `companies` add `suspected_bot_reasons_json` json null  
+  ⇂ alter table `companies` add `suspected_bot_cleared_at` timestamp null  
+  ⇂ alter table `companies` add `deleted_at` timestamp null  
+  ⇂ alter table `companies` add index `companies_suspected_bot_at_idx`(`suspected_bot_at`)  
+
+Tenant: e917ddeb-4901-4bc8-b7fd-2ba85e55ba2e
+
+   INFO  Running migrations.  
+
+  2026_10_09_000002_create_turnstile_verifications_table .....................  
+  ⇂ create table `turnstile_verifications` (`id` bigint unsigned not null auto_increment primary key, `action` varchar(32) not null, `outcome` varchar(16) not null, `error_codes_json` json null, `hostname_reported` varchar(255) null, `hostname_expected` varchar(255) null, `ip_hash` char(64) null, `user_agent` varchar(255) null, `email_hash` char(64) null, `duration_ms` int unsigned null, `created_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_action_outcome_created_idx`(`action`, `outcome`, `created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_created_idx`(`created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_ip_hash_idx`(`ip_hash`)  
+  2026_10_09_000003_add_origin_columns_to_companies_table ....................  
+  ⇂ alter table `companies` add `created_ip_hash` char(64) null  
+  ⇂ alter table `companies` add `created_user_agent` varchar(255) null  
+  ⇂ alter table `companies` add index `companies_created_ip_hash_idx`(`created_ip_hash`)  
+  2026_10_09_000004_add_suspected_bot_columns_to_companies_table .............  
+  ⇂ alter table `companies` add `suspected_bot_at` timestamp null  
+  ⇂ alter table `companies` add `suspected_bot_score` tinyint unsigned null  
+  ⇂ alter table `companies` add `suspected_bot_reasons_json` json null  
+  ⇂ alter table `companies` add `suspected_bot_cleared_at` timestamp null  
+  ⇂ alter table `companies` add `deleted_at` timestamp null  
+  ⇂ alter table `companies` add index `companies_suspected_bot_at_idx`(`suspected_bot_at`)  
+
+Tenant: b8d1655d-5cc3-4200-8634-232dc20bffe7
+
+   INFO  Running migrations.  
+
+  2026_10_09_000002_create_turnstile_verifications_table .....................  
+  ⇂ create table `turnstile_verifications` (`id` bigint unsigned not null auto_increment primary key, `action` varchar(32) not null, `outcome` varchar(16) not null, `error_codes_json` json null, `hostname_reported` varchar(255) null, `hostname_expected` varchar(255) null, `ip_hash` char(64) null, `user_agent` varchar(255) null, `email_hash` char(64) null, `duration_ms` int unsigned null, `created_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_action_outcome_created_idx`(`action`, `outcome`, `created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_created_idx`(`created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_ip_hash_idx`(`ip_hash`)  
+  2026_10_09_000003_add_origin_columns_to_companies_table ....................  
+  ⇂ alter table `companies` add `created_ip_hash` char(64) null  
+  ⇂ alter table `companies` add `created_user_agent` varchar(255) null  
+  ⇂ alter table `companies` add index `companies_created_ip_hash_idx`(`created_ip_hash`)  
+  2026_10_09_000004_add_suspected_bot_columns_to_companies_table .............  
+  ⇂ alter table `companies` add `suspected_bot_at` timestamp null  
+  ⇂ alter table `companies` add `suspected_bot_score` tinyint unsigned null  
+  ⇂ alter table `companies` add `suspected_bot_reasons_json` json null  
+  ⇂ alter table `companies` add `suspected_bot_cleared_at` timestamp null  
+  ⇂ alter table `companies` add `deleted_at` timestamp null  
+  ⇂ alter table `companies` add index `companies_suspected_bot_at_idx`(`suspected_bot_at`)  
+
+Tenant: 52953608-3c39-4333-b3b8-5020444b7169
+
+   INFO  Running migrations.  
+
+  2026_10_09_000002_create_turnstile_verifications_table .....................  
+  ⇂ create table `turnstile_verifications` (`id` bigint unsigned not null auto_increment primary key, `action` varchar(32) not null, `outcome` varchar(16) not null, `error_codes_json` json null, `hostname_reported` varchar(255) null, `hostname_expected` varchar(255) null, `ip_hash` char(64) null, `user_agent` varchar(255) null, `email_hash` char(64) null, `duration_ms` int unsigned null, `created_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_action_outcome_created_idx`(`action`, `outcome`, `created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_created_idx`(`created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_ip_hash_idx`(`ip_hash`)  
+  2026_10_09_000003_add_origin_columns_to_companies_table ....................  
+  ⇂ alter table `companies` add `created_ip_hash` char(64) null  
+  ⇂ alter table `companies` add `created_user_agent` varchar(255) null  
+  ⇂ alter table `companies` add index `companies_created_ip_hash_idx`(`created_ip_hash`)  
+  2026_10_09_000004_add_suspected_bot_columns_to_companies_table .............  
+  ⇂ alter table `companies` add `suspected_bot_at` timestamp null  
+  ⇂ alter table `companies` add `suspected_bot_score` tinyint unsigned null  
+  ⇂ alter table `companies` add `suspected_bot_reasons_json` json null  
+  ⇂ alter table `companies` add `suspected_bot_cleared_at` timestamp null  
+  ⇂ alter table `companies` add `deleted_at` timestamp null  
+  ⇂ alter table `companies` add index `companies_suspected_bot_at_idx`(`suspected_bot_at`)  
+
+Tenant: 0cb6e8d5-d373-4b8b-8ac1-f697325023ef
+
+   INFO  Running migrations.  
+
+  2026_10_09_000002_create_turnstile_verifications_table .....................  
+  ⇂ create table `turnstile_verifications` (`id` bigint unsigned not null auto_increment primary key, `action` varchar(32) not null, `outcome` varchar(16) not null, `error_codes_json` json null, `hostname_reported` varchar(255) null, `hostname_expected` varchar(255) null, `ip_hash` char(64) null, `user_agent` varchar(255) null, `email_hash` char(64) null, `duration_ms` int unsigned null, `created_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_action_outcome_created_idx`(`action`, `outcome`, `created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_created_idx`(`created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_ip_hash_idx`(`ip_hash`)  
+  2026_10_09_000003_add_origin_columns_to_companies_table ....................  
+  ⇂ alter table `companies` add `created_ip_hash` char(64) null  
+  ⇂ alter table `companies` add `created_user_agent` varchar(255) null  
+  ⇂ alter table `companies` add index `companies_created_ip_hash_idx`(`created_ip_hash`)  
+  2026_10_09_000004_add_suspected_bot_columns_to_companies_table .............  
+  ⇂ alter table `companies` add `suspected_bot_at` timestamp null  
+  ⇂ alter table `companies` add `suspected_bot_score` tinyint unsigned null  
+  ⇂ alter table `companies` add `suspected_bot_reasons_json` json null  
+  ⇂ alter table `companies` add `suspected_bot_cleared_at` timestamp null  
+  ⇂ alter table `companies` add `deleted_at` timestamp null  
+  ⇂ alter table `companies` add index `companies_suspected_bot_at_idx`(`suspected_bot_at`)  
+
+Tenant: 93854d25-f5d3-4a1d-afd2-f4109b31c350
+
+   INFO  Running migrations.  
+
+  2026_10_09_000002_create_turnstile_verifications_table .....................  
+  ⇂ create table `turnstile_verifications` (`id` bigint unsigned not null auto_increment primary key, `action` varchar(32) not null, `outcome` varchar(16) not null, `error_codes_json` json null, `hostname_reported` varchar(255) null, `hostname_expected` varchar(255) null, `ip_hash` char(64) null, `user_agent` varchar(255) null, `email_hash` char(64) null, `duration_ms` int unsigned null, `created_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_action_outcome_created_idx`(`action`, `outcome`, `created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_created_idx`(`created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_ip_hash_idx`(`ip_hash`)  
+  2026_10_09_000003_add_origin_columns_to_companies_table ....................  
+  ⇂ alter table `companies` add `created_ip_hash` char(64) null  
+  ⇂ alter table `companies` add `created_user_agent` varchar(255) null  
+  ⇂ alter table `companies` add index `companies_created_ip_hash_idx`(`created_ip_hash`)  
+  2026_10_09_000004_add_suspected_bot_columns_to_companies_table .............  
+  ⇂ alter table `companies` add `suspected_bot_at` timestamp null  
+  ⇂ alter table `companies` add `suspected_bot_score` tinyint unsigned null  
+  ⇂ alter table `companies` add `suspected_bot_reasons_json` json null  
+  ⇂ alter table `companies` add `suspected_bot_cleared_at` timestamp null  
+  ⇂ alter table `companies` add `deleted_at` timestamp null  
+  ⇂ alter table `companies` add index `companies_suspected_bot_at_idx`(`suspected_bot_at`)  
+
+Tenant: 74a732dc-d630-4c1b-8cb3-d98e5c76709a
+
+   INFO  Running migrations.  
+
+  2026_10_09_000002_create_turnstile_verifications_table .....................  
+  ⇂ create table `turnstile_verifications` (`id` bigint unsigned not null auto_increment primary key, `action` varchar(32) not null, `outcome` varchar(16) not null, `error_codes_json` json null, `hostname_reported` varchar(255) null, `hostname_expected` varchar(255) null, `ip_hash` char(64) null, `user_agent` varchar(255) null, `email_hash` char(64) null, `duration_ms` int unsigned null, `created_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_action_outcome_created_idx`(`action`, `outcome`, `created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_created_idx`(`created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_ip_hash_idx`(`ip_hash`)  
+  2026_10_09_000003_add_origin_columns_to_companies_table ....................  
+  ⇂ alter table `companies` add `created_ip_hash` char(64) null  
+  ⇂ alter table `companies` add `created_user_agent` varchar(255) null  
+  ⇂ alter table `companies` add index `companies_created_ip_hash_idx`(`created_ip_hash`)  
+  2026_10_09_000004_add_suspected_bot_columns_to_companies_table .............  
+  ⇂ alter table `companies` add `suspected_bot_at` timestamp null  
+  ⇂ alter table `companies` add `suspected_bot_score` tinyint unsigned null  
+  ⇂ alter table `companies` add `suspected_bot_reasons_json` json null  
+  ⇂ alter table `companies` add `suspected_bot_cleared_at` timestamp null  
+  ⇂ alter table `companies` add `deleted_at` timestamp null  
+  ⇂ alter table `companies` add index `companies_suspected_bot_at_idx`(`suspected_bot_at`)  
+
+Tenant: 68f43e2e-c58c-4f9d-a146-dd3c8bba69af
+
+   INFO  Running migrations.  
+
+  2026_10_09_000002_create_turnstile_verifications_table .....................  
+  ⇂ create table `turnstile_verifications` (`id` bigint unsigned not null auto_increment primary key, `action` varchar(32) not null, `outcome` varchar(16) not null, `error_codes_json` json null, `hostname_reported` varchar(255) null, `hostname_expected` varchar(255) null, `ip_hash` char(64) null, `user_agent` varchar(255) null, `email_hash` char(64) null, `duration_ms` int unsigned null, `created_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_action_outcome_created_idx`(`action`, `outcome`, `created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_created_idx`(`created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_ip_hash_idx`(`ip_hash`)  
+  2026_10_09_000003_add_origin_columns_to_companies_table ....................  
+  ⇂ alter table `companies` add `created_ip_hash` char(64) null  
+  ⇂ alter table `companies` add `created_user_agent` varchar(255) null  
+  ⇂ alter table `companies` add index `companies_created_ip_hash_idx`(`created_ip_hash`)  
+  2026_10_09_000004_add_suspected_bot_columns_to_companies_table .............  
+  ⇂ alter table `companies` add `suspected_bot_at` timestamp null  
+  ⇂ alter table `companies` add `suspected_bot_score` tinyint unsigned null  
+  ⇂ alter table `companies` add `suspected_bot_reasons_json` json null  
+  ⇂ alter table `companies` add `suspected_bot_cleared_at` timestamp null  
+  ⇂ alter table `companies` add `deleted_at` timestamp null  
+  ⇂ alter table `companies` add index `companies_suspected_bot_at_idx`(`suspected_bot_at`)  
+
+Tenant: 7e50a36f-d33d-4bbe-bf38-51eda2929cd1
+
+   INFO  Running migrations.  
+
+  2026_10_09_000002_create_turnstile_verifications_table .....................  
+  ⇂ create table `turnstile_verifications` (`id` bigint unsigned not null auto_increment primary key, `action` varchar(32) not null, `outcome` varchar(16) not null, `error_codes_json` json null, `hostname_reported` varchar(255) null, `hostname_expected` varchar(255) null, `ip_hash` char(64) null, `user_agent` varchar(255) null, `email_hash` char(64) null, `duration_ms` int unsigned null, `created_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_action_outcome_created_idx`(`action`, `outcome`, `created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_created_idx`(`created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_ip_hash_idx`(`ip_hash`)  
+  2026_10_09_000003_add_origin_columns_to_companies_table ....................  
+  ⇂ alter table `companies` add `created_ip_hash` char(64) null  
+  ⇂ alter table `companies` add `created_user_agent` varchar(255) null  
+  ⇂ alter table `companies` add index `companies_created_ip_hash_idx`(`created_ip_hash`)  
+  2026_10_09_000004_add_suspected_bot_columns_to_companies_table .............  
+  ⇂ alter table `companies` add `suspected_bot_at` timestamp null  
+  ⇂ alter table `companies` add `suspected_bot_score` tinyint unsigned null  
+  ⇂ alter table `companies` add `suspected_bot_reasons_json` json null  
+  ⇂ alter table `companies` add `suspected_bot_cleared_at` timestamp null  
+  ⇂ alter table `companies` add `deleted_at` timestamp null  
+  ⇂ alter table `companies` add index `companies_suspected_bot_at_idx`(`suspected_bot_at`)  
+
+Tenant: 0b2a4a7c-f43d-435e-ac76-3e8501406941
+
+   INFO  Running migrations.  
+
+  2026_10_09_000002_create_turnstile_verifications_table .....................  
+  ⇂ create table `turnstile_verifications` (`id` bigint unsigned not null auto_increment primary key, `action` varchar(32) not null, `outcome` varchar(16) not null, `error_codes_json` json null, `hostname_reported` varchar(255) null, `hostname_expected` varchar(255) null, `ip_hash` char(64) null, `user_agent` varchar(255) null, `email_hash` char(64) null, `duration_ms` int unsigned null, `created_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_action_outcome_created_idx`(`action`, `outcome`, `created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_created_idx`(`created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_ip_hash_idx`(`ip_hash`)  
+  2026_10_09_000003_add_origin_columns_to_companies_table ....................  
+  ⇂ alter table `companies` add `created_ip_hash` char(64) null  
+  ⇂ alter table `companies` add `created_user_agent` varchar(255) null  
+  ⇂ alter table `companies` add index `companies_created_ip_hash_idx`(`created_ip_hash`)  
+  2026_10_09_000004_add_suspected_bot_columns_to_companies_table .............  
+  ⇂ alter table `companies` add `suspected_bot_at` timestamp null  
+  ⇂ alter table `companies` add `suspected_bot_score` tinyint unsigned null  
+  ⇂ alter table `companies` add `suspected_bot_reasons_json` json null  
+  ⇂ alter table `companies` add `suspected_bot_cleared_at` timestamp null  
+  ⇂ alter table `companies` add `deleted_at` timestamp null  
+  ⇂ alter table `companies` add index `companies_suspected_bot_at_idx`(`suspected_bot_at`)  
+
+Tenant: 8bdf0712-c24c-4609-bbbf-bd3257ad3424
+
+   INFO  Running migrations.  
+
+  2026_10_09_000002_create_turnstile_verifications_table .....................  
+  ⇂ create table `turnstile_verifications` (`id` bigint unsigned not null auto_increment primary key, `action` varchar(32) not null, `outcome` varchar(16) not null, `error_codes_json` json null, `hostname_reported` varchar(255) null, `hostname_expected` varchar(255) null, `ip_hash` char(64) null, `user_agent` varchar(255) null, `email_hash` char(64) null, `duration_ms` int unsigned null, `created_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_action_outcome_created_idx`(`action`, `outcome`, `created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_created_idx`(`created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_ip_hash_idx`(`ip_hash`)  
+  2026_10_09_000003_add_origin_columns_to_companies_table ....................  
+  ⇂ alter table `companies` add `created_ip_hash` char(64) null  
+  ⇂ alter table `companies` add `created_user_agent` varchar(255) null  
+  ⇂ alter table `companies` add index `companies_created_ip_hash_idx`(`created_ip_hash`)  
+  2026_10_09_000004_add_suspected_bot_columns_to_companies_table .............  
+  ⇂ alter table `companies` add `suspected_bot_at` timestamp null  
+  ⇂ alter table `companies` add `suspected_bot_score` tinyint unsigned null  
+  ⇂ alter table `companies` add `suspected_bot_reasons_json` json null  
+  ⇂ alter table `companies` add `suspected_bot_cleared_at` timestamp null  
+  ⇂ alter table `companies` add `deleted_at` timestamp null  
+  ⇂ alter table `companies` add index `companies_suspected_bot_at_idx`(`suspected_bot_at`)  
+
+Tenant: ca21666b-2dca-484a-a2cb-b60a3bf47581
+
+   INFO  Running migrations.  
+
+  2026_10_09_000002_create_turnstile_verifications_table .....................  
+  ⇂ create table `turnstile_verifications` (`id` bigint unsigned not null auto_increment primary key, `action` varchar(32) not null, `outcome` varchar(16) not null, `error_codes_json` json null, `hostname_reported` varchar(255) null, `hostname_expected` varchar(255) null, `ip_hash` char(64) null, `user_agent` varchar(255) null, `email_hash` char(64) null, `duration_ms` int unsigned null, `created_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_action_outcome_created_idx`(`action`, `outcome`, `created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_created_idx`(`created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_ip_hash_idx`(`ip_hash`)  
+  2026_10_09_000003_add_origin_columns_to_companies_table ....................  
+  ⇂ alter table `companies` add `created_ip_hash` char(64) null  
+  ⇂ alter table `companies` add `created_user_agent` varchar(255) null  
+  ⇂ alter table `companies` add index `companies_created_ip_hash_idx`(`created_ip_hash`)  
+  2026_10_09_000004_add_suspected_bot_columns_to_companies_table .............  
+  ⇂ alter table `companies` add `suspected_bot_at` timestamp null  
+  ⇂ alter table `companies` add `suspected_bot_score` tinyint unsigned null  
+  ⇂ alter table `companies` add `suspected_bot_reasons_json` json null  
+  ⇂ alter table `companies` add `suspected_bot_cleared_at` timestamp null  
+  ⇂ alter table `companies` add `deleted_at` timestamp null  
+  ⇂ alter table `companies` add index `companies_suspected_bot_at_idx`(`suspected_bot_at`)  
+
+Tenant: b23ad92c-8c98-4992-bc3f-43ee643dfc1d
+
+   INFO  Running migrations.  
+
+  2026_10_09_000002_create_turnstile_verifications_table .....................  
+  ⇂ create table `turnstile_verifications` (`id` bigint unsigned not null auto_increment primary key, `action` varchar(32) not null, `outcome` varchar(16) not null, `error_codes_json` json null, `hostname_reported` varchar(255) null, `hostname_expected` varchar(255) null, `ip_hash` char(64) null, `user_agent` varchar(255) null, `email_hash` char(64) null, `duration_ms` int unsigned null, `created_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_action_outcome_created_idx`(`action`, `outcome`, `created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_created_idx`(`created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_ip_hash_idx`(`ip_hash`)  
+  2026_10_09_000003_add_origin_columns_to_companies_table ....................  
+  ⇂ alter table `companies` add `created_ip_hash` char(64) null  
+  ⇂ alter table `companies` add `created_user_agent` varchar(255) null  
+  ⇂ alter table `companies` add index `companies_created_ip_hash_idx`(`created_ip_hash`)  
+  2026_10_09_000004_add_suspected_bot_columns_to_companies_table .............  
+  ⇂ alter table `companies` add `suspected_bot_at` timestamp null  
+  ⇂ alter table `companies` add `suspected_bot_score` tinyint unsigned null  
+  ⇂ alter table `companies` add `suspected_bot_reasons_json` json null  
+  ⇂ alter table `companies` add `suspected_bot_cleared_at` timestamp null  
+  ⇂ alter table `companies` add `deleted_at` timestamp null  
+  ⇂ alter table `companies` add index `companies_suspected_bot_at_idx`(`suspected_bot_at`)  
+
+Tenant: d4d1db51-5ba4-4283-b6d1-df62800460c8
+
+   INFO  Running migrations.  
+
+  2026_10_09_000002_create_turnstile_verifications_table .....................  
+  ⇂ create table `turnstile_verifications` (`id` bigint unsigned not null auto_increment primary key, `action` varchar(32) not null, `outcome` varchar(16) not null, `error_codes_json` json null, `hostname_reported` varchar(255) null, `hostname_expected` varchar(255) null, `ip_hash` char(64) null, `user_agent` varchar(255) null, `email_hash` char(64) null, `duration_ms` int unsigned null, `created_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_action_outcome_created_idx`(`action`, `outcome`, `created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_created_idx`(`created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_ip_hash_idx`(`ip_hash`)  
+  2026_10_09_000003_add_origin_columns_to_companies_table ....................  
+  ⇂ alter table `companies` add `created_ip_hash` char(64) null  
+  ⇂ alter table `companies` add `created_user_agent` varchar(255) null  
+  ⇂ alter table `companies` add index `companies_created_ip_hash_idx`(`created_ip_hash`)  
+  2026_10_09_000004_add_suspected_bot_columns_to_companies_table .............  
+  ⇂ alter table `companies` add `suspected_bot_at` timestamp null  
+  ⇂ alter table `companies` add `suspected_bot_score` tinyint unsigned null  
+  ⇂ alter table `companies` add `suspected_bot_reasons_json` json null  
+  ⇂ alter table `companies` add `suspected_bot_cleared_at` timestamp null  
+  ⇂ alter table `companies` add `deleted_at` timestamp null  
+  ⇂ alter table `companies` add index `companies_suspected_bot_at_idx`(`suspected_bot_at`)  
+
+Tenant: db860691-0579-4874-b31a-7ec83f59b6c8
+
+   INFO  Running migrations.  
+
+  2026_10_09_000002_create_turnstile_verifications_table .....................  
+  ⇂ create table `turnstile_verifications` (`id` bigint unsigned not null auto_increment primary key, `action` varchar(32) not null, `outcome` varchar(16) not null, `error_codes_json` json null, `hostname_reported` varchar(255) null, `hostname_expected` varchar(255) null, `ip_hash` char(64) null, `user_agent` varchar(255) null, `email_hash` char(64) null, `duration_ms` int unsigned null, `created_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_action_outcome_created_idx`(`action`, `outcome`, `created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_created_idx`(`created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_ip_hash_idx`(`ip_hash`)  
+  2026_10_09_000003_add_origin_columns_to_companies_table ....................  
+  ⇂ alter table `companies` add `created_ip_hash` char(64) null  
+  ⇂ alter table `companies` add `created_user_agent` varchar(255) null  
+  ⇂ alter table `companies` add index `companies_created_ip_hash_idx`(`created_ip_hash`)  
+  2026_10_09_000004_add_suspected_bot_columns_to_companies_table .............  
+  ⇂ alter table `companies` add `suspected_bot_at` timestamp null  
+  ⇂ alter table `companies` add `suspected_bot_score` tinyint unsigned null  
+  ⇂ alter table `companies` add `suspected_bot_reasons_json` json null  
+  ⇂ alter table `companies` add `suspected_bot_cleared_at` timestamp null  
+  ⇂ alter table `companies` add `deleted_at` timestamp null  
+  ⇂ alter table `companies` add index `companies_suspected_bot_at_idx`(`suspected_bot_at`)  
+
+Tenant: 8867ddac-8363-48e2-9151-830aef31e7bb
+
+   INFO  Running migrations.  
+
+  2026_10_09_000002_create_turnstile_verifications_table .....................  
+  ⇂ create table `turnstile_verifications` (`id` bigint unsigned not null auto_increment primary key, `action` varchar(32) not null, `outcome` varchar(16) not null, `error_codes_json` json null, `hostname_reported` varchar(255) null, `hostname_expected` varchar(255) null, `ip_hash` char(64) null, `user_agent` varchar(255) null, `email_hash` char(64) null, `duration_ms` int unsigned null, `created_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_action_outcome_created_idx`(`action`, `outcome`, `created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_created_idx`(`created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_ip_hash_idx`(`ip_hash`)  
+  2026_10_09_000003_add_origin_columns_to_companies_table ....................  
+  ⇂ alter table `companies` add `created_ip_hash` char(64) null  
+  ⇂ alter table `companies` add `created_user_agent` varchar(255) null  
+  ⇂ alter table `companies` add index `companies_created_ip_hash_idx`(`created_ip_hash`)  
+  2026_10_09_000004_add_suspected_bot_columns_to_companies_table .............  
+  ⇂ alter table `companies` add `suspected_bot_at` timestamp null  
+  ⇂ alter table `companies` add `suspected_bot_score` tinyint unsigned null  
+  ⇂ alter table `companies` add `suspected_bot_reasons_json` json null  
+  ⇂ alter table `companies` add `suspected_bot_cleared_at` timestamp null  
+  ⇂ alter table `companies` add `deleted_at` timestamp null  
+  ⇂ alter table `companies` add index `companies_suspected_bot_at_idx`(`suspected_bot_at`)  
+
+Tenant: 8800a73d-e7d7-4b44-b50a-bc0dd50d30c5
+
+   INFO  Running migrations.  
+
+  2026_10_09_000002_create_turnstile_verifications_table .....................  
+  ⇂ create table `turnstile_verifications` (`id` bigint unsigned not null auto_increment primary key, `action` varchar(32) not null, `outcome` varchar(16) not null, `error_codes_json` json null, `hostname_reported` varchar(255) null, `hostname_expected` varchar(255) null, `ip_hash` char(64) null, `user_agent` varchar(255) null, `email_hash` char(64) null, `duration_ms` int unsigned null, `created_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_action_outcome_created_idx`(`action`, `outcome`, `created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_created_idx`(`created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_ip_hash_idx`(`ip_hash`)  
+  2026_10_09_000003_add_origin_columns_to_companies_table ....................  
+  ⇂ alter table `companies` add `created_ip_hash` char(64) null  
+  ⇂ alter table `companies` add `created_user_agent` varchar(255) null  
+  ⇂ alter table `companies` add index `companies_created_ip_hash_idx`(`created_ip_hash`)  
+  2026_10_09_000004_add_suspected_bot_columns_to_companies_table .............  
+  ⇂ alter table `companies` add `suspected_bot_at` timestamp null  
+  ⇂ alter table `companies` add `suspected_bot_score` tinyint unsigned null  
+  ⇂ alter table `companies` add `suspected_bot_reasons_json` json null  
+  ⇂ alter table `companies` add `suspected_bot_cleared_at` timestamp null  
+  ⇂ alter table `companies` add `deleted_at` timestamp null  
+  ⇂ alter table `companies` add index `companies_suspected_bot_at_idx`(`suspected_bot_at`)  
+
+Tenant: 182deced-dc38-47c6-a28d-28a31f1605bf
+
+   INFO  Running migrations.  
+
+  2026_10_09_000002_create_turnstile_verifications_table .....................  
+  ⇂ create table `turnstile_verifications` (`id` bigint unsigned not null auto_increment primary key, `action` varchar(32) not null, `outcome` varchar(16) not null, `error_codes_json` json null, `hostname_reported` varchar(255) null, `hostname_expected` varchar(255) null, `ip_hash` char(64) null, `user_agent` varchar(255) null, `email_hash` char(64) null, `duration_ms` int unsigned null, `created_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_action_outcome_created_idx`(`action`, `outcome`, `created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_created_idx`(`created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_ip_hash_idx`(`ip_hash`)  
+  2026_10_09_000003_add_origin_columns_to_companies_table ....................  
+  ⇂ alter table `companies` add `created_ip_hash` char(64) null  
+  ⇂ alter table `companies` add `created_user_agent` varchar(255) null  
+  ⇂ alter table `companies` add index `companies_created_ip_hash_idx`(`created_ip_hash`)  
+  2026_10_09_000004_add_suspected_bot_columns_to_companies_table .............  
+  ⇂ alter table `companies` add `suspected_bot_at` timestamp null  
+  ⇂ alter table `companies` add `suspected_bot_score` tinyint unsigned null  
+  ⇂ alter table `companies` add `suspected_bot_reasons_json` json null  
+  ⇂ alter table `companies` add `suspected_bot_cleared_at` timestamp null  
+  ⇂ alter table `companies` add `deleted_at` timestamp null  
+  ⇂ alter table `companies` add index `companies_suspected_bot_at_idx`(`suspected_bot_at`)  
+
+Tenant: c1be63a2-a622-4296-b56c-fc2e8b4546dd
+
+   INFO  Running migrations.  
+
+  2026_10_09_000002_create_turnstile_verifications_table .....................  
+  ⇂ create table `turnstile_verifications` (`id` bigint unsigned not null auto_increment primary key, `action` varchar(32) not null, `outcome` varchar(16) not null, `error_codes_json` json null, `hostname_reported` varchar(255) null, `hostname_expected` varchar(255) null, `ip_hash` char(64) null, `user_agent` varchar(255) null, `email_hash` char(64) null, `duration_ms` int unsigned null, `created_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_action_outcome_created_idx`(`action`, `outcome`, `created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_created_idx`(`created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_ip_hash_idx`(`ip_hash`)  
+  2026_10_09_000003_add_origin_columns_to_companies_table ....................  
+  ⇂ alter table `companies` add `created_ip_hash` char(64) null  
+  ⇂ alter table `companies` add `created_user_agent` varchar(255) null  
+  ⇂ alter table `companies` add index `companies_created_ip_hash_idx`(`created_ip_hash`)  
+  2026_10_09_000004_add_suspected_bot_columns_to_companies_table .............  
+  ⇂ alter table `companies` add `suspected_bot_at` timestamp null  
+  ⇂ alter table `companies` add `suspected_bot_score` tinyint unsigned null  
+  ⇂ alter table `companies` add `suspected_bot_reasons_json` json null  
+  ⇂ alter table `companies` add `suspected_bot_cleared_at` timestamp null  
+  ⇂ alter table `companies` add `deleted_at` timestamp null  
+  ⇂ alter table `companies` add index `companies_suspected_bot_at_idx`(`suspected_bot_at`)  
+
+Tenant: 0693bded-cbc4-448e-8455-3eb1fa8365ad
+
+   INFO  Running migrations.  
+
+  2026_10_09_000002_create_turnstile_verifications_table .....................  
+  ⇂ create table `turnstile_verifications` (`id` bigint unsigned not null auto_increment primary key, `action` varchar(32) not null, `outcome` varchar(16) not null, `error_codes_json` json null, `hostname_reported` varchar(255) null, `hostname_expected` varchar(255) null, `ip_hash` char(64) null, `user_agent` varchar(255) null, `email_hash` char(64) null, `duration_ms` int unsigned null, `created_at` timestamp null) default character set utf8mb4 collate 'utf8mb4_unicode_ci'  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_action_outcome_created_idx`(`action`, `outcome`, `created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_created_idx`(`created_at`)  
+  ⇂ alter table `turnstile_verifications` add index `turnstile_verif_ip_hash_idx`(`ip_hash`)  
+  2026_10_09_000003_add_origin_columns_to_companies_table ....................  
+  ⇂ alter table `companies` add `created_ip_hash` char(64) null  
+  ⇂ alter table `companies` add `created_user_agent` varchar(255) null  
+  ⇂ alter table `companies` add index `companies_created_ip_hash_idx`(`created_ip_hash`)  
+  2026_10_09_000004_add_suspected_bot_columns_to_companies_table .............  
+  ⇂ alter table `companies` add `suspected_bot_at` timestamp null  
+  ⇂ alter table `companies` add `suspected_bot_score` tinyint unsigned null  
+  ⇂ alter table `companies` add `suspected_bot_reasons_json` json null  
+  ⇂ alter table `companies` add `suspected_bot_cleared_at` timestamp null  
+  ⇂ alter table `companies` add `deleted_at` timestamp null  
+  ⇂ alter table `companies` add index `companies_suspected_bot_at_idx`(`suspected_bot_at`)  
+
+
+=== Auswertung ===
+Portale im Trockenlauf: 23
+Anweisungen insgesamt:  314
+davon drop/truncate/delete/update: 0
+Alle Anweisungen sind additiv (create table / add column / add index). Kein Datenverlustrisiko.
+
+Weiter: scripts/turnstile-golive-deploy.sh --nur-schema --los (Freigabe Enes, docs/turnstile-golive.md 1.3.1)

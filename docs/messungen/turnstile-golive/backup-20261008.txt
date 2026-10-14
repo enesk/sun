@@ -1,0 +1,33 @@
+# antispam:backup — Produktion, 08.10.2026 (#36 §1.4)
+# NDJSON-Sicherung vor dem ersten antispam:scan (Produktivlauf selbst ist #23).
+# Die Dateien enthalten Klarnamen, Mailadressen und Passwort-Hashes und bleiben
+# auf dem Server: storage/app/backups/antispam/2026-10-08/ — hier nur die Dateiliste.
+
+total 618244
+-rw------- 1 sanitaerfinden sanitaerfinden  66683444 Oct  8 21:26 tenant-24-companies.ndjson
+-rw------- 1 sanitaerfinden sanitaerfinden  30053730 Oct  8 21:26 tenant-27-companies.ndjson
+-rw------- 1 sanitaerfinden sanitaerfinden  21708966 Oct  8 21:26 tenant-28-companies.ndjson
+-rw------- 1 sanitaerfinden sanitaerfinden  17926400 Oct  8 21:26 tenant-29-companies.ndjson
+-rw------- 1 sanitaerfinden sanitaerfinden  64617465 Oct  8 21:26 tenant-30-companies.ndjson
+-rw------- 1 sanitaerfinden sanitaerfinden  26155589 Oct  8 21:26 tenant-33-companies.ndjson
+-rw------- 1 sanitaerfinden sanitaerfinden   6659571 Oct  8 21:26 tenant-37-companies.ndjson
+-rw------- 1 sanitaerfinden sanitaerfinden  20371875 Oct  8 21:26 tenant-38-companies.ndjson
+-rw------- 1 sanitaerfinden sanitaerfinden  14418895 Oct  8 21:26 tenant-43-companies.ndjson
+-rw------- 1 sanitaerfinden sanitaerfinden 113819252 Oct  8 21:26 tenant-44-companies.ndjson
+-rw------- 1 sanitaerfinden sanitaerfinden  15875051 Oct  8 21:26 tenant-45-companies.ndjson
+-rw------- 1 sanitaerfinden sanitaerfinden  15540400 Oct  8 21:26 tenant-46-companies.ndjson
+-rw------- 1 sanitaerfinden sanitaerfinden  36290946 Oct  8 21:26 tenant-47-companies.ndjson
+-rw------- 1 sanitaerfinden sanitaerfinden   7888416 Oct  8 21:26 tenant-49-companies.ndjson
+-rw------- 1 sanitaerfinden sanitaerfinden  18652665 Oct  8 21:26 tenant-50-companies.ndjson
+-rw------- 1 sanitaerfinden sanitaerfinden  20882476 Oct  8 21:26 tenant-51-companies.ndjson
+-rw------- 1 sanitaerfinden sanitaerfinden  19412457 Oct  8 21:26 tenant-52-companies.ndjson
+-rw------- 1 sanitaerfinden sanitaerfinden  33374324 Oct  8 21:26 tenant-53-companies.ndjson
+-rw------- 1 sanitaerfinden sanitaerfinden   6180275 Oct  8 21:26 tenant-54-companies.ndjson
+-rw------- 1 sanitaerfinden sanitaerfinden  16528581 Oct  8 21:26 tenant-55-companies.ndjson
+-rw------- 1 sanitaerfinden sanitaerfinden  29679790 Oct  8 21:26 tenant-56-companies.ndjson
+-rw------- 1 sanitaerfinden sanitaerfinden  27836130 Oct  8 21:26 tenant-57-companies.ndjson
+-rw------- 1 sanitaerfinden sanitaerfinden   2042416 Oct  8 21:26 tenant-58-companies.ndjson
+-rw------- 1 sanitaerfinden sanitaerfinden    426515 Oct  8 21:26 users.ndjson
+
+Dateien: 24
+Zeilen gesamt: 489329

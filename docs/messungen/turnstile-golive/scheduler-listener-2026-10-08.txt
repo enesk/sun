@@ -1,0 +1,31 @@
+# Belege §1.5 — Scheduler und Listener in Produktion
+
+Gemessen 08.10.2026, 21:1x CEST, Codestand a0bc8016, nur lesende Befehle.
+
+## php artisan schedule:list (Auszug Bot-Schutz)
+```
+  20   3      * * *  php artisan antispam:expire-quarantine  Next Due: 8 hours from now
+  5    *      * * *  php artisan turnstile:monitor  Next Due: 56 minutes from now
+  10   7      * * *  php artisan turnstile:report  Next Due: 12 hours from now
+  40   3      * * *  php artisan turnstile:prune .. Next Due: 8 hours from now
+```
+
+Alle vier Einträge stehen mit den Zeiten aus §1.5: turnstile:monitor stündlich zur
+Minute 5, turnstile:report 07:10, turnstile:prune 03:40, antispam:expire-quarantine 03:20.
+
+## php artisan event:list (SUN-TS-011, #19)
+```
+App\Turnstile\Events\SiteverifyUnreachable
+  ⇂ App\Listeners\Turnstile\AlertOnSiteverifyUnreachable@handle
+```
+
+Die Bindung über Event-Discovery steht. Ohne diese Zeile fiele ein Siteverify-Ausfall
+erst beim stündlichen Monitor auf.
+
+## Offen in §1.5
+
+- `TURNSTILE_ALERT_RECIPIENTS` ist in der Produktions-.env nicht gesetzt. Die beiden
+  Adressen (Enes, Uwe) kenne ich nicht vollständig und rate sie nicht; bis dahin gehen
+  Alarme und Tagesbericht an alle nicht gesperrten Administratoren mit dem Recht
+  `update settings` — der dokumentierte Rückfall, keine Störung.
+- Probemail (`turnstile:report` ohne `--no-mail`) hängt an derselben Zeile.

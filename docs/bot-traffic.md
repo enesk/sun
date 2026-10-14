@@ -58,9 +58,10 @@ wirken dort also, sobald sie gesetzt sind (#40). Bei `sanitaerfinden.com` wirken
 sie weiterhin nicht, egal was im Konto steht: der Verkehr erreicht den Ursprung
 ohne Kante. Umzug nach #34 — dort mit einer Besonderheit: `sanitaerfinden.com`
 ist zugleich `CENTRAL_DOMAIN` und traegt `/admin`, `/content`, `/dashboard`,
-`/horizon`. Regel 1 braucht auf dieser Zone zusaetzlich die
-Backoffice-Praefixe, sonst challenged Regel 4 die eigene Verwaltung
-(`docs/messungen/zonen-umzug-cloudflare-anleitung.md` Abschnitt 1a).
+`/horizon`, `/telescope`. Regel 1 nimmt auf dieser Zone zusaetzlich die
+Backoffice-Praefixe heraus, sonst challenged Regel 4 die eigene Verwaltung —
+siehe §2.1 und `docs/messungen/zonen-umzug-cloudflare-anleitung.md`
+Abschnitt 1a. Das Skript kennt die Unterscheidung (#43, `ZENTRALE_ZONE`).
 
 **Messen, nicht glauben.** Die Kantenprobe fragt die Adresse am *autoritativen*
 Nameserver der Zone und schickt `curl` mit `--resolve` dorthin. Das ist kein
@@ -116,6 +117,35 @@ or (lower(http.user_agent) contains "googlebot")
 * Die beiden User-Agent-Zeilen sind doppelter Boden fuer den Fall, dass die
   Verifizierung einmal nicht greift. Sie sind faelschbar — genau deshalb sind
   sie nur in der *Ausnahme*, nie als Beweis fuer irgendetwas.
+
+**Nur auf der zentralen Zone `sanitaerfinden.com`** kommt eine Zeile hinzu
+(#43). Die Zone ist zugleich `CENTRAL_DOMAIN` und `APP_URL` (`deploy.php`,
+`config/tenancy.php`) und traegt das Backoffice:
+
+```
+or (http.request.uri.path matches "^/(admin|content|dashboard|horizon|telescope|livewire)($|/)")
+```
+
+* Ohne sie challenged **Regel 4** (120 GET/min je IP) die eigene Verwaltung:
+  Filament plus Livewire-Polling reisst die Schwelle bei normaler Arbeit, und
+  die Ausnahmeliste der Regel 4 deckt nur Anhaenge (`build|storage|img|css|js|favicon`).
+* Praefix-Muster, kein Pfadvergleich: unter `/admin`, `/content` und
+  `/dashboard` haengen Filament-Unterseiten, unter `/livewire` die
+  Update-Aufrufe der Komponenten.
+* **Auf den Portal-Zonen gilt diese Zeile nicht.** Dort darf `/livewire` nicht
+  aus dem Rate Limiting fallen, sonst laeuft der Schreibpfad der oeffentlichen
+  Formulare (Eintragung, Anfrage, Bewertung) ungebremst. Regel 2 bleibt auf der
+  zentralen Zone unveraendert — eigene `curl`-Aufrufe gegen
+  `https://sanitaerfinden.com` muessen deshalb entweder einen eigenen
+  User-Agent setzen oder einen Backoffice-Pfad treffen.
+
+Im Skript steckt das in `ZENTRALE_ZONE` samt `AUSDRUCK_1_BACKOFFICE`; der
+Wortlaut hier und dort muss gleich bleiben, `--pruefen` vergleicht Soll gegen
+Ist (Exit 71 bei Abweichung). Nachsehen ohne Token:
+
+```bash
+scripts/cloudflare-waf-regeln-setzen.sh --soll-zeigen --zone=sanitaerfinden.com
+```
 
 ### 2.2 Regel 2 — Selbstbenannte Datensammler (Action: Block)
 
@@ -188,13 +218,18 @@ mit den obigen; geaendert wird an beiden Stellen oder an keiner.
 
 ```bash
 scripts/cloudflare-waf-regeln-setzen.sh --kanten-pruefen     # §2.0, ohne Token
+scripts/cloudflare-waf-regeln-setzen.sh --soll-zeigen        # §2.1, ohne Token: Soll je Zone
 scripts/cloudflare-waf-regeln-setzen.sh --bestandsaufnahme   # §2.6, nur lesen
 scripts/cloudflare-waf-regeln-setzen.sh --pruefen            # Soll-Ist
 scripts/cloudflare-waf-regeln-setzen.sh                      # setzen
 scripts/cloudflare-waf-regeln-setzen.sh --abnahme            # §6 Schritt 4, ohne Token
 ```
 
-`--kanten-pruefen` und `--abnahme` brauchen **keinen** Cloudflare-Token:
+Regel 1 ist dabei zonenabhaengig (§2.1): `--soll-zeigen` nennt je Zone die
+Rolle (zentrale Zone oder Portal-Zone) und den Ausdruck, den `--pruefen` und das
+Setzen verwenden.
+
+`--kanten-pruefen`, `--soll-zeigen` und `--abnahme` brauchen **keinen** Cloudflare-Token:
 das erste liest Nameserver und `cf-ray` je Zone, das zweite ermittelt die
 IndexNow-Schluesseladressen am Ursprung (der Schluessel haengt an `APP_KEY`,
 steht also nirgends im Repo) und ruft jede mit der Kennung `Bingbot` ab.

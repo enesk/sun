@@ -9,9 +9,11 @@ beiden Portale nicht an (#35), und die vier WAF-Regeln aus
 Ursprung ankommt.
 
 Das Entfernen braucht entweder einen Cloudflare-Token mit Zonen-Rechten oder
-die Klickarbeit im Dashboard. Im Projekt gibt es den Token nicht (#18, siehe
-`docs/messungen/cloudflare-token-anleitung.md`; Stand 08.10.2026 liegt in
-`/root/sun-zugang.txt` nur der Turnstile-Token, der keine Zone sieht).
+die Klickarbeit im Dashboard. Im Projekt gibt es den Token nicht (Stand
+08.10.2026 liegt in `/root/sun-zugang.txt` nur der Turnstile-Token, der keine
+Zone sieht). Anlegen und ablegen in fuenf Minuten:
+`docs/messungen/cloudflare-token-zonenrechte-anleitung.md` (#48) — ein Token
+deckt dieses Ticket und die WAF-Regeln aus #40 zusammen ab.
 Mit Token erledigt `scripts/cloudflare-weiterleitungen-entfernen.sh
 --entfernen` die Arbeit (Abschnitt 2, „Mit Token statt im Dashboard"); tokenfrei
 sind die Proben `scripts/cloudflare-weiterleitungen-entfernen.sh --kante` und
@@ -128,7 +130,10 @@ scripts/cloudflare-weiterleitungen-entfernen.sh --entfernen   # loeschen
 Gebraucht wird `Zone / Zone: Read` + `Zone / Config Rules: Edit` (Redirect
 Rules), `Zone / Zone: Edit` (Page Rules) und `Account / Account Filter Lists:
 Edit` (Bulk Redirects); fehlt eines davon, meldet das Skript die betroffene
-Stelle als „nicht lesbar" und macht mit den uebrigen weiter. Es liest den Token
+Stelle als „nicht lesbar" und macht mit den uebrigen weiter. Welche Rechte ein
+Token wirklich traegt, sagt vorab `--rechte-pruefen` (Exit 0 alles da, 65 keine
+Zone sichtbar, 71 ein Recht fehlt), hinterlegt wird er mit `--token-ablegen`
+(#48). Es liest den Token
 aus `CF_API_TOKEN`, sonst `CLOUDFLARE_API_TOKEN_SUN_REDIRECT` bzw.
 `CLOUDFLARE_API_TOKEN_SUN_WAF` aus `/root/sun-zugang.txt` am Ursprung.
 Der dort am 08.10.2026 hinterlegte Turnstile-Token traegt hier **nicht**: er ist
@@ -136,12 +141,24 @@ auf „Account / Turnstile: Edit" geschnitten und sieht keine Zone
 (`/zones?name=firmenfreund.net` liefert mit ihm eine leere Liste) — das Skript
 bricht dann mit Exit 65 ab, ohne etwas anzufassen.
 
-Was als „fremd" gilt und entfernt wird: jede Weiterleitung, deren Ziel-Host
-nicht der Apex der Zone selbst ist. Damit bleibt `www` → Apex stehen, waehrend
-`solar-finden.de` und die eigene Unterdomain `pfotencheck.tierarztportal.com`
-erfasst werden. Beim Bulk Redirect faellt nur der einzelne Listeneintrag,
-nicht die Liste und nicht die Regel (sie koennen fremde Zonen des Kontos
-bedienen).
+Was als fremd gilt und entfernt wird: jede Weiterleitung, deren Ziel-Host
+weder der Apex der Zone noch deren `www`-Name ist. Damit bleibt `www` → Apex
+stehen und ebenso eine umgekehrte Kanonisierung Apex → `www`, die manche Zone
+bewusst traegt — beide Namen liefert diese App aus (`www` 301t am Ursprung
+selbst, #129), eine Cloudflare-Regel dazwischen ist hoechstens doppelt und nie
+der Befund aus #37. Jede andere Unterdomain der eigenen Zone bleibt fremd,
+genau so faellt `pfotencheck.tierarztportal.com` auf. Gegengeprueft mit den
+echten Werten beider Zonen (Redirect-Rule-`concat(...)`, Page-Rule-Muster mit
+`$1`, relativer Pfad): die zwei Altlasten gelten als fremd, Apex-, `www`- und
+relative Ziele bleiben stehen.
+
+Beim Bulk Redirect faellt nur der einzelne Listeneintrag, nicht die Liste und
+nicht die Regel (sie koennen fremde Zonen des Kontos bedienen). Dort wird seit
+dem zweiten Durchgang dieselbe Fremd-Pruefung auf das Ziel angewandt wie an
+den anderen beiden Stellen; vorher genuegte dem Skript, dass die **Quelle** in
+einer der zwei Zonen liegt — ein Listeneintrag `www.tierarztportal.com/` →
+`https://tierarztportal.com/` waere damit mitgeloescht worden, obwohl er
+richtig ist.
 
 Von Hand mit `curl` geht es auch. Zonen-ID aus dem Dashboard (Overview, rechte
 Spalte):
@@ -221,6 +238,54 @@ nehmen Bing und Yandex die IndexNow-Meldungen dieser beiden Portale an. Danach
 `#35` gegenpruefen (dort steht die Messung, die den Befund ausgeloest hat).
 
 ---
+
+## Zwischenstand 2. Durchgang (08.10.2026, nach #44)
+
+* `/root/sun-zugang.txt` (600, 239 Byte, Stand 19:50) traegt weiterhin nur
+  `CLOUDFLARE_API_TOKEN_SUN_TURNSTILE` und `CLOUDFLARE_ACCOUNT_ID_SUN` — keine
+  `*_REDIRECT`- und keine `*_WAF`-Zeile. `--rechte-pruefen` endet deshalb mit
+  Exit 65 ("Kein Token"), ohne etwas anzufassen.
+* Der hinterlegte Turnstile-Token ist `active`, sieht aber **0 Zonen**
+  (`/user/tokens/verify` erfolgreich, `/zones?per_page=50` leer). Er traegt
+  hier nicht, wie dokumentiert.
+* Zusaetzlich geprueft und ebenfalls untauglich: der `cfut_`-Token aus
+  `~/.cloudflared/cert.pem` des Entwicklungsrechners. Er gehoert zum **selben
+  Konto** (`accountID` identisch mit `CLOUDFLARE_ACCOUNT_ID_SUN`), sieht aber
+  nur die Zone `eneskul.com`. Ein neuer `cloudflared tunnel login` waere wieder
+  ein Browser-Handgriff und gaebe nur Tunnel-/DNS-Rechte einer gewaehlten Zone.
+* Es gibt am Ursprung keine zweite Zugangsdatei mit Cloudflare-Schluessel
+  (`/root/minber-zugang.txt` enthaelt keinen), und in der Produktions-`.env`
+  steht keine `CLOUDFLARE_`/`CF_`-Variable.
+* `--kante`: Exit 71, unveraendert `firmenfreund.net` 301 auf
+  `solar-finden.de/robots.txt`, `tierarztportal.com` 302 auf
+  `pfotencheck.tierarztportal.com/`.
+
+Der Token aus #44 ist also nicht hinterlegt. Maßgeblich ist allein
+`scripts/cloudflare-weiterleitungen-entfernen.sh --rechte-pruefen`: solange sie
+Exit 65 meldet, gibt es keinen Zonen-Token — unabhaengig vom Status irgendeines
+Tickets.
+
+## Zwischenstand 3. Durchgang (08.10.2026, #48)
+
+`scripts/cloudflare-weiterleitungen-entfernen.sh --rechte-pruefen` endet
+weiterhin mit **Exit 65** ("Kein Token"). Der Zonen-Token ist also nach wie vor
+nicht angelegt; an der Lage aus dem 2. Durchgang hat sich nichts geaendert.
+
+Die Anlage ist ein Dashboard-Handgriff (Browser-Login, kein API-Weg: ein Token
+anlegen braucht `/user/tokens` und damit ein Recht, das keiner der vorhandenen
+Schluessel traegt). Damit dieselbe Messung nicht in jedem Durchgang erneut
+anfaellt, steht der Handgriff ab jetzt als **Schritt 0 in #40** — dem einzigen
+noch offenen Mensch-Ticket, das den Token braucht. Die beiden Schritte dort:
+
+1. Token `sun-zonen-redirect-waf` mit den sechs Rechten anlegen
+   (Klickweg: `docs/messungen/cloudflare-token-zonenrechte-anleitung.md`).
+2. `scripts/cloudflare-weiterleitungen-entfernen.sh --token-ablegen` und den
+   Token einfuegen — das Skript prueft jedes Recht vor der Ablage und spiegelt
+   ihn bei vorhandenen Firewall-Rechten zugleich auf
+   `CLOUDFLARE_API_TOKEN_SUN_WAF`.
+
+Probe unveraendert: `--rechte-pruefen` → Exit 0. Exit 65 oder 71 heisst, es gibt
+keinen brauchbaren Zonen-Token.
 
 ## Ergebnisse
 

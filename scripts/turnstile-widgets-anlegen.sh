@@ -28,7 +28,21 @@
 # CF_ACCOUNT_ID ist optional: hat der Token genau ein Konto, holt das Skript die
 # Account-ID selbst. Nur bei mehreren Konten muss sie gesetzt werden.
 #
-# Ausgabe sind Sitekey und Secret je Gruppe — direkt in den Passwort-Manager
+# Die drei Widget-Secrets neu erzeugen (#45 Punkt 2, erst NACH dem Rollout).
+# Sitekeys bleiben, nur die Secrets wechseln; das alte Secret gilt noch zwei
+# Stunden weiter (mit --sofort gar nicht mehr), danach ist es ungueltig —
+# in dem Fenster die sechs Werte mit
+# scripts/turnstile-schluessel-eintragen.sh nachtragen:
+#   scripts/turnstile-widgets-anlegen.sh --secrets-rotieren
+#
+# Secrets im Klartext mitdrucken (#45). Ohne diesen Schalter meldet das Skript
+# nur "Secret: vorhanden" — sonst landen die drei Produktions-Secrets in jedem
+# Protokoll, das einen Lauf mitschneidet (tee, CI, Agentenlauf):
+#   scripts/turnstile-widgets-anlegen.sh --pruefen --secrets-zeigen
+#
+# Ausgabe ist der Sitekey je Gruppe; das Secret steht im Klartext nur beim
+# frisch angelegten Widget (dort braucht es der Mensch einmal) oder mit
+# --secrets-zeigen. Beides gehoert in den Passwort-Manager
 # ("SUN / Cloudflare Turnstile / Gruppe A|B|C", Felder sitekey und secret),
 # nie in eine Datei im Repo.
 
@@ -48,11 +62,17 @@ HOSTS_C='geruestbauer.gmbh metallbauer.io mjet.net schluesseldienstportal.com sp
 
 NUR_PRUEFEN=0
 WEG_B=0
+SECRETS_ZEIGEN=0
+ROTIEREN=0
+SOFORT=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --pruefen) NUR_PRUEFEN=1; shift ;;
     --weg-b) WEG_B=1; shift ;;
-    -h|--help) sed -n '2,31p' "$0"; exit 0 ;;
+    --secrets-zeigen) SECRETS_ZEIGEN=1; shift ;;
+    --secrets-rotieren) ROTIEREN=1; shift ;;
+    --sofort) SOFORT=1; shift ;;
+    -h|--help) sed -n '2,47p' "$0"; exit 0 ;;
     *) echo "Unbekannte Option: $1" >&2; exit 64 ;;
   esac
 done
@@ -193,8 +213,10 @@ domains_json() {
 }
 
 # Vergleicht ein vorhandenes Widget mit der Vorgabe und meldet jede Abweichung.
+# $3 = 1 druckt das Secret im Klartext (frisch angelegtes Widget oder
+# --secrets-zeigen). Sonst nur die Feststellung, dass es abrufbar ist (#45).
 pruefe_widget() {
-  local widget="$1" soll_hosts="$2" abweichung=0
+  local widget="$1" soll_hosts="$2" geheim_zeigen="${3:-0}" abweichung=0
   local sitekey mode clearance
   sitekey="$(printf '%s' "$widget" | jq -r '.sitekey')"
   mode="$(printf '%s' "$widget" | jq -r '.mode')"
@@ -214,11 +236,53 @@ pruefe_widget() {
   fi
 
   echo "  Sitekey: ${sitekey}"
-  echo "  Secret:  $(cf GET "/accounts/${CF_ACCOUNT_ID}/challenges/widgets/${sitekey}" | jq -r '.result.secret // "(nur im Dashboard sichtbar)"')"
+  local secret
+  secret="$(printf '%s' "$widget" | jq -r '.secret // empty')"
+  [ -n "$secret" ] || secret="$(cf GET "/accounts/${CF_ACCOUNT_ID}/challenges/widgets/${sitekey}" | jq -r '.result.secret // empty')"
+  if [ -z "$secret" ]; then
+    echo "  Secret:  nicht abrufbar (nur im Dashboard sichtbar)"
+  elif [ "$geheim_zeigen" = 1 ] || [ "${SECRETS_ZEIGEN}" = 1 ]; then
+    echo "  Secret:  ${secret}"
+  else
+    echo "  Secret:  vorhanden (Klartext nur mit --secrets-zeigen)"
+  fi
   # Kein "&&" am Zeilenende: unter set -e wuerde ein abweichendes Widget den
   # Lauf abbrechen, statt die naechste Gruppe noch zu pruefen.
   if [ "$abweichung" = 0 ]; then
     echo "  Einstellungen passen zu docs/turnstile.md Abschnitt 8."
+  fi
+}
+
+# Erzeugt das Secret einer Gruppe neu (#45). Der Sitekey bleibt, deshalb ist im
+# Frontend nichts zu aendern; der Resolver liest das Secret je Anfrage aus der
+# Config, ein Nachtrag in der .env wirkt also ohne Ausfallzeit. Ohne --sofort
+# laesst Cloudflare das alte Secret noch zwei Stunden gelten — genug Zeit fuer
+# scripts/turnstile-schluessel-eintragen.sh.
+rotiere_gruppe() {
+  local gruppe="$1" name="$2" alle="$3"
+  echo
+  echo "== Gruppe ${gruppe} — \"${name}\" =="
+
+  local widget sitekey
+  widget="$(printf '%s' "$alle" | jq -c --arg n "$name" '.result[]? | select(.name == $n)')"
+  if [ -z "$widget" ]; then
+    echo "  ! Widget fehlt — nichts zu rotieren."
+    return
+  fi
+  sitekey="$(printf '%s' "$widget" | jq -r '.sitekey')"
+
+  local antwort
+  antwort="$(cf POST "/accounts/${CF_ACCOUNT_ID}/challenges/widgets/${sitekey}/rotate_secret" \
+    -d "$(jq -n --argjson sofort "$([ "$SOFORT" = 1 ] && echo true || echo false)" \
+      '{invalidate_immediately: $sofort}')")"
+  pruefe_antwort "$antwort" "Secret-Rotation von \"${name}\""
+
+  echo "  Sitekey: ${sitekey}  (unveraendert)"
+  echo "  Secret:  $(printf '%s' "$antwort" | jq -r '.result.secret')"
+  if [ "$SOFORT" = 1 ]; then
+    echo "  Das alte Secret ist ab sofort ungueltig."
+  else
+    echo "  Das alte Secret gilt noch zwei Stunden."
   fi
 }
 
@@ -232,7 +296,7 @@ verarbeite_gruppe() {
 
   if [ -n "$vorhanden" ]; then
     echo "  Widget existiert bereits — nichts angelegt."
-    pruefe_widget "$vorhanden" "$hosts"
+    pruefe_widget "$vorhanden" "$hosts" 0
     return
   fi
 
@@ -247,7 +311,7 @@ verarbeite_gruppe() {
     '{name: $name, mode: "managed", domains: $domains, clearance_level: "no_clearance", offlabel: false}')")"
   pruefe_antwort "$antwort" "Anlegen von \"${name}\""
   echo "  Angelegt."
-  pruefe_widget "$(printf '%s' "$antwort" | jq -c '.result')" "$hosts"
+  pruefe_widget "$(printf '%s' "$antwort" | jq -c '.result')" "$hosts" 1
 }
 
 pruefe_token
@@ -257,6 +321,26 @@ if ! ALLE="$(liste)"; then
   echo 'Fehlt dem Token die Berechtigung "Account / Turnstile: Edit"? Siehe #18.' >&2
   exit 70
 fi
+if [ "$ROTIEREN" = 1 ]; then
+  rotiere_gruppe A "$NAME_A" "$ALLE"
+  rotiere_gruppe B "$NAME_B" "$ALLE"
+  rotiere_gruppe C "$NAME_C" "$ALLE"
+  cat <<'ROTHINWEIS'
+
+Die drei neuen Secrets jetzt (Sitekeys bleiben, wie sie sind):
+
+1. in den Passwort-Manager, "SUN / Cloudflare Turnstile / Gruppe A|B|C",
+   Feld secret ueberschreiben;
+2. auf die Produktion eintragen:
+     scripts/turnstile-schluessel-eintragen.sh
+3. Gegenprobe:
+     php artisan turnstile:keys:check --siteverify
+
+Die Ausgabe oben enthaelt Geheimnisse — nicht in eine Datei, nicht durch tee.
+ROTHINWEIS
+  exit 0
+fi
+
 verarbeite_gruppe A "$NAME_A" "$HOSTS_A" "$ALLE"
 verarbeite_gruppe B "$NAME_B" "$HOSTS_B" "$ALLE"
 verarbeite_gruppe C "$NAME_C" "$HOSTS_C" "$ALLE"

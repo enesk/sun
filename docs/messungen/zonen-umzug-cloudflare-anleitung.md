@@ -125,10 +125,54 @@ andere — vor dem Umschalten der Nameserver bedenken:
    (`/admin`, `/content`, `/dashboard`, `/horizon`, `/telescope`, `/livewire`)
    — sonst challenged die Kante die eigene Verwaltung.
 
-Punkt 4 ist Repo-Arbeit und nicht Teil dieses Umzugs: solange
-`scripts/cloudflare-waf-regeln-setzen.sh` allen Zonen denselben Regelsatz
-gibt, fehlt die zonenspezifische Ausnahme. Deshalb Reihenfolge:
-**Umzug ja, Regeln auf dieser Zone erst nach der Ausnahme.**
+Punkt 4 ist Repo-Arbeit und war nicht Teil dieses Umzugs. Erledigt mit #43:
+`scripts/cloudflare-waf-regeln-setzen.sh` kennt die zentrale Zone
+(`ZENTRALE_ZONE`) und setzt Regel 1 dort mit den Backoffice-Praefixen, auf den
+Portal-Zonen ohne. Nachsehen ohne Token:
+
+```bash
+scripts/cloudflare-waf-regeln-setzen.sh --soll-zeigen --zone=sanitaerfinden.com
+```
+
+Punkt 3 bleibt bestehen: Regel 2 sperrt weiterhin `curl/*` und Co., ausser der
+Aufruf trifft einen Backoffice-Pfad.
+
+### Vorpruefung zu Punkt 1 und 2, gemessen am 08.10.2026 (#42)
+
+Punkt 2 sagt „vorher pruefen, nicht danach". Nachgesehen wurde im Repo, welcher
+Backoffice-Pfad im **Request** laeuft (und damit in 413 bzw. 524 kippen kann)
+statt in Queue oder CLI:
+
+* **Lange Laeufe liegen in Jobs oder Artisan-Befehlen.** `dispatchSync` kommt
+  nur in `app/Console/Commands/` vor (ContentMetricsCollect, Guide/GuideResearch)
+  — CLI, nicht HTTP. `set_time_limit` nur in den Sitemap-Befehlen und
+  `GetCompanies`. Das Content-Panel (`app/Filament/Content/`) besteht aus
+  Einstellungen, Kennzahlen und Prompt-Vorlagen; die Ratgeber-Erzeugung selbst
+  wird von Hand per CLI angestossen (siehe `docs/guide/`), nicht ueber einen
+  Request.
+* **Uploads liegen weit unter der Grenze.** Alle Filament-/Livewire-Uploads
+  begrenzen selbst auf 0,5–10 MB (`maxSize(…)` bzw. `max:…` in
+  `TenantResource`, `CompanyResource`, `ClaimVerification`, `References`,
+  `ThemeSettingsForm`).
+* **Eine Ausnahme, beide Punkte auf einmal:**
+  `app/Livewire/Filament/TenantImport.php` (Admin → Tenant-Import) erlaubt
+  `['file', 'max:262144']` — **256 MB** — und `loadPreview()` spielt den Dump
+  synchron im Request in eine Temp-Datenbank ein (`SqlDumpProcessor::process`).
+  Hinter der Kante heisst das: Dump > 100 MB → 413 (heute: PHP-Grenze
+  `post_max_size = 100M`), Vorschau eines grossen Dumps > 100 s → 524. Der
+  eigentliche Import laeuft bereits ueber `ProcessTenantImportJob`, nur die
+  Vorschau nicht. Eigenes Ticket; blockiert den Umzug nicht, weil der Pfad nur
+  von Hand und selten benutzt wird — danach aber nicht mehr mit grossen Dumps
+  ueber `https://sanitaerfinden.com`, sondern per CLI auf dem Ursprung.
+  **Erledigt mit #46 (08.10.2026):** Upload-Grenze der Komponente auf
+  `max:95000` (~95 MB, Konstante `TenantImport::MAX_UPLOAD_KILOBYTES`) mit
+  eigener Fehlermeldung, Vorschau in `App\Jobs\ProcessTenantPreviewJob`
+  ausgelagert (Fortschritt ueber Cache-Schluessel
+  `tenant_import_preview_{tenantId}`, Oberflaeche pollt mit `wire:poll.3s`),
+  Hinweis auf den CLI-Weg steht am Upload-Feld. `config/livewire.php` blieb
+  unangetastet.
+
+Punkt 1 und 2 stehen dem Umzug damit nicht im Weg.
 
 ---
 
@@ -258,5 +302,5 @@ nicht gefallen.
 | 3 Proxy | 08.10.2026 | Enes | elektrikerportal.com | `@`/`www` orange, `*` ebenfalls proxied |
 | 5 Nameserver | 08.10.2026 | Enes | elektrikerportal.com | `ara`/`sri.ns.cloudflare.com` |
 | 6 Abnahme | 08.10.2026 | Dimitri | Exit 0 | `cf-ray` ueber die autoritative Adresse |
-| 2–6 sanitaerfinden.com | | | offen | Zone liegt weiter bei name.com |
+| 2–6 sanitaerfinden.com | 08.10.2026 | Dimitri | **offen**, Abnahme Exit 71 | NS weiter `ns1hwy…name.com`, A 88.198.64.145, kein `cf-ray`; Handarbeit als Schritt 0 an #40 |
 | 7 WAF + Nachmessung | | | offen | braucht den WAF-Token, #40 |

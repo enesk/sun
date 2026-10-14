@@ -22,11 +22,17 @@
 # Unterdomain pfotencheck.tierarztportal.com erkannt werden. Alles andere wird
 # nur gemeldet, nie angefasst.
 #
-# Token: Zone / Zone: Read  +  Zone / Config Rules: Edit  (Redirect Rules)
-#        Zone / Zone: Edit                                 (Page Rules)
-#        Account / Account Rulesets: Edit                  (Bulk Redirects)
+# Token: Zone / Zone: Read               (Zonen-Kennung aufloesen)
+#        Zone / Config Rules: Edit       (Redirect Rules, Single Redirect)
+#        Zone / Zone: Edit               (Page Rules)
+#        Account / Account Filter Lists: Edit  (Bulk Redirects)
+# Ein Token, der zusaetzlich Zone / Firewall Services: Edit und
+# Zone / Bot Management: Read traegt, deckt #40 mit ab; --token-ablegen legt ihn
+# dann von sich aus auch unter CLOUDFLARE_API_TOKEN_SUN_WAF ab, damit
+# scripts/cloudflare-waf-regeln-setzen.sh ohne zweiten Dashboard-Gang laeuft.
 # Den Turnstile-Token aus /root/sun-zugang.txt traegt das NICHT (er sieht keine
-# Zone, gemessen am 08.10.2026) — siehe docs/messungen/cloudflare-token-anleitung.md.
+# Zone, gemessen am 08.10.2026) — Klickweg und Rechte-Tabelle stehen in
+# docs/messungen/cloudflare-token-zonenrechte-anleitung.md (#48; der Handgriff liegt als Schritt 0 in #40).
 #
 # Token-Reihenfolge: CF_API_TOKEN aus der Umgebung, sonst
 # CLOUDFLARE_API_TOKEN_SUN_REDIRECT, sonst CLOUDFLARE_API_TOKEN_SUN_WAF aus
@@ -37,6 +43,8 @@
 #   scripts/cloudflare-weiterleitungen-entfernen.sh --entfernen     # gefundene fremde Weiterleitungen loeschen
 #   scripts/cloudflare-weiterleitungen-entfernen.sh --kante         # ohne Token: was antwortet die Kante heute?
 #   scripts/cloudflare-weiterleitungen-entfernen.sh --zone=firmenfreund.net
+#   scripts/cloudflare-weiterleitungen-entfernen.sh --rechte-pruefen # welche Rechte traegt der Token?
+#   scripts/cloudflare-weiterleitungen-entfernen.sh --token-ablegen  # Token einmalig am Ursprung hinterlegen
 #
 # Nach dem Entfernen die beiden Proben aus #37 fahren:
 #   scripts/cloudflare-waf-regeln-setzen.sh --abnahme
@@ -48,7 +56,8 @@
 #  65  kein oder untauglicher Token
 #  69  jq fehlt
 #  70  Cloudflare hat einen Aufruf abgelehnt
-#  71  fremde Weiterleitung gefunden (--pruefen) bzw. Kante leitet noch weg (--kante)
+#  71  fremde Weiterleitung gefunden (--pruefen), Kante leitet noch weg (--kante)
+#      bzw. dem Token fehlt ein Recht (--rechte-pruefen)
 
 set -euo pipefail
 
@@ -65,8 +74,10 @@ while [ $# -gt 0 ]; do
     --pruefen) MODUS=pruefen; shift ;;
     --entfernen) MODUS=entfernen; shift ;;
     --kante) MODUS=kante; shift ;;
+    --rechte-pruefen) MODUS=rechte; shift ;;
+    --token-ablegen) MODUS=ablegen; shift ;;
     --zone=*) ZONEN="${ZONEN} ${1#--zone=}"; shift ;;
-    -h|--help) sed -n '2,50p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) awk 'NR == 1 { next } /^#/ { sub(/^# ?/, ""); print; next } { exit }' "$0"; exit 0 ;;
     *) echo "Unbekannte Option: $1" >&2; exit 64 ;;
   esac
 done
@@ -106,6 +117,14 @@ fi
 command -v jq >/dev/null || { echo 'jq fehlt (brew install jq).' >&2; exit 69; }
 
 ZUGANGSDATEI="${ZUGANGSDATEI:-/root/sun-zugang.txt}"
+SCHLUESSEL='CLOUDFLARE_API_TOKEN_SUN_REDIRECT'
+SCHLUESSEL_WAF='CLOUDFLARE_API_TOKEN_SUN_WAF'
+
+# Beim Ablegen ist der neue Token gemeint, nicht der hinterlegte alte.
+if [ "$MODUS" = 'ablegen' ] && [ -z "${CF_API_TOKEN:-}" ] && [ -t 0 ]; then
+  printf 'Cloudflare-API-Token (Zone: Read + Config Rules: Edit + Zone: Edit): '
+  read -rs CF_API_TOKEN; echo
+fi
 
 if [ -z "${CF_API_TOKEN:-}" ]; then
   for schluessel in CLOUDFLARE_API_TOKEN_SUN_REDIRECT CLOUDFLARE_API_TOKEN_SUN_WAF; do
@@ -123,7 +142,8 @@ if [ -z "${CF_API_TOKEN:-}" ] && [ -t 0 ]; then
 fi
 [ -n "${CF_API_TOKEN:-}" ] || {
   echo "Kein Token: weder CF_API_TOKEN gesetzt noch ein Schluessel in ${ZUGANGSDATEI}." >&2
-  echo 'Anlegen: docs/messungen/cloudflare-token-anleitung.md (#18)' >&2
+  echo 'Anlegen: docs/messungen/cloudflare-token-zonenrechte-anleitung.md (#48, Handgriff als Schritt 0 in #40)' >&2
+  echo 'Danach: scripts/cloudflare-weiterleitungen-entfernen.sh --token-ablegen' >&2
   exit 65
 }
 
@@ -159,6 +179,132 @@ zone_id() {
   printf '%s' "$antwort" | jq -r '.result[0].id // empty'
 }
 
+# ---------------------------------------------------------------------------
+# Rechte-Probe (#44). Ein gueltiger Token ist noch kein brauchbarer: der
+# Turnstile-Token aus #18 ist "valid and active", sieht aber keine Zone. Die
+# Probe faehrt deshalb je Recht einen echten, aber lesenden Aufruf und
+# unterscheidet drei Antworten:
+#   lesbar                 -> das Recht ist da
+#   9109 / 10000 / 7003    -> das Recht fehlt
+#   success, aber leer     -> Recht da, in dieser Zone nur nichts eingetragen
+# Schreibrechte lassen sich lesend nicht beweisen; sie haengen bei Cloudflare
+# aber an denselben Berechtigungsgruppen wie der Lesezugriff, deshalb ist ein
+# fehlender Lesezugriff der harte Befund und ein vorhandener der starke Hinweis.
+# ---------------------------------------------------------------------------
+RECHTE_FEHLEN=0
+RECHTE_WAF=1   # 0, sobald eine der #40-Proben scheitert
+
+# Fehlt dem Token das Recht, antwortet Cloudflare mit einem dieser Codes.
+recht_fehlt() {
+  printf '%s' "$1" | jq -e '.errors[]? | select(.code == 9109 or .code == 10000 or .code == 7003)' >/dev/null 2>&1
+}
+
+# probe <Beschriftung> <Pfad> [pflicht|kuer]
+probe() {
+  local was="$1" pfad="$2" art="${3:-pflicht}" antwort
+  antwort="$(cf GET "$pfad")"
+  if erfolgreich "$antwort"; then
+    printf '  %-38s lesbar\n' "$was"
+    return 0
+  fi
+  if recht_fehlt "$antwort"; then
+    printf '  %-38s FEHLT\n' "$was"
+    fehler_zeilen "$antwort"
+    [ "$art" = 'kuer' ] && RECHTE_WAF=0 || RECHTE_FEHLEN=1
+    return 1
+  fi
+  # Kein Berechtigungsfehler: in dieser Zone ist nur nichts eingetragen.
+  printf '  %-38s lesbar (nichts eingetragen)\n' "$was"
+  return 0
+}
+
+rechte_pruefen() {
+  local antwort anzahl zone id
+  zone="$(printf '%s' "$ZONEN" | awk '{print $1}')"
+
+  antwort="$(cf GET '/zones?per_page=1')"
+  if ! erfolgreich "$antwort"; then
+    echo '  Zone / Zone: Read                      FEHLT' >&2
+    fehler_zeilen "$antwort"
+    return 65
+  fi
+  anzahl="$(printf '%s' "$antwort" | jq -r '.result_info.total_count // 0')"
+  printf '  %-38s lesbar (%s Zone(n) sichtbar)\n' 'Zone / Zone: Read' "$anzahl"
+  [ "$anzahl" -gt 0 ] || {
+    echo '  Der Token sieht keine einzige Zone — Zone Resources sind leer.' >&2
+    return 65
+  }
+  [ "$anzahl" -ge 18 ] || echo "  Hinweis: #40 braucht alle 18 Portal-Zonen, sichtbar sind ${anzahl}."
+
+  id="$(zone_id "$zone" || true)"
+  [ -n "${id:-}" ] || {
+    echo "  Der Token sieht ${zone} nicht — Zone Resources erweitern." >&2
+    return 65
+  }
+  echo "  Probezone: ${zone}"
+
+  probe 'Zone / Config Rules (Redirect Rules)' "/zones/${id}/rulesets/phases/http_request_dynamic_redirect/entrypoint" || true
+  probe 'Zone / Zone: Edit (Page Rules)' "/zones/${id}/pagerules" || true
+  probe 'Zone / Zone Settings (SSL-Modus)' "/zones/${id}/settings/ssl" || true
+  if [ -n "${CF_ACCOUNT_ID:-}" ]; then
+    probe 'Account / Account Filter Lists' "/accounts/${CF_ACCOUNT_ID}/rules/lists" || true
+  else
+    printf '  %-38s uebersprungen (keine Konto-ID)\n' 'Account / Account Filter Lists'
+  fi
+  probe 'Zone / Firewall Services (#40)' "/zones/${id}/rulesets/phases/http_request_firewall_custom/entrypoint" kuer || true
+  probe 'Zone / Bot Management: Read (#40)' "/zones/${id}/bot_management" kuer || true
+
+  echo
+  if [ "$RECHTE_FEHLEN" != 0 ]; then
+    echo 'Dem Token fehlt mindestens ein Recht fuer #37.' >&2
+    echo 'Nachtragen: docs/messungen/cloudflare-token-zonenrechte-anleitung.md' >&2
+    return 71
+  fi
+  echo 'Der Token traegt alles, was #37 braucht.'
+  [ "$RECHTE_WAF" = 1 ] \
+    && echo 'Er traegt auch Firewall Services und Bot Management — #40 laeuft mit ihm.' \
+    || echo 'Fuer #40 fehlen Firewall Services: Edit und/oder Bot Management: Read.'
+  return 0
+}
+
+# Legt den Token am Ursprung ab — dieselbe Datei und Form wie
+# scripts/cloudflare-token-ablegen.sh (#18) und
+# scripts/cloudflare-waf-regeln-setzen.sh (#40), nur unter eigenem Schluessel.
+# Traegt derselbe Token die WAF-Rechte, wird er zusaetzlich unter dem
+# WAF-Schluessel abgelegt (abschaltbar mit SUN_AUCH_WAF=0), sonst muesste #40
+# ein zweites Mal durchs Dashboard.
+token_ablegen() {
+  local schluessel_liste="$SCHLUESSEL"
+  printf '%s' "$CF_API_TOKEN" | grep -qE '^[A-Za-z0-9_.-]{25,}$' || {
+    echo 'Das sieht nicht nach einem Cloudflare-API-Token aus.' >&2
+    exit 65
+  }
+  if [ "$RECHTE_WAF" = 1 ] && [ "${SUN_AUCH_WAF:-1}" = 1 ]; then
+    schluessel_liste="${SCHLUESSEL} ${SCHLUESSEL_WAF}"
+  fi
+  # Der Token geht als stdin-Strom hinueber, nie als ssh-Argument — sonst steht
+  # er in der Prozessliste des Servers.
+  {
+    printf 'TOKEN=%s\nDATEI=%s\nSCHLUESSEL_LISTE=%s\n' \
+      "$CF_API_TOKEN" "$ZUGANGSDATEI" "$schluessel_liste"
+    cat <<'FERN'
+set -eu
+umask 077
+[ -f "$DATEI" ] || printf '# Cloudflare-Zugang fuer SUN. Nicht ins Repository.\n' > "$DATEI"
+for SCHLUESSEL in $SCHLUESSEL_LISTE; do
+  TMP="$(mktemp)"
+  grep -v -E "^${SCHLUESSEL}=" "$DATEI" > "$TMP" || true
+  printf '%s=%s\n' "$SCHLUESSEL" "$TOKEN" >> "$TMP"
+  cat "$TMP" > "$DATEI"
+  rm -f "$TMP"
+  echo "Abgelegt: $SCHLUESSEL in $DATEI"
+done
+chmod 600 "$DATEI"
+echo "Rechte: $(stat -c %a "$DATEI")"
+FERN
+  } | ssh -o BatchMode=yes -o ConnectTimeout=15 "${SUN_SSH_HOST:-sun}" 'bash -s'
+}
+
 # Zieht den Host aus allem, was ein Weiterleitungsziel sein kann: einer festen
 # URL, einem Page-Rule-Muster mit $1 oder einem concat(...)-Ausdruck einer
 # Redirect Rule. Leer, wenn kein Host darin steht (z.B. ein relativer Pfad —
@@ -167,14 +313,20 @@ ziel_host() {
   printf '%s' "$1" | grep -oiE 'https?://[^"/)[:space:]]+' | head -1 | sed -E 's#^[a-zA-Z]+://##' | tr 'A-Z' 'a-z'
 }
 
-# Fremd = Ziel-Host vorhanden und nicht der Apex der Zone. Das laesst
-# www -> Apex stehen und erfasst auch Unterdomains der eigenen Zone
-# (pfotencheck.tierarztportal.com).
+# Fremd = Ziel-Host vorhanden und weder der Apex der Zone noch deren
+# www-Name. Das laesst das gewollte www -> Apex stehen (Ziel = Apex) und
+# ebenso eine umgekehrte Kanonisierung Apex -> www, die manche Zone bewusst
+# traegt; beide Namen liefert diese App aus (www 301t am Ursprung selbst,
+# #129), eine Regel dazwischen ist hoechstens doppelt, nie der Befund aus #37.
+# Jede andere Unterdomain der eigenen Zone bleibt fremd — genau so faellt
+# pfotencheck.tierarztportal.com auf, hinter dem eine statische Fremdseite
+# liegt.
 ist_fremd() {
   local ziel="$1" zone="$2" host
   host="$(ziel_host "$ziel")"
   [ -n "$host" ] || return 1
-  [ "$host" != "$zone" ]
+  [ "$host" != "$zone" ] || return 1
+  [ "$host" != "www.${zone}" ]
 }
 
 GEFUNDEN=0
@@ -262,7 +414,7 @@ page_rules() {
 # Kontos bedienen).
 bulk_redirects() {
   local antwort listen listen_anzahl i liste liste_id liste_name
-  local eintraege eintrag_anzahl j eintrag quelle ziel host passt name
+  local eintraege eintrag_anzahl j eintrag quelle ziel host passt name quellzone
   [ -n "${CF_ACCOUNT_ID:-}" ] || { echo 'Bulk Redirects: uebersprungen (keine Konto-ID, CF_ACCOUNT_ID setzen).'; return 0; }
 
   antwort="$(cf GET "/accounts/${CF_ACCOUNT_ID}/rules/lists")"
@@ -293,10 +445,18 @@ bulk_redirects() {
       [ -n "$quelle" ] || continue
       host="$(printf '%s' "$quelle" | sed -E 's#^[a-zA-Z]+://##' | cut -d/ -f1 | tr 'A-Z' 'a-z')"
       passt=0
+      quellzone=''
       for name in $ZONEN; do
-        case "$host" in "$name"|*".$name") passt=1 ;; esac
+        case "$host" in "$name"|*".$name") passt=1; quellzone="$name" ;; esac
       done
       [ "$passt" = 1 ] || continue
+      # Dieselbe Pruefung wie bei Redirect Rules und Page Rules: nur was aus der
+      # Zone hinausfuehrt, ist fremd. Sonst faellt das gewollte
+      # www.<zone> -> <zone> mit, denn dessen Quelle liegt ebenfalls in der Zone.
+      if ! ist_fremd "$ziel" "$quellzone"; then
+        echo "  Bulk Redirect bleibt: ${liste_name}: ${host} -> $(ziel_host "$ziel") (Ziel ist der Apex der Zone)"
+        continue
+      fi
       GEFUNDEN=$((GEFUNDEN + 1))
       echo "  Bulk Redirect FREMD: ${liste_name}: ${host} -> $(ziel_host "$ziel")"
       [ "$MODUS" = 'entfernen' ] || continue
@@ -328,6 +488,25 @@ HINWEIS
 }
 
 pruefe_token
+
+if [ "$MODUS" = 'rechte' ]; then
+  echo '== Rechte des Tokens'
+  rechte_pruefen
+  exit $?
+fi
+
+if [ "$MODUS" = 'ablegen' ]; then
+  echo '== Rechte des Tokens (vor der Ablage)'
+  rechte_pruefen || exit $?
+  echo
+  token_ablegen
+  echo
+  echo 'Weiter mit: scripts/cloudflare-weiterleitungen-entfernen.sh'
+  if [ "$RECHTE_WAF" = 1 ]; then
+    echo 'Und fuer #40: scripts/cloudflare-waf-regeln-setzen.sh --bestandsaufnahme'
+  fi
+  exit 0
+fi
 
 for zone in $ZONEN; do
   echo "== ${zone}"

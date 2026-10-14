@@ -1,0 +1,51 @@
+Deploy Bot-Schutz §1.3 — 08.10.2026 20:30
+Modus: Trockenlauf (nichts wird geaendert)
+Ziel: sun:/home/sanitaerfinden/htdocs/sanitaerfinden.dev
+
+=== Vorbedingungen ===
+  [x] B2: Bot-Schutz liegt auf origin/main (a0bc8016)
+  [-] Produktion steht auf a0bc8016, Ziel a0bc8016
+  [x] B1: sechs Schluesselwerte stehen in der .env
+  [x] B1: kein Testschluessel in der .env
+  [x] Keine geaenderte verfolgte Datei in Produktion (3 unverfolgte Pfade, unkritisch)
+  [x] 4415 GB frei unter /home
+  [!] Naechtliche Sicherung deckt nur 14 von 24 lebenden Datenbanken.
+      Das Skript dumpt deshalb in Schritt 3 selbst — ohne --ohne-dump kein Blocker.
+  Alle Vorbedingungen erfuellt.
+
+=== 1. Notbremse und CSP vorziehen (vor dem ersten config:cache) — uebersprungen ===
+
+=== 2. Codestand — uebersprungen ===
+
+=== 3. Eigener Dump vor den Migrationen ===
+  -> zentrale und alle Portal-Datenbanken nach storage/app/backups/golive-36/20261008-203047/
+     [Trockenlauf] mariadb-dump je Datenbank (zentral + alle tenant_%), gzip -1
+
+=== 4. Assets — uebersprungen ===
+
+=== 5. Migrationen und Seeder ===
+  [Trockenlauf] migrate --force (zentral)
+                app: /usr/bin/php8.4 artisan migrate --force
+  [Trockenlauf] tenants:migrate --force (23 Portale)
+                app: /usr/bin/php8.4 artisan tenants:migrate --force
+  [Trockenlauf] TenantTurnstileSettingSeeder (erwartet 23 angelegt)
+                app: /usr/bin/php8.4 artisan db:seed --class=TenantTurnstileSettingSeeder --force
+  [Trockenlauf] Datenschutz-Backfill, erst trocken
+                app: /usr/bin/php8.4 artisan tenants:datenschutz:turnstile-backfill
+  [Trockenlauf] Datenschutz-Backfill schreibend
+                app: /usr/bin/php8.4 artisan tenants:datenschutz:turnstile-backfill --write
+
+=== 6. Caches und Dienste ===
+  [Trockenlauf] config:cache, route:clear, view:clear, filament:optimize
+                app: /usr/bin/php8.4 artisan config:clear && /usr/bin/php8.4 artisan config:cache && /usr/bin/php8.4 artisan route:clear && /usr/bin/php8.4 artisan view:clear && /usr/bin/php8.4 artisan filament:optimize
+  [Trockenlauf] PHP-FPM nachladen
+                root: systemctl reload php8.5-fpm
+  [Trockenlauf] Queue und Horizon durchstarten
+                app: /usr/bin/php8.4 artisan queue:restart && /usr/bin/php8.4 artisan horizon:terminate
+  [Trockenlauf] Horizon-Dienst
+                root: supervisorctl restart sanitaerfinden-horizon
+
+=== Fertig ===
+Trockenlauf beendet, nichts geaendert. Mit --los ausfuehren.
+Protokoll: docs/messungen/turnstile-golive/deploy-20261008-203047.log
+Stand jederzeit: scripts/turnstile-golive-stand.sh

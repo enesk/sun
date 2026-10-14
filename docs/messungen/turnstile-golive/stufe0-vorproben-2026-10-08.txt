@@ -1,0 +1,112 @@
+# Beleg §2 (Stufe 0) — Vorproben am 08.10.2026, Portale noch alle auf nein
+
+Gemessen 08.10.2026 ab 21:4x CEST, Codestand a0bc8016, TURNSTILE_ENABLED=true,
+alle 23 Portale per `--deactivate-all` auf `nein` (§1.6).
+
+## 1. Probe ohne Portalkontext — die Siteverify-Strecke steht
+
+```
+
+   INFO  Aufgeloeste Konfiguration.  
+
++--------------------+--------------------------------------------+
+| Einstellung        | Wert                                       |
++--------------------+--------------------------------------------+
+| Aktion             | registration                               |
+| Portal             | ohne Portalkontext                         |
+| geprueft           | ja                                         |
+| Darstellung        | managed                                    |
+| Sitekey            | 0x4AAAAAAF…                                |
+| Secret             | gesetzt                                    |
+| Testschluessel     | nein                                       |
+| Widget-Gruppe      | A                                          |
+| Fail-Mode          | open                                       |
+| Hostname-Pruefung  | an                                         |
+| Action-Pruefung    | an                                         |
+| erlaubte Hostnames | sanitaerfinden.com, www.sanitaerfinden.com |
+| Log                | turnstile_verifications                    |
++--------------------+--------------------------------------------+
+Circuit Breaker: geschlossen
+
+   INFO  Siteverify-Antwort.  
+
++--------------+------------------------+
+| Feld         | Wert                   |
++--------------+------------------------+
+| success      | false                  |
+| hostname     | —                      |
+| action       | —                      |
+| challenge_ts | —                      |
+| error-codes  | invalid-input-response |
+| cdata        | —                      |
+| HTTP-Status  | 200                    |
+| Dauer        | 113 ms                 |
+| Bewertung    | failed                 |
++--------------+------------------------+
+
+   INFO  Ergebnis der TurnstileRule.  
+
+  abgewiesen: Die Sicherheitsprüfung ist fehlgeschlagen. Bitte versuch es noch einmal.
+
+Die Rule weist das Token ab.
+```
+
+Cloudflare beanstandet das erfundene Token (`invalid-input-response`), **nicht** das
+Secret — das Schlüsselpaar der Gruppe A wird also angenommen. Die TurnstileRule weist
+ab (`failed`). Damit sind Secret, HTTP-Weg zu Siteverify und Abweisung belegt, ohne
+dass ein Portal scharf steht.
+
+## 2. Dieselbe Probe mit Portalkontext — `skipped`
+
+```
+
+   INFO  Aufgeloeste Konfiguration.  
+
++--------------------+------------------------------------------------------------------------------------------+
+| Einstellung        | Wert                                                                                     |
++--------------------+------------------------------------------------------------------------------------------+
+| Aktion             | registration                                                                             |
+| Portal             | FahrschuleFinder (fahrschulefinder.de)                                                   |
+| geprueft           | nein — die Rule ueberspringt (skipped)                                                   |
+| Darstellung        | managed                                                                                  |
+| Sitekey            | 0x4AAAAAAF…                                                                              |
+| Secret             | gesetzt                                                                                  |
+| Testschluessel     | nein                                                                                     |
+| Widget-Gruppe      | A                                                                                        |
+| Fail-Mode          | open                                                                                     |
+| Hostname-Pruefung  | an                                                                                       |
+| Action-Pruefung    | an                                                                                       |
+| erlaubte Hostnames | fahrschulefinder.de, www.fahrschulefinder.de, sanitaerfinden.com, www.sanitaerfinden.com |
+| Log                | turnstile_verifications                                                                  |
++--------------------+------------------------------------------------------------------------------------------+
+Circuit Breaker: geschlossen
+
+   INFO  Siteverify-Antwort.  
+
++--------------+---------+
+| Feld         | Wert    |
++--------------+---------+
+| success      | true    |
+| hostname     | —       |
+| action       | —       |
+| challenge_ts | —       |
+| error-codes  | —       |
+| cdata        | —       |
+| HTTP-Status  | —       |
+| Dauer        | —       |
+| Bewertung    | skipped |
++--------------+---------+
+
+   INFO  Ergebnis der TurnstileRule.  
+
+
+Die Rule prueft nicht (skipped) — Modul, Portal oder Aktion ist aus.
+```
+
+## Befund zur Reihenfolge im Dokument
+
+Die vier Zeilen in §2 verlangen Log-Zeilen mit Portal und Aktion. Solange ein Portal
+nach §1.6 auf `nein` steht, liefert die Rule dort `skipped` und schreibt keine
+Log-Zeile — Stufe 0 ist mit Portalkontext erst nach dem Scharfschalten der Gruppe A
+(§3, `turnstile:rollout --wave=1`) durchführbar. Ohne `--tenant` geht die Probe
+jederzeit, zählt aber nicht als Portalnachweis.
