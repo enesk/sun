@@ -122,8 +122,9 @@ document.addEventListener('alpine:init', () => {
         },
 
         _applyConsent() {
-            // GA läuft immer mit vollem Tracking (granted default in analytics.blade.php)
-            // Cookie-Consent-UI bleibt bestehen, ändert aber den GA-Status nicht
+            // Die Zustimmung schaltet die Messung frei (#14): resources/js/analytics.js
+            // startet mit consent 'denied' und laedt gtag.js erst hier bzw. beim
+            // naechsten Besuch anhand der Cookies aus _save().
             if (this.statistics) {
                 window.dispatchEvent(new CustomEvent('cookie-consent-statistics', { detail: { allowed: true } }));
             }

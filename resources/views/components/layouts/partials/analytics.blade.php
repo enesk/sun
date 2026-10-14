@@ -1,9 +1,6 @@
-{{-- GA4: Vollständiges Tracking — lädt immer mit granted consent.
-     Eingerichtet wird in resources/js/analytics.js aus diesen Meta-Angaben;
-     kein Inline-Skript, damit die Policy ohne 'unsafe-inline' auskommt (#21). --}}
-@if (!empty(config('app.google_tracking_id')))
-    <meta name="ga-id" content="{{ config('app.google_tracking_id') }}">
-@endif
+{{-- GA4 und Tag Manager der SaaSykit-Seiten (kein Portal-Theme): Skript laedt
+     sofort. Rangfolge und Markup stecken in <x-analytics-meta> (#14). --}}
+<x-analytics-meta :tenant="$currentTenant ?? null" />
 
 {{-- Fremdes Tracking-HTML aus der Verwaltung: bringt eigene <script>-Bloecke mit
      und bekommt darum das Nonce des Requests. --}}

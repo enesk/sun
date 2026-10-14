@@ -366,7 +366,8 @@ der Sicherung: unter 20 gefundenen Tenant-Datenbanken bricht der Lauf ab
 ```
 php artisan sun:db:pull
     [--central-only]        nur die zentrale Datenbank
-    [--tenant=DOMAIN|ID]*   nur diese Tenants (mehrfach erlaubt)
+    [--tenant=DOMAIN|ID|DB]* nur diese Portale (mehrfach erlaubt); nimmt auch
+                            einen reinen Datenbanknamen, ohne Zeile in `tenants` (#11)
     [--tables=a,b,c]        nur diese Tabellen, ohne Neuaufbau (#4)
     [--only-tables=a,b]     Daten nur dieser Tabellen, Struktur vollstaendig (#4)
     [--skip-data=x,y]       diese Tabellen nur als Struktur, zusaetzlich zur Config (#4)
@@ -432,25 +433,36 @@ Die Reihenfolge ist nicht beliebig, jeder Schritt haengt am vorherigen:
 4. **Zentrale Datenbank**, lokal `drop database` + `create` (utf8mb4,
    `utf8mb4_unicode_ci`), dann der Stream. Scheitert sie, bricht der Lauf ab
    (Exit 70) — ohne Zentrale ist die Portal-Liste unbekannt.
-5. **Portal-Liste aus der frisch importierten Zentrale**: `Tenant`-Model,
-   Datenbankname = `tenant_database_prefix` + Tenant-ID. Gegengeprueft gegen
-   `show databases` auf Live. Eine Tenant-Zeile ohne Live-Datenbank wird mit
-   Warnung uebersprungen, eine Live-Datenbank ohne Tenant-Zeile ebenfalls
-   (Reste geloeschter Portale, #39). Ist die Tabelle `tenants` leer oder
-   unlesbar, gilt die Liste von Live.
-6. **Portale**, standardmaessig zwei gleichzeitig (`--parallel`, harte
+5. **Portal-Liste allein von Live** (#11): `show databases` liefert alles,
+   was auf `tenant_database_prefix` passt — genau das wird geholt, auch
+   Datenbanken ohne Zeile in `tenants`. Die Tabelle `tenants` wird fuer die
+   Auswahl nicht gelesen; sie kommt als Inhalt der Zentrale ohnehin mit.
+   Vorher greift der Schutz aus `min_tenant_databases` (20): liefert Live
+   eine unerwartet kurze Liste, bricht der Lauf mit Exit 66 ab.
+6. **Lokal gleichziehen** (#11): lokale Datenbanken mit demselben Praefix,
+   die es auf Live nicht gibt, werden geloescht — danach entspricht der
+   lokale Satz Datenbank fuer Datenbank dem von Live. Angefasst wird nur,
+   was auf das Praefix passt; der Unterstrich darin wird im LIKE maskiert,
+   `tenant_` trifft also nicht `tenantx…`. Die Zahl steht vorher in der
+   Rueckfrage und hinterher in einer Zeile der Zusammenfassung
+   (`24 Datenbank(en) von Live gespiegelt, 2179 lokale Datenbank(en)
+   entfernt`). Entfallen bei `--tenant=`, `--central-only` und `--tables`.
+   **Die lokale Sicherung aus #8 deckt nur die Zentrale**, nicht die
+   Portal-Datenbanken.
+7. **Portale**, standardmaessig zwei gleichzeitig (`--parallel`, harte
    Obergrenze 4 aus `parallel_max`). Jeder Dump ist ein eigener Prozess;
    bricht einer ab, laufen die uebrigen weiter, der Exit-Code ist 70 und die
    Zusammenfassung nennt die gescheiterten Datenbanken. Mehr als drei bringt
    am Uplink nichts und belastet nur Live-MySQL.
-7. **`migrate`, `tenants:migrate`, `cache:clear`** (abschaltbar mit
+8. **`migrate`, `tenants:migrate`, `cache:clear`** (abschaltbar mit
    `--no-migrate`), damit neue lokale Migrationen greifen und keine Werte des
    alten Standes im Cache liegen. `tenants:migrate` bekommt nur die IDs, zu
    denen lokal eine Tenant-Zeile existiert — es loest jede ID auf und bricht
    sonst beim ersten Unbekannten ganz ab. Ein Fehlschlag hier ist eine
    Warnung, kein Abbruch: lokal stehen oft fremde Tenant-Migrationen aus,
    das macht den geholten Datenstand nicht unbrauchbar.
-8. **Zusammenfassung und Protokoll.**
+9. **Zusammenfassung und Protokoll**, dazu eine Zeile ueber gespiegelte und
+   entfernte Datenbanken.
 
 ### Reiner Stream, kein Passwort in `ps`
 
