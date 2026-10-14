@@ -132,6 +132,33 @@ class BranchPackagesTest extends TestCase
         }
     }
 
+    public function test_blockierte_portale_sind_mit_grund_eingetragen(): void
+    {
+        // #16: beide Domains werden an der Cloudflare-Kante weggeleitet und
+        // sind von aussen nicht pruefbar. Solange die Entscheidung offen ist,
+        // muessen sie in der Liste stehen — und zwar mit Begruendung, damit
+        // niemand sie fuer eine Altlast haelt und stillschweigend entfernt.
+        $blockiert = (array) config('themes.sun-v2-branches.blockiert', []);
+
+        foreach (['firmenfreund.net', 'tierarztportal.com'] as $domain) {
+            $this->assertArrayHasKey($domain, $blockiert, "{$domain} fehlt in der Blockliste (#16).");
+            $this->assertNotSame('', trim((string) $blockiert[$domain]), "{$domain} ohne Begruendung.");
+            $this->assertStringContainsString('#16', (string) $blockiert[$domain], "{$domain}: Begruendung ohne Ticketbezug.");
+        }
+    }
+
+    public function test_blockierte_portale_haben_trotzdem_ein_paket(): void
+    {
+        // Die Pakete bleiben zugeordnet: wird die Weiterleitung geloest,
+        // soll nichts nachgebaut werden muessen.
+        $domains = (array) config('themes.sun-v2-branches.domains', []);
+
+        foreach (array_keys((array) config('themes.sun-v2-branches.blockiert', [])) as $domain) {
+            $this->assertArrayHasKey($domain, $domains, "Blockiertes Portal {$domain} ohne Zuordnung.");
+            $this->assertIsArray(config('branches.'.$domains[$domain]));
+        }
+    }
+
     public function test_die_vorgabe_selbst_ist_kein_geruest(): void
     {
         $vorgabe = (array) config('themes.sun-v2', []);

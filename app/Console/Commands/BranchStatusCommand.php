@@ -41,7 +41,14 @@ class BranchStatusCommand extends Command
             $branch = BranchConfig::resolve($tenant);
             $paket = $branch === null ? [] : (array) config("branches.{$branch}", []);
 
+            $blockiert = (array) config('themes.sun-v2-branches.blockiert', []);
+            $domain = (string) $tenant->getAttribute('domain');
+
             $status = match (true) {
+                // Blockierte Portale zuerst (#16): von aussen nicht
+                // erreichbar, also auch nicht pruefbar — unabhaengig davon,
+                // wie weit ihr Paket ist.
+                isset($blockiert[$domain]) => 'BLOCKIERT',
                 $branch === null => 'kein Paket',
                 ($paket['_texte_fehlen'] ?? false) === true => 'Texte fehlen',
                 $this->fehlendeTexte($paket) !== [] => 'unvollstaendig: '.implode(', ', $this->fehlendeTexte($paket)),
@@ -58,7 +65,7 @@ class BranchStatusCommand extends Command
 
             $zeilen[] = [
                 (string) $tenant->getAttribute('id'),
-                (string) $tenant->getAttribute('domain'),
+                $domain,
                 $theme,
                 $branch ?? '—',
                 $status,
@@ -70,6 +77,10 @@ class BranchStatusCommand extends Command
 
         if (! $this->option('bereit')) {
             $this->line(sprintf('%d Portal(e) warten noch auf Texte oder ein Paket.', $offen));
+
+            foreach ((array) config('themes.sun-v2-branches.blockiert', []) as $domain => $grund) {
+                $this->line(sprintf('BLOCKIERT %s: %s', $domain, $grund));
+            }
         }
 
         return self::SUCCESS;
