@@ -67,6 +67,11 @@ function store(state) {
     writeCookie('cookie_consent_marketing', state.marketing ? '1' : '0', maxAge);
 }
 
+/**
+ * Die Zustimmung schaltet die Messung frei (#14): resources/js/analytics.js
+ * startet mit consent 'denied' und laedt gtag.js erst auf dieses Ereignis bzw.
+ * beim naechsten Besuch anhand der Cookies aus persist().
+ */
 function applyConsent(state) {
     if (state.statistics) {
         window.dispatchEvent(new CustomEvent('cookie-consent-statistics', { detail: { allowed: true } }));
