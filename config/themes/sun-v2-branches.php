@@ -24,14 +24,41 @@ return [
     'default' => null,
 
     'domains' => [
+        // Umgestellt und mit Texten
         'kfzwerkstatt.io' => 'kfz',
         'sanitaerfinden.com' => 'sanitaer',
-        'sanitaerfinder.com' => 'sanitaer',
-        'klempner.firmenfreund.de' => 'sanitaer',
         'fahrschulefinder.de' => 'fahrschule',
         'findegutachter.de' => 'gutachter',
+
+        // Zugeordnet, Texte vorhanden — nur noch umstellen (#15)
+        'sanitaerfinder.com' => 'sanitaer',
+        'klempner.firmenfreund.de' => 'sanitaer',
+
+        // Geruest, Texte fehlen (#12 angelegt, #13 schreibt, #15 stellt um)
+        'firmenfreund.de' => 'bau',
+        'bodenlegerfinden.com' => 'bodenleger',
+        'malerfinder.de' => 'maler',
+        'geruestbauer.gmbh' => 'geruestbau',
+        'metallbauer.io' => 'metallbau',
+        'tierarztportal.com' => 'tierarzt',
+        'fliesenleger.io' => 'fliesenleger',
+        'mjet.net' => 'gartenbau',
+        'apotheke.firmenfreund.de' => 'apotheke',
+        'firmenfreund.net' => 'solar',
+        'unfallarzt.firmenfreund.de' => 'unfallchirurgie',
+        'zahnarzt.firmenfreund.de' => 'zahnarzt',
+        'energieberaterportal.net' => 'energieberatung',
+        'arztfinder.firmenfreund.de' => 'arzt',
+        'speditionportal.com' => 'spedition',
+        'schluesseldienstportal.com' => 'schluesseldienst',
     ],
 
+    /*
+     * Stichwoerter fuer lokale .test-Domains und neue Portale derselben
+     * Branche. Reihenfolge zaehlt: die erste Regel gewinnt, spezifische
+     * Stichwoerter gehoeren deshalb vor allgemeine (zahnarzt vor arzt,
+     * unfallarzt vor arzt, solar vor energie).
+     */
     'needles' => [
         'kfz' => 'kfz',
         'werkstatt' => 'kfz',
@@ -42,6 +69,34 @@ return [
         'fahrschule' => 'fahrschule',
         'gutachter' => 'gutachter',
         'sachverstaendig' => 'gutachter',
+        'bodenleger' => 'bodenleger',
+        'parkett' => 'bodenleger',
+        'maler' => 'maler',
+        'lackierer' => 'maler',
+        'geruestbau' => 'geruestbau',
+        'metallbau' => 'metallbau',
+        'schlosser' => 'metallbau',
+        'tierarzt' => 'tierarzt',
+        'fliesenleger' => 'fliesenleger',
+        'garten' => 'gartenbau',
+        'landschaftsbau' => 'gartenbau',
+        'apotheke' => 'apotheke',
+        'solar' => 'solar',
+        'photovoltaik' => 'solar',
+        'zahnarzt' => 'zahnarzt',
+        'unfallarzt' => 'unfallchirurgie',
+        'unfallchirurg' => 'unfallchirurgie',
+        'energieberater' => 'energieberatung',
+        'arztfinder' => 'arzt',
+        'spedition' => 'spedition',
+        'schluesseldienst' => 'schluesseldienst',
+        'bauunternehmen' => 'bau',
+        'hochbau' => 'bau',
+        'tiefbau' => 'bau',
+        // Allgemein, deshalb zuletzt: trifft nur, wenn keine der oberen
+        // Regeln gepasst hat (htbau.test, firmenfreund.de).
+        'bau' => 'bau',
+        'arzt' => 'arzt',
     ],
 
 ];
