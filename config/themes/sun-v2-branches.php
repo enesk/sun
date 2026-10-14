@@ -24,25 +24,11 @@ return [
     'default' => null,
 
     /*
-     * Blockierte Portale (#16).
-     *
-     * Beide Domains werden an der Cloudflare-Kante auf ein anderes, gepflegtes
-     * Angebot weitergeleitet (firmenfreund.net auf solar-finden.de,
-     * tierarztportal.com auf pfotencheck.tierarztportal.com). Am Ursprung
-     * antwortet das Portal weiter mit 200, von aussen erreicht es aber
-     * niemand: keine Sichtpruefung, keine Messung, keine Umstellung moeglich.
-     *
-     * Enes hat am 14.10.2026 festgelegt, dass an Cloudflare nichts angefasst
-     * wird. Bis er entscheidet, ob die Domains beim anderen Angebot bleiben
-     * (dann sind es 21 Portale) oder die Portale zurueckkommen, bleiben beide
-     * hier stehen: `sun:branches:status` fuehrt sie als blockiert und
-     * `--bereit` nennt sie nicht. Der Grund steht im Wert, damit niemand die
-     * Liste fuer eine Altlast haelt.
+     * Nicht ausgelieferte Portale stehen NICHT hier, sondern als Attribut am
+     * Tenant (Tenant::NOT_DELIVERED, #16) — eine Liste an zwei Stellen laeuft
+     * beim naechsten Portalwechsel auseinander. `sun:branches:status` liest
+     * das Attribut.
      */
-    'blockiert' => [
-        'firmenfreund.net' => 'leitet an der Kante auf solar-finden.de (301) — Entscheidung offen, #16',
-        'tierarztportal.com' => 'leitet an der Kante auf pfotencheck.tierarztportal.com (302) — Entscheidung offen, #16',
-    ],
 
     'domains' => [
         // Umgestellt und mit Texten

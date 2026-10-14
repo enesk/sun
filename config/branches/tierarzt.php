@@ -5,6 +5,12 @@
 | Branchenpaket Tierarzt (Theme sun-v2) — GERUEST, Texte fehlen (#12)
 |--------------------------------------------------------------------------
 |
+| PORTAL NICHT AUSGELIEFERT (#16). Die Domain tierarztportal.com zeigt an der
+| Cloudflare-Kante auf pfotencheck.tierarztportal.com; Entscheidung Enes 14.10.2026,
+| Variante A. Dieses Paket bekommt KEINE Texte und wird nicht umgestellt.
+| Es bleibt liegen, damit nichts nachzubauen ist, falls die Entscheidung
+| je zurueckgedreht wird. Hintergrund: docs/portale.md
+|
 | Enthalten ist nur, was an den echten Betriebsdaten gemessen oder fachlich
 | eindeutig ist: Markensymbol, Leistungskacheln mit ihren Suchbegriffen,
 | Branchenbegriffe der Suche und die Schnellfilter der Jobboerse.

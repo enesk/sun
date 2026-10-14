@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Models\Tenant;
 use App\Turnstile\Config\TurnstileConfigResolver;
 use App\Turnstile\Support\SiteverifyProbe;
 use Illuminate\Console\Command;
+use Throwable;
 
 /**
  * Prueft die drei Turnstile-Widget-Gruppen aus docs/turnstile.md Abschnitt 8
@@ -95,7 +97,20 @@ class TurnstileKeysCheck extends Command
         );
 
         $gesamt = array_sum(array_column($zeilen, 'hostnames'));
-        $this->line("Eingetragene Hostnames insgesamt: {$gesamt} (Soll laut docs/turnstile.md Abschnitt 8: 18)");
+        $nichtAusgeliefert = $this->nichtAusgelieferteHostnames();
+
+        // Die Soll-Zahl wird gerechnet, nicht getippt (#16): die Widgets
+        // bleiben unveraendert, auch wenn ein Portal nicht mehr ausgeliefert
+        // wird — sonst waere das eine Aenderung an Cloudflare, nur damit eine
+        // Zahl im Protokoll stimmt. Gemeldet wird deshalb beides.
+        $this->line(sprintf(
+            'Eingetragene Hostnames insgesamt: %d, davon ausgeliefert: %d%s',
+            $gesamt,
+            $gesamt - count($nichtAusgeliefert),
+            $nichtAusgeliefert === []
+                ? ''
+                : ' (nicht ausgeliefert, Eintrag bleibt im Widget: '.implode(', ', $nichtAusgeliefert).')',
+        ));
 
         // Die Probe laeuft auch gegen Subdomains, die bewusst NICHT im Widget
         // stehen: sie muessen ueber ihren Elterneintrag dieselbe Gruppe finden.
@@ -106,6 +121,40 @@ class TurnstileKeysCheck extends Command
         }
 
         return $this->abschluss($zeilen);
+    }
+
+    /**
+     * Hostnames der Widget-Gruppen, deren Portal nicht mehr ausgeliefert wird
+     * (#16). Quelle ist das Attribut am Tenant, nicht eine zweite Liste in
+     * der Konfiguration.
+     *
+     * @return array<int, string>
+     */
+    private function nichtAusgelieferteHostnames(): array
+    {
+        $eingetragen = [];
+
+        foreach ((array) config('turnstile.groups', []) as $daten) {
+            foreach ((array) ($daten['hostnames'] ?? []) as $host) {
+                $eingetragen[] = (string) $host;
+            }
+        }
+
+        try {
+            /** @var \Illuminate\Support\Collection<int, Tenant> $tenants */
+            $tenants = Tenant::query()->get();
+        } catch (Throwable) {
+            // Ohne zentrale Datenbank (frischer Server) ist die Zahl nicht
+            // auflösbar; der Befehl soll daran nicht scheitern.
+            return [];
+        }
+
+        $betroffen = $tenants
+            ->reject(fn (Tenant $tenant): bool => $tenant->isDelivered())
+            ->map(fn (Tenant $tenant): string => (string) $tenant->getAttribute('domain'))
+            ->all();
+
+        return array_values(array_intersect($eingetragen, $betroffen));
     }
 
     /**

@@ -124,6 +124,11 @@ return [
                 'kfzwerkstatt.io',
                 'findegutachter.de',
                 'bodenlegerfinden.com',
+                // Beide Portale werden seit dem 14.10.2026 nicht mehr
+                // ausgeliefert (#16, docs/portale.md). Die Eintraege bleiben
+                // bewusst stehen: sie schaden nicht, und sie zu entfernen
+                // waere eine Aenderung am Cloudflare-Widget, an dem nichts
+                // angefasst wird. turnstile:keys:check rechnet die Zahl selbst.
                 'tierarztportal.com',
                 'energieberaterportal.net',
                 'firmenfreund.net',

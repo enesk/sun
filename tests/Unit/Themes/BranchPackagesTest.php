@@ -132,31 +132,42 @@ class BranchPackagesTest extends TestCase
         }
     }
 
-    public function test_blockierte_portale_sind_mit_grund_eingetragen(): void
+    public function test_nicht_ausgelieferte_portale_behalten_ihr_paket(): void
     {
-        // #16: beide Domains werden an der Cloudflare-Kante weggeleitet und
-        // sind von aussen nicht pruefbar. Solange die Entscheidung offen ist,
-        // muessen sie in der Liste stehen — und zwar mit Begruendung, damit
-        // niemand sie fuer eine Altlast haelt und stillschweigend entfernt.
-        $blockiert = (array) config('themes.sun-v2-branches.blockiert', []);
+        // #16: solar und tierarzt bleiben zugeordnet, obwohl die Portale nicht
+        // ausgeliefert werden — wird die Entscheidung zurueckgedreht, ist
+        // nichts nachzubauen. Maßgeblich ist das Attribut am Tenant
+        // (Tenant::NOT_DELIVERED), nicht eine Liste in der Konfiguration.
+        $domains = (array) config('themes.sun-v2-branches.domains', []);
 
-        foreach (['firmenfreund.net', 'tierarztportal.com'] as $domain) {
-            $this->assertArrayHasKey($domain, $blockiert, "{$domain} fehlt in der Blockliste (#16).");
-            $this->assertNotSame('', trim((string) $blockiert[$domain]), "{$domain} ohne Begruendung.");
-            $this->assertStringContainsString('#16', (string) $blockiert[$domain], "{$domain}: Begruendung ohne Ticketbezug.");
+        foreach (['firmenfreund.net' => 'solar', 'tierarztportal.com' => 'tierarzt'] as $domain => $slug) {
+            $this->assertSame($slug, $domains[$domain] ?? null, "Zuordnung von {$domain} fehlt.");
+            $this->assertIsArray(config("branches.{$slug}"), "Paket {$slug} fehlt.");
         }
     }
 
-    public function test_blockierte_portale_haben_trotzdem_ein_paket(): void
+    public function test_die_geruieste_nicht_ausgelieferter_portale_nennen_den_grund(): void
     {
-        // Die Pakete bleiben zugeordnet: wird die Weiterleitung geloest,
-        // soll nichts nachgebaut werden muessen.
-        $domains = (array) config('themes.sun-v2-branches.domains', []);
+        // Wer die Datei oeffnet, soll im Kopf lesen, warum hier keine Texte
+        // stehen — sonst schreibt sie irgendwann jemand voll.
+        foreach (['solar', 'tierarzt'] as $slug) {
+            $quelle = (string) file_get_contents(config_path("branches/{$slug}.php"));
 
-        foreach (array_keys((array) config('themes.sun-v2-branches.blockiert', [])) as $domain) {
-            $this->assertArrayHasKey($domain, $domains, "Blockiertes Portal {$domain} ohne Zuordnung.");
-            $this->assertIsArray(config('branches.'.$domains[$domain]));
+            $this->assertStringContainsString('NICHT AUSGELIEFERT', $quelle, "{$slug}: Hinweis fehlt.");
+            $this->assertStringContainsString('#16', $quelle, "{$slug}: Ticketbezug fehlt.");
+            $this->assertStringContainsString('docs/portale.md', $quelle, "{$slug}: Verweis auf die Begruendung fehlt.");
         }
+    }
+
+    public function test_die_begruendung_fuer_21_portale_steht_in_der_doku(): void
+    {
+        $doku = (string) file_get_contents(base_path('docs/portale.md'));
+
+        $this->assertStringContainsString('14.10.2026', $doku, 'Datum der Entscheidung fehlt.');
+        $this->assertStringContainsString('Enes', $doku, 'Entscheidungsgeber fehlt.');
+        $this->assertStringContainsString('21', $doku);
+        $this->assertStringContainsString('firmenfreund.net', $doku);
+        $this->assertStringContainsString('tierarztportal.com', $doku);
     }
 
     public function test_die_vorgabe_selbst_ist_kein_geruest(): void
