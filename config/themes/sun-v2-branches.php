@@ -23,6 +23,13 @@ return [
 
     'default' => null,
 
+    /*
+     * Nicht ausgelieferte Portale stehen NICHT hier, sondern als Attribut am
+     * Tenant (Tenant::NOT_DELIVERED, #16) — eine Liste an zwei Stellen laeuft
+     * beim naechsten Portalwechsel auseinander. `sun:branches:status` liest
+     * das Attribut.
+     */
+
     'domains' => [
         // Umgestellt und mit Texten
         'kfzwerkstatt.io' => 'kfz',

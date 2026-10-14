@@ -640,8 +640,14 @@ Daraus folgen zwei Dinge:
    (`apotheke.`, `arztfinder.`, `klempner.`, `unfallarzt.`, `zahnarzt.`). Sie
    zaehlen zusammen als **ein** Hostname, nicht als fuenf.
 
-Damit bleiben aus 23 Tenants **18 eintragungspflichtige Hostnames**, also drei
-Widgets mit Luft nach oben. Die Gruppen sind nach der Rollout-Reihenfolge
+Damit bleiben aus 23 Tenants **18 eingetragene Hostnames**, also drei Widgets
+mit Luft nach oben. Davon werden seit dem 14.10.2026 nur **16 ausgeliefert**:
+`firmenfreund.net` und `tierarztportal.com` sind keine Portale mehr
+(Entscheidung Enes, Variante A, #16 — siehe `docs/portale.md`). **Ihre
+Eintraege bleiben in Gruppe B stehen**, denn sie schaden dort nicht, und sie
+zu entfernen waere eine Aenderung am Cloudflare-Konto, an dem nichts angefasst
+wird. `turnstile:keys:check` rechnet die Zahl deshalb selbst aus und meldet
+beide Werte — eingetragen und ausgeliefert. Die Gruppen sind nach der Rollout-Reihenfolge
 geschnitten, damit ein Schluesselwechsel in Welle 1 die uebrigen Portale nicht
 beruehrt.
 

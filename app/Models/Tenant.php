@@ -28,6 +28,16 @@ class Tenant extends Model implements TenantWithDatabase
     use HasDatabase;
     use HasFactory;
 
+    /**
+     * Portal wird nicht ausgeliefert (#16). Die Domain zeigt an der
+     * Cloudflare-Kante auf ein anderes Angebot; Tenant und Datenbank bleiben
+     * unveraendert, aber es gibt dort nichts zu betexten, umzustellen oder zu
+     * messen. Der Grund steht in NOT_DELIVERED_NOTE.
+     */
+    public const NOT_DELIVERED = 'not_delivered';
+
+    public const NOT_DELIVERED_NOTE = 'not_delivered_note';
+
     public const LEAD_FUNNEL_TOKEN = 'lead_funnel_token';
 
     public const LEAD_WEBHOOK_SECRET = 'lead_webhook_secret';
@@ -68,6 +78,26 @@ class Tenant extends Model implements TenantWithDatabase
      *
      * @return array<string, string>
      */
+    /**
+     * Wird dieses Portal ausgeliefert? (#16)
+     *
+     * Maßgeblich ist allein das Attribut am Tenant — eine Liste in einer
+     * Konfigurationsdatei waere eine zweite Quelle, die beim naechsten
+     * Portalwechsel auseinanderlaeuft.
+     */
+    public function isDelivered(): bool
+    {
+        return (bool) $this->getAttribute(self::NOT_DELIVERED) !== true;
+    }
+
+    /** Grund, warum das Portal nicht ausgeliefert wird, oder null. */
+    public function notDeliveredNote(): ?string
+    {
+        $note = $this->getAttribute(self::NOT_DELIVERED_NOTE);
+
+        return is_string($note) && $note !== '' ? $note : null;
+    }
+
     public function getTermsAttribute(mixed $value): array
     {
         if (is_string($value)) {

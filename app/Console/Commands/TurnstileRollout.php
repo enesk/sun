@@ -20,7 +20,8 @@ use Illuminate\Support\Collection;
  * nicht ueber `config('turnstile.enabled')` und nicht ueber die
  * Widget-Gruppen: ein Widget darf Hostnames tragen, bei denen der Schutz noch
  * aus ist (docs/turnstile.md §9). Im Admin ist das je Portal einzeln zu
- * klicken (#9) — fuer 23 Portale in drei Wellen braucht der Betrieb einen
+ * klicken (#9) — fuer 23 Tenants (davon 21 ausgelieferte Portale, siehe
+ * docs/portale.md) in drei Wellen braucht der Betrieb einen
  * Griff, der alle auf einmal stellt und den Zustand belegt.
  *
  *   php artisan turnstile:rollout                      # nur anzeigen

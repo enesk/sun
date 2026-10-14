@@ -132,6 +132,44 @@ class BranchPackagesTest extends TestCase
         }
     }
 
+    public function test_nicht_ausgelieferte_portale_behalten_ihr_paket(): void
+    {
+        // #16: solar und tierarzt bleiben zugeordnet, obwohl die Portale nicht
+        // ausgeliefert werden — wird die Entscheidung zurueckgedreht, ist
+        // nichts nachzubauen. Maßgeblich ist das Attribut am Tenant
+        // (Tenant::NOT_DELIVERED), nicht eine Liste in der Konfiguration.
+        $domains = (array) config('themes.sun-v2-branches.domains', []);
+
+        foreach (['firmenfreund.net' => 'solar', 'tierarztportal.com' => 'tierarzt'] as $domain => $slug) {
+            $this->assertSame($slug, $domains[$domain] ?? null, "Zuordnung von {$domain} fehlt.");
+            $this->assertIsArray(config("branches.{$slug}"), "Paket {$slug} fehlt.");
+        }
+    }
+
+    public function test_die_geruieste_nicht_ausgelieferter_portale_nennen_den_grund(): void
+    {
+        // Wer die Datei oeffnet, soll im Kopf lesen, warum hier keine Texte
+        // stehen — sonst schreibt sie irgendwann jemand voll.
+        foreach (['solar', 'tierarzt'] as $slug) {
+            $quelle = (string) file_get_contents(config_path("branches/{$slug}.php"));
+
+            $this->assertStringContainsString('NICHT AUSGELIEFERT', $quelle, "{$slug}: Hinweis fehlt.");
+            $this->assertStringContainsString('#16', $quelle, "{$slug}: Ticketbezug fehlt.");
+            $this->assertStringContainsString('docs/portale.md', $quelle, "{$slug}: Verweis auf die Begruendung fehlt.");
+        }
+    }
+
+    public function test_die_begruendung_fuer_21_portale_steht_in_der_doku(): void
+    {
+        $doku = (string) file_get_contents(base_path('docs/portale.md'));
+
+        $this->assertStringContainsString('14.10.2026', $doku, 'Datum der Entscheidung fehlt.');
+        $this->assertStringContainsString('Enes', $doku, 'Entscheidungsgeber fehlt.');
+        $this->assertStringContainsString('21', $doku);
+        $this->assertStringContainsString('firmenfreund.net', $doku);
+        $this->assertStringContainsString('tierarztportal.com', $doku);
+    }
+
     public function test_die_vorgabe_selbst_ist_kein_geruest(): void
     {
         $vorgabe = (array) config('themes.sun-v2', []);

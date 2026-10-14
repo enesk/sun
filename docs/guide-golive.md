@@ -281,7 +281,7 @@ Regeln:
 - [ ] Budgets aus §4 gesetzt, Freigabe Uwe (§1.6)
 - [ ] Backup §1.3 am Vortag
 - [ ] alle Portale `is_active = an`, YMYL-Portale mit Schwelle 90 (Liste: `________`)
-- [ ] erster vollständiger Tageslauf: Tagesbericht vom `________` zeigt alle 23 Portale, Quote je Portal ≥ 95 %, keine unerklärten `failed` (Link/Beleg ablegen)
+- [ ] erster vollständiger Tageslauf: Tagesbericht vom `________` zeigt alle 21 ausgelieferten Portale (firmenfreund.net und tierarztportal.com werden nicht ausgeliefert, siehe docs/portale.md), Quote je Portal ≥ 95 %, keine unerklärten `failed` (Link/Beleg ablegen)
 - [ ] Stichprobe weiter täglich 10 Artikel über alle Portale, bis 7 Tage ohne Stopp
 
 ## 6. Notbremse und Rückweg

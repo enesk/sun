@@ -36,19 +36,29 @@ class BranchStatusCommand extends Command
         $zeilen = [];
         $offen = 0;
 
-        foreach (Tenant::query()->orderBy('id')->get() as $tenant) {
+        /** @var \Illuminate\Support\Collection<int, Tenant> $tenants */
+        $tenants = Tenant::query()->orderBy('id')->get();
+
+        foreach ($tenants as $tenant) {
             $theme = (string) ($themes->getTenantTheme($tenant) ?: 'default');
             $branch = BranchConfig::resolve($tenant);
             $paket = $branch === null ? [] : (array) config("branches.{$branch}", []);
 
+            $domain = (string) $tenant->getAttribute('domain');
+
             $status = match (true) {
+                // Nicht ausgelieferte Portale zuerst (#16): die Domain zeigt
+                // an der Kante auf ein anderes Angebot, dort ist nichts zu
+                // betexten oder umzustellen — unabhaengig davon, wie weit das
+                // Paket ist.
+                ! $tenant->isDelivered() => 'nicht ausgeliefert',
                 $branch === null => 'kein Paket',
                 ($paket['_texte_fehlen'] ?? false) === true => 'Texte fehlen',
                 $this->fehlendeTexte($paket) !== [] => 'unvollstaendig: '.implode(', ', $this->fehlendeTexte($paket)),
                 default => 'bereit',
             };
 
-            if ($theme !== 'sun-v2' && $status !== 'bereit') {
+            if ($theme !== 'sun-v2' && $status !== 'bereit' && $tenant->isDelivered()) {
                 $offen++;
             }
 
@@ -58,7 +68,7 @@ class BranchStatusCommand extends Command
 
             $zeilen[] = [
                 (string) $tenant->getAttribute('id'),
-                (string) $tenant->getAttribute('domain'),
+                $domain,
                 $theme,
                 $branch ?? '—',
                 $status,
@@ -69,7 +79,30 @@ class BranchStatusCommand extends Command
         $this->table(['ID', 'Domain', 'Theme', 'Paket', 'Texte', 'Kacheln'], $zeilen);
 
         if (! $this->option('bereit')) {
-            $this->line(sprintf('%d Portal(e) warten noch auf Texte oder ein Paket.', $offen));
+            /** @var \Illuminate\Support\Collection<int, Tenant> $alle */
+            $alle = Tenant::query()->get();
+            $ausgeliefert = $alle->filter(fn (Tenant $tenant): bool => $tenant->isDelivered());
+
+            $this->line(sprintf(
+                '%d von %d ausgelieferten Portalen warten noch auf Texte oder ein Paket.',
+                $offen,
+                $ausgeliefert->count(),
+            ));
+
+            /** @var \Illuminate\Support\Collection<int, Tenant> $sortiert */
+            $sortiert = Tenant::query()->orderBy('id')->get();
+
+            foreach ($sortiert as $tenant) {
+                if ($tenant->isDelivered()) {
+                    continue;
+                }
+
+                $this->line(sprintf(
+                    'NICHT AUSGELIEFERT %s: %s',
+                    (string) $tenant->getAttribute('domain'),
+                    $tenant->notDeliveredNote() ?? 'ohne Begruendung — bitte am Tenant nachtragen',
+                ));
+            }
         }
 
         return self::SUCCESS;
