@@ -1,0 +1,61 @@
+# Stufe 0, Maschinenanteil — Produktion, 08.10.2026 (#36 §2)
+# php artisan turnstile:acceptance --portal=<domain> --siteverify --force
+# fuer die drei Gruppe-A-Portale. Der Befehl schaltet die Zeile in
+# tenant_turnstile_settings wie das Panel um und rollt alles zurueck;
+# Gegenprobe nach dem Lauf: turnstile:rollout zeigt weiter 23 x nein.
+# Nicht enthalten und am Menschen: der echte Browser-Token samt den beiden
+# Gegenproben (hostname-mismatch, action-mismatch) aus §2.
+
+===== fahrschulefinder.de
+Portal: fahrschulefinder.de (Tenant 29), Aktion: company_listing
++---+--------------------------------------+---------+--------------------------------------------------------------------------------------------------------------+
+| # | Pruefpunkt                           | Zustand | Befund                                                                                                       |
++---+--------------------------------------+---------+--------------------------------------------------------------------------------------------------------------+
+| 1 | Panel-Stellen und Portalauswahl      | ok      | drei Stellen vorhanden, Portal [fahrschulefinder.de] = Tenant 29 (FahrschuleFinder)                          |
+| 2 | Verbindung testen (Secret)           | ok      | ok (Widget-Gruppe A)                                                                                         |
+| 3 | Schalter "Bot-Schutz aktiv" aus / an | ok      | aus: Widget weg, Pruefung aus · an: Widget da, Pruefung aktiv                                                |
+| 4 | Darstellung managed → invisible      | ok      | managed: Kasten sichtbar · invisible: Kasten unsichtbar, appearance interaction-only, Pruefung laeuft weiter |
+| 5 | Logzeile je Versuch                  | ok      | Versuch ohne Token: abgewiesen, neue Zeilen 1, Ergebnis failed, Formular company_listing                     |
+| 6 | Secret bleibt gesetzt und geheim     | ok      | Wegwerf-Secret: Anzeige "gesetzt" bleibt, kein Klartext in Datenbank, toArray() und 18 Logdatei(en)          |
+| 7 | Kennzahlen 24 h                      | ok      | 23 Portale gelesen, 24 h: total 0, passed 0, failed 0, skipped 0, error 0                                    |
++---+--------------------------------------+---------+--------------------------------------------------------------------------------------------------------------+
+Handarbeit im Browser (docs/qa/turnstile-abnahme.md):
+  · Punkt 3/4: Kasten am Eintragsformular wirklich da / weg / unsichtbar
+  · Punkt 5: /admin/sicherheitspruefungen zeigt die Zeile samt Filtern
+  · Punkt 7: Kennzahlen-Kacheln auf /admin
+===== elektrikerportal.com
+Portal: elektrikerportal.com (Tenant 30), Aktion: company_listing
++---+--------------------------------------+---------+--------------------------------------------------------------------------------------------------------------+
+| # | Pruefpunkt                           | Zustand | Befund                                                                                                       |
++---+--------------------------------------+---------+--------------------------------------------------------------------------------------------------------------+
+| 1 | Panel-Stellen und Portalauswahl      | ok      | drei Stellen vorhanden, Portal [elektrikerportal.com] = Tenant 30 (ElektrikerPortal)                         |
+| 2 | Verbindung testen (Secret)           | ok      | ok (Widget-Gruppe A)                                                                                         |
+| 3 | Schalter "Bot-Schutz aktiv" aus / an | ok      | aus: Widget weg, Pruefung aus · an: Widget da, Pruefung aktiv                                                |
+| 4 | Darstellung managed → invisible      | ok      | managed: Kasten sichtbar · invisible: Kasten unsichtbar, appearance interaction-only, Pruefung laeuft weiter |
+| 5 | Logzeile je Versuch                  | ok      | Versuch ohne Token: abgewiesen, neue Zeilen 1, Ergebnis failed, Formular company_listing                     |
+| 6 | Secret bleibt gesetzt und geheim     | ok      | Wegwerf-Secret: Anzeige "gesetzt" bleibt, kein Klartext in Datenbank, toArray() und 18 Logdatei(en)          |
+| 7 | Kennzahlen 24 h                      | ok      | 23 Portale gelesen, 24 h: total 0, passed 0, failed 0, skipped 0, error 0                                    |
++---+--------------------------------------+---------+--------------------------------------------------------------------------------------------------------------+
+Handarbeit im Browser (docs/qa/turnstile-abnahme.md):
+  · Punkt 3/4: Kasten am Eintragsformular wirklich da / weg / unsichtbar
+  · Punkt 5: /admin/sicherheitspruefungen zeigt die Zeile samt Filtern
+  · Punkt 7: Kennzahlen-Kacheln auf /admin
+===== sanitaerfinden.com
+Portal: sanitaerfinden.com (Tenant 28), Aktion: company_listing
++---+--------------------------------------+---------+--------------------------------------------------------------------------------------------------------------+
+| # | Pruefpunkt                           | Zustand | Befund                                                                                                       |
++---+--------------------------------------+---------+--------------------------------------------------------------------------------------------------------------+
+| 1 | Panel-Stellen und Portalauswahl      | ok      | drei Stellen vorhanden, Portal [sanitaerfinden.com] = Tenant 28 (SanitärFinden)                              |
+| 2 | Verbindung testen (Secret)           | ok      | ok (Widget-Gruppe A)                                                                                         |
+| 3 | Schalter "Bot-Schutz aktiv" aus / an | ok      | aus: Widget weg, Pruefung aus · an: Widget da, Pruefung aktiv                                                |
+| 4 | Darstellung managed → invisible      | ok      | managed: Kasten sichtbar · invisible: Kasten unsichtbar, appearance interaction-only, Pruefung laeuft weiter |
+| 5 | Logzeile je Versuch                  | ok      | Versuch ohne Token: abgewiesen, neue Zeilen 1, Ergebnis failed, Formular company_listing                     |
+| 6 | Secret bleibt gesetzt und geheim     | ok      | Wegwerf-Secret: Anzeige "gesetzt" bleibt, kein Klartext in Datenbank, toArray() und 18 Logdatei(en)          |
+| 7 | Kennzahlen 24 h                      | ok      | 23 Portale gelesen, 24 h: total 0, passed 0, failed 0, skipped 0, error 0                                    |
++---+--------------------------------------+---------+--------------------------------------------------------------------------------------------------------------+
+Handarbeit im Browser (docs/qa/turnstile-abnahme.md):
+  · Punkt 3/4: Kasten am Eintragsformular wirklich da / weg / unsichtbar
+  · Punkt 5: /admin/sicherheitspruefungen zeigt die Zeile samt Filtern
+  · Punkt 7: Kennzahlen-Kacheln auf /admin
+
+Gegenprobe Rollout (Soll 23): 23

@@ -35,6 +35,13 @@ declare(strict_types=1);
 | Werbe-Schnipsel aus ad_slots und config('app.tracking_scripts'). Beides sind
 | Vorlagen von AdSense bzw. Google mit eigenen <script>-Bloecken.
 |
+| Verstoesse werden seit #51 serverseitig gesammelt: die Middleware haengt
+| `report-uri` UND `report-to` an die Policy und setzt dazu den Header
+| `Reporting-Endpoints`. Beide, weil Chrome auf `report-to` umgestellt hat und
+| Safari/Firefox weiter nur `report-uri` lesen. Ziel ist POST /csp-bericht
+| (App\Http\Controllers\Portal\CspReportController), Auswertung mit
+| `php artisan csp:berichte`, Pruning mit `php artisan csp:prune`.
+|
 */
 return [
 
@@ -154,6 +161,50 @@ return [
         'base-uri' => ["'self'"],
         'form-action' => ["'self'"],
         'object-src' => ["'none'"],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Sammelstelle fuer Verstoesse (#51)
+    |--------------------------------------------------------------------------
+    |
+    | `path` ist die Adresse, die in `report-uri`, in `report-to` und im Header
+    | `Reporting-Endpoints` landet. Sie muss zur Route `portal.csp-report` in
+    | routes/tenant.php passen — wird hier etwas geaendert, dort mit aendern.
+    |
+    | `group` ist der Name der Berichtsgruppe fuer `report-to`; er verbindet die
+    | Direktive mit dem Eintrag im `Reporting-Endpoints`-Header und hat sonst
+    | keine Bedeutung.
+    |
+    | `enabled => false` laesst die Route stehen, setzt aber keine der beiden
+    | Direktiven und schreibt nichts. Das ist der Schalter, wenn eine Flut
+    | durchkommt, die die Obergrenzen nicht abfangen.
+    |
+    */
+
+    'report' => [
+        'enabled' => (bool) env('CSP_REPORT_ENABLED', true),
+
+        'path' => '/csp-bericht',
+        'group' => 'csp-bericht',
+
+        // Groesserer Rumpf wird verworfen. Ein CSP-Bericht hat wenige hundert
+        // Byte; Chrome bundelt mehrere, bleibt aber weit darunter.
+        'max_body_bytes' => (int) env('CSP_REPORT_MAX_BODY_BYTES', 64000),
+
+        // Hoechstens so viele NEUE Zeilen je Portal und Stunde. Erhoehungen
+        // bestehender Zeilen sind nie betroffen, der Zaehler bleibt richtig.
+        // Schutz gegen Quellen mit Cache-Buster in der URL, bei denen jeder
+        // Aufruf einen neuen Fingerprint ergibt.
+        'max_new_rows_per_hour' => (int) env('CSP_REPORT_MAX_NEW_ROWS_PER_HOUR', 200),
+
+        // Aufbewahrung in Tagen; danach raeumt csp:prune ab. Kuerzer als beim
+        // Turnstile-Log (90 Tage): ein CSP-Befund wird behoben oder in die
+        // Policy aufgenommen, eine alte Zeile sagt danach nichts mehr.
+        'retention_days' => (int) env('CSP_REPORT_RETENTION_DAYS', 30),
+
+        // Zeilen je Loeschrunde von csp:prune.
+        'prune_chunk' => (int) env('CSP_REPORT_PRUNE_CHUNK', 1000),
     ],
 
     /*

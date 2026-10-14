@@ -14,6 +14,7 @@ class TenantCreationService
 {
     public function __construct(
         private TenantPermissionService $tenantPermissionService,
+        private TenantLegalProvisioningService $tenantLegalProvisioningService,
     ) {}
 
     public function findUserTenantsForNewOrder(?User $user)
@@ -142,6 +143,11 @@ class TenantCreationService
         $tenant->users()->attach($user);
 
         $this->tenantPermissionService->assignTenantUserRole($tenant, $user, TenancyPermissionConstants::TENANT_CREATOR_ROLE);
+
+        // Betreiberangaben und Standard-Rechtstexte hinterlegen (#50). Ohne
+        // das ging jedes ueber die Oberflaeche oder den Checkout angelegte
+        // Portal ohne Impressum und Datenschutzerklaerung online.
+        $this->tenantLegalProvisioningService->provision($tenant);
 
         TenantCreated::dispatch($tenant, $user);
 

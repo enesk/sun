@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Filament;
 
 use App\Jobs\ProcessTenantImportJob;
+use App\Jobs\ProcessTenantPreviewJob;
 use App\Models\Tenant;
 use App\Services\TenantImport\SqlDumpProcessor;
 use Filament\Notifications\Notification;
@@ -17,28 +18,50 @@ class TenantImport extends Component
 {
     use WithFileUploads;
 
+    /**
+     * Obergrenze des Uploads in Kilobyte (~95 MB).
+     *
+     * Muss unter post_max_size (100M, siehe docker-php.ini-Dateien) und unter der
+     * 100-MB-Grenze von Cloudflare Free bleiben — sonst bricht die Kante mit
+     * 413 ab, bevor PHP ueberhaupt validieren kann.
+     */
+    public const MAX_UPLOAD_KILOBYTES = 95000;
+
     // Upload & Validation
     public $sqlFile = null;
+
     public ?array $validationErrors = null;
+
     public ?array $validationWarnings = null;
+
     public bool $fileValidated = false;
 
     // Tenant & Source Selection
     public ?string $targetTenantId = null;
+
     public int $sourceTenantId = 0;
+
     public array $availableTenantIds = [];
 
     // Preview
     public ?array $previewData = null;
 
+    public bool $previewRunning = false;
+
+    public ?string $previewMessage = null;
+
     // Import Options
     public bool $skipReviews = false;
+
     public bool $skipPhotos = false;
+
     public bool $forceOverwrite = false;
 
     // Progress
     public bool $importRunning = false;
+
     public ?array $progressData = null;
+
     public ?array $importResult = null;
 
     // Internal — public damit Livewire es zwischen Requests persistiert
@@ -63,13 +86,17 @@ class TenantImport extends Component
         }
 
         $this->validate([
-            'sqlFile' => ['file', 'max:262144', 'extensions:sql,gz'], // 256 MB
+            // 95 MB: unter post_max_size (100M) und unter der 100-MB-Grenze der
+            // Cloudflare-Kante, damit der Nutzer eine Validierungsmeldung statt 413 sieht.
+            'sqlFile' => ['file', 'max:'.self::MAX_UPLOAD_KILOBYTES, 'extensions:sql,gz'],
+        ], [
+            'sqlFile.max' => 'Die Datei ist zu gross (max. 95 MB). Grössere Dumps bitte per SSH direkt auf dem Ursprung-Server einspielen, nicht durch die Cloudflare-Kante.',
         ]);
 
         try {
             // Datei SOFORT dauerhaft speichern — Livewire-Temp-Dateien werden zu schnell bereinigt
             $extension = $this->sqlFile->getClientOriginalExtension() ?: 'sql';
-            $fileName = uniqid('import_', true) . '.' . $extension;
+            $fileName = uniqid('import_', true).'.'.$extension;
             $storedPath = $this->sqlFile->storeAs(
                 'tenant-imports',
                 $fileName,
@@ -78,6 +105,7 @@ class TenantImport extends Component
 
             if (! $storedPath) {
                 $this->validationErrors = ['Datei konnte nicht gespeichert werden.'];
+
                 return;
             }
 
@@ -91,6 +119,7 @@ class TenantImport extends Component
                 // Datei aufräumen bei ungültigem Dump
                 @unlink($this->storedFilePath);
                 $this->storedFilePath = null;
+
                 return;
             }
 
@@ -99,16 +128,18 @@ class TenantImport extends Component
 
             Notification::make()
                 ->title('SQL-Dump validiert')
-                ->body('Gefundene Tabellen: ' . implode(', ', $validation->foundTables))
+                ->body('Gefundene Tabellen: '.implode(', ', $validation->foundTables))
                 ->success()
                 ->send();
         } catch (\Throwable $e) {
-            $this->validationErrors = ['Fehler bei der Validierung: ' . $e->getMessage()];
+            $this->validationErrors = ['Fehler bei der Validierung: '.$e->getMessage()];
         }
     }
 
     /**
-     * Vorschau laden: SQL-Dump in Temp-DB importieren und analysieren.
+     * Vorschau anstossen: SQL-Dump wird im Hintergrund-Job in eine Temp-DB
+     * eingespielt und analysiert. Synchron riss das bei grossen Dumps die
+     * 100-s-Grenze der Cloudflare-Kante (524).
      */
     public function loadPreview(): void
     {
@@ -117,60 +148,71 @@ class TenantImport extends Component
                 ->title('Bitte SQL-Datei hochladen und Ziel-Tenant wählen.')
                 ->danger()
                 ->send();
+
             return;
         }
 
         if (! $this->storedFilePath || ! file_exists($this->storedFilePath)) {
             $this->validationErrors = ['SQL-Datei nicht mehr verfügbar. Bitte erneut hochladen.'];
             $this->fileValidated = false;
+
             return;
         }
 
         $tenant = Tenant::find($this->targetTenantId);
         if (! $tenant) {
             Notification::make()->title('Tenant nicht gefunden.')->danger()->send();
+
             return;
         }
 
-        try {
-            $processor = app(SqlDumpProcessor::class);
+        Cache::forget(ProcessTenantPreviewJob::getCacheKey($tenant->id));
 
-            // Dump verarbeiten und Temp-DB erstellen
-            $tempDbInfo = $processor->process($this->storedFilePath);
+        ProcessTenantPreviewJob::dispatch($tenant, $this->storedFilePath, $this->sourceTenantId);
 
-            // Verfügbare Tenant-IDs laden
-            $this->availableTenantIds = $processor->getAvailableTenantIds();
+        $this->validationErrors = null;
+        $this->previewData = null;
+        $this->previewRunning = true;
+        $this->previewMessage = 'Vorschau-Job gestartet...';
 
-            // Dry-Run für Vorschau
-            $importService = app(\App\Services\TenantImport\TenantImportService::class);
+        Notification::make()
+            ->title('Vorschau wird im Hintergrund erstellt')
+            ->body('Grosse Dumps brauchen einige Minuten. Die Seite aktualisiert sich selbst.')
+            ->success()
+            ->send();
+    }
 
-            // Tenant-Context für Duplikaterkennung
-            tenancy()->initialize($tenant);
+    /**
+     * Fortschritt der laufenden Vorschau abfragen (Polling).
+     */
+    public function pollPreview(): void
+    {
+        if (! $this->previewRunning || ! $this->targetTenantId) {
+            return;
+        }
 
-            // Connection nach Tenancy-Init erneut sicherstellen (Tenancy kann Config zurücksetzen)
-            SqlDumpProcessor::ensureConnection($tempDbInfo->databaseName, $tempDbInfo->connectionName);
+        $state = Cache::get(ProcessTenantPreviewJob::getCacheKey($this->targetTenantId));
 
-            $preview = $importService->dryRun($tenant, $tempDbInfo->connectionName, $this->sourceTenantId);
-            tenancy()->end();
+        if (! $state) {
+            return;
+        }
 
-            $this->previewData = [
-                'placesCount' => $preview->placesCount,
-                'categoriesCount' => $preview->categoriesCount,
-                'reviewsCount' => $preview->reviewsCount,
-                'photosCount' => $preview->photosCount,
-                'openingHoursCount' => $preview->openingHoursCount,
-                'duplicatesCount' => $preview->duplicatesCount,
-                'expectedNewCompanies' => $preview->expectedNewCompanies,
-                'missingCategories' => $preview->missingCategories,
-                'availableTenantIds' => $preview->availableTenantIds,
-            ];
+        $this->previewMessage = $state['message'] ?? null;
 
-            // Nur Temp-DB aufräumen, Upload-Datei bleibt für den Import erhalten
-            $processor->cleanupDatabase();
+        if ($state['status'] === 'completed') {
+            $this->previewRunning = false;
+            $preview = $state['preview'] ?? [];
+            $this->availableTenantIds = $preview['availableTenantIds'] ?? [];
+            $this->previewData = $preview;
 
-        } catch (\Throwable $e) {
-            $this->validationErrors = ['Fehler bei der Vorschau: ' . $e->getMessage()];
-            try { tenancy()->end(); } catch (\Throwable) {}
+            Notification::make()->title('Vorschau fertig')->success()->send();
+
+            return;
+        }
+
+        if ($state['status'] === 'failed') {
+            $this->previewRunning = false;
+            $this->validationErrors = [$state['message'] ?? 'Unbekannter Fehler bei der Vorschau.'];
         }
     }
 
@@ -184,18 +226,21 @@ class TenantImport extends Component
                 ->title('Bitte SQL-Datei und Ziel-Tenant wählen.')
                 ->danger()
                 ->send();
+
             return;
         }
 
         $tenant = Tenant::find($this->targetTenantId);
         if (! $tenant) {
             Notification::make()->title('Tenant nicht gefunden.')->danger()->send();
+
             return;
         }
 
         if (! $this->storedFilePath || ! file_exists($this->storedFilePath)) {
             $this->validationErrors = ['SQL-Datei nicht mehr verfügbar. Bitte erneut hochladen.'];
             $this->fileValidated = false;
+
             return;
         }
 
@@ -280,6 +325,8 @@ class TenantImport extends Component
         $this->validationWarnings = null;
         $this->fileValidated = false;
         $this->previewData = null;
+        $this->previewRunning = false;
+        $this->previewMessage = null;
         $this->availableTenantIds = [];
         $this->sourceTenantId = 0;
         $this->storedFilePath = null;

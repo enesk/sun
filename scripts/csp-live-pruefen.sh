@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # Prueft ausgeliefertes Produktions-HTML gegen die CSP (#36, §1.5 Schritt 3).
 #
-# Warum es dieses Skript gibt: config/csp.php setzt **keine** `report-uri` und
-# keine `report-to`. Im Modus `report` meldet der Browser Verstoesse also nur in
-# seine eigene Konsole — serverseitig wird nichts gesammelt, die 24-Stunden-
-# Sichtung aus §1.5 kann nichts einsammeln. Dieses Skript prueft stattdessen
-# genau das, was `enforce` brechen wuerde, am echten Auslieferungsstand:
+# Warum es dieses Skript gibt: es prueft die CSP **ohne einen einzigen
+# Besucher**. Seit #51 sammelt die Anwendung Verstoesse auch serverseitig
+# (`report-uri`/`report-to` → POST /csp-bericht, Auswertung
+# `php artisan csp:berichte`) — die Meldungen kommen aber erst, wenn jemand die
+# Seite oeffnet, und nur von den Seiten, die jemand oeffnet. Dieses Skript prueft
+# stattdessen genau das, was `enforce` brechen wuerde, am echten
+# Auslieferungsstand und auf allen Seitentypen:
 #
 #   * <script> ohne src und ohne nonce   -> script-src hat kein 'unsafe-inline'
 #     (JSON-LD zaehlt NICHT: <script type="application/ld+json"> wird nicht
@@ -13,9 +15,10 @@
 #   * on*-Attribute (onclick, onsubmit, …) -> von CSP ebenfalls geblockt
 #   * fremde Script-Hosts, die script-src nicht nennt
 #
-# Was es NICHT ersetzt: ein Mensch mit offener Browser-Konsole sieht zusaetzlich
-# Verstoesse, die erst zur Laufzeit entstehen (dynamisch eingefuegte Skripte,
-# eval, Stylesheets fremder Einbettungen). Die Browsermessung liegt in
+# Was es NICHT ersetzt: Verstoesse, die erst zur Laufzeit entstehen (dynamisch
+# eingefuegte Skripte, eval, Stylesheets fremder Einbettungen). Die sieht die
+# Sammelstelle aus #51 (`csp:berichte`) oder ein Mensch mit offener
+# Browser-Konsole. Die Browsermessung liegt in
 # docs/messungen/csp-browser-messung-2026-10-08.md (#28) und
 # csp-webkit-nonce-2026-10-08.json (#29).
 #

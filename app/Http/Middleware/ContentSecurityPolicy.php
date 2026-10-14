@@ -28,6 +28,12 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * Vorgabe ist `mode => enforce`. `report` meldet nur, `off` setzt nichts.
  *
+ * Gemeldet wird seit #51 auch serverseitig: `report-uri` und `report-to`
+ * zeigen auf POST /csp-bericht, dazu kommt der Header `Reporting-Endpoints`.
+ * Beide Direktiven, weil Chrome `report-uri` nicht mehr liest und
+ * Safari/Firefox `report-to` nicht kennen. Vorher sammelte `report` nichts
+ * ein — der Browser schrieb nur in seine eigene Konsole.
+ *
  * Angefasst wird nur HTML und nur, wenn die Antwort keinen eigenen CSP-Header
  * traegt — das Bewertungs-Widget (ReviewWidgetController) setzt sich sein
  * `frame-ancestors *` selbst und darf nicht ueberschrieben werden.
@@ -57,6 +63,15 @@ class ContentSecurityPolicy
             : 'Content-Security-Policy-Report-Only';
 
         $response->headers->set($header, $this->policy());
+
+        if ($this->reportTo() !== null) {
+            // Die Gruppe fuer `report-to`. Chrome liest sie aus diesem Header,
+            // nicht aus der Policy; ohne ihn ist `report-to` wirkungslos.
+            $response->headers->set(
+                'Reporting-Endpoints',
+                $this->reportGroup().'="'.$this->reportUrl($request).'"'
+            );
+        }
 
         return $response;
     }
@@ -102,7 +117,70 @@ class ContentSecurityPolicy
             $parts[] = $directive.' '.implode(' ', $sources);
         }
 
+        // Zum Schluss, damit die Sammelstelle unabhaengig von der
+        // Direktivenliste in der Konfiguration gesetzt wird.
+        $pfad = $this->reportPath();
+
+        if ($pfad !== null) {
+            // Relativ, nicht absolut: der Browser loest gegen das Dokument
+            // auf und trifft damit immer das eigene Portal. Eine feste URL
+            // waere bei 23 Portalen falsch.
+            $parts[] = 'report-uri '.$pfad;
+            $parts[] = 'report-to '.$this->reportGroup();
+        }
+
         return implode('; ', $parts);
+    }
+
+    /**
+     * Pfad der Sammelstelle (#51), oder null, wenn sie abgeschaltet ist.
+     * Muss mit einem Schraegstrich beginnen, sonst waere er relativ zum
+     * Verzeichnis der aufgerufenen Seite.
+     */
+    private function reportPath(): ?string
+    {
+        if (config('csp.report.enabled') !== true) {
+            return null;
+        }
+
+        $pfad = trim((string) config('csp.report.path'));
+
+        return str_starts_with($pfad, '/') ? $pfad : null;
+    }
+
+    /** Name der Berichtsgruppe, die Policy und Reporting-Endpoints verbindet. */
+    private function reportGroup(): string
+    {
+        $gruppe = trim((string) config('csp.report.group'));
+
+        return $gruppe === '' ? 'csp' : $gruppe;
+    }
+
+    /**
+     * Der Reporting-Endpoints-Header will eine URL, keinen Pfad — und zwar
+     * die des aufgerufenen Hosts, damit der Bericht beim eigenen Portal
+     * landet und nicht ueber eine fremde Herkunft geht.
+     */
+    private function reportTo(): ?string
+    {
+        return $this->reportPath();
+    }
+
+    /**
+     * Die Reporting-API nimmt nur eine SICHERE URL an: steht dort `http://`,
+     * verwirft Chrome die Gruppe stillschweigend und `report-to` ist
+     * wirkungslos (nachgemessen in #51). Darum wird das Schema erzwungen,
+     * sobald die Umgebung nicht `local` ist — hinter der Cloudflare-Kante
+     * kann der Ursprung eine Anfrage als `http` sehen, obwohl der Browser
+     * `https` spricht, und ein TrustProxies ist hier nicht konfiguriert.
+     * Lokal bleibt es beim Schema der Anfrage, sonst zeigt `php artisan serve`
+     * auf eine Adresse, die es nicht gibt.
+     */
+    private function reportUrl(Request $request): string
+    {
+        $schema = $request->isSecure() || ! app()->environment('local') ? 'https' : 'http';
+
+        return $schema.'://'.$request->getHttpHost().((string) $this->reportPath());
     }
 
     /**

@@ -4,6 +4,7 @@ namespace App\Filament\Admin\Resources\Tenants\Pages;
 
 use App\Events\Tenant\TenantCreated;
 use App\Filament\Admin\Resources\Tenants\TenantResource;
+use App\Services\TenantLegalProvisioningService;
 use App\Support\Tenancy\TenantPremiumPricing;
 use App\Support\Tenancy\TenantTerms;
 use App\Themes\ThemeManager;
@@ -45,6 +46,10 @@ class CreateTenant extends CreateRecord
 
     protected function afterCreate()
     {
+        // Betreiberangaben und Standard-Rechtstexte hinterlegen (#50).
+        // Im Formular gepflegte Werte bleiben unangetastet.
+        app(TenantLegalProvisioningService::class)->provision($this->record);
+
         TenantCreated::dispatch($this->record, auth()->user());
     }
 
@@ -57,9 +62,9 @@ class CreateTenant extends CreateRecord
         ];
 
         foreach ($data as $key => $value) {
-            $fullKey = $prefix === '' ? $key : $prefix . '.' . $key;
+            $fullKey = $prefix === '' ? $key : $prefix.'.'.$key;
 
-            if (is_array($value) && !in_array($fullKey, $compositeKeys, true)) {
+            if (is_array($value) && ! in_array($fullKey, $compositeKeys, true)) {
                 if (array_is_list($value)) {
                     $result[$fullKey] = $value;
                 } else {

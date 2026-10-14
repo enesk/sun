@@ -14,8 +14,8 @@ namespace App\Constants;
  * ohne Anschrift zurueck.
  *
  * Diese Klasse ist die einzige Stelle, an der die Betreiberanschrift steht.
- * Sie wird von CreateTenantCommand (Neuanlage) und TenantAddressSeedCommand
- * (Bestand) gelesen. Wird die Anschrift des Betreibers je geaendert, aendert
+ * Sie wird von TenantLegalProvisioningService (Neuanlage auf allen Wegen, #50)
+ * und TenantAddressSeedCommand (Bestand) gelesen. Wird die Anschrift des Betreibers je geaendert, aendert
  * sie sich hier — und die Bestandsdaten werden mit dem Kommando nachgezogen.
  *
  * Wichtig: das sind Vorgabewerte fuer den Betreiber selbst, keine geratenen

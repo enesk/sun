@@ -23,6 +23,20 @@
 #   scripts/turnstile-golive-deploy.sh              # Trockenlauf, aendert NICHTS
 #   scripts/turnstile-golive-deploy.sh --los        # fuehrt aus, fragt einmal nach
 #   scripts/turnstile-golive-deploy.sh --los --ohne-dump   # nur wenn frisch gedumpt
+#   scripts/turnstile-golive-deploy.sh --nur-schema --los  # nur Dump, Migrationen, Caches
+#   scripts/turnstile-golive-deploy.sh --ab=4 --los        # ab Abschnitt 4 fortsetzen
+#
+# Ein abgebrochener Lauf wird mit --ab=<nr> dort fortgesetzt, wo das Protokoll
+# aufhoert (alle Abschnitte sind fuer sich wiederholbar). --nur-schema ist die
+# Abkuerzung fuer den Fall aus #47: Code liegt schon auf der Produktion, das
+# Schema fehlt, jede Startseite liefert 500. Es fuehrt 3, 5 und 6 aus und laesst
+# den Build aus 4 weg, der auf dem Server schon einmal zehn Minuten hing.
+#
+# Ohne Terminal (Automat, Agentenlauf) verweigert --los die Rueckfrage. Wer den
+# Lauf trotzdem braucht — etwa zur Behebung eines laufenden Ausfalls (#47) —
+# bestaetigt ausdruecklich und nennt den Grund; beides landet im Protokoll:
+#   DEPLOY_BESTAETIGUNG=deploy DEPLOY_GRUND='...' \
+#     scripts/turnstile-golive-deploy.sh --nur-schema --los
 #
 # Einstellbar: SUN_SSH_HOST (Vorgabe sun), APP_DIR, APP_USER, PHP_BIN.
 #
@@ -51,16 +65,27 @@ MIN_FREI_GB=50
 
 LOS=0
 OHNE_DUMP=0
+SCHRITTE="1 2 3 4 5 6"
 while [ $# -gt 0 ]; do
   case "$1" in
     --los) LOS=1; shift ;;
     --ohne-dump) OHNE_DUMP=1; shift ;;
+    --nur-schema) SCHRITTE="3 5 6"; shift ;;
+    --ab=*)
+      AB="${1#--ab=}"
+      case "$AB" in [1-6]) ;; *) echo "--ab= braucht eine Abschnittsnummer 1-6" >&2; exit 64 ;; esac
+      SCHRITTE="$(seq "$AB" 6 | tr '\n' ' ')"
+      shift ;;
     -h|--help) sed -n '2,40p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "Unbekannte Option: $1" >&2; exit 64 ;;
   esac
 done
 
-remote() { ssh -o BatchMode=yes -o ConnectTimeout=20 "$SSH_HOST" "$@"; }
+# ServerAlive*: Schritt 2 (chown -R) und Schritt 5 (Migrationen ueber 24
+# Datenbanken) laufen minutenlang ohne eine Zeile Ausgabe. Ohne Keepalive
+# reisst die Sitzung dazwischen ab und der Lauf endet mitten im Abschnitt
+# (passiert am 08.10.2026 in Schritt 2, siehe #47).
+remote() { ssh -o BatchMode=yes -o ConnectTimeout=20 -o ServerAliveInterval=30 -o ServerAliveCountMax=20 "$SSH_HOST" "$@"; }
 als_app() { remote "su -s /bin/bash ${APP_USER} -c 'HOME=/home/${APP_USER}; cd ${APP_DIR} && $1'"; }
 
 # Dump-Skript fuer Schritt 3. Laeuft als Anwendungsbenutzer im Anwendungspfad,
@@ -98,9 +123,21 @@ DUMP
 log() { printf '%s\n' "$*" | tee -a "$PROTOKOLL"; }
 kopf() { log ""; log "=== $* ==="; }
 
+# abschnitt <nr> <titel> — setzt AKTIV und ueberspringt, was nicht in
+# $SCHRITTE steht (--nur-schema, --ab=).
+AKTIV=1
+abschnitt() {
+  local nr="$1"; shift
+  case " $SCHRITTE " in
+    *" $nr "*) AKTIV=1; kopf "${nr}. $*" ;;
+    *) AKTIV=0; log ""; log "=== ${nr}. $* — uebersprungen ===" ;;
+  esac
+}
+
 # schritt <beschreibung> <befehl-als-root|app> <wo: root|app>
 schritt() {
   local text="$1" befehl="$2" wo="${3:-app}"
+  [ "$AKTIV" -eq 1 ] || return 0
   if [ "$LOS" -eq 0 ]; then
     log "  [Trockenlauf] ${text}"
     log "                ${wo}: ${befehl}"
@@ -236,31 +273,54 @@ if [ "$LOS" -eq 1 ]; then
     printf 'Alles darueber gelesen? Dann "deploy" eintippen: '
     read -r ANTWORT
     [ "$ANTWORT" = "deploy" ] || { log "Abgebrochen."; exit 64; }
+  elif [ "${DEPLOY_BESTAETIGUNG:-}" = "deploy" ]; then
+    # Ohne Terminal gilt die Bestaetigung nur ausdruecklich und mit Grund — und
+    # beides steht im Protokoll, damit hinterher nachlesbar ist, wer den Lauf
+    # ausgeloest hat. Gedacht fuer die Ausfallbehebung aus #47, wo das Warten
+    # auf ein Terminal teurer ist als der Lauf.
+    log ""
+    log "Bestaetigung aus der Umgebung (DEPLOY_BESTAETIGUNG=deploy), kein Terminal."
+    log "  Grund: ${DEPLOY_GRUND:-nicht angegeben}"
+    [ -n "${DEPLOY_GRUND:-}" ] || {
+      log "FEHLER: ohne Terminal ist DEPLOY_GRUND Pflicht. Abbruch."
+      exit 64
+    }
   else
-    log "FEHLER: --los braucht ein Terminal (einmalige Rueckfrage). Abbruch."
+    log "FEHLER: --los braucht ein Terminal (einmalige Rueckfrage) oder"
+    log "        DEPLOY_BESTAETIGUNG=deploy samt DEPLOY_GRUND=<warum>. Abbruch."
     exit 64
   fi
 fi
 
 # ------------------------------------------------------------------- Schritte
-kopf "1. Notbremse und CSP vorziehen (vor dem ersten config:cache)"
+abschnitt 1 "Notbremse und CSP vorziehen (vor dem ersten config:cache)"
 schritt "Sicherung der .env" \
   "cp -p .env .env.bak-36-${STAMPEL}" root
 schritt "TURNSTILE_ENABLED=false und CSP_MODE=report setzen" \
   "for z in TURNSTILE_ENABLED=false CSP_MODE=report; do k=\${z%%=*}; grep -v \"^\${k}=\" .env > .env.neu; printf '%s\n' \"\$z\" >> .env.neu; cat .env.neu > .env; rm -f .env.neu; done; chown ${APP_USER}:${APP_USER} .env; grep -E '^TURNSTILE_ENABLED|^CSP_MODE' .env" root
-schritt "Config-Cache neu bauen" "${PHP_BIN} artisan config:clear && ${PHP_BIN} artisan config:cache" app
+# Hier nur LEEREN, nicht neu bauen: der neue Code kommt erst in Abschnitt 2, und
+# ein Cache aus dem alten Stand kennt config/turnstile.php, config/antispam.php
+# und config/csp.php nicht — 'turnstile:keys:check' meldete darauf "kennt keine
+# Gruppen" (nachgemessen 08.10.2026, 21:0x). Ohne Cache liest Laravel die .env
+# direkt, die Notbremse wirkt also sofort; gebaut wird der Cache in Abschnitt 6.
+schritt "Config-Cache leeren (Neubau erst in Abschnitt 6, nach dem Pull)" \
+  "${PHP_BIN} artisan config:clear" app
 schritt "PHP-FPM nachladen (ohne das wirkt die .env im Web nicht)" "systemctl reload ${FPM_SERVICE}" root
 
-kopf "2. Codestand"
+abschnitt 2 "Codestand"
 schritt "git pull --ff-only als root (nur root hat den GitHub-Schluessel)" \
   "git pull --ff-only && git log --oneline -1" root
-schritt "Eigentuemer zuruecksetzen" \
-  "chown -R ${APP_USER}:${APP_USER} ${APP_DIR}" root
+# node_modules bleibt aussen vor: dort liegen ueber hunderttausend Dateien,
+# der Abschnitt lief darueber minutenlang ohne Ausgabe. Schritt 4 chownt es.
+schritt "Eigentuemer zuruecksetzen (ohne node_modules)" \
+  "find . -mindepth 1 -maxdepth 1 -not -name node_modules -exec chown -R ${APP_USER}:${APP_USER} {} + && echo ok" root
 schritt "composer install --no-dev -o" \
   "composer install --no-dev -o --no-interaction" app
 
-kopf "3. Eigener Dump vor den Migrationen"
-if [ "$OHNE_DUMP" -eq 1 ]; then
+abschnitt 3 "Eigener Dump vor den Migrationen"
+if [ "$AKTIV" -eq 0 ]; then
+  :
+elif [ "$OHNE_DUMP" -eq 1 ]; then
   log "  [-] uebersprungen (--ohne-dump)"
 else
   DUMP_ZIEL="storage/app/backups/golive-36/${STAMPEL}"
@@ -274,21 +334,23 @@ else
   fi
 fi
 
-kopf "4. Assets"
+abschnitt 4 "Assets"
 schritt "Eigentuemer von public/build und node_modules" \
   "chown -R ${APP_USER}:${APP_USER} public/build node_modules 2>/dev/null || true" root
 schritt "npm ci (neue Abhaengigkeiten, nie als root)" \
   "npm ci --no-audit --no-fund" app
 schritt "npm run build — public/build ist nicht versioniert, resources/js/turnstile.js kommt aus dem Build" \
   "npm run build" app
+if [ "$AKTIV" -eq 1 ]; then
 log "  Hinweis: haengt der Build auf dem Server (2026 schon vorgekommen, > 10 min bei"
 log "  'transforming'), lokal auf demselben Commit bauen und hochschieben:"
 log "    npm run build && rsync -az public/build/ ${SSH_HOST}:${APP_DIR}/public/build/"
 log "    ssh ${SSH_HOST} 'chown -R ${APP_USER}:${APP_USER} ${APP_DIR}/public/build'"
 log "  Prozesse nie mit 'pkill -f \"vite build\"' beenden, das trifft die eigene"
 log "  SSH-Sitzung — Muster '[v]ite build' verwenden."
+fi
 
-kopf "5. Migrationen und Seeder"
+abschnitt 5 "Migrationen und Seeder"
 schritt "migrate --force (zentral)" "${PHP_BIN} artisan migrate --force" app
 schritt "tenants:migrate --force (23 Portale)" "${PHP_BIN} artisan tenants:migrate --force" app
 schritt "TenantTurnstileSettingSeeder (erwartet 23 angelegt)" \
@@ -298,7 +360,7 @@ schritt "Datenschutz-Backfill, erst trocken" \
 schritt "Datenschutz-Backfill schreibend" \
   "${PHP_BIN} artisan tenants:datenschutz:turnstile-backfill --write" app
 
-kopf "6. Caches und Dienste"
+abschnitt 6 "Caches und Dienste"
 schritt "config:cache, route:clear, view:clear, filament:optimize" \
   "${PHP_BIN} artisan config:clear && ${PHP_BIN} artisan config:cache && ${PHP_BIN} artisan route:clear && ${PHP_BIN} artisan view:clear && ${PHP_BIN} artisan filament:optimize" app
 schritt "PHP-FPM nachladen" "systemctl reload ${FPM_SERVICE}" root

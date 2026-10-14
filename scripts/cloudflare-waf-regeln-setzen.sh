@@ -11,7 +11,11 @@
 #
 # Den gibt es im Projekt nicht (#18) — der Turnstile-Token aus
 # scripts/cloudflare-token-ablegen.sh ist auf "Account / Turnstile: Edit"
-# geschnitten und traegt hier NICHT. Wer keinen zweiten Token anlegen will,
+# geschnitten und traegt hier NICHT. Klickweg, Rechte-Tabelle und Ablage eines
+# Tokens, der dieses Ticket und #37 zusammen abdeckt, stehen in
+# docs/messungen/cloudflare-token-zonenrechte-anleitung.md (#48); er landet mit
+# scripts/cloudflare-weiterleitungen-entfernen.sh --token-ablegen von selbst
+# auch unter CLOUDFLARE_API_TOKEN_SUN_WAF. Wer keinen zweiten Token anlegen will,
 # traegt die vier Regeln im Dashboard nach docs/bot-traffic.md Abschnitt 2 ein
 # und ueberspringt dieses Skript; die Ausdruecke unten sind dieselben.
 #

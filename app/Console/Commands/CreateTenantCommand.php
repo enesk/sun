@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Constants\TenantLegalDefaults;
-use App\Constants\TenantOperatorDefaults;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Services\TenantBrandingService;
 use App\Services\TenantImport\SqlDumpProcessor;
 use App\Services\TenantImport\TenantImportService;
+use App\Services\TenantLegalProvisioningService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -27,6 +25,12 @@ use Illuminate\Support\Str;
  *
  * Der PermissionControlledMySQLDatabaseManager erstellt den isolierten MySQL-User.
  *
+ * Betreiberangaben (Anschrift, Kontakt, verantwortliche Person) und die
+ * Standard-Rechtstexte setzt seit #50 ausschliesslich der
+ * TenantLegalProvisioningService — dieselbe Stelle, die auch die
+ * Filament-Oberflaeche und der Checkout benutzen. Die Vorgabewerte selbst
+ * stehen in TenantOperatorDefaults und TenantLegalDefaults.
+ *
  * Usage:
  *   php artisan tenant:create "Mein Portal"
  *   php artisan tenant:create "Mein Portal" --domain=mein-portal.de
@@ -35,34 +39,6 @@ use Illuminate\Support\Str;
  */
 class CreateTenantCommand extends Command
 {
-    /**
-     * Anschrift des Betreibers fuer neu angelegte Tenants (#60).
-     *
-     * Quelle der Wahrheit ist der Adressdatensatz — settings.contact_address
-     * wird daraus abgeleitet, nicht mehr fest gesetzt.
-     *
-     * Die Werte selbst stehen seit #69 in TenantOperatorDefaults, damit Neuanlage
-     * und Bestandspflege (tenants:address:seed) dieselbe Anschrift verwenden.
-     */
-    private const DEFAULT_ADDRESS_LINE_1 = TenantOperatorDefaults::ADDRESS_LINE_1;
-
-    private const DEFAULT_ZIP = TenantOperatorDefaults::ZIP;
-
-    private const DEFAULT_CITY = TenantOperatorDefaults::CITY;
-
-    private const DEFAULT_COUNTRY_CODE = TenantOperatorDefaults::COUNTRY_CODE;
-
-    private const DEFAULT_PHONE = TenantOperatorDefaults::PHONE;
-
-    /**
-     * Die uebrigen Betreiberangaben (#78). Sie standen bis dahin fest im
-     * Datenblock weiter unten bzw. fehlten ganz und stehen nun neben Anschrift
-     * und Telefon an einer Stelle.
-     */
-    private const DEFAULT_EMAIL = TenantOperatorDefaults::EMAIL;
-
-    private const DEFAULT_RESPONSIBLE_NAME = TenantOperatorDefaults::RESPONSIBLE_NAME;
-
     protected $signature = 'tenant:create
         {name : Name des Tenants}
         {--domain= : Domain für den Tenant (z.B. mein-portal.de)}
@@ -132,7 +108,9 @@ class CreateTenantCommand extends Command
             $this->line('  4. link-db-to-dbuser ausführen');
             $this->line('  5. Storage-Verzeichnisse + Symlink erstellen');
             $this->line('  6. MySQL-User mit isolierten Rechten anlegen');
-            if ($domain) {
+            if (! $domain) {
+                $this->line('  7. Betreiberangaben und Standard-Rechtstexte setzen (#50)');
+            } else {
                 $this->line('  7. Domain zuweisen');
                 $this->line('  8. add-domain-to-vhost '.$domain.' ausführen');
                 $this->line('  9. Tenant-Info von widimedia.com abrufen');
@@ -140,6 +118,7 @@ class CreateTenantCommand extends Command
                 $this->line('  11. Fotos vom Quellserver übertragen (rsync)');
                 $this->line('  12. Berechtigungen setzen (chown)');
                 $this->line('  13. Datenbank importieren (Companies, Kategorien, Öffnungszeiten, Reviews, Fotos)');
+                $this->line('  14. Betreiberangaben und Standard-Rechtstexte setzen (#50)');
 
                 // Im Dry-Run die Tenant-Info trotzdem abrufen und anzeigen
                 try {
@@ -351,42 +330,6 @@ class CreateTenantCommand extends Command
 
                 return self::FAILURE;
             }
-        }
-
-        // ─── Anschrift des Tenants ─────────────────────────────────
-        // Der Adressdatensatz ist seit #60 die Quelle der Wahrheit fuer die
-        // Adress-Platzhalter der Rechtstexte. Vorhandene Angaben bleiben stehen.
-        try {
-            $this->output->write('  Anschrift setzen... ');
-
-            $address = $tenant->address()->first();
-
-            $addressData = [
-                'address_line_1' => self::DEFAULT_ADDRESS_LINE_1,
-                'zip' => self::DEFAULT_ZIP,
-                'city' => self::DEFAULT_CITY,
-                'country_code' => self::DEFAULT_COUNTRY_CODE,
-                'phone' => self::DEFAULT_PHONE,
-            ];
-
-            if (! $address) {
-                $tenant->address()->create($addressData);
-                $this->info('✓');
-            } else {
-                $missing = array_filter(
-                    $addressData,
-                    fn (string $key) => trim((string) $address->getAttribute($key)) === '',
-                    ARRAY_FILTER_USE_KEY
-                );
-
-                if ($missing !== []) {
-                    $address->update($missing);
-                }
-
-                $this->info('✓');
-            }
-        } catch (\Exception $e) {
-            $this->warn("✗ Anschrift setzen fehlgeschlagen: {$e->getMessage()}");
         }
 
         // ─── link-db-to-dbuser ─────────────────────────────────────
@@ -643,6 +586,11 @@ class CreateTenantCommand extends Command
             try {
                 $this->output->write('  Tenant-Daten setzen... ');
 
+                // Achtung: dieser Block ueberschreibt die data-Spalte komplett.
+                // Betreiberangaben und Rechtstexte stehen deshalb nicht hier,
+                // sondern werden danach vom TenantLegalProvisioningService
+                // gesetzt (#50).
+
                 $remoteTenantName = $tenantInfo['name'] ?? $name;
                 $remoteGoogleAnalytics = $tenantInfo['google_analytics_id'] ?? null;
 
@@ -658,29 +606,17 @@ class CreateTenantCommand extends Command
                         'show_sidebar' => true,
                         'show_hero' => true,
                     ],
-                    'branding.impressum' => TenantLegalDefaults::IMPRESSUM,
                     'branding.logo_path' => null,
                     'branding.site_title' => $remoteTenantName,
-                    'branding.datenschutz' => TenantLegalDefaults::DATENSCHUTZ,
                     'branding.footer_text' => '© {year} {tenant_name}. Alle Rechte vorbehalten.',
                     'branding.accent_color' => '#F77F00',
                     'branding.favicon_path' => null,
                     'branding.meta_keywords' => null,
                     'branding.og_image_path' => null,
                     'branding.primary_color' => '#0077B6',
-                    'settings.contact_email' => self::DEFAULT_EMAIL,
-                    'settings.contact_phone' => self::DEFAULT_PHONE,
-                    'settings.responsible_name' => self::DEFAULT_RESPONSIBLE_NAME,
                     'settings.social_twitter' => null,
                     'branding.secondary_color' => '#023E8A',
                     'features.reviews_enabled' => true,
-                    // Abgeleitet aus dem Adressdatensatz (#60), nie von Hand gesetzt.
-                    'settings.contact_address' => app(TenantBrandingService::class)->buildContactAddress(
-                        self::DEFAULT_ADDRESS_LINE_1,
-                        null,
-                        self::DEFAULT_ZIP,
-                        self::DEFAULT_CITY,
-                    ),
                     'settings.social_facebook' => null,
                     'settings.social_linkedin' => null,
                     'branding.site_description' => null,
@@ -703,6 +639,23 @@ class CreateTenantCommand extends Command
             } catch (\Exception $e) {
                 $this->warn("✗ Tenant-Daten setzen fehlgeschlagen: {$e->getMessage()}");
             }
+        }
+
+        // ─── Betreiberangaben und Rechtstexte ──────────────────────
+        // Eine Stelle fuer alle Anlagewege (#50). Muss nach dem Datenblock
+        // laufen, weil der die data-Spalte komplett neu schreibt — deshalb
+        // vorher refresh(), damit die Pruefung den geschriebenen Stand sieht.
+        $this->output->write('  Betreiberangaben und Rechtstexte... ');
+
+        $tenant->refresh();
+        $provisioned = app(TenantLegalProvisioningService::class)->provision($tenant);
+
+        $this->info('✓');
+
+        if ($provisioned !== []) {
+            $this->line('    → gesetzt: '.implode(', ', $provisioned));
+        } else {
+            $this->line('    → nichts zu tun (bereits gepflegt)');
         }
 
         // ─── Owner verknüpfen ──────────────────────────────────────

@@ -32,6 +32,10 @@ use Illuminate\Console\Command;
  *
  * Trockenlauf ist die Voreinstellung; geschrieben wird ausschliesslich mit
  * --write.
+ *
+ * Reines Bestandswerkzeug: neu angelegte Tenants bekommen die Texte seit #50
+ * direkt bei der Anlage vom TenantLegalProvisioningService, dieses Kommando
+ * findet bei ihnen nichts mehr zu tun.
  */
 class TenantLegalSeedCommand extends Command
 {

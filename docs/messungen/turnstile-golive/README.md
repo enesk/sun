@@ -12,9 +12,15 @@ als erledigt — Befehlsausgabe als `.txt`/`.json`, Sichtprüfung als Screenshot
 | `keys-check-<datum>.txt` | `turnstile:keys:check --siteverify` in Produktion, Exit 0 | #36 |
 | `deploy-<stempel>.log` | Protokoll von `scripts/turnstile-golive-deploy.sh` — Vorbedingungen, jeder Befehl, Ausgabe von `migrate`, `tenants:migrate`, Seeder und Backfill. Ersetzt `migrate-<datum>.txt`, wenn der Deploy über das Skript lief | #36 |
 | `migrate-<datum>.txt` | `migrate --force` und `tenants:migrate --force`, falls von Hand gefahren | #36 |
-| `vorwoche-<datum>.json` | neue `users` und `companies` je Portal, sieben Tage vor Stufe 1 | #36 |
+| `datenschutz-nachzug-<datum>.md` | §1.3: die fünf Portale ohne Datenschutztext nachgezogen (Adress-, Kontakt- und Rechtstext-Seed), Backfill danach 23 × vorhanden | Agent (#49) |
+| `vorwoche-<datum>.json` | neue `users` und `companies` je Portal und Tag, sieben Tage vor Stufe 1 — erhoben mit `scripts/turnstile-vorwoche.sh` (streng lesend) | #36 |
+| `scheduler-listener-<datum>.txt` | `schedule:list` und `event:list` in Produktion (§1.5) | #36 |
+| `widget-html-<datum>.txt` | `data-sitekey`, Hidden-Input, Skript und Vite-Bündel im HTML von `/register` (§1.2) | #36 |
+| `stufe0-vorproben-<datum>.txt` | `turnstile:verify` ohne und mit Portalkontext, solange alle Portale auf `nein` stehen (§2) | #36 |
 | `backup-<datum>.txt` | `antispam:backup`, Dateiliste | #36 |
 | `csp-report-<datum>.txt` | 24 h `CSP_MODE=report` in Produktion, gesichtete Meldungen | #36 |
+| `stufe0-maschinell-<datum>.txt` | `turnstile:acceptance --siteverify --force` für die drei Gruppe-A-Portale | #36 |
+| `csp-report-<datum>.txt` | CSP in Produktion: Header, Messung des ausgelieferten HTML über acht Seitentypen (`scripts/csp-live-pruefen.sh`), Befunde | #36 |
 | `stufe1/` | sechs Screenshots (drei Portale × mobil/Desktop), `turnstile:report --json` nach 24 h | #36 |
 | `stufe2/`, `stufe3/` | Screenshots und je drei Tagesberichte | #36 |
 

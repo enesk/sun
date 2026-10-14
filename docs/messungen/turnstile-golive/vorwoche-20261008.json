@@ -1,0 +1,109 @@
+{
+  "zweck": "Vergleichsbasis fuer Akzeptanzkriterium 3 von #36: neue Registrierungen und Firmeneintraege je Portal in den sieben Tagen vor Stufe 1.",
+  "zeitraum": {
+    "von": "2026-10-01",
+    "bis": "2026-10-07",
+    "tage": 7
+  },
+  "erhoben_am": "2026-10-08",
+  "quelle": "php artisan turnstile:report --json --date=<tag> auf der Produktion, je Tag einmal",
+  "hinweis": "Die Spalten checks/blocked sind in diesem Zeitraum durchweg 0 — der Bot-Schutz war noch nicht aktiv. Genau das ist die Basis, gegen die Stufe 1 gemessen wird.",
+  "portale": {
+    "ApothekeFinden": {
+      "registrations": 0,
+      "listings": 0
+    },
+    "ArztFinder": {
+      "registrations": 3,
+      "listings": 0
+    },
+    "BodenlegerFinden": {
+      "registrations": 2,
+      "listings": 1
+    },
+    "ElektrikerPortal": {
+      "registrations": 2,
+      "listings": 2
+    },
+    "Energieberater": {
+      "registrations": 0,
+      "listings": 0
+    },
+    "FahrschuleFinder": {
+      "registrations": 13,
+      "listings": 6
+    },
+    "FindeGutachter": {
+      "registrations": 3,
+      "listings": 5
+    },
+    "Fliesenleger": {
+      "registrations": 1,
+      "listings": 0
+    },
+    "Gartenbauer": {
+      "registrations": 3,
+      "listings": 1
+    },
+    "Gerüstabauer.GmbH": {
+      "registrations": 0,
+      "listings": 0
+    },
+    "Hoch-  und Tiefbauunternehmen": {
+      "registrations": 0,
+      "listings": 0
+    },
+    "Klempner": {
+      "registrations": 0,
+      "listings": 0
+    },
+    "Malerfinder.de": {
+      "registrations": 2,
+      "listings": 0
+    },
+    "Metallbauer.io": {
+      "registrations": 1,
+      "listings": 0
+    },
+    "SanitaerFinder": {
+      "registrations": 0,
+      "listings": 0
+    },
+    "SanitärFinden": {
+      "registrations": 1,
+      "listings": 0
+    },
+    "Schlüsseldienst": {
+      "registrations": 0,
+      "listings": 0
+    },
+    "Solar - Photovoltaik": {
+      "registrations": 0,
+      "listings": 0
+    },
+    "SpeditionPortal": {
+      "registrations": 0,
+      "listings": 0
+    },
+    "Tierarztportal.com": {
+      "registrations": 0,
+      "listings": 0
+    },
+    "Unfallchirurgie in der Nähe": {
+      "registrations": 2,
+      "listings": 0
+    },
+    "Zahnarzt in der Nähe": {
+      "registrations": 2,
+      "listings": 0
+    },
+    "kfzwerkstatt": {
+      "registrations": 1,
+      "listings": 1
+    }
+  },
+  "summe": {
+    "registrations": 36,
+    "listings": 16
+  }
+}

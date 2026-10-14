@@ -1,0 +1,41 @@
+# Beleg §1.2 — Sitekey und Widget im HTML der Produktion
+
+Gemessen 08.10.2026, 21:5x CEST. Alle 23 Portale standen nach §1.6 auf `nein`;
+dann war das Widget im HTML nicht vorhanden (die Rule antwortet `skipped`).
+Für die Messung wurde deshalb **ein** Portal der Gruppe A kurz scharf gestellt und
+direkt danach wieder herausgenommen:
+
+```
+turnstile:rollout --activate=elektrikerportal.com     # 21:5x
+curl … https://elektrikerportal.com/register          # Messung, siehe unten
+turnstile:rollout --deactivate=elektrikerportal.com   # 21:5x, danach wieder 23 x nein
+```
+
+Gewählt wurde `elektrikerportal.com`, weil es von den drei Portalen der Gruppe A
+die geringste Last trägt (2 Registrierungen in der Vorwoche, 0,29/Tag laut
+`vorwoche-2026-10-08.json`) — das Zeitfenster lag bei rund drei Minuten.
+
+## Ergebnis (HTTP 200)
+
+```
+data-sitekey="0x4AAAAAAFRicOB43qt9oAsa"
+data-action="registration"
+cf-turnstile-response                       (Hidden-Input vorhanden)
+challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad
+/build/assets/turnstile-CKb2w3ce.js         HTTP 200, 2319 Byte
+Transparenzhinweis: "… Cloudflare Turnstile geschützt. Es gelten die …"
+```
+
+## Bewertung
+
+* Der Sitekey beginnt mit `0x`, **nicht** mit `1x`, `2x` oder `3x` — kein
+  Cloudflare-Testschlüssel in Produktion (Akzeptanzkriterium 1b).
+* Das Skript wird von `challenges.cloudflare.com` geladen, `render=explicit` mit
+  `onTurnstileLoad`; das Bündel aus dem Vite-Build (`turnstile-CKb2w3ce.js`) ist
+  erreichbar. Damit ist die Lücke aus §1.3 (ohne Build bleibt der Hidden-Input leer
+  und jede Registrierung fällt durch) geschlossen.
+* Der Transparenzhinweis aus #11 steht am Formular.
+
+Offen bleibt die Sichtprüfung im echten Browser und auf einem echten Gerät (§3):
+dass der Kasten erscheint, lösbar ist und eine echte Registrierung durchgeht, sagt
+dieses HTML nicht.

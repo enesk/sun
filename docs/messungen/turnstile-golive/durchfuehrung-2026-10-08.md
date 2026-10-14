@@ -454,3 +454,153 @@ php artisan tinker --execute='…config("turnstile.groups")…'
 
 Identisch mit der Skript-Ausgabe, Summe 18. `docs/turnstile-golive.md` §1.1
 Weg B nennt den Befehl jetzt vor der Checkliste.
+
+---
+
+## 9. Siebter Durchlauf, 08.10.2026 21:15–21:35 (#36) — §1 abgeschlossen
+
+Lage beim Start: B1 und B2 waren erledigt (Enes 19:50 bzw. Merge `a0bc8016`), der
+Deploy aber zweimal mitten im Lauf abgerissen. Produktion lieferte wieder 200
+(#47 behoben), hatte aber einen Config-Cache von **vor** dem Pull.
+
+### Befund zuerst
+
+```
+turnstile:keys:check --siteverify   → ERROR "config/turnstile.php kennt keine Gruppen"
+grep -c 'SUN Welle' bootstrap/cache/config.php   → 0   (Cache von 20:14)
+ls -ld public/build                              → 01.10., kein turnstile.js im manifest
+```
+
+Der Cache von 20:14 entstand in Abschnitt 1 des Deploys, also vor `git pull` in
+Abschnitt 2 — er kannte `config/turnstile.php` nicht. Daher auch die Flut
+„Turnstile: Widget nicht gerendert, Konfiguration unvollstaendig" im Tageslog.
+Abschnitt 6 war nie gelaufen, Abschnitt 4 ebenfalls nicht.
+
+### Ausgeführt (jeweils mit Grund im Protokoll)
+
+| Zeit | Schritt | Ergebnis |
+|---|---|---|
+| 21:18 | `turnstile-golive-deploy.sh --ab=6 --los` | Caches neu, FPM-Reload, Horizon — `deploy-20261008-211831.log` |
+| 21:19 | `--ab=4 --los` | `npm ci && npm run build`; `manifest.json` kennt `resources/js/turnstile.js` — `deploy-20261008-211944.log` |
+| 21:2x | `turnstile:keys:check --siteverify` | **Exit 0**, A/B/C je `ok`, 18 Hostnames — `keys-check-20261008.txt` |
+| 21:2x | `turnstile:rollout --deactivate-all --force` | 23 Portale geändert, danach 23 × `nein` |
+| 21:2x | `TURNSTILE_ENABLED=true`, `config:cache`, FPM-Reload, `queue:restart` | Modul global scharf, kein Portal aktiv |
+| 21:26 | `antispam:backup` | 24 Dateien, 489 329 Zeilen — `backup-20261008.txt` |
+| 21:3x | `turnstile:acceptance --siteverify --force` für die drei A-Portale | alle sieben Prüfpunkte `ok`, Rückfall belegt — `stufe0-maschinell-20261008.txt` |
+| 21:3x | sieben Tagesberichte als Vergleichsbasis | `vorwoche-20261008.json` (01.–07.10.: 36 Registrierungen, 16 Einträge) |
+
+Der Seeder hatte alle 23 Portale auf `is_enabled = true` gesetzt; nur
+`TURNSTILE_ENABLED=false` stand noch davor. Wäre jemand an den globalen Schalter
+gegangen, hätten alle 23 Portale gleichzeitig ein Widget bekommen — mit Assets
+vom 01.10., also ohne `turnstile.js`, und damit wäre **jede** Registrierung
+durchgefallen. §1.6 beseitigt genau das; deshalb lief es vor dem Scharfschalten.
+
+### Gegenproben nach allen Schritten
+
+```
+turnstile:rollout | grep -c ' nein '                     → 23
+Startseiten fahrschulefinder.de / sanitaerfinden.com /
+  malerfinder.de am Ursprung                             → 200 / 200 / 200
+content-security-policy-report-only auf /register        → challenges.cloudflare.com
+  in script-src, frame-src und connect-src
+schedule:list                                            → monitor, report, prune,
+                                                           expire-quarantine
+event:list | grep -A1 Siteverify                         → AlertOnSiteverifyUnreachable
+turnstile:monitor --no-mail                              → 23 Portale, keine Auffälligkeit
+turnstile:report --no-mail                               → Bericht 07.10., 23 Portale
+```
+
+### Zwei Zeilen bleiben vor Stufe 1 am Menschen
+
+1. `TURNSTILE_ALERT_RECIPIENTS` (§1.5): die Adressen von Enes und Uwe gehören nicht
+   ins Repo und stehen nirgends am Server. Ohne die Zeile gehen Alarme an alle
+   Administratoren mit `update settings` — der Rückfall trägt, ist aber nicht die
+   Zielgruppe.
+2. **Fünf Portale haben überhaupt keinen Datenschutztext** (`tenants:datenschutz:turnstile-backfill`:
+   18 × vorhanden, 5 × übersprungen): FahrschuleFinder, Malerfinder.de,
+   SanitaerFinder, Klempner, Schlüsseldienst. FahrschuleFinder ist eines der drei
+   Gruppe-A-Portale — dort darf Turnstile nicht scharf gehen, bevor die
+   Datenschutzerklärung steht (#11). Eigenes Ticket.
+
+---
+
+## 8. Nachlauf am 08.10.2026, 21:40–22:00 (#36) — Vorwochenwerte, Widget-HTML, Reihenfolge von Stufe 0
+
+§1 war bei Beginn dieses Durchlaufs abgeschlossen (Schlüssel grün, Modul global
+scharf, 23 × `nein`, `CSP_MODE=report`). Nachgemessen und unabhängig bestätigt:
+
+| Prüfung | Ergebnis |
+|---|---|
+| `turnstile:keys:check --siteverify` | A/B/C je `Schluessel ok` / `Siteverify ok`, 18 Hostnames, kein falsch zugeordnetes Portal, Exit 0 |
+| `turnstile:rollout` | 23 × `nein`, Gruppen 3 / 15 / 5 |
+| `.env` | `TURNSTILE_ENABLED=true`, `CSP_MODE=report` |
+| CSP-Header `/register` | `content-security-policy-report-only`, `challenges.cloudflare.com` in `script-src`, `frame-src` **und** `connect-src`; `unsafe-inline` nur in `style-src` |
+| `schedule:list` | alle vier Einträge (Monitor :05, Bericht 07:10, Pruning 03:40, Quarantäne 03:20) |
+| `event:list` | `AlertOnSiteverifyUnreachable@handle` an `SiteverifyUnreachable` |
+
+### Neu: Vergleichswerte der Vorwoche (§3, Akzeptanzkriterium 2)
+
+Diese Zeile musste **vor** dem Scharfschalten der Gruppe A erhoben werden, sonst ist
+„Bot-Registrierungen gestoppt" später gegen nichts zu halten. Dafür gibt es jetzt
+`scripts/turnstile-vorwoche.sh` (streng lesend, nur SELECTs): es zählt je Portal und
+Tag die neuen `users` (zentral, über `tenant_user` dem Portal zugeordnet) und die
+neuen `companies` (je Portal-Datenbank), dazu den Anteil mit `suspected_bot_at`, und
+schreibt `vorwoche-<datum>.json` samt der Markdown-Tabelle für §3.
+
+Erhebung 01.10.–07.10.2026: 39 Registrierungen und 16 Einträge auf 13 Portalen.
+Gruppe A: `fahrschulefinder.de` 13 (1,86/Tag) / 6 (0,86/Tag), `elektrikerportal.com`
+2 / 2, `sanitaerfinden.com` 1 / 0. Spitze ist `fahrschulefinder.de` am 05.10. mit
+sechs Registrierungen an einem Tag. Die Spalte „Botverdacht" steht überall auf 0,
+weil `antispam:scan` auf der Produktion noch nicht gelaufen ist (#23) — belastbar
+sind also die Mengen, nicht der Bot-Anteil.
+
+### Befund: Stufe 0 (§2) setzt ein scharfes Portal voraus
+
+`turnstile:verify <token> --tenant=fahrschulefinder.de` antwortet bei einem Portal
+auf `nein` mit `Bewertung: skipped` und schreibt keine Log-Zeile. Die vier Zeilen in
+§2 verlangen aber genau solche Log-Zeilen mit Portal und Aktion. Stufe 0 mit
+Portalkontext ist deshalb erst nach `turnstile:rollout --wave=1` durchführbar —
+praktisch sind es die ersten Handgriffe der Stufe 1, nicht ein Schritt davor. In §2
+steht jetzt ein Hinweis dazu.
+
+Was ohne scharfes Portal geht, ist gemessen und als Vorprobe abgehakt: dieselbe
+Prüfung **ohne** `--tenant` liefert `failed`, und Cloudflare beanstandet dabei das
+erfundene Token (`invalid-input-response`), nicht das Secret. Damit sind Secret, Weg
+zu Siteverify und Abweisung belegt (`stufe0-vorproben-2026-10-08.txt`).
+
+### §1.2 abgehakt: Sitekey und Widget im HTML
+
+Auch diese Zeile ist ohne scharfes Portal nicht messbar — ohne `is_enabled` steht
+kein Widget im HTML. Gemessen wurde deshalb an `elektrikerportal.com`, dem Portal der
+Gruppe A mit der geringsten Last (0,29 Registrierungen/Tag), das dafür rund drei
+Minuten scharf stand und direkt danach wieder herausgenommen wurde; danach wieder
+23 × `nein`. Ergebnis: `data-sitekey="0x4AAAAAAFRicOB43qt9oAsa"` (kein `1x`/`2x`/`3x`),
+`data-action="registration"`, Hidden-Input `cf-turnstile-response`, Skript von
+`challenges.cloudflare.com` mit `render=explicit`, Bündel
+`/build/assets/turnstile-CKb2w3ce.js` mit HTTP 200, Transparenzhinweis am Formular.
+Damit ist auch belegt, dass der nachgeholte Vite-Build greift (`widget-html-2026-10-08.txt`).
+
+### Was jetzt noch offen ist — alles Handarbeit
+
+* §1.1: Dashboard-Schalter „Allow a domain to be added automatically" und die drei
+  Passwort-Manager-Einträge.
+* §1.5: `TURNSTILE_ALERT_RECIPIENTS` (zwei Adressen, die hier niemand kennt und die
+  nicht geraten werden), Verteilernachweis, Probemail; Schritt 3 der CSP (24 Stunden
+  Meldungen sichten, läuft seit 08.10.2026 20:14) und Schritt 4 (`enforce`).
+* §2/§3: Token im Browser lösen (dreimal, je frisches Token), sechs Sichtprüfungen auf
+  echten Geräten, 24 Stunden Beobachtung.
+* §4/§5: drei Tage Gruppe B, dann Gruppe C, drei Tagesberichte in Folge.
+* §7: Abnahme durch Enes. §7.2: Secrets tauschen (#45).
+
+### Geändert
+
+* `scripts/turnstile-vorwoche.sh` (neu, ausführbar)
+* `scripts/turnstile-golive-deploy.sh` — Abschnitt 1 baut den Config-Cache nicht mehr
+  neu, sondern leert ihn nur; der Neubau gehört hinter den Pull (Abschnitt 6). Genau
+  daraus entstand der Cache von 20:14, der `config/turnstile.php` nicht kannte.
+* `docs/turnstile-golive.md` — §1.2 abgehakt, §2 um den Reihenfolge-Hinweis und die
+  Vorprobe, §3 Vorwochentabelle gefüllt
+* `docs/messungen/turnstile-golive/vorwoche-2026-10-08.json`,
+  `widget-html-2026-10-08.txt`, `stufe0-vorproben-2026-10-08.txt`,
+  `scheduler-listener-2026-10-08.txt` (neu, Belege)
+* `docs/messungen/turnstile-golive/README.md` — die vier neuen Belege eingetragen
