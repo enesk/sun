@@ -157,3 +157,18 @@ Schedule::command('turnstile:prune')
     ->dailyAt('03:40')
     ->withoutOverlapping()
     ->onOneServer();
+
+/*
+| CSP-Sammelstelle raeumen (#51)
+|
+| csp:prune  03:50, loescht Zeilen, deren letzter Treffer aelter ist als
+|            csp.report.retention_days (30 Tage). Zentrale Tabelle, ein Lauf
+|            fuer alle Portale — direkt nach turnstile:prune (03:40).
+|
+| Eine Zeile mit frischen Treffern bleibt stehen, auch wenn sie Monate alt
+| ist: sie ist ein offener Befund, nicht Altlast.
+*/
+Schedule::command('csp:prune')
+    ->dailyAt('03:50')
+    ->withoutOverlapping()
+    ->onOneServer();

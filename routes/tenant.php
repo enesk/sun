@@ -166,6 +166,27 @@ Route::middleware([
         ->name('portal.reviews.widget');
 });
 
+// CSP-Berichte (#51): Sammelstelle fuer `report-uri`/`report-to` aus
+// config/csp.php. Ohne Session, ohne CSRF und ohne Auth — der Browser schickt
+// den Bericht ohne Token, oft erst nach dem Verlassen der Seite.
+//
+// **Bewusst OHNE Tenancy-Initializer**: die Tabelle `csp_reports` liegt
+// zentral, der Schreibweg braucht also keine Tenant-DB. Mit Initializer waere
+// die Route auf den zentralen Domains unbrauchbar — die CSP wird auch dort
+// gesetzt (Checkout, Registrierung), und der Initializer wirft bei einem Host
+// ohne Tenant-Zeile `TenantCouldNotBeIdentified`, der Bericht bekaeme 500. Die
+// Zuordnung macht der Controller selbst ueber `tenants.domain`.
+//
+// throttle:60,1 je IP: ein Browser bundelt Berichte und schickt sie in
+// Schueben, 60 Anfragen je Minute reichen dafuer deutlich. Die eigentliche
+// Obergrenze gegen Flut liegt im Collector (neue Zeilen je Portal/Stunde),
+// nicht hier — ein Rate-Limit je IP wuerde bei 23 Portalen hinter der
+// Cloudflare-Kante sonst echte Meldungen verschlucken.
+Route::middleware(['throttle:60,1'])->group(function () {
+    Route::post('/csp-bericht', App\Http\Controllers\Portal\CspReportController::class)
+        ->name('portal.csp-report');
+});
+
 Route::middleware([
     'web',
     'universal',
