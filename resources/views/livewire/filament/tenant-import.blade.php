@@ -9,7 +9,7 @@
             {{-- Datei-Upload --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    SQL-Datei (max. 256 MB)
+                    SQL-Datei (max. 95 MB)
                 </label>
                 <input
                     type="file"
@@ -21,6 +21,14 @@
                 <div wire:loading wire:target="sqlFile" class="mt-2 text-sm text-gray-500">
                     Datei wird hochgeladen...
                 </div>
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    Grössere Dumps gehören per SSH direkt auf den Ursprung-Server — der Upload läuft
+                    hier durch die Cloudflare-Kante, die bei 100 MB abbricht (413), noch bevor die
+                    Anwendung antworten kann.
+                </p>
+                @error('sqlFile')
+                    <p class="mt-2 text-sm text-danger-600 dark:text-danger-400">{{ $message }}</p>
+                @enderror
             </div>
 
             {{-- Validierungsfehler --}}
@@ -160,14 +168,31 @@
                         wire:click="loadPreview"
                         wire:loading.attr="disabled"
                         wire:target="loadPreview"
-                        :disabled="!$targetTenantId || $importRunning"
+                        :disabled="!$targetTenantId || $importRunning || $previewRunning"
                         color="gray"
                         icon="heroicon-o-eye"
                     >
                         <span wire:loading.remove wire:target="loadPreview">Vorschau laden</span>
-                        <span wire:loading wire:target="loadPreview">Vorschau wird geladen...</span>
+                        <span wire:loading wire:target="loadPreview">Wird gestartet...</span>
                     </x-filament::button>
                 </div>
+
+                {{-- Vorschau läuft im Hintergrund --}}
+                @if($previewRunning)
+                    <div wire:poll.3s="pollPreview" class="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                        <div class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
+                            <svg class="animate-spin h-5 w-5 text-primary-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span>{{ $previewMessage ?? 'Warte auf Vorschau-Job...' }}</span>
+                        </div>
+                        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                            Die Vorschau läuft als Hintergrund-Job (Queue-Worker nötig) und kann bei
+                            grossen Dumps mehrere Minuten dauern.
+                        </p>
+                    </div>
+                @endif
 
                 {{-- Vorschau-Ergebnis --}}
                 @if($previewData)

@@ -12,8 +12,8 @@ namespace App\Constants;
  * beim Rendern in TenantBrandingService::resolveLegalPlaceholders().
  * Keine festen Betreiberangaben im Text.
  *
- * Genutzt von CreateTenantCommand (Neuanlage) und dem Nachzug
- * TenantLegalSeedCommand (tenants:legal:seed, #56).
+ * Genutzt von TenantLegalProvisioningService (Neuanlage auf allen Wegen,
+ * #50) und dem Nachzug TenantLegalSeedCommand (tenants:legal:seed, #56).
  */
 class TenantLegalDefaults
 {
