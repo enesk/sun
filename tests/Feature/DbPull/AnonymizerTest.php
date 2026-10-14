@@ -9,7 +9,7 @@ use App\Services\DbPull\LocalMariaDb;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Mockery;
-use Tests\TestCase;
+use Tests\Feature\FeatureTest;
 
 /**
  * Anonymisierung nach dem Import (#5, #7, #10).
@@ -24,7 +24,7 @@ use Tests\TestCase;
  * Regeln fuer alles andere NICHT anfassen, sonst wird lokaler Arbeitsstand
  * ueberschrieben, den niemand geholt hat.
  */
-class AnonymizerTest extends TestCase
+class AnonymizerTest extends FeatureTest
 {
     private string $database;
 

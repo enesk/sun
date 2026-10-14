@@ -24,6 +24,9 @@ class LocalMariaDb
 
     private const LOCAL_HOSTS = ['127.0.0.1', 'localhost', '::1', ''];
 
+    /** Maskierzeichen fuer LIKE-Muster (siehe likePattern()). */
+    private const LIKE_ESCAPE = '\\';
+
     public function __construct(
         private readonly string $host,
         private readonly string $port,
@@ -76,6 +79,48 @@ class LocalMariaDb
     {
         $this->central()->statement('drop database if exists `'.$this->quoteName($database).'`');
         $this->createDatabase($database);
+    }
+
+    /**
+     * Lokale Datenbanken mit diesem Praefix, alphabetisch (#11). Grundlage
+     * fuer das Entfernen der Datenbanken, die es auf Live nicht mehr gibt.
+     *
+     * Der Unterstrich im Praefix ist in LIKE ein Platzhalter und wird
+     * deshalb maskiert — sonst traefe `tenant_` auch `tenantX`.
+     *
+     * @return array<int, string>
+     */
+    public function databasesWithPrefix(string $prefix): array
+    {
+        $rows = $this->central()->select(
+            'select schema_name as name from information_schema.schemata where schema_name like ? escape ? order by schema_name',
+            [self::likePattern($prefix), self::LIKE_ESCAPE]
+        );
+
+        return array_map(static fn (object $row): string => (string) $row->name, $rows);
+    }
+
+    /**
+     * LIKE-Muster fuer ein Praefix. Unterstrich und Prozent sind in LIKE
+     * Platzhalter und werden maskiert: ohne das traefe `tenant_` auch
+     * `tenantx…` — und eine Datenbank, die dem Pull nicht gehoert, waere zum
+     * Loeschen vorgemerkt (#11).
+     */
+    public static function likePattern(string $prefix): string
+    {
+        $escaped = str_replace(
+            [self::LIKE_ESCAPE, '_', '%'],
+            [self::LIKE_ESCAPE.self::LIKE_ESCAPE, self::LIKE_ESCAPE.'_', self::LIKE_ESCAPE.'%'],
+            $prefix,
+        );
+
+        return $escaped.'%';
+    }
+
+    /** Loescht eine lokale Datenbank, falls vorhanden (#11). */
+    public function dropDatabase(string $database): void
+    {
+        $this->central()->statement('drop database if exists `'.$this->quoteName($database).'`');
     }
 
     public function createDatabase(string $database): void

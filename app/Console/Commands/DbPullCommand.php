@@ -262,14 +262,16 @@ class DbPullCommand extends Command
             // gab.
             $local->reconnectCentral();
 
-            // Erst JETZT steht die Portal-Liste fest — sie kommt aus der
-            // frisch importierten Zentrale, nicht aus dem alten lokalen
-            // Stand.
+            // Die Auswahl kommt allein von Live (#11): geholt wird, was dort
+            // als Datenbank existiert — auch ohne Zeile in `tenants`.
             if (! $this->option('central-only')) {
-                $tenantDatabases = $this->tenantDatabasesFromCentral($liveTenants, $prefix);
+                $tenantDatabases = $liveTenants;
             }
         }
 
+        // Sicherheitsgurt VOR dem Entfernen lokaler Datenbanken (#11): liefert
+        // Live eine unerwartet kurze Liste (Rechtefehler, halbe Verbindung),
+        // bricht der Lauf ab, statt den lokalen Satz daran gleichzuziehen.
         if (! $this->option('central-only') && $wanted === []) {
             $minimum = (int) config('db-pull.min_tenant_databases');
 
@@ -291,6 +293,15 @@ class DbPullCommand extends Command
                 $results,
                 $this->pullMany($remote, $local, $central, $tenantDatabases, $onlyTables, $anonymize),
             );
+        }
+
+        // Lokalen Satz mit Live gleichziehen (#11): nur beim vollen Lauf,
+        // nicht bei --tenant (dort wird ausdruecklich EIN Portal nachgezogen)
+        // und nicht bei --tables (dort wird nichts neu aufgebaut).
+        $removedLocal = [];
+
+        if ($pullCentral && ! $this->option('central-only') && $onlyTables === []) {
+            $removedLocal = $this->dropLocalSurplus($local, $liveTenants, $prefix);
         }
 
         $failed = array_filter($results, fn (array $result): bool => ! $result['ok']) !== [];
@@ -321,6 +332,13 @@ class DbPullCommand extends Command
             : null;
 
         $this->renderSummary($results, $started);
+
+        // Eine Zeile statt einer Meldung je Portal (#11).
+        $this->line(sprintf(
+            '%d Datenbank(en) von Live gespiegelt, %d lokale Datenbank(en) entfernt (auf Live nicht vorhanden).',
+            count($imported),
+            count($removedLocal),
+        ));
         $this->line('Protokoll: '.$this->logPath());
 
         if ($anonymizeNote) {
@@ -398,17 +416,20 @@ class DbPullCommand extends Command
             return true;
         }
 
-        $local = $this->localTenantCount();
+        $counts = $this->localTenantCount();
 
         $this->components->warn(sprintf(
-            'Ein voller Lauf ersetzt die lokale Zentrale: %d lokale Portal-Zeile(n), davon %d mit .test-Domain, '
-            .'werden durch die Live-Portale ersetzt. Die Datenbanken tenant_<n> der Test-Tenants bleiben als '
-            .'Waisen liegen.%s',
-            $local['total'],
-            $local['test'],
+            'Ein voller Lauf zieht den lokalen Stand mit Live gleich: die zentrale Datenbank wird ersetzt '
+            .'(%d lokale Portal-Zeile(n), davon %d mit .test-Domain) und alle %d lokalen Datenbanken mit '
+            .'Praefix %s, die es auf Live nicht gibt, werden GELOESCHT.%s',
+            $counts['total'],
+            $counts['test'],
+            $counts['databases'],
+            (string) config('db-pull.tenant_database_prefix'),
             $this->option('no-local-backup')
-                ? ' Mit --no-local-backup gibt es KEINE Sicherung.'
-                : ' Vorher wird der lokale Stand nach storage/app/db-pull/ gesichert.',
+                ? ' Mit --no-local-backup gibt es KEINE Sicherung der Zentrale.'
+                : ' Vorher wird der lokale Stand der Zentrale nach storage/app/db-pull/ gesichert'
+                    .' — die Portal-Datenbanken NICHT.',
         ));
 
         if ($this->confirm('Lokalen Stand ersetzen?', false)) {
@@ -427,18 +448,30 @@ class DbPullCommand extends Command
      * lesbar (erster Pull auf einer leeren lokalen Datenbank), zaehlt sie
      * als leer — die Frage bleibt, die Zahlen sind dann 0.
      *
-     * @return array{total: int, test: int}
+     * @return array{total: int, test: int, databases: int}
      */
     private function localTenantCount(): array
     {
+        $counts = ['total' => 0, 'test' => 0, 'databases' => 0];
+
         try {
-            return [
-                'total' => Tenant::query()->count(),
-                'test' => Tenant::query()->where('domain', 'like', '%.test')->count(),
-            ];
+            $counts['total'] = Tenant::query()->count();
+            $counts['test'] = Tenant::query()->where('domain', 'like', '%.test')->count();
         } catch (Throwable) {
-            return ['total' => 0, 'test' => 0];
+            // Erster Pull auf eine leere lokale Datenbank: die Frage bleibt,
+            // die Zahlen sind dann 0.
         }
+
+        try {
+            $counts['databases'] = count(
+                LocalMariaDb::fromConfig()->databasesWithPrefix((string) config('db-pull.tenant_database_prefix'))
+            );
+        } catch (Throwable) {
+            // Keine Verbindung: die Zahl bleibt 0, der Lauf bricht gleich
+            // ohnehin an der Richtungssperre ab.
+        }
+
+        return $counts;
     }
 
     /**
@@ -958,8 +991,15 @@ class DbPullCommand extends Command
             $this->option('no-migrate') ? 'AUS' : 'an',
         ));
 
-        if ($pullCentral && ! $this->option('central-only')) {
-            $this->line('Portal-Liste hier von "show databases" auf Live — im echten Lauf aus der frisch importierten Zentrale.');
+        if ($pullCentral && ! $this->option('central-only') && $onlyTables === []) {
+            $surplus = $this->localSurplus($local, $tenantDatabases, $prefix);
+
+            $this->line(sprintf(
+                '%d lokale Datenbank(en) mit Praefix %s gibt es auf Live nicht — sie wuerden entfernt%s.',
+                count($surplus),
+                $prefix,
+                $surplus === [] ? '' : ' (z.B. '.implode(', ', array_slice($surplus, 0, 3)).' …)',
+            ));
         }
 
         $this->showLocalBackupPlan($local, $central, $pullCentral && $onlyTables === []);
@@ -1103,51 +1143,60 @@ class DbPullCommand extends Command
     }
 
     /**
-     * Die Portal-Liste aus der frisch importierten zentralen Datenbank
-     * (Tenant-Model), Datenbanknamen ueber das Praefix der Tenancy-Config.
-     * Gegengeprueft gegen `show databases` auf Live: eine Tenant-Zeile ohne
-     * Datenbank laesst sich nicht holen, eine Datenbank ohne Tenant-Zeile
-     * gehoert zu einem geloeschten Portal (#39).
+     * Lokale Portal-Datenbanken entfernen, die es auf Live nicht gibt (#11).
+     *
+     * Ein voller Lauf soll den lokalen Satz Datenbank fuer Datenbank mit
+     * Live gleichziehen. Bleiben die Reste liegen, steht lokal ein Gemisch
+     * aus Live-Portalen und alten Testdatenbanken — genau das Durcheinander,
+     * das vorher zu Warnungen ueber "eingetragen, aber keine Datenbank auf
+     * Live" gefuehrt hat.
+     *
+     * Angefasst wird ausschliesslich, was auf das Praefix passt; die
+     * zentrale Datenbank und alles andere auf dem lokalen Server bleibt
+     * unberuehrt. Die Zahl steht vorher in der Rueckfrage und hinterher in
+     * der Zusammenfassung.
+     *
+     * @param  array<int, string>  $liveTenants
+     * @return array<int, string> entfernte Datenbanken
+     */
+    private function dropLocalSurplus(LocalMariaDb $local, array $liveTenants, string $prefix): array
+    {
+        $surplus = $this->localSurplus($local, $liveTenants, $prefix);
+        $removed = [];
+
+        foreach ($surplus as $database) {
+            try {
+                $local->dropDatabase($database);
+                $removed[] = $database;
+            } catch (Throwable $exception) {
+                $this->protocol("WARNUNG {$database} nicht entfernt: ".$exception->getMessage());
+            }
+        }
+
+        if ($removed !== []) {
+            $this->protocol(sprintf('%d lokale Datenbanken entfernt (auf Live nicht vorhanden)', count($removed)));
+        }
+
+        return $removed;
+    }
+
+    /**
+     * Lokale Datenbanken mit dem Tenant-Praefix, die auf Live fehlen.
      *
      * @param  array<int, string>  $liveTenants
      * @return array<int, string>
      */
-    private function tenantDatabasesFromCentral(array $liveTenants, string $prefix): array
+    private function localSurplus(LocalMariaDb $local, array $liveTenants, string $prefix): array
     {
         try {
-            $expected = Tenant::query()->pluck('id')
-                ->map(fn ($id): string => $prefix.$id)
-                ->all();
+            $lokal = $local->databasesWithPrefix($prefix);
         } catch (Throwable $exception) {
-            $this->warn('Portal-Liste nicht aus der Zentrale lesbar ('.$exception->getMessage().') — es gilt die Liste von Live.');
-            $this->protocol('WARNUNG tenants-Tabelle nicht lesbar: '.$exception->getMessage());
+            $this->protocol('WARNUNG lokale Datenbankliste nicht lesbar: '.$exception->getMessage());
 
-            return $liveTenants;
+            return [];
         }
 
-        if ($expected === []) {
-            $this->warn('Die Tabelle tenants ist leer — es gilt die Datenbank-Liste von Live.');
-
-            return $liveTenants;
-        }
-
-        foreach (array_diff($expected, $liveTenants) as $database) {
-            $this->warn("Portal {$database} ist eingetragen, hat auf Live aber keine Datenbank — uebersprungen.");
-            $this->protocol("WARNUNG {$database} ohne Datenbank auf Live");
-        }
-
-        $orphans = array_values(array_diff($liveTenants, $expected));
-
-        if ($orphans !== []) {
-            $this->line(sprintf(
-                '%d Datenbank(en) ohne Tenant-Zeile uebersprungen (Reste geloeschter Portale): %s',
-                count($orphans),
-                implode(', ', $orphans),
-            ));
-            $this->protocol('Ohne Tenant-Zeile uebersprungen: '.implode(', ', $orphans));
-        }
-
-        return array_values(array_intersect($liveTenants, $expected));
+        return array_values(array_diff($lokal, $liveTenants));
     }
 
     /**

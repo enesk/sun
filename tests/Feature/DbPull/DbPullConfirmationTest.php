@@ -8,7 +8,7 @@ use App\Console\Commands\DbPullCommand;
 use App\Models\Tenant;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Process;
-use Tests\TestCase;
+use Tests\Feature\FeatureTest;
 
 /**
  * Die Rueckfrage vor dem ersten vollen Lauf (#8, #10).
@@ -22,7 +22,7 @@ use Tests\TestCase;
  * vor dem ersten SSH-Aufruf, und `Process::fake()` steht zur Sicherheit
  * zusaetzlich davor.
  */
-class DbPullConfirmationTest extends TestCase
+class DbPullConfirmationTest extends FeatureTest
 {
     use DatabaseTransactions;
 
@@ -48,13 +48,24 @@ class DbPullConfirmationTest extends TestCase
         Process::fake(fn () => Process::result('', 'im Test gibt es keine Prozesse', 1));
     }
 
-    public function test_die_rueckfrage_nennt_die_zahl_der_lokalen_und_der_test_portale(): void
+    public function test_die_rueckfrage_nennt_die_zahl_der_lokalen_portale(): void
     {
         $gesamt = Tenant::query()->count();
         $test = Tenant::query()->where('domain', 'like', '%.test')->count();
 
         $this->artisan('sun:db:pull')
             ->expectsOutputToContain(sprintf('%d lokale Portal-Zeile(n), davon %d mit .test-Domain', $gesamt, $test))
+            ->expectsConfirmation('Lokalen Stand ersetzen?', 'no')
+            ->assertExitCode(DbPullCommand::EXIT_USAGE);
+    }
+
+    public function test_die_rueckfrage_nennt_das_loeschen_der_ueberzaehligen_datenbanken(): void
+    {
+        // Seit #11 zieht ein voller Lauf den lokalen Satz mit Live gleich und
+        // loescht dabei Portal-Datenbanken. Das muss in der Frage stehen,
+        // nicht erst im Protokoll.
+        $this->artisan('sun:db:pull')
+            ->expectsOutputToContain('werden GELOESCHT')
             ->expectsConfirmation('Lokalen Stand ersetzen?', 'no')
             ->assertExitCode(DbPullCommand::EXIT_USAGE);
     }
@@ -90,13 +101,15 @@ class DbPullConfirmationTest extends TestCase
     public function test_die_warnung_nennt_die_fehlende_sicherung_bei_no_local_backup(): void
     {
         $this->artisan('sun:db:pull --no-local-backup')
-            ->expectsOutputToContain('Mit --no-local-backup gibt es KEINE Sicherung.')
+            ->expectsOutputToContain('Mit --no-local-backup gibt es KEINE Sicherung der Zentrale.')
             ->expectsConfirmation('Lokalen Stand ersetzen?', 'no')
             ->assertExitCode(DbPullCommand::EXIT_USAGE);
     }
 
     public function test_ohne_no_local_backup_nennt_die_warnung_den_sicherungsort(): void
     {
+        // Gesichert wird die Zentrale, nicht die Portal-Datenbanken — das
+        // sagt die Warnung seit #11 ausdruecklich.
         $this->artisan('sun:db:pull')
             ->expectsOutputToContain('storage/app/db-pull/')
             ->expectsConfirmation('Lokalen Stand ersetzen?', 'no')
