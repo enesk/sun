@@ -53,7 +53,7 @@
 
 @include('partials.analytics')
 </head>
-<body class="bg-zinc-50 text-zinc-700 font-sans overflow-x-hidden">
+<body class="bg-zinc-50 text-zinc-700 font-sans overflow-x-clip">
 
 <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 btn-secondary">{{ __('portal.layout.skip_link') }}</a>
 

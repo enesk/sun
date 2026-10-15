@@ -109,6 +109,29 @@
         font-size: 125%;
         -webkit-font-smoothing: antialiased;
         text-rendering: optimizeLegibility;
+        /*
+         * Waagerechtes Wackeln auf schmalen Geraeten unterbinden (#18).
+         *
+         * Das Theme arbeitet mit Baendern, die bis an den Bildschirmrand
+         * laufen und innen schieben: Bundesland-Pillen auf /staedte, das
+         * Kartenband der Startseite, die Reihen im Firmenprofil
+         * (-mx-4 px-4 + overflow-x-auto). Deren Inhalt reicht bauartbedingt
+         * ueber den Rand hinaus. `overflow-x: hidden` allein am body genuegt
+         * nicht: body wird damit selbst zum Schieber und meldet den Ueberlauf
+         * weiter an das Fenster — bei 360 px liess sich die Seite dadurch um
+         * 26 bis 150 px zur Seite ziehen.
+         *
+         * `clip` kappt, ohne einen Scroll-Container zu erzeugen, deshalb
+         * bleibt der sticky Kopf unberuehrt. Gehoert an BEIDE Elemente,
+         * html allein reicht nicht (nachgemessen in WebKit bei 360 px).
+         * Der Rueckfall `hidden` am body gilt fuer Safari < 16, das `clip`
+         * noch nicht kennt und die Utility-Klasse dort verwirft.
+         */
+        overflow-x: clip;
+    }
+
+    body {
+        overflow-x: hidden;
     }
 
     @media (min-width: 768px) {
