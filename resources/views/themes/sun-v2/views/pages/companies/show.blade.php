@@ -165,16 +165,20 @@
               <ul class="mt-4 divide-y divide-zinc-100">
                 @foreach($profile['hours'] as $day)
                   @if($day['today'])
-                    <li class="flex items-start gap-4 py-2.5 font-semibold text-zinc-900">
-                      <span class="w-28 shrink-0">{{ $day['day'] }}</span>
+                    {{-- Bei 360 px bleiben in der Karte rund 268 px: Tagesspalte,
+                         Zeiten und das "heute"-Schild passen nur nebeneinander,
+                         wenn die Spalte schmaler wird und die Zeile umbrechen
+                         darf — sonst zog das Profil die Seite quer (#18). --}}
+                    <li class="flex flex-wrap items-start gap-4 py-2.5 font-semibold text-zinc-900">
+                      <span class="w-24 md:w-28 shrink-0">{{ $day['day'] }}</span>
                       <span class="tabular-nums whitespace-nowrap flex-1">
                         @forelse($day['slots'] as $slot)<span class="block">{{ $slot }}</span>@empty<span class="block text-zinc-500">{{ __('portal.layout.opening.closed') }}</span>@endforelse
                       </span>
                       <span class="pill-brand text-xs px-2 py-0.5 font-medium">{{ __('portal.layout.opening.today') }}</span>
                     </li>
                   @else
-                    <li class="flex items-start gap-4 py-2.5">
-                      <span class="w-28 shrink-0 flex items-center gap-2">{{ $day['day'] }}</span>
+                    <li class="flex flex-wrap items-start gap-4 py-2.5">
+                      <span class="w-24 md:w-28 shrink-0 flex items-center gap-2">{{ $day['day'] }}</span>
                       <span class="tabular-nums whitespace-nowrap">
                         @forelse($day['slots'] as $slot)<span class="block">{{ $slot }}</span>@empty<span class="block text-zinc-500">{{ __('portal.layout.opening.closed') }}</span>@endforelse
                       </span>

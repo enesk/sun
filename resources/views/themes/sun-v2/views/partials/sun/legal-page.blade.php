@@ -4,12 +4,15 @@
     $title, $subtitle, $crumbs (Liste [label, url|null]), $footerLinks (Liste [label, url]).
     Der Abschnittstext ist gepflegtes HTML aus den Portal-Einstellungen und wird ueber
     Utility-Varianten auf Kindelemente gestaltet (kein eigenes CSS).
+    Tabellen im gepflegten Text sind breiter als 360 px (Dienstleister-Uebersicht in
+    der Datenschutzerklaerung). Sie schieben deshalb in sich statt die Seite quer zu
+    ziehen oder abgeschnitten zu werden (#18).
 --}}
 @php
     $sections = $legal['sections'];
     $supportEmail = $legal['contact']['email'];
     $reportUrl = $supportEmail !== '' ? 'mailto:'.$supportEmail.'?subject='.rawurlencode(__('portal.legal.report')) : null;
-    $prose = 'mt-3 [&_p]:mt-3 [&_p:first-child]:mt-0 [&_a]:text-brand [&_a]:break-words [&_a:hover]:underline [&_strong]:font-semibold [&_strong]:text-zinc-900 [&_ul]:mt-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:mt-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mt-1 [&_h3]:mt-5 [&_h3]:font-semibold [&_h3]:text-zinc-900 [&_table]:mt-3 [&_td]:py-1 [&_td]:pr-4';
+    $prose = 'mt-3 [&_p]:mt-3 [&_p:first-child]:mt-0 [&_a]:text-brand [&_a]:break-words [&_a:hover]:underline [&_strong]:font-semibold [&_strong]:text-zinc-900 [&_ul]:mt-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:mt-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mt-1 [&_h3]:mt-5 [&_h3]:font-semibold [&_h3]:text-zinc-900 [&_table]:mt-3 [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_td]:py-1 [&_td]:pr-4';
 @endphp
 <div class="container-portal pt-6 pb-12 md:pb-16">
   <div class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_16rem] xl:items-start">

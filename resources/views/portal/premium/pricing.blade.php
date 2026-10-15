@@ -175,7 +175,10 @@
   </section>
 
   {{-- Vergleichstabelle --}}
-  <section class="mt-8 md:mt-10 card p-5 md:p-6 overflow-x-auto" aria-labelledby="sec-compare">
+  {{-- relative: die sr-only-Texte in den Zellen sind absolut gesetzt und wuerden
+     ohne Bezugsrahmen aus dem Schieber ausbrechen und die Seite bei 360 px um
+     mehr als 260 px quer ziehen (#18). --}}
+<section class="relative mt-8 md:mt-10 card p-5 md:p-6 overflow-x-auto" aria-labelledby="sec-compare">
     <h2 id="sec-compare" class="text-2xl font-semibold text-zinc-900">{{ __('premium.pricing.compare_title') }}</h2>
     <table class="mt-4 w-full min-w-[32rem] text-base">
       <thead>

@@ -134,6 +134,19 @@
         overflow-x: hidden;
     }
 
+    /*
+     * Deutsche Komposita sind laenger als eine Spalte auf dem Handy
+     * ("Datenschutzerklaerung", "Verbraucherstreitbeilegung") und haben die
+     * Rechtsseiten bei 360 px um bis zu 63 px quer gezogen (#18). Die
+     * Silbentrennung greift nur mit lang="de" am html-Tag — das setzt
+     * layouts/sun.blade.php.
+     */
+    h1,
+    h2,
+    h3 {
+        hyphens: auto;
+    }
+
     @media (min-width: 768px) {
         html {
             font-size: 150%;

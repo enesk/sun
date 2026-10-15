@@ -48,7 +48,10 @@
       <div class="flex-1 min-w-0">
         <div class="flex flex-wrap items-start justify-between gap-2">
           <div class="flex flex-wrap items-center gap-2 min-w-0">
-            <h2 class="text-lg font-semibold text-zinc-900 leading-snug"><a href="{{ $company->portal_url }}" class="hover:text-brand">{{ $company->name }}</a></h2>
+            {{-- Firmennamen sind oft ein langes Wort ("Elektroinstallationen...").
+                 Ohne min-w-0 und Trennung schiebt die Karte bei 360 px die ganze
+                 Seite zur Seite (#18). --}}
+            <h2 class="text-lg font-semibold text-zinc-900 leading-snug min-w-0 hyphens-auto wrap-anywhere"><a href="{{ $company->portal_url }}" class="hover:text-brand">{{ $company->name }}</a></h2>
             <x-company.verified-badge :company="$company" size="sm" />
           </div>
           @if($company->is_premium && ! $featured)
@@ -72,7 +75,7 @@
       @if($company->full_address)
         <p class="text-sm text-zinc-500 flex items-start gap-1.5">
           <span class="mt-0.5"><x-sun.icon name="map-pin" class="size-4 shrink-0" stroke-linecap="butt" stroke-linejoin="miter" /></span>
-          <span>{{ $company->full_address }}@if($distance !== null)<span class="text-zinc-400"> · {{ __('portal.layout.card.distance', ['km' => number_format($distance, 0, ',', '.')]) }}</span>@endif</span>
+          <span class="hyphens-auto wrap-anywhere">{{ $company->full_address }}@if($distance !== null)<span class="text-zinc-400"> · {{ __('portal.layout.card.distance', ['km' => number_format($distance, 0, ',', '.')]) }}</span>@endif</span>
         </p>
       @endif
       @if($company->categories->isNotEmpty())
