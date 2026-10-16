@@ -21,6 +21,11 @@ use Illuminate\View\Component;
  *
  *     <x-sun.auto-ads />   {{-- im <head>, nach @stack('head') --}}
  *
+ * Diese Komponente ist der **eigene** Auto-Ads-Loader. Auto Ads, die im
+ * AdSense-Konto je Site eingeschaltet sind, erreicht sie nicht: die haengen
+ * am Loader `adsbygoogle.js`, den jeder belegte Anker ohnehin mitbringt, und
+ * lassen sich nur im Konto abschalten (docs/ad-slots.md 9.6, #46).
+ *
  * Auto Ads sind **kein** Anker im Katalog: das Skript platziert selbst,
  * ausserhalb jeder Reservierung (docs/ad-slots.md 1). Eingeschaltet werden
  * sie je Portal in `ad_settings.adsense_auto_ads` — zusammen mit dem

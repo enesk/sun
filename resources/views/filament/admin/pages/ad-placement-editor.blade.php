@@ -130,6 +130,14 @@
                                             {{ __('mindestens :height px reserviert', ['height' => $slot['min_height']]) }}
                                         @endif
                                     </span>
+
+                                    {{-- Inhaltsbedingung (#22): der Anker steht im Markup
+                                         innerhalb seiner Sektion und fehlt mit ihr. --}}
+                                    @if ($slot['requires'] !== null)
+                                        <span class="mt-1 block text-xs text-gray-400 dark:text-gray-500">
+                                            {{ __('Erscheint nur, wenn: :bedingung', ['bedingung' => $slot['requires']]) }}
+                                        </span>
+                                    @endif
                                 </button>
                             </li>
                         @endforeach
@@ -138,7 +146,22 @@
 
                 @if ($fehlende !== [])
                     <div class="mt-4 rounded-lg bg-warning-50 p-3 text-xs text-warning-700 dark:bg-warning-950 dark:text-warning-300" role="status">
-                        {{ __('Im Katalog, aber nicht in der geladenen Seite: :keys', ['keys' => implode(', ', $fehlende)]) }}
+                        {{ __('Im Katalog, aber nicht in der geladenen Seite:') }}
+                        <ul class="mt-1 list-disc space-y-0.5 ps-4">
+                            @foreach ($fehlende as $fehlenderKey)
+                                @php $fehlenderSlot = collect($slots)->firstWhere('key', $fehlenderKey); @endphp
+                                <li>
+                                    <span class="font-mono">{{ $fehlenderKey }}</span>
+                                    {{-- Grund, wenn der Katalog ihn kennt (#22). Ohne Grund ist
+                                         es ein fehlender Anker im Markup und gehoert gemeldet. --}}
+                                    @if (($fehlenderSlot['requires'] ?? null) !== null)
+                                        — {{ $fehlenderSlot['requires'] }}
+                                    @else
+                                        — {{ __('kein Grund im Katalog hinterlegt — Anker fehlt im Markup') }}
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
                     </div>
                 @endif
             </x-filament::section>

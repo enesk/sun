@@ -1,0 +1,49 @@
+Trockenlauf Authenticated Origin Pulls (#45), 16.10.2026, auf 88.198.64.145.
+
+Die LIVE-Konfiguration wurde dabei NICHT angefasst. Aufbau: Kopie von
+/etc/nginx/sites-enabled/sanitaerfinden.dev.conf unter /tmp/aop-probe,
+Ports auf 9080/9443/9081 verlegt, QUIC aus, eigener pid-/temp-Pfad, dazu
+die map-Datei, die scripts/nginx-origin-pull-absichern.sh erzeugt --
+mit firmenfreund.de (+ www1.) als einzigem scharfen Host. Ein zweiter
+nginx-Prozess lief nur fuer die Dauer der Probe.
+
+  # nginx -t -p /usr/share/nginx -c /tmp/aop-probe/nginx-probe.conf
+  nginx: configuration file ... test is successful
+  (nur die vorhandenen ssl_stapling-Warnungen)
+
+Antwortcodes, kein Client-Zertifikat vorgelegt (wie ein fremder Worker,
+der den Ursprung direkt anspricht):
+
+  scharf, https, CF-Connecting-IP gefaelscht (Soll 403)      403
+  scharf, https, ACME-Pfad (Soll 404, nicht 403)             404
+  scharf, http (Soll 403, nicht 301)                         403
+  scharf, www1-Variante (Soll Umleitung oder 403)            301
+  nicht scharf: Portal ohne Kante (Soll 200)                 200
+  nicht scharf: fremder Name analytics.widimedia.com         500 *
+  nicht scharf: anderes Portal (Soll 200)                    200
+
+* 500 ist der Zustand dieses Namens am Probe-Aufbau (Tenant-Aufloesung im
+  inneren Block), nicht Wirkung der Sperre -- entscheidend ist: kein 403.
+
+Damit belegt:
+  * der Host-gebundene 403 trifft genau den scharfen Namen,
+  * /.well-known bleibt offen (ACME-Erneuerung des gemeinsamen
+    Zertifikats laeuft weiter),
+  * auch die http-Seite des scharfen Hosts ist dicht (vor der
+    https-Umleitung),
+  * die 22 uebrigen Portale, die beiden Namen ohne Kante und die fremden
+    Projekte im selben server_name bleiben unberuehrt.
+
+Kantenstatus derselben Stunde, autoritativ gemessen:
+
+  elektrikerportal.com -> 172.67.133.141  ns=sri.ns.cloudflare.com  cf-ray vorhanden
+  sanitaerfinden.com   -> 88.198.64.145   ns=ns3nrz.name.com        kein cf-ray
+  firmenfreund.de      -> 104.21.43.29    ns=sri.ns.cloudflare.com  cf-ray vorhanden
+
+elektrikerportal.com liegt also inzwischen hinter der Kante; ohne Kante
+ist nur noch sanitaerfinden.com.
+
+Folgenabschaetzung Weg 1 (scripts/nginx-origin-pull-absichern.sh
+--zonen-pruefen, 48 server_name-Eintraege aller Sites des Servers):
+hinter der Kante 45, direkt erreichbar 3 (isitangeruestbau.de,
+sanitaerfinden.com, sanitaerfinden.dev).

@@ -107,6 +107,11 @@ sind keine:
   der beiden Fragmente eingesetzt: `home_after_services` läuft über den
   HtmlProvider im Sandbox-iframe und braucht keine Einwilligung. Das Gate hängt
   am Werbemittel, nicht an der Seite.
+  **Nachtrag #36:** die Begründung des damaligen Verhaltens war falsch — die
+  Sandbox hält das Werbemittel vom Portal-Origin fern, nicht vom Netz. Seit
+  #36 entscheidet `config_json->third_party` je Werbemittel, Vorgabe
+  „Einwilligung nötig". Dieser Mitschnitt gibt den Stand vom 16.10.2026
+  wieder; eine Wiederholung zeigt das Demo-Werbemittel als wartend.
 * **Nach einer Einwilligung im Besuch füllt sich, was im Blick ist.** Auf dem
   Firmenprofil bleiben drei Fragmente offen, weil das Messskript erst bis zum
   Seitenende scrollt und dann klickt: die Anker weiter oben schneiden den

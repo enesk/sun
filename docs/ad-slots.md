@@ -218,6 +218,10 @@ steht in der Rückfall-Übersicht, in `guide/index.blade.php` dagegen nicht und
 behält deshalb alle Routen. Diesen Fall macht weiter nur der Abgleich mit
 `slots:ready` sichtbar („Im Katalog, aber nicht in der geladenen Seite").
 
+**Dritte Dimension: Inhalt.** Fünf Anker stehen im Markup innerhalb ihrer
+Sektion und fehlen mit ihr — unabhängig von Route und Theme. Sie führen
+`requires`, einen Satz, den das Panel anzeigt (Ticket #22, Abschnitt 6.3).
+
 ### 3.2 Geräte, Formate, Status
 
 `App\Ads\Enums\AdDevice`: `mobile` | `desktop` | `all`. Grenze ist der
@@ -227,6 +231,8 @@ nicht über JavaScript: ein per JS versteckter Slot hat schon geladen.
 
 Formate (Schlüssel aus `config('ad-slots.formats')`):
 `responsive`, `rectangle_300x250`, `leaderboard_728x90`, `in_feed`, `in_article`.
+`responsive` heißt „so breit wie die Spalte" und **nicht** „so hoch wie
+AdSense will": die Höhe ist die Reservierung des Ankers (Abschnitt 5.1, #32).
 
 `App\Ads\Enums\AdProviderType`: `adsense` | `html`.
 `App\Ads\Enums\AdPlacementStatus`: `draft` → `active` ↔ `paused`, dazu
@@ -751,6 +757,11 @@ Harte Regeln:
    Cookies, `localStorage` oder das übergeordnete Dokument. `allow-scripts`
    **und** `allow-same-origin` zusammen wären identisch mit „keine Sandbox" —
    diese Kombination ist verboten.
+   **Die Sandbox trennt Origins, nicht Netzwerkziele.** `allow-scripts` ist
+   gesetzt, ein Skript im Rahmen darf also beliebige Hosts ansprechen und
+   dabei IP-Adresse, Browser-/Gerätedaten und Zeitpunkt übertragen. Der
+   Rahmen ist eine Grenze gegen das Portal, keine gegen Dritte — daraus
+   folgt Regel 8.
 3. **Zustellung über eine eigene Route**, nicht über `srcdoc`:
    `GET /_ads/html/{adUnit}` mit eigenen Antwort-Headern
    (`X-Frame-Options` entfällt, statt dessen `frame-ancestors` auf die
@@ -773,6 +784,18 @@ Harte Regeln:
    falsche Gefühl von Sicherheit und bricht legitime Werbemittel; die Sandbox
    ist die Grenze. Dafür ist das Anlegen von `ad_units` auf die
    Admin-Rolle beschränkt (SUN-AD-010) und wird protokolliert.
+8. **Einwilligung je Werbemittel über `config_json->third_party`** (#36).
+   `yes` (Vorgabe, auch bei fehlender Angabe) heißt: `requiresConsent()`
+   ist `true`, der Rahmen liegt bis zur Einwilligung in einem `<template>`
+   und lädt nichts. `no` heißt: nur eigene Inhalte, der Rahmen lädt
+   sofort. Das Feld ist ein Auswahlfeld im Formular, formal nicht
+   pflichtig — `normalizeConfig()` schreibt beim Speichern `yes` fest, wenn
+   nichts gewählt wurde, damit Altbestände nicht aus der Ausspielung
+   fallen (`supports()` prüft `validateConfig()`). Falsch gesetzt heißt
+   Datenübertragung an Dritte ohne Einwilligung (§ 25 Abs. 1 TDDDG,
+   Art. 6 Abs. 1 lit. a DSGVO) **und** ein fehlender Absatz in der
+   Datenschutzerklärung — beides hängt an diesem einen Wert
+   (Abschnitt 9.4).
 
 Umgesetzt in #4: `App\Ads\Providers\HtmlProvider` rendert ausschließlich das
 iframe, `App\Ads\Http\Controllers\AdHtmlController` stellt das Dokument zu.
@@ -829,7 +852,10 @@ class AffiliateProvider extends AbstractAdProvider
 
     public function requiresConsent(AdUnit $unit): bool
     {
-        return false;                // kein Cookie, kein fremdes Skript
+        // Das Bild kommt von einem fremden Host: der Abruf überträgt
+        // IP-Adresse und Gerätedaten dorthin, auch ohne Cookie. Die Vorgabe
+        // aus AbstractAdProvider ist `true` — diese Methode entfällt also.
+        return true;
     }
 
     public function render(AdUnit $unit, AdRenderContext $context): ?RenderedAd
@@ -879,7 +905,12 @@ aus `configSchema()`, die Auswahlliste aus `AdProviderRegistry::options()`, die
 Pflichtprüfung beim Speichern aus `validateConfig()`.
 
 Zu prüfen bleibt nur das Übliche: lädt der Provider fremde Hosts, gehören sie
-in `config/csp.php` (#9); setzt er Cookies, muss `requiresConsent()` true sein.
+in `config/csp.php` (#9) — **und** `requiresConsent()` muss `true` sein. Nicht
+erst, wenn er Cookies setzt: schon der Request an einen fremden Host
+überträgt IP-Adresse und Gerätedaten (#36). Ein Sandbox-iframe ändert daran
+nichts, er trennt Origins und keine Netzwerkziele. Die Vorgabe in
+`AbstractAdProvider` ist `true`; wer sie auf `false` dreht, muss belegen
+können, dass vor der Einwilligung kein Request den eigenen Server verlässt.
 
 ---
 
@@ -1011,10 +1042,45 @@ Inline-Skripte, die CSP hat kein `'unsafe-inline'` für `script-src` (siehe
 | `AdEditorMode::enable()` | `scoped` statt `instance` — sonst klebt der Modus in einem Langläufer über die Anfrage hinaus |
 
 Nicht im Editor-Modus sichtbar sind Anker, die in einer **Inhaltsbedingung**
-stecken: `home_after_guide` steht innerhalb des Ratgeber-Blocks der Startseite.
-Der Rückfall von `/ratgeber` auf `pages/blog/index.blade.php` trug am
+stecken. Der Rückfall von `/ratgeber` auf `pages/blog/index.blade.php` trug am
 16.10.2026 ebenfalls keinen `guide_index`-Anker; seit Ticket #23 stehen die
 Anker auch in den beiden Rückfall-Views (Abschnitt 3.1).
+
+#### Inhaltsbedingung `requires` (Ticket #22)
+
+Fünf Anker stehen im Markup **innerhalb** ihrer Sektion und fehlen mit ihr:
+
+| Anker | steht in | Bedingung |
+| --- | --- | --- |
+| `home_after_services` | `pages/home.blade.php` | `@if($sun['services'] !== [])` |
+| `home_after_top_rated` | `pages/home.blade.php` | `@if($sun['topRated']->isNotEmpty())` |
+| `home_after_guide` | `pages/home.blade.php` | `@if(config('themes.sun-v2.nav.guide') && $latestPosts->isNotEmpty())` |
+| `home_after_cities` | `pages/home.blade.php` | `@if($sun['cities']->isNotEmpty())` |
+| `company_after_about` | `pages/companies/show.blade.php` | `@if($profile['paragraphs'] !== [])` |
+
+**Entschieden (16.10.2026): sie bleiben in der Bedingung.** Zöge man sie
+heraus, stünden auf einer inhaltsarmen Startseite bis zu vier Banner
+unmittelbar hintereinander — ein Anker gehört laut Katalogregel zwischen zwei
+abgeschlossene Sektionen, und bei AdSense sind Anzeigen ohne Inhalt dazwischen
+ein Richtlinienverstoß. Ein Rahmen, der nur im Editor erscheint und in der
+Auslieferung nie, wäre außerdem eine falsche Vorschau.
+
+Damit trotzdem nichts still verschwindet, führt der Slot `requires`: einen
+Satz, der die Bedingung nennt. Verwendet wird er an drei Stellen:
+
+* `AdSlotCatalog::requirementOf()` — Zugriff auf den Satz.
+* `EditorSlotList` gibt ihn als Feld `requires` an die Ankerliste; die Zeile
+  zeigt „Erscheint nur, wenn: …".
+* Der Warnhinweis „Im Katalog, aber nicht in der geladenen Seite" nennt zu
+  jedem fehlenden Anker den Grund — und sagt ausdrücklich *kein Grund im
+  Katalog hinterlegt*, wenn keiner da ist. Das ist dann ein fehlender Anker im
+  Markup und gehört gemeldet (dieselbe Fehlerklasse wie #13, #14, #19).
+
+Gegenprobe am 16.10.2026 auf `sanitaerfinden.com` (Portal mit Leistungen,
+Betrieben und Städten, aber ohne Ratgeber-Beiträge und mit einem Profil ohne
+Beschreibungstext): `home_after_guide` und `company_after_about` fehlen in der
+Seite, beide mit Grund; alle übrigen Anker beider Seitentypen sind da.
+Wächter: `tests/Feature/Ads/SlotContentRequirementTest.php`.
 
 ### 6.4 Konfigurationspanel (Ticket #8)
 
@@ -1151,6 +1217,10 @@ Komponente setzt darum zwei CSS-Variablen am Container
 .ad-slot__area { min-height: var(--ad-mh, 0px); }
 @media (min-width: 64rem) { .ad-slot__area { min-height: var(--ad-mh-lg, var(--ad-mh, 0px)); } }
 ```
+
+Die Reservierung gilt für den Anker, nicht für die Seite: setzt das
+AdSense-Konto zusätzlich Auto Ads ein, kann die Seite als Ganzes die Grenze
+„CLS < 0,1" reißen, ohne dass ein Anker gewachsen ist (Abschnitt 9.6, #46).
 
 Reserviert wird auf der **Fläche**, nicht auf dem Rahmen: das Wort „Anzeige"
 darf nicht von der Höhe der Anzeige abgehen. `iframe`, `ins` und `img` in der
@@ -1389,8 +1459,9 @@ eingewilligt": der Fehler tarnt sich als korrektes Verhalten
 ### 9.2 Wer entscheidet was
 
 ```
-Provider          requiresConsent($unit)      AdSense: true, eigenes HTML: false
-  ↓                                           (Sandbox-iframe, kein Cookie-Zugriff)
+Provider          requiresConsent($unit)      AdSense: immer true,
+  ↓                                           eigenes HTML: config_json->third_party
+  ↓                                           ('yes' = Vorgabe → true, #36)
 RenderedAd        ->requiresConsent           wandert mit, auch durch den Resolver
   ↓
 Komponente        data-ad-consent="marketing" Fragment bleibt im <template>,
@@ -1507,25 +1578,42 @@ Angehängt wird er beim Rendern, vor der Theme-Schicht:
 * und werden seine Platzhalter (`[PORTAL_NAME]`) wie im übrigen Rechtstext von
   `TenantBrandingService::resolveLegalPlaceholders()` aufgelöst.
 
-Er erscheint **nicht**, wenn das Portal keine Werbung ausspielt
-(`ad_settings.ads_enabled` aus oder keine wirksame Publisher-ID) oder wenn der
-gepflegte Text das Wort „AdSense" schon selbst enthält — sonst stünden zwei
-Abschnitte zum selben Thema auf der Seite.
+Der Abschnitt hat seit #35 **zwei Teile**, die unabhängig voneinander
+erscheinen (`AdSensePrivacySection::sections()`):
 
-Der Wortlaut ist in **Ticket #26** freigegeben (Durchsicht mit
-Datenschutz-Fokus, Rechtsstand 16.10.2026). Änderungen daran nur mit erneuter
-Durchsicht.
+| Teil | erscheint, wenn | Wortlaut freigegeben |
+| --- | --- | --- |
+| „Werbung mit Google AdSense" (h2) | `ads_enabled` **und** wirksame Publisher-ID (`adsenseActive()`) und der gepflegte Text enthält „AdSense" nicht selbst | #26 |
+| „Weitere Werbemittel" (h3, ohne AdSense-Teil h2) | `ads_enabled` **und** eine lieferbare HTML-Belegung, deren Werbemittel einwilligungspflichtig ist (`htmlActive()`) und der gepflegte Text enthält „Weitere Werbemittel" nicht selbst | #35 |
 
-#### Eigenes HTML ist nicht abgedeckt — Auslieferungsregel (#29)
+Beide Wortlaute sind mit Datenschutz-Fokus durchgesehen (Rechtsstand
+16.10.2026). Änderungen daran nur mit erneuter Durchsicht.
 
-Der Abschnitt beschreibt ausschließlich Google AdSense. Der zweite Provider
+Die Verdrängung durch den gepflegten Text greift je Teil: dass ein Portal
+AdSense selbst beschreibt, sagt nichts darüber, dass es auch Werbemittel
+Dritter einbindet — der HTML-Teil wird deshalb nur von seiner **eigenen**
+Überschrift verdrängt. Spielt ein Portal nur eigene Werbemittel aus, steht
+„Weitere Werbemittel" als h2 (eigene Sprungmarke in sun-v2), und der Satz zum
+Widerruf verweist nicht nach oben, sondern nennt den Weg selbst.
+
+`active()` ist seit #35 die Oder-Verknüpfung beider Teile — die drei
+Cookie-Hinweise (`themes/*/views/partials/.../cookie-consent.blade.php`)
+fragen damit, ob die Kategorie „Marketing" den Werbe-Text bekommt.
+`htmlActive()` fragt **eine** Abfrage auf `ad_placements` und liegt unter
+`AdCache::htmlConsentKey()` im Cache (eine Stunde, von
+`AdCache::forgetTenant()` mit vergessen) — die Methode hängt am Cookie-Hinweis
+jeder Seite.
+
+#### Eigenes HTML: Absatz liegt bereit, hängt an #36 (#29, #35)
+
+Der zweite Provider
 (`App\Ads\Providers\HtmlProvider`, Abschnitt 5.2) liefert beliebiges Markup
 aus, und die Sandbox trägt `allow-scripts`: sie hält das Werbemittel vom
 Portal-Origin fern, **nicht** vom Netz. Ein solches Werbemittel kann Requests
-an beliebige Dritte stellen — die Datenschutzerklärung nennt diesen Fall
-nicht, und `AdSensePrivacySection::active()` hängt an einer wirksamen
-Publisher-ID, ein Portal mit ausschließlich eigenen Werbemitteln bekäme also
-überhaupt keinen Werbe-Abschnitt.
+an beliebige Dritte stellen. Der Absatz „Weitere Werbemittel" beschreibt
+diesen Fall seit #35, und `AdSensePrivacySection` löst ihn nicht mehr über die
+Publisher-ID aus — ein Portal mit ausschließlich eigenen Werbemitteln bekommt
+seinen Werbe-Abschnitt.
 
 Stand 16.10.2026 ist das **nicht akut**: auf der Produktion gibt es die
 zentralen Tabellen `ad_units`/`ad_placements` noch nicht (nachgezählt über
@@ -1533,28 +1621,47 @@ zentralen Tabellen `ad_units`/`ad_placements` noch nicht (nachgezählt über
 ist durchweg AdSense. Lokal steht genau ein Demo-Werbemittel mit
 `provider = html`.
 
-Darum gilt als Auslieferungsregel, bis der Rechtstext ergänzt ist:
+Ausgespielt wird der Absatz aber nur für Werbemittel, die wirklich eine
+Einwilligung brauchen — er sagt „erst nach Einwilligung" zu, und ein falscher
+Satz in der Datenschutzerklärung ist schlimmer als ein fehlender. Deshalb
+hängt `htmlActive()` an der Einwilligungspflicht des Werbemittels und nicht
+an „irgendeiner HTML-Belegung".
 
-> Ein Werbemittel mit `provider = html`, das Skripte oder Inhalte Dritter
-> nachlädt, geht erst live, wenn die Datenschutzerklärung den Drittanbieter
-> nennt.
+**Was die Einwilligungspflicht entscheidet (#36).** `requiresConsent()` des
+HtmlProviders lieferte bis #36 hart `false`, Begründung: „Sandbox-iframe ohne
+Netzzugriff auf Dritte". Das war falsch — die Sandbox trennt Origins, nicht
+Netzwerkziele (Abschnitt 5.2 Regel 2). Seit #36 entscheidet der Schalter
+`config_json->third_party` je Werbemittel:
+
+| `third_party` | `requiresConsent()` | Rahmen | Absatz „Weitere Werbemittel" |
+|---|---|---|---|
+| `yes` (Vorgabe, auch leer) | `true` | lädt erst nach der Einwilligung | erscheint |
+| `no` | `false` | lädt sofort | erscheint nicht |
+
+Technik und Rechtstext hängen damit an **einem** Wert: `htmlActive()` fragt
+denselben Provider, der das Gate setzt. Ein Eigenbanner ohne Drittbezug läuft
+weiter vor der Einwilligung, ein Drittanbieter-Tag nicht. Lokal nachgespielt
+(#35: Probe mit erzwungenem `requiresConsent() === true` → Portal 27
+`html=true`, mit dem Stand vor #36 `html=false` auf allen 23 Portalen — das
+Demo-Werbemittel hat kein `third_party` und ist seit #36 von selbst
+einwilligungspflichtig).
+
+Dazu die Auslieferungsregel am Formular:
+
+> Lädt ein Werbemittel mit `provider = html` Skripte oder Inhalte Dritter,
+> muss der Schalter „Lädt dieses Werbemittel Inhalte Dritter?" auf „Ja"
+> stehen — dann lädt der Rahmen erst nach der Einwilligung, und der Absatz
+> in der Datenschutzerklärung erscheint automatisch.
 
 Die Regel steht nicht nur hier, sondern im Panel an der Stelle, an der die Art
 gewählt wird: `App\Ads\Forms\ProviderConfigForm::htmlLegalRule()` hängt sie an
 den Hinweis über den HTML-Feldern — sichtbar in der Werbemittel-Resource (#10)
 und beim Inline-Anlegen im Konfigurationspanel (#8).
 
-Der Absatz selbst (Drittanbieter-Werbemittel, Einbindung im abgeschotteten
-Rahmen, Datenübertragung an den jeweiligen Anbieter) wird erst mit der Freigabe
-durch Enes ergänzt — der AdSense-Wortlaut ist freigegeben und wird nicht
-nebenbei erweitert. Vorschlag und die beiden technischen Punkte dazu (die
-Auslösebedingung in `AdSensePrivacySection::active()` hängt heute an der
-Publisher-ID, `alreadyCovered()` sucht nur „AdSense") stehen am **Ticket #35**.
-
-Dazu gehört ein zweiter Befund aus #29, **Ticket #36**: `requiresConsent()` des
-HtmlProviders liefert `false`, ein HTML-Werbemittel lädt also schon vor der
-Einwilligung. Die Zusage „erst nach Einwilligung" im Textvorschlag stimmt erst,
-wenn #36 umgesetzt ist — beide Tickets gehören zusammen.
+Der Absatz selbst steht im Partial (`$showHtml`), der AdSense-Wortlaut aus #26
+ist dabei unverändert geblieben. Was aus dem Vorschlag in #35 angepasst wurde:
+der Einleitungssatz nennt AdSense nur, wenn der AdSense-Teil daneben steht, und
+der Satz zum Widerruf verweist nur dann „wie oben beschrieben".
 
 **Cookie-Tabelle (#30).** Der Abschnitt „8.1 Technisch notwendige Cookies" in
 `App\Constants\TenantLegalDefaults::DATENSCHUTZ` führte ein Cookie
@@ -1708,6 +1815,95 @@ Der Messwert ist nur innerhalb des sichtbaren Bereichs etwas wert: CLS bewertet
 nur ihn, ein Nachzug weit unter dem Falz erreicht die Metrik nicht. Das Skript
 holt den wartenden Anker darum vor dem Klick in den Blick.
 
+### 9.6 Auto Ads auf Kontoseite — die CLS-Zusage gilt für die Anker (#46)
+
+**Befund (Pilot #31 auf `bodenlegerfinden.com`, 16.10.2026).** Auf dem Konto
+hinter der Publisher-ID `ca-pub-2563111817853634` sind **Auto Ads auf
+Kontoseite** aktiv. Sobald irgendein belegter Anker nach der Einwilligung den
+Loader `adsbygoogle.js?client=ca-pub-…` auf die Seite bringt, setzt Google
+zusätzlich **eigene, nicht reservierte** Anzeigen ein. Ohne Anker kommt kein
+Loader auf die Seite — darum hatten `/firmen` und der Ratgeber-Artikel vor den
+Pilot-Belegungen 0 Anzeigen und keinen Loader.
+
+Der Schalter `ad_settings.adsense_auto_ads` (#18) steuert das **nicht**. Er
+schaltet allein unseren eigenen Auto-Ads-Loader, also das `<meta
+name="adsense-auto-client">` und den `enable_page_level_ads`-Push aus
+`resources/js/ads.js`. Auf `bodenlegerfinden.com` stand er während des Pilots
+auf `false`, und die unreservierten Anzeigen kamen trotzdem.
+
+**Geltungsbereich der Zusage.** Die Zusage des Moduls lautet: *der Anker gibt
+die Höhe vor* (Abschnitt 7.2, 5.1, #32). Sie gilt für die Anker des Katalogs
+und ist dort gemessen — nicht für die Seite als Ganzes. Mit aktiven Auto Ads
+kann die **Seite** die Grenze „CLS < 0,1" aus `docs/ad-slots-golive.md` §3.3
+reißen, obwohl kein Anker gewachsen ist. Das Modul kann das nicht abfangen:
+die Auto Ads hängen am Loader, und den braucht jeder belegte Anker.
+
+**Messung mit aktiven Auto Ads — eigene Zeile.** Getrennt von den
+Anker-Messungen in 7.4, 9.5 und 3.2b geführt, weil hier nicht das Modul
+gemessen ist, sondern die Seite mit fremden Einschüben:
+
+| Datum | Portal / Seite | Breite | Anzeigen auf der Seite | davon reserviert | CLS Anker-Anteil | CLS gesamt |
+| --- | --- | --- | --- | --- | --- | --- |
+| 16.10.2026 | 27 `/firmen` (search), Ausreißerlauf | 360 px | **6** | 2 | 0,0339 | **0,1872** (Anker-Fenster 0,1298) |
+| 16.10.2026 | 27 `/firmen`, 3 Wiederholungen | 360 px | 2 bis 6 | 2 | 0,0000 | 0,0000 |
+| 16.10.2026 | 27 `/12-parkett-loni` (company) | 360 px | 4 | 3 | 0,0000 | 0,0000 |
+| 16.10.2026 | 27 `/ratgeber/…` (guide) | 360 px | 2 | 1 | 0,0000 | 0,0000 |
+
+Rohdaten: `docs/messungen/werbeplaetze-golive/pilot-bodenlegerfinden-com-nachher-mobil-2026-10-16.json`,
+`…-suche-wiederholungen-2026-10-16.json`; Auswertung
+`docs/messungen/werbeplaetze-golive/pilot-bodenlegerfinden-2026-10-16.md` §4.1.
+Der Ausreißer ist nicht reproduzierbar, und die größten Einzelverschiebungen
+darin haben als Quelle „(entfernt)" — den verschwindenden Google-CMP-Dialog.
+Die Zeile bleibt trotzdem stehen: sie ist der einzige Lauf, in dem vier
+unreservierte Anzeigen zusätzlich auf der Seite standen, und damit der Beleg,
+dass die Seite die Grenze reißen **kann**.
+
+**Im Code ist es nicht lösbar — geprüft.** Es gibt keinen Parameter am
+Loader-Aufruf und kein Meta-Tag, mit dem eine Seite die Auto Ads des Kontos
+ablehnt:
+
+* `enable_page_level_ads` ist die Gegenrichtung. Der Push schaltet Auto Ads
+  von der Seite aus **ein**; ihn weglassen oder auf `false` setzen nimmt dem
+  Konto nichts. Genau das ist auf 27 der Fall: kein Push, trotzdem Auto Ads.
+* `overlays: { bottom: false }` in `resources/js/ads.js` wirkt nur auf unseren
+  eigenen Push, nicht auf die Kontoeinstellung.
+* Der Loader kennt neben `client` keinen Schalter für die Formatauswahl. Auto
+  Ads werden allein im Konto konfiguriert, je Site: Formate einzeln an/aus
+  (In-Page-Einschübe, In-Article, In-Feed, Anchor, Vignette), dazu
+  URL-Ausschlüsse je Seite und Bereichsausschlüsse über CSS-Selektoren.
+  Quellen: [Auto ads settings](https://support.google.com/adsense/answer/9305577),
+  [Exclude specific pages](https://support.google.com/adsense/answer/9262311),
+  [Exclude areas](https://support.google.com/adsense/answer/12626543).
+
+**Entschieden: Auto Ads bleiben an** (Enes, 16.10.2026, Ticket #51; #50 ist
+als gegenstandslos geschlossen). Im AdSense-Konto wird **nichts** abgeschaltet
+und nichts auf Formate begrenzt — auf keiner Site, unabhängig vom Befund oben.
+Das ist eine Ertragsentscheidung und keine offene Frage; wer sie wieder
+aufmacht, braucht einen neuen Beschluss von Enes, nicht dieses Dokument.
+
+Daraus folgt für das Modul:
+
+* **Die Zusage „der Anker gibt die Höhe vor" gilt für die Anker** und ist dort
+  gemessen (7.2, 9.5, #32). Die Grenze „CLS < 0,1" aus
+  `docs/ad-slots-golive.md` §3.3 ist damit dauerhaft auf den **Anker-Anteil**
+  zu lesen.
+* **Der Seitenwert wird trotzdem weiter gemessen und getrennt geführt** — die
+  Tabelle oben ist dafür die Stelle. Ein Seitenwert über 0,1 ist ein Befund,
+  der an Enes gemeldet wird; er ist **kein** Abbruchgrund, kein Anlass, einen
+  Anker zu entfernen, und keine Aufforderung, im Konto nachzustellen.
+* **Ein Layoutsprung durch Auto Ads ist damit möglich und von uns nicht
+  messbar verhinderbar.** Das ist bekannt und in Kauf genommen.
+
+**Falls später doch nachgesteuert werden soll** — nur auf Entscheidung von
+Enes, nicht als Auflage dieses Dokuments: im Konto je Site Formate einzeln
+abschalten (besonders die In-Page-Einschübe zwischen bestehende Elemente),
+Seiten per URL ausschließen, oder einen Bereichsausschluss über den stabilen
+Selektor `div.ad-slot` setzen (Klasse aus
+`resources/views/components/sun/ad-slot.blade.php`) — dann landen keine Auto
+Ads **innerhalb** einer Reservierung. Google braucht bis zu einer Stunde, bis
+eine geänderte Einstellung auf der Site greift. Im Code gibt es diesen Hebel
+nicht (siehe oben).
+
 ---
 
 ## 9a. Verwaltung im Admin-Panel (SUN-AD-010, Ticket #10)
@@ -1787,11 +1983,25 @@ Aufbau, in dieser Reihenfolge:
    Kommentare).
 
 Doppelte Zeilen fallen weg: der Altbestand bringt die Google-Zeile oft in
-`ads_txt_extra` mit. Bleibt nichts übrig, antwortet die Route **404** — eine
+`ads_txt_extra` mit. Verglichen wird dafür nicht die Zeichenkette, sondern die
+Autorisierung — `GOOGLE.COM`, `ca-pub-…` und ein Kommentar dahinter sind
+dieselbe Zeile (#41). Bleibt nichts übrig, antwortet die Route **404** — eine
 leere `ads.txt` liest Google als „kein autorisierter Verkäufer" und schaltet
 damit Anzeigen ab, eine fehlende Datei ist der Zustand wie vor dem Umstieg.
-`ads_enabled = false` nimmt nur die Google-Zeile; die Zusatzzeilen bleiben, dort
-stehen fremde Vermarkter.
+
+`ads_enabled = false` nimmt jede Autorisierung der **wirksamen** Publisher-ID:
+die gebaute Google-Zeile aus Schritt 1 und — seit #41 — auch eine gleichlautende
+Zeile aus `ads_txt_extra`. Grund: `ads:legacy-takeover` hat den kompletten
+`ads_txt_content` der Tenant-DB nach `ads_txt_extra` übernommen, und darin steht
+bei 13 Portalen genau die eigene Google-Zeile; ohne den Filter blieb die
+Autorisierung für Google stehen, obwohl der Hauptschalter aus war — die
+Notbremse aus `docs/ad-slots-golive.md` §5 hätte nur halb gewirkt. Alle anderen
+Zusatzzeilen bleiben, dort stehen fremde Vermarkter; eine `google.com`-Zeile mit
+einer **fremden** Kennung zählt dazu. Verglichen wird in
+`AdSensePublisherId::isGoogleLineFor()` feldweise und ohne Groß-/Kleinschreibung,
+Kommentar hinter `#` abgeschnitten, `pub-…` und `ca-pub-…` gleichwertig — der
+Altbestand schreibt dieselbe Zeile in jeder Variante. `ads:golive:check` meldet
+den Rest als WARN („aus, aber eigene Google-Zeile in den Zusatzzeilen").
 
 Gecacht wird eine Stunde (`config('ad-slots.cache_ttl')`, Schlüssel
 `AdCache::adsTxtKey()`); `AdCache::forgetTenant()` vergisst ihn zusammen mit den
@@ -1989,7 +2199,7 @@ belegten Alt-Positionen liegen auf dem Firmenprofil):
 | `after_breadcrumb` | `company_after_header_card` | Anker ist **nur mobil** — auf dem Desktop entfällt diese Anzeige |
 | `content_before_intro` | `company_after_about` | aus „vor dem Einleitungstext" wird „nach Über uns" |
 | `after_photos` | `company_after_reviews` | |
-| `after_change_request` | `company_before_footer` | letzter Inhaltsblock |
+| `after_change_request` | `company_before_footer` | letzter Inhaltsblock; die beiden daraus entstandenen Belegungen standen wegen #32 auf `paused` und sind seit 16.10.2026 wieder `active` (#40, s. u.) |
 | `sidebar_top` | `company_sidebar_sticky` | Anker ist desktop-only |
 | `sidebar_after_claim` | `company_sidebar_top` | zweiter Seitenspalten-Anker, mit Katalog v3 aufgenommen (Ticket #19); Anker ist desktop-only |
 | `auto_ads` | — | kein Anker, sondern `ad_settings.adsense_auto_ads` (Abschnitt 1); Ausspielung `<x-sun.auto-ads />`, Ticket #18 |
@@ -2025,6 +2235,23 @@ Nicht übernommen wird gemeldet, nicht geraten: abgeschaltete Alt-Slots,
 Positionen ohne Entsprechung, Code ohne AdSense-Anzeigenblock, auf den Anker
 verengte Gerätewahl und nicht lesbare Portal-Datenbanken stehen in der Tabelle
 „Nicht uebernommen" des Laufs. Diese Liste ist die Abnahmeliste für #11.
+
+**Nachzug 16.10.2026 (#40): `company_before_footer` ist wieder scharf.** Die
+beiden Belegungen aus `after_change_request` (Placement 2, Konto
+`ca-pub-2563111817853634`, Block `3828015317`, 8 Portale; Placement 8, Konto
+`ca-pub-1901800422608466`, Block `4148391584`, 8 Portale) hatte #38 wegen des
+CLS-Befunds aus #32 auf `paused` gesetzt. Mit der Lösung aus #32 gibt der Anker
+die Höhe vor (`height:90px` im `<ins>`), der Grund ist weg — beide stehen
+wieder auf `active`. Gemessen vorher und nachher: CLS **0,000** auf dem
+Firmenprofil, Containerhöhe 130 px unverändert über die Einwilligung hinweg
+(`docs/messungen/werbeplaetze-golive/cls-company-before-footer-2026-10-16.md`).
+`ads:golive:check` auf der Produktion danach weiter 0 FAIL.
+
+Doppelt ausgespielt wird dadurch nichts: `after_change_request` steht nur in
+den Profil-Views der Themes `default` und `starter`, nicht in `sun-v2`. Von den
+16 zugeordneten Portalen fährt allein 43 `tierarztportal.com` `default` — dort
+rendert der neue Anker gar nicht (Entscheidung #16), dort liefert weiter das
+Altsystem. Auf den übrigen 15 war die Position bisher leer.
 
 **Abschalten des Altsystems** (Teil von #11): `x-ad-slot`-Aufrufe mit
 `position=` entfernen, `App\View\Components\AdSlot`,
@@ -2125,19 +2352,64 @@ Leseweg und reservieren 280 px mobil / 250 px Desktop.
 
 ### 13.2 Gemessen nach dem Pilot
 
-Auszufüllen aus dem AdSense-Report je Anzeigenblock (drei Tage, ein Portal,
-`docs/ad-slots-golive.md` §3.4). Erst mit dieser Tabelle ist
-Akzeptanzkriterium 3 erfüllt.
+Vorgesehen war der AdSense-Report je Anzeigenblock (drei Tage, ein Portal,
+`docs/ad-slots-golive.md` §3.4). Gefüllt ist die Tabelle aus der **eigenen**
+Zählung — sie misst dieselbe Schwelle, trennt die Anker sogar besser als der
+Report (der kennt nur den Anzeigenblock) und braucht kein Konto. Die drei
+kontogebundenen Spalten bleiben offen und sind als solche markiert.
 
-| Anker | Impressionen | sichtbare Impr. (Viewability) | aktive Betrachtungszeit | RPM | Entscheidung |
-| --- | --- | --- | --- | --- | --- |
-| `company_after_about` | | | | | |
-| `guide_in_article_1` | | | | | |
-| `search_in_feed_3` | | | | | |
+**Gefüllt am 16.10.2026 (#31) aus der eigenen Zählung, nicht aus AdSense.**
+Quelle ist `ad_impression_daily` (§14): gezählt wird gegen dieselbe Vorgabe wie
+bei AdSense — 50 % der Containerfläche für eine zusammenhängende Sekunde. Die
+Spalte „sichtbare Impressionen" ist damit echt; was der eigene Zähler zum
+Zeitpunkt dieser Messung **nicht** hatte, war der Nenner (die ausgelieferten
+Fragmente) und damit die Viewability-**Quote**. Den Nenner zählt das System
+seit **Ticket #47** selbst (`ad_impression_daily.deliveries`, §14.1a) — die
+Quote steht im Widget, sobald ein ganzes Fenster nach dem Deploy liegt. Nur
+noch kontogebunden sind Klickrate und RPM.
 
-Portal: ______ · Zeitraum: ______ bis ______ · abgelesen von ______
+Portal: **alle 15 freigegebenen** (nicht ein einzelnes, s. u.) · Zeitraum:
+16.10.2026 12:09–13:01 UTC, erste gezählte Stunde des Netzes · 391
+Sichtkontakte · abgelesen von Kay (#31)
+
+| Anker | Gerät | sichtbare Impr. (eigene Zählung) | Reichweite gegen den obersten Anker | Viewability-Quote (AdSense) | RPM | Entscheidung |
+| --- | --- | --- | --- | --- | --- | --- |
+| `company_after_header_card` | mobil | 192 | 100 % (Bezug) | offen (Konto) | offen | **behalten** — trägt das Meiste |
+| `company_sidebar_top` | Desktop | 63 | 100 % (Bezug Desktop) | offen (Konto) | offen | **behalten** |
+| `company_after_reviews` | mobil / Desktop | 50 / 20 | 26 % / 32 % | offen (Konto) | offen | behalten, zweitbester Content-Anker |
+| `company_sidebar_sticky` | Desktop | 26 | 41 % | offen (Konto) | offen | behalten |
+| `company_after_about` | mobil / Desktop | 17 / 7 | 9 % / 11 % | offen (Konto) | offen | behalten, aber kleine Grundmenge: der Anker steht nur auf Profilen **mit** Beschreibungstext |
+| `company_before_footer` | mobil / Desktop | 10 / 6 | 5 % / 10 % | offen (Konto) | offen | beobachten — unter 10 % Reichweite, der schwächste belegte Anker |
+| `guide_in_article_1` | — | noch keine Zählung | — | offen (Konto) | offen | im Pilot seit 16.10.2026 12:40 UTC belegt (Portal 27) |
+| `search_in_feed_3` | — | noch keine Zählung | — | offen (Konto) | offen | wie vor |
+
+Drei Dinge zum Lesen der Tabelle:
+
+* **Reichweite ist nicht Viewability.** Die Spalte setzt den Anker gegen den
+  obersten Anker derselben Seite und sagt, welcher Anteil der Besucher ihn
+  überhaupt zu sehen bekommt. Die 40-%-Regel aus §13.3 ist eine Quote
+  „sichtbar / ausgeliefert" und darf auf diese Spalte **nicht** angewendet
+  werden. Den Nenner zählt das System seit #47 selbst (§14.1a); für die hier
+  abgelesene Stunde gab es ihn noch nicht, darum bleibt die Spalte
+  „Viewability-Quote" in dieser Tabelle offen. Die Quote aus dem Konto trägt
+  #48 nach — zum Abgleich der beiden Zahlen gegeneinander.
+* **Die Tabelle deckt den Altbestand ab, nicht die drei Pilot-Anker.** Belegt
+  hat der Takeover nur Profil-Anker; `guide_in_article_1` und
+  `search_in_feed_3` laufen erst seit dem Pilot auf Portal 27
+  (`docs/messungen/werbeplaetze-golive/pilot-bodenlegerfinden-2026-10-16.md`).
+  Ihre Zahlen trägt der nächste Abgleich nach.
+* Impressionen auf dem zwischenzeitlich pausierten `company_before_footer` sind
+  kein Fehler: aufgelöste Karten halten eine Stunde (`AdCache`), und seit #40
+  ist der Anker wieder `active`.
 
 ### 13.3 Entscheidungsregel
+
+Die Quote kommt aus der **eigenen** Zählung (§14.1a, Ticket #47): Spalte
+„Sichtbar" im Widget „Werbeplätze — eigene Impressionen", je Anker und je
+Portal, gerechnet als `impressions / deliveries` über das gewählte Fenster.
+Das Widget färbt sie nach genau diesen Schwellen. Ein Gedankenstrich heißt
+„kein Nenner im Fenster" — nicht 0 %; das ist der Fall für jedes Fenster, das
+noch Tage vor der Einführung des Nenners enthält.
 
 * **Viewability unter 40 %** ⇒ Anker abschalten, nicht „laufen lassen". Er
   kostet Ladezeit, erzeugt Requests an Google und verwässert den Kontowert.
@@ -2147,11 +2419,11 @@ Portal: ______ · Zeitraum: ______ bis ______ · abgelesen von ______
   nicht ein weiterer Anker auf derselben Seite, sondern derselbe Anker auf
   weiteren Portalen (`applies_to_all_tenants`).
 * **Zwischen 40 % und 70 %** ⇒ stehen lassen, aber keinen zweiten Anker auf
-  derselben Seite belegen, bis die portalgenauen Zahlen vorliegen. Der
-  AdSense-Report kennt den Anzeigenblock, nicht den Anker — bei netzweiten
-  Belegungen mischt er Portale. Portalgenau liefert sie das eigene Zählen
-  (§14, Ticket #12): `ad_impression_daily` je Portal, Anker, Belegung und
-  Gerät, ablesbar im Widget „Werbeplätze — eigene Impressionen".
+  derselben Seite belegen. Der AdSense-Report kennt den Anzeigenblock, nicht
+  den Anker — bei netzweiten Belegungen mischt er Portale. Portalgenau
+  liefert die Quote nur das eigene Zählen (§14): `ad_impression_daily` je
+  Portal, Anker, Belegung und Gerät, ablesbar im Widget „Werbeplätze — eigene
+  Impressionen".
 * **Höchstens drei Anker je Seitentyp.** Nicht aus Höflichkeit: jeder weitere
   Block ist ein weiterer Request im kritischen Fenster, und Googles
   Sichtbarkeitswert sinkt mit der Anzahl der Blöcke auf einer Seite.
@@ -2165,6 +2437,17 @@ Belegungen mischt er Portale (§13.3), und für Direktbuchungen über den
 `HtmlProvider` gibt es ihn gar nicht. Deshalb zählt das System selbst, gegen
 dieselbe Vorgabe wie AdSense: **50 % der Containerfläche für eine
 zusammenhängende Sekunde im Viewport** (MRC-Vorgabe für Display).
+
+Gezählt werden **zwei** Größen je Anker, weil eine allein keine Quote ergibt
+(Ticket #47):
+
+| Spalte | Was sie zählt | Rolle |
+| --- | --- | --- |
+| `deliveries` | Fragment ausgeliefert — eingesetzt, bevor die Sichtbarkeitsfrist läuft | Nenner |
+| `impressions` | Sichtkontakt: 50 % der Fläche, eine zusammenhängende Sekunde | Zähler |
+
+`impressions / deliveries` ist die Viewability-**Quote** und damit die Größe,
+an der die Entscheidungsregel aus §13.3 hängt.
 
 Abschaltbar an einer Stelle:
 
@@ -2181,12 +2464,13 @@ Tabellen bleiben stehen — Abschalten ist kein Datenverlust.
 ### 14.1 Weg einer Impression
 
 ```
-Container im Blick (≥ 50 %, ≥ 1 s)
+Fragment eingesetzt                     → Meldung event=delivered
+Container im Blick (≥ 50 %, ≥ 1 s)      → Meldung event=viewable
    → resources/js/ads.js, ein IntersectionObserver für alle Anker
    → gebündeltes navigator.sendBeacon an POST /_ads/impressions
    → App\Ads\Http\Controllers\AdImpressionController (ohne 'web', 60/min je IP)
-   → App\Ads\Support\AdImpressionRecorder: Zähler je Portal/Stunde/Anker/
-     Belegung/Gerät in ad_impression_buffer hochzählen (ein Statement)
+   → App\Ads\Support\AdImpressionRecorder: beide Zähler je Portal/Stunde/
+     Anker/Belegung/Gerät in ad_impression_buffer hochzählen (ein Statement)
    → stündlich App\Ads\Jobs\AggregateAdImpressions: abgeschlossene Stunden
      nach ad_impression_daily, Puffer leeren, alte Tageszeilen löschen
    → App\Ads\Support\AdImpressionStats → AdImpressionsWidget im Panel
@@ -2202,6 +2486,43 @@ Das gemeldete Gerät ist das **tatsächliche** (`matchMedia('(min-width:
 rendert einen Container für beide, und ohne diese Messung wäre der Vergleich
 Mobil/Desktop für sie blind.
 
+### 14.1a Der Nenner: ausgelieferte Fragmente (Ticket #47)
+
+`delivered` wird in `beobachteImpression()` gemeldet — unmittelbar nach
+`setzeSlotEin()`, also **bevor** die Sichtbarkeitsfrist läuft. Das ist genau
+der Moment, in dem das Werbemittel im DOM steht und seine Requests losgehen;
+eine leere Reservierung, ein Platz, der auf die Einwilligung wartet, und ein
+eingeklappter Platz kommen nie dorthin und zählen darum auch nicht in den
+Nenner.
+
+Fünf Festlegungen, die zusammenhängen:
+
+* **Dieselbe Bedingung wie der Sichtkontakt.** Ohne
+  `IntersectionObserver` wird auch der Nenner nicht gezählt. Sonst würde ein
+  solcher Browser den Nenner hochzählen, ohne je einen Sichtkontakt melden zu
+  können — die Quote des Ankers wäre nach unten verfälscht, und an ihr hängt
+  die Abschaltregel.
+* **Je Seitenaufruf einmal je Art.** Der Sperrschlüssel in `ads.js` ist
+  `slot:placement:event`, im Recorder sind Auslieferung und Sichtkontakt zwei
+  Spalten derselben Zeile.
+* **Zwei Spalten, keine zweite Tabelle.** `ad_impression_buffer` und
+  `ad_impression_daily` führen beide Zähler; Aggregationsstufe,
+  Eindeutigkeitsschlüssel und Pruning sind unverändert, und die Zusagen aus
+  §14.2 bleiben wortgleich: kein Zeitstempel je Ereignis, keine IP, keine
+  Sitzung.
+* **`deliveries ≥ impressions` ist die Erwartung, keine Zusage.** Ein Fragment
+  kann in der einen Stunde eingesetzt und erst in der nächsten sichtbar
+  werden; am Rand eines Fensters steht der Zähler dann ohne seinen Nenner.
+  `AdImpressionStats::quote()` kappt deshalb bei 100 %.
+* **Altzeilen haben `deliveries = 0`.** Das ist richtig und nicht „unbekannt
+  als Null": vorher wurde nichts ausgeliefert *gezählt*. Die Quote wird darum
+  nur ausgewiesen, wo der Nenner größer als 0 ist — sonst ein Gedankenstrich,
+  nie 0 %.
+
+Nebenwirkung auf die Grenzen des Beacons: ein Seitenaufruf meldet jetzt bis zu
+doppelt so viele Einträge, deshalb steht `impressions.max_entries` auf **40**
+(vorher 20) und der Rumpf bleibt bei 8 kB (40 Meldungen ≈ 3 kB).
+
 ### 14.2 Warum es keine Rohdaten gibt
 
 Es gibt **keine Tabelle mit einer Zeile je Ereignis**. Die kleinste
@@ -2210,24 +2531,71 @@ eine Belegung und eine Geräteklasse:
 
 | Tabelle | Inhalt | Lebensdauer |
 | --- | --- | --- |
-| `ad_impression_buffer` | Zähler je Portal/**Stunde**/Anker/Belegung/Gerät | bis zum nächsten stündlichen Lauf |
-| `ad_impression_daily` | Zähler je Portal/**Tag**/Anker/Belegung/Gerät | `ad-slots.impressions.retention_days` (400 Tage) |
+| `ad_impression_buffer` | zwei Zähler (`impressions`, `deliveries`) je Portal/**Stunde**/Anker/Belegung/Gerät | bis zum nächsten stündlichen Lauf |
+| `ad_impression_daily` | zwei Zähler je Portal/**Tag**/Anker/Belegung/Gerät | `ad-slots.impressions.retention_days` (400 Tage) |
 
-Daraus ist kein Einzelbesuch ablesbar. Entsprechend überträgt das Beacon
-Katalogschlüssel, Belegungs-Id und Geräteklasse — **kein Cookie, keine
-Kennung, keine IP, keine Sitzung**. Deshalb ist das Zählen
-einwilligungsfrei, und deshalb läuft die Route bewusst **ohne** `'web'`: eine
-Session würde ein Cookie setzen und genau diese Aussage kaputt machen.
+Daraus ist kein Einzelbesuch ablesbar. Der Rumpf des Beacons führt nur
+Katalogschlüssel, Belegungs-Id, Geräteklasse und die Ereignisart
+(`delivered`/`viewable`) — **keine Kennung, keine Sitzung, kein
+Wiedererkennungsmerkmal**, und in den Zähltabellen landet davon nur die
+Summe. Deshalb ist das Zählen einwilligungsfrei, und deshalb
+läuft die Route bewusst **ohne** `'web'`: eine Session würde ein Cookie
+setzen und genau diese Aussage kaputt machen.
+
+Zwei Dinge gehören dazu gesagt, weil sie sonst mit einem Blick in die
+DevTools widerlegt sind (Review #39, `docs/ad-slots-security-review.md`
+§13.1):
+
+* **Cookies.** `navigator.sendBeacon()` schickt seinen Request nach
+  Spezifikation mit credentials mode *include*; der Browser legt die
+  Portal-Cookies also bei. Die Anwendung **liest und speichert keines** — auf
+  der Route steht keine Cookie- oder Session-Middleware, und die Antwort
+  trägt kein `Set-Cookie` (nachgewiesen in der Abnahme #37).
+* **IP.** In den Zähldaten steht keine. Im nginx-Zugriffslog steht sie wie bei
+  jedem anderen Request — seit #43 die echte Besucheradresse und nicht mehr
+  die Cloudflare-Edge (`docs/echte-besucher-ip.md`) —, und das Rate-Limit
+  braucht sie im Schlüssel.
 
 Abgesichert ist der offene Endpunkt stattdessen so:
 
-* `throttle:60,1` je IP an der Route (Laravel hasht die Adresse für den
-  Schlüssel, gespeichert wird sie nicht)
+* `throttle:60,1` an der Route (Laravel hasht die Adresse für den Schlüssel,
+  gespeichert wird sie nicht). Seit **#43** ist das ein Limit **je Besucher**,
+  auch hinter Cloudflare: der äußere nginx-Block löst `CF-Connecting-IP` auf,
+  `$request->ip()` ist die echte Adresse (`docs/echte-besucher-ip.md`,
+  abgenommen 16.10.2026). Vorher zählte die Edge-Adresse, ein Eimer für viele
+  Besucher (Befund S3 des Reviews #39). Unverändert gilt: ein 429 verliert
+  Impressionen unsichtbar, weil `sendBeacon` keine Antwort auswertet.
 * höchstens `ad-slots.impressions.max_entries` Meldungen je Aufruf, Rumpf hart
   auf 8 kB begrenzt
-* je Anker, Belegung und Gerät zählt **ein** Beacon genau **eine** Impression —
-  ein präparierter Rumpf kann den Zähler nicht hochtreiben
+* innerhalb **eines** Beacons zählt jede Kombination aus Anker, Belegung,
+  Gerät und Ereignisart genau einmal. Über mehrere Aufrufe hinweg greift nur das Rate-Limit:
+  ein präparierter Absender kommt damit auf 60 × `max_entries` Meldungen je
+  Minute.
 * unbekannte Katalogschlüssel und Geräte außer `mobile`/`desktop` fallen weg
+* als Ereignisart zählt nur das Literal `delivered` in den Nenner; jeder andere
+  Wert — auch ein fehlender — gilt als Sichtkontakt. So bleibt eine Meldung aus
+  einem Browser mit dem alten, noch zwischengespeicherten `ads.js` das, was sie
+  war; umgekehrt würde der Rückfall den Nenner aufblähen
+* **Herkunftstest** (#42): `Sec-Fetch-Site` muss `same-origin` sein; fehlt der
+  Header (Browser ohne Fetch-Metadata), muss der Host aus `Origin` die
+  Portal-Domain sein. Fehlen beide, wird verworfen. Ohne das könnte eine
+  fremde Seite ohne CSRF-Token per Formular-POST mit `text/plain` zählen —
+  ohne Preflight, CORS verhindert das nicht. Ein Probe-Aufruf von Hand (wie in
+  der Abnahme #37) braucht deshalb `-H 'Origin: https://<portal-domain>'`,
+  sonst erreicht er den Zähler gar nicht.
+* **die gemeldete `placement_id` muss es geben** (#42): aktiv, diesem Portal
+  zugeordnet und auf genau diesem Anker. Geprüft wird gegen eine Liste der
+  gültigen Ids je Portal, die
+  `ad-slots.impressions.placement_cache_ttl` Sekunden (Vorgabe 300) gecacht
+  wird (`AdCache::impressionPlacementsKey()`, eine Abfrage je Fenster statt je
+  Beacon). Unbekannt heißt nicht „verworfen", sondern `0` — das bedeutet in
+  diesen Tabellen schon „Belegung nicht mehr bekannt", und zwischen
+  Auslieferung und Beacon kann eine Belegung pausiert worden sein. Damit ist
+  die Zeilenzahl auf Anker × Gerät × (echte Belegungen + 1) gedeckelt statt
+  auf 2^64 frei wählbare Werte je Anker. Geprüft wird `active()` +
+  `forTenant()`, bewusst nicht `deliverable()`: ein in derselben Sekunde
+  abgelaufener Zeitraum soll eine echte Impression nicht zur Null-Belegung
+  machen.
 * Portal ist immer der Tenant der Anfrage, nie ein Wert aus dem Rumpf
 * bekannte Bot-Kennungen (`App\AntiSpam\Support\BotTraffic`) zählen nicht
 * geantwortet wird immer `204`, auch auf Unsinn — wie bei den CSP-Berichten
@@ -2249,7 +2617,8 @@ php artisan ads:aggregate-impressions   # von Hand, sofort, mit Ausgabe
 Verdichtet werden nur **abgeschlossene** Stunden; die laufende bleibt liegen,
 sonst wäre ein Portal halb verdichtet, während der nächste Besucher dieselbe
 Zeile hochzählt. Geschrieben wird mit `ON DUPLICATE KEY UPDATE impressions =
-impressions + VALUES(impressions)` — hochzählen, nicht setzen: ein zweiter Lauf
+impressions + VALUES(impressions), deliveries = deliveries +
+VALUES(deliveries)` — hochzählen, nicht setzen: ein zweiter Lauf
 derselben Stunde findet den Puffer leer und ändert nichts, ein Lauf mitten im
 Tag überschreibt die früheren Stunden nicht. Der Job ist zusätzlich
 `ShouldBeUnique` und steht mit `onOneServer` im Scheduler, weil ein echter
@@ -2263,17 +2632,31 @@ Derselbe Lauf löscht Tageszeilen jenseits der Aufbewahrung.
 des Netzes, `AdsAdminAccess`):
 
 * Summen der letzten **7 oder 30 Tage** (Schalter im Widget)
-* je Anker: Mobil, Desktop, Gesamt, Anteil mobil — absteigend nach Gesamt
-* darunter die Summen **je Portal**
+* je Anker: Mobil, Desktop, Sichtkontakte, **Ausgeliefert**, **Sichtbar**
+  (die Quote), Anteil mobil — absteigend nach Sichtkontakten
+* darunter dieselben Summen **je Portal**
+* die Spalte „Sichtbar" ist nach §13.3 gefärbt: unter 40 % rot, über 70 %
+  grün, dazwischen neutral. Ein Gedankenstrich heißt „kein Nenner im Fenster",
+  nicht 0 % (Ticket #47)
 * Portalfilter ist der Dashboard-Filter `tenant_id` (dieselbe Quelle wie beim
   Premium-Umsatz-Widget); mit gesetztem Portal entfällt die Portaltabelle
 * gelesen wird ausschließlich `ad_impression_daily`, nie der Puffer — die
   Zahlen sind damit bis zur letzten abgeschlossenen Stunde vollständig und
   danach stabil; 60 Sekunden gecacht
+* beide Gruppenabfragen laufen Index-only über die abdeckenden Indizes
+  `ad_impr_daily_day_slot_cover2` (`day, slot_key, device, impressions,
+  deliveries`) und `ad_impr_daily_day_tenant_cover2` (`day, tenant_id, device,
+  impressions, deliveries`) — die `…_cover`-Fassungen ohne `deliveries` sind
+  mit #47 ersetzt worden, weil die Abfrage mit `sum(deliveries)` über sie nicht
+  mehr Index-only gelaufen wäre —,
+  der Portalfilter über das Präfix des Unique-Index. Ohne sie wählt MySQL ab
+  einem nennenswerten Fensteranteil den Full Scan — Messung und Begründung in
+  `docs/ad-slots-security-review.md` §13.7 (Ticket #44)
 
-Damit ist §13.3 ohne AdSense-Report entscheidbar: ein Anker mit vielen
-Impressionen und keiner Wirkung ist ein Kandidat für `paused`, ein Anker mit
-hohem Mobilanteil gehört nicht in die Seitenspalte.
+Damit ist §13.3 vollständig ohne AdSense-Report entscheidbar: die Quote, an der
+die 40-/70-%-Regel hängt, steht im Widget und ist portal- und ankergenau. Ein
+Anker mit vielen Impressionen und keiner Wirkung ist ein Kandidat für
+`paused`, ein Anker mit hohem Mobilanteil gehört nicht in die Seitenspalte.
 
 ### 14.5 Dateien
 
@@ -2285,9 +2668,46 @@ hohem Mobilanteil gehört nicht in die Seitenspalte.
 | `app/View/Components/Sun/AdSlot.php` | `$trackImpressions`, `trackAttribute()` |
 | `app/Ads/Http/Controllers/AdImpressionController.php` | Annahme des Beacons |
 | `app/Ads/Support/AdImpressionRecorder.php` | Prüfung und Zähler im Puffer |
+| `app/Ads/Support/AdCache.php` | `impressionPlacementsKey()` — gültige Belegungs-Ids je Portal |
 | `app/Ads/Jobs/AggregateAdImpressions.php` | stündliche Verdichtung, Pruning |
 | `app/Console/Commands/AdsAggregateImpressionsCommand.php` | Verdichtung von Hand |
+| `app/Console/Commands/AdsImpressionAbnahmeCommand.php` | Abnahmezahlen des Widgets im Terminal (#37) |
 | `app/Ads/Support/AdImpressionStats.php` | Auswertung für das Widget |
 | `app/Filament/Admin/Widgets/AdImpressionsWidget.php` | Darstellung im Panel |
 | `database/migrations/…_create_ad_impression_daily_table.php` | Tagesaggregat |
 | `database/migrations/…_create_ad_impression_buffer_table.php` | Stundenpuffer |
+| `database/migrations/…_add_covering_indexes_to_ad_impression_daily_table.php` | abdeckende Indizes des Widgets (#44) |
+| `database/migrations/…_add_deliveries_to_ad_impression_tables.php` | Nenner `deliveries` in beiden Tabellen, Indizes nachgezogen (#47) |
+
+### 14.6 Abnahme auf der Produktion (#37)
+
+Seit dem 16.10.2026 zählt die Produktion echt: die beiden zentralen Tabellen
+sind migriert, `impression_tracking` ist über die Codevorgabe `true` (die
+`.env` dort hat den Schlüssel nicht), und `POST /_ads/impressions` antwortet
+mit **204 ohne `Set-Cookie`** — der Nachweis für „consent-unabhängig, keine
+personenbezogenen Daten".
+
+Die Kette läuft bis zum Widget durch, belegt am ersten Tag: der Scheduler hat
+um 13:07 UTC verdichtet (`ad_impression_daily` 74 Zeilen / **391
+Impressionen**, mobil 269 / desktop 122, 14 Portale, sechs Anker), im Puffer
+liegt nur noch die laufende Stunde. Auch die vier Zusagen des Widgets stehen
+damit auf echten Zahlen — Anker nach Gesamtzahl, Mobil gegen Desktop,
+Portalfilter `tenant_id`, Umschaltung 7/30 Tage. Offen ist allein die
+**Laufzeit**: das Siebentagefenster ist am 23.10.2026 reif, und der Vergleich
+mit dem AdSense-Report braucht Kontozugang (#48).
+
+Ohne Browser auslesen — dieselbe Quelle wie das Widget, nur Lesezugriff:
+
+```bash
+php artisan ads:impressionen-abnahme                     # beide Fenster, alle Portale
+php artisan ads:impressionen-abnahme --tenant=52         # wie der Dashboard-Filter
+php artisan ads:impressionen-abnahme --tenant=52 --tage=7 --adsense=1234
+```
+
+Das Kommando zeigt zusätzlich **Tage mit Daten im Fenster** (Reife des
+Siebentagefensters) und rechnet mit `--adsense=` die Abweichung zum Report:
+über **Faktor 2** meldet es „Befund" und endet mit Fehlercode.
+
+Messprotokoll:
+`docs/messungen/werbeplaetze-golive/impression-abnahme-2026-10-16.txt`,
+Restschritte als Checkliste in `docs/ad-slots-golive.md` §6.3.

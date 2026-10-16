@@ -2271,6 +2271,12 @@
    Glasmorphism-Design passend zum Portal
    ============================================================ */
 
+/* Alpine blendet erst beim Start aus; ohne diese Regel blitzen Banner und
+   Modal beim Laden kurz auf. Tailwind v4 bringt keine x-cloak-Regel mit. */
+[x-cloak] {
+    display: none !important;
+}
+
 /* --- Banner (Stufe 1) --- */
 .cookie-banner {
     position: fixed;

@@ -38,11 +38,13 @@
  * ------------------------------------------------------------------
  * Ein Container mit `data-ad-placement` wird nach dem Einsetzen des
  * Werbemittels beobachtet: war er zu `data-ad-track`-Anteil (50 %) eine
- * Sekunde zusammenhaengend im Viewport, zaehlt das als Impression. Alle
- * Impressionen eines Seitenaufrufs gehen gebuendelt per sendBeacon an
- * POST /_ads/impressions — ohne Cookie, ohne Kennung und darum ohne
- * Einwilligung. Abgeschaltet (config('ad-slots.impression_tracking') = false)
- * fehlen die Attribute und hier passiert nichts.
+ * Sekunde zusammenhaengend im Viewport, zaehlt das als Impression. Schon das
+ * Einsetzen selbst zaehlt — als `delivered`, der Nenner der
+ * Viewability-Quote (#47). Alle Meldungen eines Seitenaufrufs gehen
+ * gebuendelt per sendBeacon an POST /_ads/impressions — ohne Cookie, ohne
+ * Kennung und darum ohne Einwilligung. Abgeschaltet
+ * (config('ad-slots.impression_tracking') = false) fehlen die Attribute und
+ * hier passiert nichts.
  */
 
 import { beiEntscheidung, DENIED, erlaubt, GRANTED } from './consent-adapter';
@@ -309,20 +311,37 @@ function initSlotAds() {
  * im Viewport. Schwelle und Dauer stehen am Container (`data-ad-track`),
  * nicht hier — sie kommen aus config/ad-slots.php.
  *
- * Gemeldet wird gebuendelt und nicht je Anker: alle Impressionen eines
+ * Gemeldet wird gebuendelt und nicht je Anker: alle Meldungen eines
  * Seitenaufrufs gehen in EINEM navigator.sendBeacon an /_ads/impressions,
  * spaetestens beim Verlassen der Seite.
  *
- * Uebertragen werden Katalogschluessel, Belegungs-Id und Geraeteklasse —
- * kein Cookie, keine Kennung, nichts Personenbezogenes. Darum braucht das
- * Beacon keine Einwilligung und laeuft auch fuer eine Direktbuchung ueber den
- * HtmlProvider, fuer die es kein AdSense-Reporting gibt.
+ * Zwei Ereignisarten je Anker (Ticket #47), weil die Quote
+ * "sichtbar / ausgeliefert" sonst keinen Nenner hat:
+ *
+ *   * `delivered` — das Fragment ist eingesetzt. Gemeldet unmittelbar danach,
+ *     BEVOR die Sichtbarkeitsfrist laeuft.
+ *   * `viewable` — 50 % der Flaeche, eine zusammenhaengende Sekunde.
+ *
+ * Je Seitenaufruf zaehlt jede Art an jedem Anker genau einmal. Beide gehen in
+ * der Regel im selben Beacon raus (Sendeverzug 3 s, Frist 1 s); wird die Seite
+ * vorher verlassen, kommt nur `delivered` an — genau richtig, der Anker war
+ * ausgeliefert und nicht gesehen.
+ *
+ * Uebertragen werden Katalogschluessel, Belegungs-Id, Geraeteklasse und die
+ * Ereignisart — kein Cookie, keine Kennung, nichts Personenbezogenes. Darum
+ * braucht das Beacon keine Einwilligung und laeuft auch fuer eine
+ * Direktbuchung ueber den HtmlProvider, fuer die es kein AdSense-Reporting
+ * gibt.
  * ------------------------------------------------------------------ */
+
+/* Ereignisarten des Beacons; so heissen sie in AdImpressionRecorder. */
+const AUSGELIEFERT = 'delivered';
+const SICHTBAR = 'viewable';
 
 /* Laufende Haltefristen je Container (Sekunde noch nicht um). */
 const fristen = new WeakMap();
 
-/* Schon gemeldete Container dieses Seitenaufrufs — je Platz genau eine Impression. */
+/* Schon gemeldete Container dieses Seitenaufrufs — je Platz und Ereignisart einmal. */
 const gemeldet = new Set();
 
 const warteschlange = [];
@@ -385,7 +404,7 @@ function planeSenden() {
     sendefrist = window.setTimeout(sende, SENDEVERZUG);
 }
 
-function zaehle(halter) {
+function zaehle(halter, event) {
     const slot = halter.dataset.adAnchor;
     const placement = Number.parseInt(halter.dataset.adPlacement, 10);
 
@@ -393,14 +412,14 @@ function zaehle(halter) {
         return;
     }
 
-    const schluessel = `${slot}:${placement}`;
+    const schluessel = `${slot}:${placement}:${event}`;
 
     if (gemeldet.has(schluessel)) {
         return;
     }
 
     gemeldet.add(schluessel);
-    warteschlange.push({ slot, placement, device: geraet() });
+    warteschlange.push({ slot, placement, device: geraet(), event });
     planeSenden();
 }
 
@@ -425,7 +444,7 @@ function beobachter() {
                 fristen.set(halter, window.setTimeout(() => {
                     fristen.delete(halter);
                     impressionBeobachter.unobserve(halter);
-                    zaehle(halter);
+                    zaehle(halter, SICHTBAR);
                 }, dauer));
 
                 return;
@@ -449,6 +468,12 @@ function beobachter() {
  * abgeschaltet, Anker unbelegt oder Editor-Modus) passiert nichts, ebenso
  * ohne IntersectionObserver — Sichtbarkeit laesst sich dann nicht messen, und
  * eine ungemessene Impression ist schlechter als keine.
+ *
+ * Die Auslieferung wird an derselben Bedingung gemeldet und nicht frueher
+ * (#47): ein Browser ohne IntersectionObserver wuerde sonst den Nenner
+ * hochzaehlen, ohne je einen Sichtkontakt melden zu koennen — die Quote eines
+ * Ankers waere dann nach unten verfaelscht, und genau an ihr haengt die
+ * Abschaltregel.
  */
 function beobachteImpression(halter) {
     if (!halter.matches(GEZAEHLT) || !('IntersectionObserver' in window)) {
@@ -459,6 +484,9 @@ function beobachteImpression(halter) {
         return;
     }
 
+    // Erst der Nenner, dann beobachten: das Fragment steht zu diesem
+    // Zeitpunkt im DOM, die Sichtbarkeitsfrist laeuft noch nicht.
+    zaehle(halter, AUSGELIEFERT);
     beobachter().observe(halter);
 }
 

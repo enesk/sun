@@ -56,6 +56,18 @@ use Illuminate\Contracts\Support\Htmlable;
  * wirksamer Publisher-ID und Einwilligung, und nicht auf den Ratgeber-Routen
  * aus `config('ad-slots.adsense.auto_ads.blocked_routes')`.
  *
+ * Der Schalter deckt **nur** diesen Loader. Auto Ads, die im AdSense-Konto
+ * je Site eingeschaltet sind, haengen allein am Loader `adsbygoogle.js` und
+ * kommen auch bei `adsense_auto_ads = false`, sobald ein belegter Anker den
+ * Loader auf die Seite bringt — das ist eine Kontoeinstellung und im Code
+ * nicht abschaltbar (docs/ad-slots.md 9.6, #46).
+ *
+ * Diese Kontoeinstellung bleibt **bewusst an**, netzweit (Entscheidung Enes,
+ * 16.10.2026, #51; #50 ist als gegenstandslos geschlossen). Die CLS-Zusage
+ * gilt darum fuer die Anker, und der Seitenwert wird getrennt gefuehrt. Wer
+ * hier eine Stellschraube sucht, um Auto Ads abzuschalten, sucht am falschen
+ * Ort — und soll es auch im Konto nicht tun.
+ *
  * @property-read Schema $form
  */
 class AdSettings extends Page
@@ -143,7 +155,7 @@ class AdSettings extends Page
 
                         Toggle::make('adsense_auto_ads')
                             ->label(__('Auto Ads ausspielen'))
-                            ->helperText(__('Google platziert zusätzlich selbst, außerhalb der Werbeplätze. Braucht den Hauptschalter und eine Publisher-ID. Auf den Ratgeber-Seiten bleiben Auto Ads aus (CLS).'))
+                            ->helperText(__('Google platziert zusätzlich selbst, außerhalb der Werbeplätze. Braucht den Hauptschalter und eine Publisher-ID. Auf den Ratgeber-Seiten bleiben Auto Ads aus (CLS). „Aus" wirkt nur auf diesen Loader: sind Auto Ads im AdSense-Konto für die Domain aktiv, setzt Google trotzdem Anzeigen ein. Im Konto bleiben sie bewusst an (Entscheidung vom 16.10.2026) — dort nichts umstellen.'))
                             ->columnSpanFull(),
                     ]),
 

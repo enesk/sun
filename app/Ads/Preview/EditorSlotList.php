@@ -28,6 +28,10 @@ use App\Models\Tenant;
  *   mit dem konkreten Geraet und auf `all` nur zurueckgefallen.
  * * **Ohne Cache.** Im Editor zaehlt der Stand von jetzt, nicht der von vor
  *   fuenf Minuten (docs/ad-slots.md 8) — darum `fresh: true`.
+ * * **Inhaltsbedingung.** Fuenf Anker stehen im Markup innerhalb ihrer
+ *   Sektion und fehlen mit ihr — keine Leistungen, kein Ratgeber-Beitrag,
+ *   kein Beschreibungstext (Ticket #22). `requires` nennt die Bedingung,
+ *   damit eine Vorschau ohne diesen Anker erklaerbar ist.
  * * **Route ist eine eigene Dimension.** Ein Seitentyp buendelt mehrere
  *   Routen, aber nicht jeder Anker steht auf jeder — `guide_index_sidebar_sticky`
  *   nur auf der Ratgeber-Kategorie, nicht auf /ratgeber (Ticket #27). Die
@@ -43,7 +47,7 @@ final readonly class EditorSlotList
      * @param  string|null  $route  Route der gezeigten Seite; null bewertet
      *                              keine Route und meldet jede Zeile als
      *                              gerendert.
-     * @return list<array{key: string, label: string, devices: string, allows_device: bool, min_height: int, filled: bool, placement_id: int|null, unit_name: string|null, priority: int|null, on_route: bool, route_labels: list<string>}>
+     * @return list<array{key: string, label: string, devices: string, allows_device: bool, min_height: int, filled: bool, placement_id: int|null, unit_name: string|null, priority: int|null, on_route: bool, route_labels: list<string>, requires: string|null}>
      */
     public function build(Tenant $tenant, AdPageType $pageType, AdDevice $device, ?string $route = null): array
     {
@@ -68,6 +72,11 @@ final readonly class EditorSlotList
                 'allows_device' => AdSlotCatalog::allowsDevice($key, $device),
                 'on_route' => $route === null || AdSlotCatalog::supportsRoute($key, $route),
                 'route_labels' => AdSlotCatalog::routeLabelsOf($key),
+                // Inhaltsbedingung (#22): der Anker steht im Markup innerhalb
+                // einer Sektion und fehlt mit ihr. Die Zeile bleibt in der
+                // Liste und nennt den Grund — ein Anker, der ohne Erklaerung
+                // nicht in der Vorschau auftaucht, ist eine Falle.
+                'requires' => AdSlotCatalog::requirementOf($key),
                 'min_height' => $this->mindesthoehe($slot, $device),
                 'filled' => $belegung !== null,
                 'placement_id' => $belegung === null ? null : (int) $belegung['placement_id'],

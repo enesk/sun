@@ -373,6 +373,12 @@ Folgen, die festzuhalten sind:
   also auf der vollen Adresse. `bot_traffic.ip_prefixes` funktioniert daher
   praezise, obwohl die Spalte gekuerzt ist. Dass ein /24-Praefix auch gegen die
   gekuerzte Spalte passt, nutzt nur der Auswertung in §5.
+* **Erst seit dem 16.10.2026 stimmt das auch hinter Cloudflare** (#43): davor
+  war `$request->ip()` auf den Portalen mit Kante die Edge-Adresse, die
+  Netzpruefung lief ins Leere und in `tracking_events` stand ein
+  Cloudflare-/24 statt des Besuchernetzes. Woher die echte Adresse jetzt kommt:
+  `docs/echte-besucher-ip.md`. Fuer Zeilen und IP-Auswertungen aus der Zeit
+  davor gilt die Netzspalte als wertlos.
 
 Die Kuerzung bleibt. Sie aufzugeben hiesse, personenbezogene Vorratsdaten ueber
 jeden Seitenaufruf jedes Besuchers anzulegen — fuer einen Zweck, den Cloudflare

@@ -138,9 +138,6 @@ class ConfigConstants
         'app.create_tenant_on_user_registration',
         'app.allow_user_to_create_tenants_from_dashboard',
 
-        // Cookie Consent
-        'cookie-consent.enabled',
-
         // Authentication & Security
         'app.two_factor_auth_enabled',
         'app.otp_login_enabled',

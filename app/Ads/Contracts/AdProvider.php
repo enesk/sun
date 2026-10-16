@@ -72,6 +72,17 @@ interface AdProvider
      * Braucht die Ausspielung eine Einwilligung? Entscheidet, ob
      * <x-sun.ad-slot> den Platzhalter oder das Werbemittel rendert
      * (SUN-AD-009).
+     *
+     * Die Frage haengt am einzelnen Werbemittel, nicht an der Art: `true`,
+     * sobald die Ausspielung Cookies setzt **oder** Inhalte Dritter
+     * nachlaedt — ein Request an einen fremden Host uebertraegt IP-Adresse
+     * und Geraetedaten, auch ohne Cookie (§ 25 Abs. 1 TDDDG, Ticket #36).
+     * Ein Sandbox-iframe aendert daran nichts: er trennt Origins, nicht
+     * Netzwerkziele.
+     *
+     * Die Vorgabe in {@see \App\Ads\Providers\AbstractAdProvider} ist
+     * `true`. Wer sie auf `false` dreht, muss belegen koennen, dass vor der
+     * Einwilligung kein Request den eigenen Server verlaesst.
      */
     public function requiresConsent(AdUnit $unit): bool;
 

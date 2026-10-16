@@ -1,0 +1,175 @@
+{
+  "gemessen": "2026-10-16T12:45:51.052Z",
+  "breite": 360,
+  "seiten": [
+    {
+      "url": "https://malerfinder.de/13607-malerbetrieb-heinrich-rempel-gmbh",
+      "geklickt": false,
+      "vorKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "company_after_header_card",
+            "geraet": "mobile",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_after_reviews",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_sidebar_top",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          },
+          {
+            "schluessel": "company_sidebar_sticky",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          },
+          {
+            "schluessel": "company_before_footer",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 130
+          }
+        ],
+        "offeneHeadVorlagen": 1,
+        "offeneFragmente": 5,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "nachKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "company_after_header_card",
+            "geraet": "mobile",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_after_reviews",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_sidebar_top",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          },
+          {
+            "schluessel": "company_sidebar_sticky",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          },
+          {
+            "schluessel": "company_before_footer",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 130
+          }
+        ],
+        "offeneHeadVorlagen": 1,
+        "offeneFragmente": 5,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "gesamt": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "company_after_header_card",
+            "geraet": "mobile",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_after_reviews",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_sidebar_top",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          },
+          {
+            "schluessel": "company_sidebar_sticky",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          },
+          {
+            "schluessel": "company_before_footer",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 130
+          }
+        ],
+        "offeneHeadVorlagen": 1,
+        "offeneFragmente": 5,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      }
+    }
+  ]
+}

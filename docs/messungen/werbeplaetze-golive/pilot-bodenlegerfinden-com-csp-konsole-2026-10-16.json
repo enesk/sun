@@ -1,0 +1,204 @@
+{
+  "gemessen": "2026-10-16T12:50:52.536Z",
+  "seiten": [
+    {
+      "name": "company ohne Einwilligung",
+      "url": "https://bodenlegerfinden.com/12-parkett-loni",
+      "htmlLaenge": 143004,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "turnstileRahmen": 0,
+        "adsSkripte": 0,
+        "adsbygoogleGeladen": false,
+        "anzeigenRahmen": 0,
+        "dataLayer": 3,
+        "gtag": "function",
+        "livewire": "object",
+        "alpine": "object",
+        "offeneVorlagen": 0,
+        "offeneFragmente": 6,
+        "offeneHeadVorlagen": 1,
+        "wartendeAnker": 6,
+        "eingeklappt": 0,
+        "eingesetzteAnzeigen": 0,
+        "dialogOffen": null
+      },
+      "fremdeHosts": [
+        "bodenlegerfinden.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "company mit Einwilligung",
+      "url": "https://bodenlegerfinden.com/12-parkett-loni",
+      "htmlLaenge": 714998,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "turnstileRahmen": 0,
+        "adsSkripte": 2,
+        "adsbygoogleGeladen": true,
+        "anzeigenRahmen": 0,
+        "dataLayer": 7,
+        "gtag": "function",
+        "livewire": "object",
+        "alpine": "object",
+        "offeneVorlagen": 0,
+        "offeneFragmente": 2,
+        "offeneHeadVorlagen": 0,
+        "wartendeAnker": 0,
+        "eingeklappt": 0,
+        "eingesetzteAnzeigen": 5,
+        "dialogOffen": null
+      },
+      "fremdeHosts": [
+        "bodenlegerfinden.com",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com",
+        "fundingchoicesmessages.google.com",
+        "pagead2.googlesyndication.com",
+        "region1.google-analytics.com",
+        "www.googletagmanager.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "guide ohne Einwilligung",
+      "url": "https://bodenlegerfinden.com/ratgeber/guten-handwerker-finden-tipps",
+      "htmlLaenge": 99673,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "turnstileRahmen": 0,
+        "adsSkripte": 0,
+        "adsbygoogleGeladen": false,
+        "anzeigenRahmen": 0,
+        "dataLayer": 3,
+        "gtag": "function",
+        "livewire": "undefined",
+        "alpine": "undefined",
+        "offeneVorlagen": 1,
+        "offeneFragmente": 1,
+        "offeneHeadVorlagen": 1,
+        "wartendeAnker": 2,
+        "eingeklappt": 0,
+        "eingesetzteAnzeigen": 0,
+        "dialogOffen": null
+      },
+      "fremdeHosts": [
+        "bodenlegerfinden.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "guide mit Einwilligung",
+      "url": "https://bodenlegerfinden.com/ratgeber/guten-handwerker-finden-tipps",
+      "htmlLaenge": 670896,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "turnstileRahmen": 0,
+        "adsSkripte": 3,
+        "adsbygoogleGeladen": true,
+        "anzeigenRahmen": 0,
+        "dataLayer": 7,
+        "gtag": "function",
+        "livewire": "undefined",
+        "alpine": "undefined",
+        "offeneVorlagen": 0,
+        "offeneFragmente": 0,
+        "offeneHeadVorlagen": 0,
+        "wartendeAnker": 0,
+        "eingeklappt": 0,
+        "eingesetzteAnzeigen": 3,
+        "dialogOffen": null
+      },
+      "fremdeHosts": [
+        "bodenlegerfinden.com",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com",
+        "fundingchoicesmessages.google.com",
+        "pagead2.googlesyndication.com",
+        "region1.google-analytics.com",
+        "www.googletagmanager.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "search ohne Einwilligung",
+      "url": "https://bodenlegerfinden.com/firmen",
+      "htmlLaenge": 163802,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "turnstileRahmen": 0,
+        "adsSkripte": 0,
+        "adsbygoogleGeladen": false,
+        "anzeigenRahmen": 0,
+        "dataLayer": 3,
+        "gtag": "function",
+        "livewire": "undefined",
+        "alpine": "undefined",
+        "offeneVorlagen": 0,
+        "offeneFragmente": 1,
+        "offeneHeadVorlagen": 1,
+        "wartendeAnker": 1,
+        "eingeklappt": 0,
+        "eingesetzteAnzeigen": 0,
+        "dialogOffen": null
+      },
+      "fremdeHosts": [
+        "bodenlegerfinden.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "search mit Einwilligung",
+      "url": "https://bodenlegerfinden.com/firmen",
+      "htmlLaenge": 735113,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "turnstileRahmen": 0,
+        "adsSkripte": 2,
+        "adsbygoogleGeladen": true,
+        "anzeigenRahmen": 0,
+        "dataLayer": 7,
+        "gtag": "function",
+        "livewire": "undefined",
+        "alpine": "undefined",
+        "offeneVorlagen": 0,
+        "offeneFragmente": 0,
+        "offeneHeadVorlagen": 0,
+        "wartendeAnker": 0,
+        "eingeklappt": 0,
+        "eingesetzteAnzeigen": 2,
+        "dialogOffen": null
+      },
+      "fremdeHosts": [
+        "bodenlegerfinden.com",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com",
+        "fundingchoicesmessages.google.com",
+        "pagead2.googlesyndication.com",
+        "region1.google-analytics.com",
+        "www.googletagmanager.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    }
+  ],
+  "zusammenfassung": {}
+}

@@ -28,7 +28,19 @@ use Illuminate\Support\Facades\Cache;
  *
  * Doppelte Zeilen fallen weg: der Altbestand bringt die Google-Zeile oft in
  * `ads_txt_extra` mit (Uebernahme in #15), und zweimal dieselbe Zeile ist in
- * Googles Pruefbericht eine Warnung.
+ * Googles Pruefbericht eine Warnung. Verglichen wird dafuer nicht die
+ * Zeichenkette, sondern die Autorisierung
+ * ({@see AdSensePublisherId::isGoogleLineFor()}) — `GOOGLE.COM`, `ca-pub-…`
+ * und ein Kommentar dahinter sind dieselbe Zeile.
+ *
+ * Ticket #41: ist das Portal **nicht** freigegeben, fallen aus den
+ * Zusatzzeilen auch die Autorisierungen der **eigenen** Publisher-ID weg.
+ * `ads:legacy-takeover` hat den kompletten `ads_txt_content` der Tenant-DB
+ * nach `ads_txt_extra` uebernommen, und darin steht bei den meisten Portalen
+ * genau die eigene Google-Zeile — ohne diesen Filter blieb die Autorisierung
+ * fuer Google stehen, obwohl der Hauptschalter aus ist (Notbremse §5 von
+ * docs/ad-slots-golive.md). Fremde Vermarkter und fremde Google-Kennungen
+ * bleiben unberuehrt.
  *
  * Gecacht wird eine Stunde je Portal; den Schluessel vergisst
  * {@see AdCache::forgetTenant()} zusammen mit den aufgeloesten Belegungen,
@@ -72,9 +84,10 @@ final class AdsTxtBuilder
         }
 
         $lines = [];
+        $publisher = $setting->adsensePublisherId();
 
         if ($setting->ads_enabled) {
-            $google = AdSensePublisherId::adsTxtLine($setting->adsensePublisherId());
+            $google = AdSensePublisherId::adsTxtLine($publisher);
 
             if ($google !== null) {
                 $lines[] = $google;
@@ -82,6 +95,15 @@ final class AdsTxtBuilder
         }
 
         foreach ($setting->adsTxtLines() as $line) {
+            // Autorisierungen der eigenen Kennung kommen aus Schritt 1 oder
+            // gar nicht: ist der Schalter aus, fallen sie weg; ist er an,
+            // steht die kanonische Zeile schon oben. array_unique() allein
+            // reicht dafuer nicht — der Altbestand schreibt dieselbe
+            // Autorisierung in abweichender Schreibweise.
+            if (AdSensePublisherId::isGoogleLineFor($line, $publisher)) {
+                continue;
+            }
+
             $lines[] = $line;
         }
 

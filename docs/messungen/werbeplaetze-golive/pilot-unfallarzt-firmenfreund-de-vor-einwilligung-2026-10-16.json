@@ -1,0 +1,272 @@
+{
+  "gemessen": "2026-10-16T12:23:38.828Z",
+  "breite": 360,
+  "seiten": [
+    {
+      "url": "https://unfallarzt.firmenfreund.de/",
+      "geklickt": false,
+      "vorKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "nachKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "gesamt": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      }
+    },
+    {
+      "url": "https://unfallarzt.firmenfreund.de/firmen",
+      "geklickt": false,
+      "vorKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "nachKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "gesamt": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      }
+    },
+    {
+      "url": "https://unfallarzt.firmenfreund.de/1-herr-dr-med-ronny-langenhan",
+      "geklickt": false,
+      "vorKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "company_after_header_card",
+            "geraet": "mobile",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_after_reviews",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_sidebar_top",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          },
+          {
+            "schluessel": "company_sidebar_sticky",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          }
+        ],
+        "offeneHeadVorlagen": 1,
+        "offeneFragmente": 4,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "nachKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "company_after_header_card",
+            "geraet": "mobile",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_after_reviews",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_sidebar_top",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          },
+          {
+            "schluessel": "company_sidebar_sticky",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          }
+        ],
+        "offeneHeadVorlagen": 1,
+        "offeneFragmente": 4,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "gesamt": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "company_after_header_card",
+            "geraet": "mobile",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_after_reviews",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_sidebar_top",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          },
+          {
+            "schluessel": "company_sidebar_sticky",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          }
+        ],
+        "offeneHeadVorlagen": 1,
+        "offeneFragmente": 4,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      }
+    },
+    {
+      "url": "https://unfallarzt.firmenfreund.de/staedte/cottbus",
+      "geklickt": false,
+      "vorKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "nachKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "gesamt": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      }
+    },
+    {
+      "url": "https://unfallarzt.firmenfreund.de/ratgeber",
+      "geklickt": false,
+      "vorKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "nachKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "gesamt": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      }
+    }
+  ]
+}

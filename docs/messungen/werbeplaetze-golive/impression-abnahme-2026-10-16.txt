@@ -1,0 +1,115 @@
+Abnahme Impression-Zaehlung (#37) — Zwischenstand Tag 0
+Datum: 2026-10-16, 14:13-14:15 CEST (12:13-12:15 UTC)
+Umgebung: Produktion sun (88.198.64.145), /home/sanitaerfinden/htdocs/sanitaerfinden.dev
+
+1) Schalter
+   config('ad-slots.impression_tracking') = true
+   In der Produktions-.env steht KEINE Zeile ADS_IMPRESSION_TRACKING
+   (grep -c = 0). Die Codevorgabe in config/ad-slots.php:178 ist true, das
+   Zaehlen ist also schon scharf. Kein Eingriff in die .env noetig; wer sie
+   setzt, muss config:cache + reload php8.5-fpm nachziehen.
+
+2) Migrationen (zentral)
+   migrate:status:
+     2026_10_19_000007_create_ad_impression_daily_table  [14] Ran
+     2026_10_19_000008_create_ad_impression_buffer_table [14] Ran
+   -> mit dem Deploy aus #38 2 am 16.10.2026 bereits gefahren.
+
+3) Assets / Beobachter in ads.js
+   Belegt durch echte Beacons im Puffer (siehe 4) — der Beobachter laeuft
+   also im ausgelieferten Bundle.
+
+4) Echte Daten, erste Stunde
+   ad_impression_buffer: 18 Zeilen, 29 Impressionen (12:13 UTC)
+                         spaeter 33 Impressionen (12:15 UTC)
+   alle Zeilen in der laufenden Stunde hour=2026-10-16 12:00:00 (UTC)
+   Spitzenzeilen (tenant_id slot_key device impressionen):
+     29  company_after_header_card  mobile  4
+     52  company_sidebar_top        desktop 4
+     53  company_after_header_card  mobile  3
+     52  company_after_header_card  mobile  3
+     50  company_after_header_card  mobile  2
+     29  company_after_reviews      mobile  1
+   -> mehrere Portale melden, Mobil und Desktop getrennt, Zaehler steigen.
+   ad_placements: 12 Belegungen aktiv.
+
+5) Netzwerk-Nachweis (Akzeptanz "consent-unabhaengig, keine personenbezogenen Daten")
+   curl -X POST https://malerfinder.de/_ads/impressions
+        -H 'Content-Type: application/json' (Mobil-UA)
+        --data '{"slots":[{"slot":"abnahme_probe_37","placement":0,"device":"mobile"}]}'
+   Antwort: HTTP/2 204, KEIN Set-Cookie, keine Cookies in der Anfrage
+            (x-ratelimit-limit: 60, x-ratelimit-remaining: 59)
+   Dasselbe auf firmenfreund.de: HTTP/2 204, kein Set-Cookie.
+   Gegenprobe: slot_key 'abnahme_probe_37' steht nicht im Puffer (0 Zeilen)
+            -> unbekannte Katalogschluessel werden verworfen, die Probe
+               verfaelscht die Abnahmezahlen nicht.
+
+6) Verdichtung
+   crontab -u sanitaerfinden: schedule:run vorhanden (1 Treffer).
+   Handlauf 14:13 CEST: "0 Aggregatzeilen, 0 Impressionen verdichtet,
+   0 alte Tageszeilen geloescht." — richtig, weil der Job nur
+   ABGESCHLOSSENE Stunden raeumt und alle Pufferzeilen in der laufenden
+   Stunde 12:00 UTC lagen. ad_impression_daily ist deshalb noch leer.
+   Die erste Verdichtung fahrt der Scheduler um 13:07 UTC (hourlyAt(7)).
+
+Offen (braucht Laufzeit bzw. Menschen):
+   - Gegenprobe der ersten Verdichtung (ab 13:07 UTC: daily > 0, Puffer leer)
+   - Siebentagefenster: Tag 0 = 16.10.2026, Widget-Abnahme ab 23.10.2026
+   - Widget "Werbeplaetze — eigene Impressionen" mit echten Daten zeigen
+   - Vergleich mit dem AdSense-Report eines Portals (Faktor > 2 = Befund)
+
+================================================================================
+Nachtrag 2026-10-16, 15:15 CEST (13:15 UTC) — erste Verdichtung und Widget-Zahlen
+(Ticket #37, Schritt 5 und der Maschinenanteil von Schritt 6)
+Alles lesend auf sun, keine Aenderung an der Produktion.
+
+5) Gegenprobe der ersten Verdichtung — ERFUELLT
+   Der Scheduler hat um 13:07 UTC verdichtet (ohne Handlauf).
+     ad_impression_daily: 74 Zeilen, 391 Impressionen
+                          Tag 2026-10-16: mobil 269, desktop 122
+     ad_impression_buffer: 35 Zeilen / 78 Impressionen, ALLE in der
+                          laufenden Stunde 2026-10-16 13:00:00 UTC
+   -> die abgeschlossene Stunde 12:00 UTC ist aus dem Puffer verschwunden und
+      steht im Tagesaggregat. Puffer -> Aggregat laeuft stuendlich von allein.
+
+6) Widget-Zahlen, direkt aus der Quelle des Widgets
+   App\Ads\Support\AdImpressionStats::summary(null, 7) auf der Produktion
+   (dieselbe Methode, die das Filament-Widget liest):
+
+   Gesamt 391 (mobil 269, desktop 122), ab 2026-10-10
+
+   Anker nach Gesamtzahl (mobil / desktop / gesamt):
+     company_after_header_card  Profil - unter der Kopf-Karte   192 /   0 / 192
+     company_after_reviews      Profil - nach den Bewertungen    50 /  20 /  70
+     company_sidebar_top        Profil - Seitenspalte, oben       0 /  63 /  63
+     company_sidebar_sticky     Profil - Seitenspalte, klebend    0 /  26 /  26
+     company_after_about        Profil - nach "Ueber uns"        17 /   7 /  24
+     company_before_footer      Profil - ueber der Fusszeile     10 /   6 /  16
+
+   Je Portal (14 Portale melden), die vier groessten:
+     52 Unfallchirurgie in der Naehe  56 /  31 /  87
+     44 kfzwerkstatt                  41 /  19 /  60
+     53 Zahnarzt in der Naehe         32 /  12 /  44
+     29 FahrschuleFinder              28 /  11 /  39
+
+   Portalfilter: summary(52, 7) -> Gesamt 87 (56/31), Portaltabelle leer
+                 (richtig: mit Filter waere sie einzeilig), 5 Anker.
+   Zeitfenster:  summary(null, 30) -> 391, gleich dem 7-Tage-Wert, weil erst
+                 ein Tag Daten vorliegt. Umschaltung 7/30 greift.
+
+   Damit sind alle vier Zusagen des Widgets mit ECHTEN Produktionsdaten belegt
+   (Anker nach Gesamtzahl, Mobil gegen Desktop, Portalfilter ueber tenant_id,
+   Umschaltung 7/30). Offen ist allein die Laufzeit: Tag 1 von 7.
+
+   Ausgelesen ohne Browser mit:
+     php artisan ads:impressionen-abnahme            (beide Fenster)
+     php artisan ads:impressionen-abnahme --tenant=52
+     php artisan ads:impressionen-abnahme --tenant=52 --adsense=<Reportzahl>
+   Das Kommando liest dieselbe Quelle wie das Widget und kommt mit dem
+   naechsten Deploy auf die Produktion; am 16.10. wurde summary() direkt
+   gerufen, weil der Code dort noch nicht liegt.
+
+Offen (reine Laufzeit bzw. fremdes Konto):
+   - 23.10.2026: Fenster reif (7 Tage mit Daten), Widget zeigen/abhaken
+   - Vergleich mit dem AdSense-Report eines Portals (kein Kontozugang im
+     Projekt; Zahlen holt Enes, siehe #48) — Faktor > 2 ist ein Befund

@@ -1,0 +1,58 @@
+Lauf: bash scripts/ads-txt-sweep.sh (curl -sL https://<domain>/ads.txt je Portal-Domain)
+Wo:   von aussen gegen die Produktion
+Wann: 2026-10-16 (Ticket #31, Nachweis zu docs/ad-slots-golive.md §4)
+Code: 9bbe1dfc
+
+Spalten: HTTP = Status der Antwort, Zeilen = nicht-leere Zeilen im Rumpf,
+Google = Zeilen mit google.com, danach die gefundenen Publisher-IDs.
+Bei 404 ist der Rumpf die Fehlerseite des Portals, die Zeilenzahl also ohne
+Bedeutung.
+
+ID   Domain                         HTTP   Zeilen  Google  Publisher-IDs / Hinweis
+24   firmenfreund.de                200    1       1       pub-2563111817853634 
+27   bodenlegerfinden.com           200    1       1       pub-2563111817853634 
+28   sanitaerfinden.com             200    1       1       pub-2563111817853634 
+29   fahrschulefinder.de            200    1       1       pub-1901800422608466 
+30   elektrikerportal.com           200    1       1       pub-1901800422608466 
+33   malerfinder.de                 200    1       1       pub-1901800422608466 
+37   geruestbauer.gmbh              200    1       1       pub-1901800422608466 
+38   metallbauer.io                 200    1       1       pub-1901800422608466 
+43   tierarztportal.com             200    1       1       pub-1901800422608466 
+44   kfzwerkstatt.io                200    1       1       pub-1901800422608466 
+45   findegutachter.de              200    1       1       pub-2563111817853634 
+46   fliesenleger.io                200    1       1       pub-1901800422608466 
+47   mjet.net                       200    1       1       pub-1901800422608466 
+49   sanitaerfinder.com             200    1       1       pub-2563111817853634 
+50   apotheke.firmenfreund.de       200    1       1       pub-2563111817853634 
+51   firmenfreund.net               404    81      0        [-> https://solar-finden.de/ads.txt]
+52   unfallarzt.firmenfreund.de     200    1       1       pub-2563111817853634 
+53   zahnarzt.firmenfreund.de       200    1       1       pub-2563111817853634 
+54   klempner.firmenfreund.de       404    66      0       
+55   energieberaterportal.net       404    67      0       
+56   arztfinder.firmenfreund.de     200    1       1       pub-2563111817853634 
+57   speditionportal.com            404    67      0       
+58   schluesseldienstportal.com     404    66      0       
+
+Befund
+------
+* 18 Domains antworten mit 200 und genau EINER Google-Zeile, keine Dublette,
+  zwei Publisher-IDs wie erwartet (pub-2563111817853634 und
+  pub-1901800422608466).
+* 5 Domains antworten mit 404 (51, 54, 55, 57, 58): kein autorisierter
+  Verkaeufer — richtig fuer ein Portal ohne Freigabe und ohne Zusatzzeilen.
+* 51 firmenfreund.net leitet die Anfrage auf https://solar-finden.de/ads.txt
+  weiter und endet dort in einer 404-Seite. Das ist eine Weiterleitung der
+  Kante, nicht der Anwendung — fuer die Freigabeliste ohne Belang (51 steht
+  auf nein), aber beim Wiedereinschalten zu beachten.
+* 43 tierarztportal.com antwortet entgegen der Notiz in §0 mit 200 und einer
+  Google-Zeile; die frueher beobachtete 301 auf pfotencheck.tierarztportal.com
+  trifft /ads.txt nicht.
+* ABWEICHUNG: 30 elektrikerportal.com und 49 sanitaerfinder.com stehen auf
+  ads_enabled = nein, liefern aber je eine Google-Zeile aus. Sie stammt aus
+  `ad_settings.ads_txt_extra` (vom Takeover aus der Tenant-DB uebernommen) und
+  nicht aus dem Hauptschalter. Der dokumentierte fail-closed-Satz "ads.txt
+  verliert seine Google-Zeile" gilt damit nicht fuer Portale mit Altbestand in
+  den Zusatzzeilen. Ticket #41, im Code behoben: der Builder filtert die eigene
+  Publisher-ID auch aus den Zusatzzeilen. Beide Portale fuehren je genau eine
+  Zeile und das ist die eigene Google-Zeile — nach dem Deploy muss hier also
+  404 stehen. Sweep dann wiederholen.

@@ -65,6 +65,37 @@ final class AdSensePublisherId
     }
 
     /**
+     * Steht in dieser `ads.txt`-Zeile genau die uebergebene Publisher-ID als
+     * Google-Verkaeufer? (Ticket #41)
+     *
+     * Verglichen wird feldweise und nicht als Zeichenkette: der uebernommene
+     * Altbestand schreibt dieselbe Autorisierung in jeder Variante — andere
+     * Abstaende, `GOOGLE.COM`, `direct` klein, ein `# Kommentar` dahinter.
+     * Entscheidend sind nur die ersten zwei Felder; eine Zeile mit einer
+     * **fremden** Kennung ist ein fremder Vermarkter und faellt nicht darunter.
+     */
+    public static function isGoogleLineFor(string $line, ?string $publisher): bool
+    {
+        $publisher = self::forAdsTxt($publisher);
+
+        if ($publisher === null) {
+            return false;
+        }
+
+        // Alles ab `#` ist Kommentar (ads.txt-Spezifikation, IAB Tech Lab).
+        $line = strtolower(trim((string) preg_replace('/#.*$/', '', $line)));
+
+        if ($line === '') {
+            return false;
+        }
+
+        $felder = array_map(trim(...), explode(',', $line));
+
+        return ($felder[0] ?? '') === 'google.com'
+            && self::forAdsTxt($felder[1] ?? '') === $publisher;
+    }
+
+    /**
      * Die vollstaendige Google-Zeile einer ads.txt; null ohne Publisher-ID.
      */
     public static function adsTxtLine(?string $value): ?string

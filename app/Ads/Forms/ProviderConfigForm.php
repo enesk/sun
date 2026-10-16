@@ -118,27 +118,38 @@ final class ProviderConfigForm
      * Eigenes Markup darf Skripte mitbringen (`HtmlProvider::SANDBOX` traegt
      * `allow-scripts`); die Sandbox haelt es vom Portal-Origin fern, nicht vom
      * Netz. Ein solches Werbemittel kann also Requests an beliebige Dritte
-     * stellen, waehrend die Datenschutzerklaerung bisher nur Google AdSense
-     * nennt (docs/ad-slots.md 9.4). Darum steht die Regel dort, wo die Art
-     * gewaehlt wird, und nicht nur in der Doku.
+     * stellen. Den Absatz dazu hat die Datenschutzerklaerung seit #35, und er
+     * erscheint, sobald auf dem Portal ein einwilligungspflichtiges
+     * HTML-Werbemittel laeuft (`AdSensePrivacySection::htmlActive()`).
+     *
+     * Seit #36 haengt beides am Schalter `third_party` im Schema des
+     * HtmlProviders: steht er auf ‚Ja‘, laedt der Rahmen erst nach der
+     * Einwilligung und der Absatz erscheint. Darum steht die Regel dort, wo
+     * die Art gewaehlt wird, und nicht nur in der Doku
+     * (docs/ad-slots.md 9.4).
      */
     public static function hint(mixed $provider): string
     {
         return match ($provider) {
             'adsense' => __('Die Publisher-ID (data-ad-client) steht nicht hier, sondern in den Werbe-Einstellungen des Portals.'),
-            'html' => __('Das Markup läuft in einem abgeschotteten Rahmen ohne Zugriff auf die Portalseite. Höchstens 20 kB.')
+            'html' => __('Das Markup läuft in einem abgeschotteten Rahmen ohne Zugriff auf die Portalseite — aber mit Zugriff auf das Netz. Höchstens 20 kB.')
                 .' '.self::htmlLegalRule(),
             default => '',
         };
     }
 
     /**
-     * Auslieferungsregel fuer eigenes HTML (#29). Steht als eigene Methode da,
-     * damit derselbe Satz an weiteren Stellen stehen kann, ohne abzuweichen.
+     * Auslieferungsregel fuer eigenes HTML (#29, Stand #36). Steht als eigene
+     * Methode da, damit derselbe Satz an weiteren Stellen stehen kann, ohne
+     * abzuweichen.
+     *
+     * Seit #36 ist es keine Sperre mehr, sondern eine Pflicht am Formular:
+     * der Schalter entscheidet, ob der Rahmen wartet. Falsch gesetzt heisst
+     * Ausspielung ohne Einwilligung und ein fehlender Absatz im Rechtstext.
      */
     public static function htmlLegalRule(): string
     {
-        return __('Auslieferungsregel: Ein Werbemittel, das Skripte oder Inhalte Dritter nachlädt, darf erst live gehen, wenn die Datenschutzerklärung den Drittanbieter nennt — sie beschreibt bisher nur Google AdSense (Ticket #29).');
+        return __('Auslieferungsregel: Lädt das Werbemittel Skripte oder Inhalte Dritter, muss der Schalter „Lädt dieses Werbemittel Inhalte Dritter?“ auf „Ja“ stehen. Dann lädt der Rahmen erst nach der Einwilligung, und der Absatz „Weitere Werbemittel“ der Datenschutzerklärung erscheint automatisch (Tickets #35/#36).');
     }
 
     private static function provider(mixed $provider): ?AdProvider

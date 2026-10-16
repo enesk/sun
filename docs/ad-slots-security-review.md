@@ -1,9 +1,10 @@
 # Security-Review des Werbeplatz-Systems SUN-V2
 
-Status: **abgeschlossen, ohne offene Punkte im Modulumfang**
-Ticket: #11
-Prüfdatum: 2026-10-16, Stand Arbeitskopie (das Modul ist noch nicht eingecheckt,
-siehe `docs/ad-slots-golive.md` §0)
+Status: **§1–§12 abgeschlossen; aus der Runde #39 (§13) ist nur noch der Leistungspunkt P1 offen; S3 ist mit #43, S4 mit #42 behoben, der dabei gefundene S6 ebenfalls mit #43**
+Tickets: #11 (Runde 1, §1–§12), #39 (Runde 2: Impression-Zählkette, §13)
+Prüfdatum: 2026-10-16 — Runde 1 am Stand der Arbeitskopie vor dem Einchecken
+(`docs/ad-slots-golive.md` §0), Runde 2 am Stand, der seit dem Deploy vom
+16.10.2026 auf der Produktion echt zählt
 Umfang: `app/Ads/**`, `app/View/Components/Sun/**`, `app/Console/Commands/Ads*.php`,
 `app/Http/Controllers/AdsTxtController.php`, `app/Livewire/Admin/AdPlacementPanel.php`,
 `app/Filament/Admin/Pages/AdPlacementEditor.php`, `app/Filament/Admin/Pages/AdSettings.php`,
@@ -239,12 +240,17 @@ Geprüft: `app/Ads/Support/AdConsent.php`, `app/View/Components/Sun/AdSlot.php`,
 * Drei Zustände (`granted` / `pending` / `denied`) statt zwei. `pending`
   reserviert die Höhe, weil die Einwilligung im selben Besuch noch kommen kann;
   erst `denied` klappt ein (`ad-slots.consent.on_denied`).
-* HTML-Werbemittel brauchen keine Einwilligung (`requiresConsent() === false`) —
-  der Sandbox-Rahmen hat keinen Cookie- und keinen Speicherzugriff. Das ist eine
-  Aussage über die Technik, nicht über den Inhalt: ein HTML-Werbemittel, das
-  selbst einen Drittanbieter nachlädt, wäre eine Betreiberentscheidung und
-  bräuchte die Einwilligung. Festgehalten als Betriebsregel in
-  `docs/ad-slots-golive.md` §5.
+* HTML-Werbemittel galten hier zunächst als einwilligungsfrei
+  (`requiresConsent() === false`) — Begründung: der Sandbox-Rahmen hat keinen
+  Cookie- und keinen Speicherzugriff. **Das war der Befund S4 (#36) und ist
+  korrigiert.** Die Sandbox trennt Origins, nicht Netzwerkziele: `allow-scripts`
+  ist gesetzt, ein Skript im Rahmen darf jeden Host ansprechen und dabei
+  IP-Adresse, Browser-/Gerätedaten und Zeitpunkt übertragen — einwilligungs-
+  pflichtig nach § 25 Abs. 1 TDDDG, Art. 6 Abs. 1 lit. a DSGVO. Seit #36
+  entscheidet der Schalter `config_json->third_party` je Werbemittel
+  (Vorgabe und Antwort bei fehlender Angabe: Einwilligung nötig); nur ein
+  ausdrücklich als drittanbieterfrei markiertes Eigenbanner lädt vor der
+  Einwilligung (`docs/ad-slots.md` 5.2 Regel 8, 9.4).
 * Der Nachweis „vorher/nachher“ als Netzwerk-Mitschnitt läuft als Ticket #25 und
   wird in `docs/ad-slots.md` 9.5 eingetragen; der Datenschutzabschnitt
   „Werbung mit Google AdSense“ als #26.
@@ -321,7 +327,9 @@ meldet jede verlorene Zeile als FAIL. Siehe `docs/ad-slots-golive.md` §2.
 | R2 | `frame-ancestors` netzweit offen (Bewertungs-Widget) | — | getragen, Zustand vor diesem Modul (§2) |
 | R3 | `portal.ads.html` liefert jedes aktive HTML-Werbemittel unter jeder Portal-Domain | — | getragen, begründet (§3) |
 
-Keine offenen Punkte im Modulumfang.
+Keine offenen Punkte aus Runde 1. Die Befunde der Impression-Zählkette
+(Runde 2, #39) stehen in §13.6: **S3** offen, **S4** und **S5** behoben,
+**P1** als Leistungspunkt offen.
 
 ## 12. Nachweis
 
@@ -335,3 +343,311 @@ php scripts/secret-scan.php
 Stand 16.10.2026: 40 Tests / 99 Assertions grün, PHPStan ohne Befund,
 `ads:golive:check` mit 13× FAIL aus S2 (erwartet, solange `ads:legacy-takeover`
 nicht gelaufen ist).
+
+---
+
+## 13. Impression-Zählkette — geprüft am 16.10.2026 (#39, DoD aus #12)
+
+Nachgezogen aus der Definition of Done von #12, abgetrennt von #37 (dessen
+Abnahme braucht sieben Tage echte Daten). Geprüft wurde der Zustand, der seit
+dem Deploy vom 16.10.2026 auf der Produktion **echt zählt**
+(`docs/messungen/werbeplaetze-golive/impression-abnahme-2026-10-16.txt`).
+
+Umfang: `resources/js/ads.js`, die Route `portal.ads.impressions` in
+`routes/tenant.php`, `app/Ads/Http/Controllers/AdImpressionController.php`,
+`app/Ads/Support/AdImpressionRecorder.php`,
+`app/Ads/Jobs/AggregateAdImpressions.php`,
+`app/Console/Commands/AdsAggregateImpressionsCommand.php`,
+`app/Ads/Support/AdImpressionStats.php`,
+`app/Filament/Admin/Widgets/AdImpressionsWidget.php` und die beiden
+Migrationen `ad_impression_daily` / `ad_impression_buffer`.
+Architektur: `docs/ad-slots.md` §14.
+
+### 13.1 Datenschutzaussage — trägt, Formulierung war zu weit (S5)
+
+Die Schlussfolgerung „nichts Personenbezogenes in den Zähltabellen, deshalb
+einwilligungsfrei" **hält**:
+
+* Es gibt keine Tabelle mit einer Zeile je Ereignis. Die kleinste
+  gespeicherte Einheit ist ein Zähler über eine Stunde, ein Portal, einen
+  Anker, eine Belegung und eine Geräteklasse — aus 132 Impressionen in einer
+  Stunde über 42 Zeilen ist kein Einzelbesuch ablesbar (Produktionsstand
+  16.10.2026, 12:26 UTC).
+* Der Rumpf des Beacons führt nur Katalogschlüssel, Belegungs-Id und
+  `mobile|desktop`. Kein Wiedererkennungsmerkmal, kein Zeitstempel je
+  Ereignis, kein Hash.
+* Das Portal kommt aus der Domain (`tenant()`), nie aus dem Rumpf — eine
+  Meldung kann kein fremdes Portal treffen.
+* Die Route läuft ohne `'web'`: keine Session-Middleware, kein
+  `EncryptCookies`, kein CSRF. Die Antwort trägt kein `Set-Cookie` (Nachweis
+  in der Abnahme, Punkt 5, zwei Portale).
+* Gezählt wird erst **nach** dem Einsetzen des Werbemittels
+  (`setzeSlotEin()`), im Editor-Modus (Komponente **und** `body`-Flag) gar
+  nicht, und bei `AdFree` entsteht kein Container.
+
+Zwei Sätze in `docs/ad-slots.md` §14.2 waren trotzdem zu weit gefasst und mit
+einem Blick in die DevTools widerlegbar:
+
+* **„kein Cookie".** `navigator.sendBeacon()` schickt seinen Request nach
+  Spezifikation mit credentials mode *include*. Der Browser legt also die
+  Portal-Cookies bei (`cookie_consent_*`, auf Seiten mit Session auch deren
+  Cookie). Richtig ist: die Anwendung **liest und speichert keines** — auf der
+  Route steht keine Cookie- oder Session-Middleware, und die Antwort setzt
+  keines.
+* **„keine IP".** In den Zähltabellen steht keine, im nginx-Zugriffslog steht
+  sie wie bei jedem Request (`/home/sanitaerfinden/logs/nginx`, 7 Tage,
+  logrotate) — und `throttle` braucht sie im Schlüssel. Richtig ist: keine IP
+  **in den Zähldaten**.
+
+Beide Sätze sind in dieser Runde präzisiert (`docs/ad-slots.md` §14.2). Die
+rechtliche Bewertung ändert sich dadurch nicht.
+
+### 13.2 Manipulierbarkeit von außen — Lücke (S4, mittel) — behoben mit #42
+
+Der Endpunkt ist offen, ohne CSRF und ohne Auth; das ist für ein Beacon
+richtig. Geprüft wurde, was ein präparierter Aufruf anrichten kann:
+
+* `slot_key` wird gegen den Code-Katalog geprüft (`AdSlotCatalog::exists()`),
+  `device` gegen `mobile|desktop`, der Rumpf auf 8 kB, die Meldungen auf
+  `max_entries` (20). Belegt: der Probe-Aufruf der Abnahme mit
+  `abnahme_probe_37` landete in keiner Zeile.
+* **Nicht** geprüft wird, ob die gemeldete `placement_id` überhaupt
+  existiert, zu diesem Portal und zu diesem Anker gehört — und ob der Anker
+  im Theme dieses Portals steht. Der Wert geht ungefiltert aus dem Rumpf in
+  den Schlüssel des Zählers (`AdImpressionRecorder::normalize()`).
+* Die Entdoppelung wirkt nur **innerhalb eines Beacons**. Mit dem Limit der
+  Route sind damit 60 × 20 = **1 200 Impressionen je Minute und IP**
+  erreichbar — und weil `placement_id` frei wählbar ist (0 … 2^64), ebenso
+  **1 200 neue Zeilen je Minute** in Puffer und Tagesaggregat, die dort 400
+  Tage stehen bleiben. Der Satz in §14.2 „ein präparierter Rumpf kann den
+  Zähler nicht hochtreiben" stimmt so nicht; er ist korrigiert.
+* Es gibt keinen Herkunftstest (`Origin`, `Sec-Fetch-Site`). Ohne CSRF kann
+  eine fremde Seite per Formular-POST mit `text/plain` zählen — ohne
+  Preflight, also ohne dass CORS es verhindert.
+
+Das Projekt hat für genau diesen Fall ein Muster: `StatsBeaconController`
+prüft die gemeldete Id mit `Company::active()->whereKey($id)->exists()`, bevor
+er zählt. Der Recorder sollte dasselbe tun (Belegung existiert, ist dem Portal
+zugeordnet, steht auf diesem Anker; unbekannt → `0`, was dort schon
+„Belegung nicht mehr bekannt" heißt) und dazu einen Herkunftstest bekommen.
+Das deckelt beides: die Werte **und** die Zeilenzahl.
+
+Kein Datenschutzthema (es entstehen keine Personendaten), aber ein
+Datenqualitätsthema: die Zahlen des Widgets sind die Grundlage für
+`paused`-Entscheidungen nach §13.3.
+
+**Behoben mit Ticket #42** (`docs/ad-slots.md` §14.2):
+
+* `AdImpressionRecorder::normalize()` prüft die gemeldete `placement_id` gegen
+  die Belegungen dieses Portals auf diesem Anker (`AdPlacement::active()` +
+  `forTenant()`, gruppiert nach `slot_key`). Ein unbekannter Wert wird zu `0`
+  statt zu einer eigenen Zeile — verworfen wird die Meldung nicht, weil eine
+  Belegung zwischen Auslieferung und Beacon pausiert worden sein kann.
+  Die Zeilenzahl ist damit auf Anker × Gerät × (echte Belegungen + 1)
+  gedeckelt; mit dem Stand vom 16.10.2026 (12 aktive Belegungen) sind das
+  Größenordnungen unter den vorher möglichen 1 200 neuen Zeilen je Minute.
+* Die Liste der gültigen Ids liegt je Portal im Cache
+  (`AdCache::impressionPlacementsKey()`,
+  `ad-slots.impressions.placement_cache_ttl`, Vorgabe 300 s, und von
+  `AdCache::forgetTenant()` mit vergessen). Der Beacon-Weg bleibt damit ein
+  Statement plus — höchstens einmal je fünf Minuten und Portal — ein
+  Index-Lookup. Absichtlich `active()` statt `deliverable()`: ein in derselben
+  Sekunde abgelaufener Zeitraum darf eine echte Impression nicht zur
+  Null-Belegung machen.
+* `AdImpressionController::sameOrigin()` ist der Herkunftstest:
+  `Sec-Fetch-Site` muss `same-origin` sein; fehlt der Header, muss der Host
+  aus `Origin` die Portal-Domain sein; fehlen beide, wird verworfen. Die
+  Antwort bleibt in jedem Fall `204`. Ein Formular-POST einer fremden Seite
+  schickt `Sec-Fetch-Site: cross-site` und kommt damit nicht mehr durch.
+  Nebeneffekt für die Nachmessung: ein `curl`-Aufruf von Hand braucht jetzt
+  `-H 'Origin: https://<portal-domain>'`.
+
+Nicht mit abgedeckt bleibt, ob der Anker im Theme dieses Portals überhaupt
+steht — das ist eine Katalog-/Theme-Frage (§13.2, erster Punkt) und ohne
+Wirkung auf Werte oder Zeilenzahl: eine Belegung muss trotzdem existieren und
+auf genau diesem `slot_key` stehen.
+
+### 13.3 `throttle:60,1` war hinter Cloudflare kein Limit je Besucher — behoben (S3, mittel)
+
+Der Kommentar an der Route las das Limit als „je IP, je Besucher". Am
+Prüftag war es das nicht:
+
+* `real_ip_header X-Forwarded-For` war in `/etc/nginx/nginx.conf`
+  **auskommentiert** (Zeile 28), und die Anwendung hat kein `TrustProxies`
+  (bestätigt im Kommentar in
+  `app/Http/Middleware/ContentSecurityPolicy.php:175`).
+  `$request->ip()` war damit die Adresse, die nginx sieht.
+* Im Zugriffslog standen für die Beacons Cloudflare-Adressen
+  (`162.158.*`, `172.69/70/71.*`, `104.2*.*`). Der Zähl-Eimer galt also je
+  **Cloudflare-Edge**, nicht je Besucher — und eine einzelne Edge-Adresse
+  fuhr bis zu **242 Requests je Minute** gegen den Ursprung
+  (`104.22.24.202`, 16.10.2026 13:31–13:38).
+* Beacons lagen weit darunter (122 Stück in 14 Stunden, höchstens
+  4 je IP und Minute) — bei 12 aktiven Belegungen. Die Reserve schrumpft mit
+  jeder weiteren Belegung, und ein 429 ist unsichtbar: `sendBeacon` wertet
+  keine Antwort aus, die Impressionen fehlen einfach.
+* Einige Portale kommen nicht über Cloudflare (im Log echte Besucheradressen,
+  z. B. `84.171.*`, `217.246.*`). Dort wirkte das Limit je Besucher. Die
+  Bemessung war also netzweit uneinheitlich.
+
+**Behoben mit #43 am 16.10.2026, 14:54 Uhr** — außerhalb dieses Moduls, weil
+es auf jedes Limit und jede IP-Prüfung der Anwendung wirkt (Turnstile,
+`BotTraffic`, Leads, `tracking_events`). Gewählt ist der nginx-Weg, nicht
+`TrustProxies`: im äußeren 443-Block des Portal-vhosts stehen jetzt die
+Cloudflare-Netze (`/etc/nginx/cloudflare-ips.conf`) und
+`real_ip_header CF-Connecting-IP`; das vorhandene
+`proxy_set_header X-Real-IP $remote_addr` trägt die echte Adresse an den
+inneren Block und damit an PHP. Portale ohne Kante liefern weiter ihre
+Absenderadresse — die Bemessung ist netzweit einheitlich. Ablauf, Proben und
+Nebenwirkungen in **`docs/echte-besucher-ip.md`**, hergestellt von
+`scripts/nginx-echte-besucher-ip.sh`.
+
+Der Rest davon — wer selbst aus einem Cloudflare-Netz kommt, kann
+`CF-Connecting-IP` weiter setzen — ist #45: host-gebundene Authenticated
+Origin Pulls, `scripts/nginx-origin-pull-absichern.sh`, beschrieben in
+`docs/echte-besucher-ip.md` §6. Scharf schalten kann nur Enes, weil die
+Zone den Schalter braucht; eine Firewall auf die Cloudflare-Netze (Weg 1)
+hilft gegen genau diesen Angreifer nicht, er sitzt in diesen Netzen.
+
+Dabei ist ein **schwererer** Fehler aufgefallen, der in der Runde #39 nicht
+gesehen wurde (S6, siehe §13.8).
+
+### 13.4 Verdichtung und Puffer — ok
+
+Lokal gegengefahren (MySQL 9.3, Puffer von Hand mit drei Stunden gefüllt):
+
+* Verdichtet wird nur, was vor `startOfHour()` liegt: 11 von 18 Impressionen
+  gingen ins Tagesaggregat, die laufende Stunde blieb liegen.
+* Ein zweiter Lauf unmittelbar danach meldet `{"rows":0,"impressions":0}` —
+  nichts verdoppelt.
+* `insert … on duplicate key update impressions = impressions + values(…)`
+  zählt hoch statt zu setzen; die Schlüsselspalten sind alle `not null`,
+  die NULL-Falle im Unique-Index ist vermieden.
+* Das Löschen je Gruppe (`id <= max_id`, ohne Tagesfilter) ist trotz der
+  `limit CHUNK` sicher: für dieselbe Kombination aus Portal, Anker, Belegung
+  und Gerät wächst die Id mit der Stunde, und die Gruppen werden nach
+  `max_id` aufsteigend abgearbeitet — eine ältere Gruppe derselben
+  Kombination liegt also immer **im selben** Durchgang und kann nicht
+  übersprungen und dann mitgelöscht werden.
+* `ShouldBeUnique` + `onOneServer` + `lockForUpdate()` auf der Auswahl;
+  `select … group by … for update` wird von MySQL 9.3 und MariaDB 11.4
+  angenommen.
+* Produktionsstand 16.10.2026 12:26 UTC: alle 42 Pufferzeilen in der
+  laufenden Stunde, `ad_impression_daily` leer — korrekt, der erste
+  Scheduler-Lauf steht um 13:07 UTC. Queue ist `redis`, Horizon läuft unter
+  Supervisor, der `Schedule::job()` wird also abgearbeitet.
+
+Ein Hinweis ohne Befund: `VALUES()` auf der rechten Seite ist seit MySQL 8.0.20
+abgekündigt (MariaDB 11.4, die Produktion, kennt nur diese Form). Beim Umzug
+auf MySQL wird daraus die Alias-Form `as new … new.impressions`.
+
+Zeitrechnung: `hour` und `day` sind UTC-Werte (`APP_TIMEZONE` ist auf der
+Produktion nicht gesetzt, `config('app.timezone')` = `UTC`). Ein „Tag" im
+Widget ist damit ein UTC-Tag, gegen die Wahrnehmung des Betreibers um zwei
+Stunden verschoben. Für Anker-Vergleiche irrelevant, für
+Tagesgenau-Vergleiche gut zu wissen.
+
+### 13.5 Beobachter im Browser — ok
+
+* Ein Beobachter für alle Anker, feste Stufen, Schwelle und Haltezeit aus
+  `data-ad-track` (`config/ad-slots.php`) — eine Änderung der Messvorgabe
+  braucht keinen Asset-Neubau.
+* Aus dem Blick, bevor die Sekunde um ist → `clearTimeout`, nicht gezählt;
+  nach dem Zählen `unobserve`.
+* Je Seitenaufruf genau eine Meldung je `slot:placement` (`gemeldet`-Set).
+  Das kann keine Impression verschlucken, weil die Portale keine
+  SPA-Navigation verwenden (kein `wire:navigate` im Theme sun-v2, `initAds()`
+  läuft nur beim Dokumentaufbau).
+* Gebündelt mit 3 s Verzug, Rest beim `visibilitychange`/`pagehide`;
+  `sende()` setzt die Frist zuerst zurück, ein Doppelversand ist nicht
+  möglich. Ohne `IntersectionObserver` wird bewusst nicht gezählt.
+* Gemeldet wird das **tatsächliche** Gerät (`matchMedia`), nicht die
+  Gerätewahl des Ankers — nötig für Belegungen mit `device = all`.
+
+### 13.6 Befunde
+
+| Nr. | Befund | Schwere | Stand |
+| --- | --- | --- | --- |
+| S3 | `throttle:60,1` wirkte hinter Cloudflare je Edge-Adresse statt je Besucher (kein `real_ip_header`, kein `TrustProxies`); ein 429 verliert Impressionen unsichtbar | mittel | **behoben** (#43) — `real_ip_header CF-Connecting-IP` im äußeren vhost-Block, Netzliste eng; `docs/echte-besucher-ip.md` |
+| S6 | `set_real_ip_from 0.0.0.0/0` bei auskommentiertem `real_ip_header`: nginx nahm die Vorgabe `X-Real-IP` und vertraute ihr von **jedem** Absender — `$request->ip()` war mit einem Header frei wählbar, netzweit | hoch | **behoben** (#43) — gefunden beim Umsetzen von S3, siehe §13.8 |
+| S4 | `placement_id` (und der Anker-Bezug) kommen ungeprüft aus dem Rumpf: Zähler und Zeilenzahl sind von außen hochtreibbar, kein Herkunftstest | mittel | **behoben** (#42) — `placement_id` gegen die Belegungen des Portals geprüft (unbekannt → `0`), Liste je Portal gecacht, Herkunftstest über `Sec-Fetch-Site`/`Origin` (§13.2) |
+| S5 | §14.2 behauptete „kein Cookie" und „keine IP" pauschal; `sendBeacon` legt Cookies bei, die IP steht im nginx-Log | niedrig | **behoben** — Formulierung präzisiert (§13.1) |
+| P1 | Das Widget liest das 7-/30-Tage-Fenster ohne brauchbaren Index; bei 23 Portalen × 30 Tagen unkritisch, mit 400 Tagen Aufbewahrung wird daraus ein Full Scan | niedrig | **behoben** (#44) — Migration `…_add_covering_indexes_to_ad_impression_daily_table`: abdeckende Indizes `(day, slot_key, device, impressions)` und `(day, tenant_id, device, impressions)`, dafür `ad_impr_daily_day_tenant` (Präfix) und `ad_impr_daily_slot_day` (unbenutzt) weg (§13.7) |
+
+### 13.7 Tragen die Indizes das Widget? — ja bei 23 × 30 Tagen, nicht bei 400 Tagen Aufbewahrung (P1)
+
+Nachgemessen auf der lokalen zentralen DB (MySQL 9.3) mit synthetischen
+Zeilen in der vollen Breite des Katalogs: 23 Portale × 32 Anker × 2 Geräte ×
+2 Belegungen je Tag = 2 944 Zeilen je Tag. Gemessen sind die beiden Abfragen,
+die `AdImpressionStats::build()` je Aufruf fährt (Gruppierung je Anker und je
+Portal), danach wieder abgeräumt.
+
+| Datenstand | je Anker, alle Portale, 30 Tage | je Portal, 30 Tage | ein Portal, 30 Tage | je Anker, 7 Tage |
+| --- | --- | --- | --- | --- |
+| 103 040 Zeilen (35 Tage) | 89 ms, Full Scan | 47 ms, Full Scan | 4,6 ms, Unique-Index | 27 ms |
+| 558 041 Zeilen (190 Tage) | 165 ms, Full Scan | 129 ms, Full Scan | 5,0 ms, Unique-Index | 24 ms |
+| 558 041 Zeilen, mit abdeckendem Index | **55 ms, Using index** | **52 ms, Using index** | 5,6 ms | **11 ms** |
+
+Daraus:
+
+* **Die Frage des Tickets ist mit Ja zu beantworten.** 23 Portale × 30 Tage
+  sind rund 100 000 Zeilen; beide Abfragen laufen zusammen in gut 130 ms und
+  sind 60 Sekunden gecacht. Der Portalfilter ist ohnehin schnell — dort
+  greift der Unique-Index (`tenant_id, day, …`) als Präfix.
+* Der Engpass ist nicht die Portalzahl, sondern die **Aufbewahrung**: keiner
+  der beiden vorhandenen Indizes deckt die Abfrage ab, also wählt der
+  Optimizer den Full Scan, sobald das Fenster einen nennenswerten Anteil der
+  Tabelle ausmacht. Bei den vorgesehenen 400 Tagen (~1,18 Mio. Zeilen) sind
+  das linear fortgeschrieben rund 350 ms + 280 ms je Widget-Aufbau.
+* Ein abdeckender Index macht daraus einen Index-only-Scan:
+  `(day, slot_key, device, impressions)` und
+  `(day, tenant_id, device, impressions)`. Der zweite ersetzt
+  `ad_impr_daily_day_tenant` (reines Präfix); `ad_impr_daily_slot_day`
+  (`slot_key, day`) wird von keiner Abfrage des Moduls benutzt — die
+  Anker-Auswertung filtert immer über `day` — und kann mit derselben
+  Migration fallen.
+
+Nichts davon ist heute dringend; eigenes Ticket, damit es vor dem ersten
+Jahreswechsel der Daten passiert.
+
+**Umgesetzt mit Ticket #44.** Die Migration
+`2026_10_19_000009_add_covering_indexes_to_ad_impression_daily_table` legt
+beide abdeckenden Indizes an (`ad_impr_daily_day_slot_cover`,
+`ad_impr_daily_day_tenant_cover`; seit Ticket #47 um `deliveries` erweitert und
+dadurch in `…_cover2` umbenannt — die Widget-Abfrage holt seitdem zusätzlich
+`sum(deliveries)` und wäre über die alte Fassung nicht mehr Index-only
+gelaufen) und lässt `ad_impr_daily_day_tenant` sowie
+`ad_impr_daily_slot_day` fallen. `EXPLAIN` beider Widget-Abfragen nennt nach
+der Migration den jeweils neuen Index und „Using index"; der Fremdschlüssel
+auf `tenant_id` bleibt durch das Präfix des Unique-Index gedeckt, der Upsert
+des Aggregations-Jobs trifft weiterhin `ad_impr_daily_unique`, das Pruning
+(`where day < ?`) nutzt `day` als Präfix des neuen Slot-Index.
+
+### 13.8 `X-Real-IP` war von jedem Absender vertrauenswürdig — behoben (S6, hoch)
+
+Beim Umsetzen von S3 (#43) aufgefallen, in der Runde #39 nicht gesehen:
+`real_ip_header` war in `/etc/nginx/nginx.conf` auskommentiert, nginx nahm
+damit die **Vorgabe `X-Real-IP`** — und `set_real_ip_from 0.0.0.0/0` machte
+den Header von **jedem** Absender vertrauenswürdig. Probe gegen den Ursprung
+am 16.10.2026 14:51 Uhr:
+
+```
+curl --resolve elektrikerportal.com:443:88.198.64.145 \
+     -H 'X-Real-IP: 203.0.113.77' https://elektrikerportal.com/robots.txt
+
+203.0.113.77 - - [16/Oct/2026:14:51:07 +0200] "GET /robots.txt HTTP/2.0" 200 …
+```
+
+`$remote_addr` und `REMOTE_ADDR` standen auf dem gefälschten Wert. Damit war
+nicht nur das Impression-Limit, sondern **jedes** `throttle`, jede
+Turnstile-IP-Bindung, jede Netzprüfung in `BotTraffic` und das
+`include /etc/nginx/blocked_ips` mit einem Header aushebelbar — netzweit und
+für die fremden Projekte auf demselben Server mit.
+
+Behoben in derselben Änderung: die `0.0.0.0/0`-Zeile ist weg,
+`real_ip_header X-Real-IP` steht explizit da, vertraut wird nur noch dem
+CloudPanel-Vorbau (`127.0.0.1`, `::1`). Gleiche Probe um 14:55 Uhr mit
+`X-Real-IP` **und** `CF-Connecting-IP` gefälscht: im Log steht die echte
+Absenderadresse. Nachprüfbar mit
+`scripts/nginx-echte-besucher-ip.sh --abnahme`, Einzelheiten in
+`docs/echte-besucher-ip.md`.

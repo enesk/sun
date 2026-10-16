@@ -1645,7 +1645,7 @@ vorgemacht hat:
 | `resources/js/ads.js` | Auto-Ads-Opt-out und das Nachladen unterhalb des Falzes in `components/ad-slot.blade.php` |
 | `resources/js/modules/alpine-data.js` | die Alpine-Fabriken `passwordStrength`, `resendTimer`, `claimModal`, `claimUploadDropzone`, `dashboardApp`, `toastManager`, `statsOverview`, `statsCompany` |
 | `resources/js/modules/contact-tracking.js` | Kontaktklicks auf `pages/companies/show` (`data-contact-tracking`) |
-| `resources/js/modules/cookie-bar.js` | das JavaScript der Paketvorlage `vendor/cookie-consent/index.blade.php` |
+| ~~`resources/js/modules/cookie-bar.js`~~ | das JavaScript der Paketvorlage `vendor/cookie-consent/index.blade.php` — mit #34 entfallen: das zentrale Layout zeigt jetzt denselben Kategorie-Hinweis wie die Portale |
 | `resources/js/modules/lucide-icons.js` | `lucide.createIcons()` in `layouts/app.blade.php` |
 | `resources/js/modules/paddle-checkout.js` | `startPaddleCheckout()` und der `@script`-Block in `payment-providers/paddle*` |
 | `resources/js/modules/reading-progress.js` | Lesefortschritt und Inhaltsverzeichnis in `pages/blog/show` |

@@ -32,7 +32,7 @@ final class AdImpressionStats
     private const CACHE_SECONDS = 60;
 
     /**
-     * @return array{days: int, from: string, total: int, mobile: int, desktop: int, slots: list<array{slot_key: string, label: string, mobile: int, desktop: int, total: int}>, portals: list<array{tenant_id: int, name: string, mobile: int, desktop: int, total: int}>}
+     * @return array{days: int, from: string, total: int, mobile: int, desktop: int, delivered: int, viewability: int|null, slots: list<array{slot_key: string, label: string, mobile: int, desktop: int, total: int, delivered: int, viewability: int|null}>, portals: list<array{tenant_id: int, name: string, mobile: int, desktop: int, total: int, delivered: int, viewability: int|null}>}
      */
     public static function summary(?int $tenantId, int $days): array
     {
@@ -43,7 +43,7 @@ final class AdImpressionStats
     }
 
     /**
-     * @return array{days: int, from: string, total: int, mobile: int, desktop: int, slots: list<array{slot_key: string, label: string, mobile: int, desktop: int, total: int}>, portals: list<array{tenant_id: int, name: string, mobile: int, desktop: int, total: int}>}
+     * @return array{days: int, from: string, total: int, mobile: int, desktop: int, delivered: int, viewability: int|null, slots: list<array{slot_key: string, label: string, mobile: int, desktop: int, total: int, delivered: int, viewability: int|null}>, portals: list<array{tenant_id: int, name: string, mobile: int, desktop: int, total: int, delivered: int, viewability: int|null}>}
      */
     private static function build(?int $tenantId, int $days): array
     {
@@ -65,6 +65,8 @@ final class AdImpressionStats
                 'mobile' => $geraete[AdDevice::MOBILE->value],
                 'desktop' => $geraete[AdDevice::DESKTOP->value],
                 'total' => $geraete['total'],
+                'delivered' => $geraete['delivered'],
+                'viewability' => self::quote($geraete['total'], $geraete['delivered']),
             ];
         }
 
@@ -79,28 +81,67 @@ final class AdImpressionStats
                 'mobile' => $geraete[AdDevice::MOBILE->value],
                 'desktop' => $geraete[AdDevice::DESKTOP->value],
                 'total' => $geraete['total'],
+                'delivered' => $geraete['delivered'],
+                'viewability' => self::quote($geraete['total'], $geraete['delivered']),
             ];
         }
 
         usort($portalZeilen, fn (array $a, array $b): int => $b['total'] <=> $a['total']);
 
+        $total = array_sum(array_column($slotZeilen, 'total'));
+        $delivered = array_sum(array_column($slotZeilen, 'delivered'));
+
         return [
             'days' => $days,
             'from' => $from,
-            'total' => array_sum(array_column($slotZeilen, 'total')),
+            'total' => $total,
             'mobile' => array_sum(array_column($slotZeilen, 'mobile')),
             'desktop' => array_sum(array_column($slotZeilen, 'desktop')),
+            'delivered' => $delivered,
+            'viewability' => self::quote($total, $delivered),
             'slots' => $slotZeilen,
             'portals' => $portalZeilen,
         ];
     }
 
     /**
-     * Summen je $spalte und Geraet. Das Geraet steht im Aggregat immer als
+     * Viewability-Quote in Prozent: Sichtkontakte je ausgeliefertes Fragment
+     * (Ticket #47, Entscheidungsregel docs/ad-slots.md 13.3).
+     *
+     * `null` heisst "kein Nenner" und wird in der Darstellung zu einem
+     * Gedankenstrich — nicht zu 0 %. Das ist der Fall fuer jeden Zeitraum, der
+     * noch Tage vor der Einfuehrung des Nenners enthaelt: dort steht
+     * `deliveries = 0`, obwohl Sichtkontakte gezaehlt wurden. Eine 0 % waere
+     * dort eine falsche Auskunft, und ausgerechnet die Abschaltregel haengt an
+     * dieser Zahl.
+     *
+     * Ueber 100 % wird gekappt: Auslieferung und Sichtkontakt koennen in
+     * verschiedene Tage fallen (Fragment um 23:59 eingesetzt, Sichtkontakt um
+     * 00:00), und am Rand des Fensters liegt dann der Zaehler ohne seinen
+     * Nenner.
+     */
+    private static function quote(int $viewable, int $delivered): ?int
+    {
+        if ($delivered <= 0) {
+            return null;
+        }
+
+        return (int) min(100, round($viewable / $delivered * 100));
+    }
+
+    /**
+     * Summen je $spalte und Geraet, beide Zaehler. Die Auslieferungen werden
+     * nur in die Gesamtspalte summiert — eine Trennung Mobil/Desktop der
+     * Quote braucht das Widget nicht, und die Spalten `impressions` und
+     * `deliveries` stehen in dieser Reihenfolge am Ende der abdeckenden
+     * Indizes ({@see docs/ad-slots-security-review.md} 13.7), damit die
+     * Abfrage Index-only bleibt.
+     *
+     * Das Geraet steht im Aggregat immer als
      * `mobile` oder `desktop` ({@see AdImpressionRecorder}); eine andere
      * Auspraegung kaeme nur aus Altdaten und wird darum nicht einsortiert.
      *
-     * @return array<array-key, array{mobile: int, desktop: int, total: int}>
+     * @return array<array-key, array{mobile: int, desktop: int, total: int, delivered: int}>
      */
     private static function grouped(?int $tenantId, string $from, string $spalte): array
     {
@@ -108,7 +149,7 @@ final class AdImpressionStats
             ->table((new AdImpressionDaily)->getTable())
             ->where('day', '>=', $from)
             ->when($tenantId !== null, fn ($query) => $query->where('tenant_id', $tenantId))
-            ->selectRaw("{$spalte} as gruppe, device, sum(impressions) as impressions")
+            ->selectRaw("{$spalte} as gruppe, device, sum(impressions) as impressions, sum(deliveries) as deliveries")
             ->groupBy('gruppe', 'device')
             ->get();
 
@@ -116,10 +157,11 @@ final class AdImpressionStats
 
         foreach ($zeilen as $zeile) {
             $gruppe = $zeile->gruppe;
-            $ergebnis[$gruppe] ??= [AdDevice::MOBILE->value => 0, AdDevice::DESKTOP->value => 0, 'total' => 0];
+            $ergebnis[$gruppe] ??= [AdDevice::MOBILE->value => 0, AdDevice::DESKTOP->value => 0, 'total' => 0, 'delivered' => 0];
 
             $menge = (int) $zeile->impressions;
             $ergebnis[$gruppe]['total'] += $menge;
+            $ergebnis[$gruppe]['delivered'] += (int) $zeile->deliveries;
 
             if (array_key_exists((string) $zeile->device, $ergebnis[$gruppe])) {
                 $ergebnis[$gruppe][(string) $zeile->device] += $menge;

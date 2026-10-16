@@ -1,0 +1,203 @@
+[
+  {
+    "gemessen": "2026-10-16T12:44:48.410Z",
+    "breite": 360,
+    "seiten": [
+      {
+        "url": "https://bodenlegerfinden.com/firmen",
+        "geklickt": true,
+        "vorKlick": {
+          "cls": 0,
+          "verschiebungen": [],
+          "anker": [
+            {
+              "schluessel": "search_in_feed_3",
+              "geraet": "all",
+              "wartetAufEinwilligung": true,
+              "geladen": false,
+              "eingeklappt": false,
+              "sichtbar": true,
+              "hoehe": 310
+            }
+          ],
+          "offeneHeadVorlagen": 1,
+          "offeneFragmente": 1,
+          "adsbygoogleGeladen": false,
+          "eingesetzteAnzeigen": 0
+        },
+        "nachKlick": {
+          "cls": 0,
+          "verschiebungen": [],
+          "anker": [
+            {
+              "schluessel": "search_in_feed_3",
+              "geraet": "all",
+              "wartetAufEinwilligung": true,
+              "geladen": true,
+              "eingeklappt": false,
+              "sichtbar": true,
+              "hoehe": 310
+            }
+          ],
+          "offeneHeadVorlagen": 0,
+          "offeneFragmente": 0,
+          "adsbygoogleGeladen": true,
+          "eingesetzteAnzeigen": 2
+        },
+        "gesamt": {
+          "cls": 0,
+          "verschiebungen": [],
+          "anker": [
+            {
+              "schluessel": "search_in_feed_3",
+              "geraet": "all",
+              "wartetAufEinwilligung": true,
+              "geladen": true,
+              "eingeklappt": false,
+              "sichtbar": true,
+              "hoehe": 310
+            }
+          ],
+          "offeneHeadVorlagen": 0,
+          "offeneFragmente": 0,
+          "adsbygoogleGeladen": true,
+          "eingesetzteAnzeigen": 2
+        }
+      }
+    ]
+  },
+  {
+    "gemessen": "2026-10-16T12:45:38.056Z",
+    "breite": 360,
+    "seiten": [
+      {
+        "url": "https://bodenlegerfinden.com/firmen",
+        "geklickt": true,
+        "vorKlick": {
+          "cls": 0,
+          "verschiebungen": [],
+          "anker": [
+            {
+              "schluessel": "search_in_feed_3",
+              "geraet": "all",
+              "wartetAufEinwilligung": true,
+              "geladen": false,
+              "eingeklappt": false,
+              "sichtbar": true,
+              "hoehe": 310
+            }
+          ],
+          "offeneHeadVorlagen": 1,
+          "offeneFragmente": 1,
+          "adsbygoogleGeladen": false,
+          "eingesetzteAnzeigen": 0
+        },
+        "nachKlick": {
+          "cls": 0,
+          "verschiebungen": [],
+          "anker": [
+            {
+              "schluessel": "search_in_feed_3",
+              "geraet": "all",
+              "wartetAufEinwilligung": true,
+              "geladen": true,
+              "eingeklappt": false,
+              "sichtbar": true,
+              "hoehe": 310
+            }
+          ],
+          "offeneHeadVorlagen": 0,
+          "offeneFragmente": 0,
+          "adsbygoogleGeladen": true,
+          "eingesetzteAnzeigen": 2
+        },
+        "gesamt": {
+          "cls": 0,
+          "verschiebungen": [],
+          "anker": [
+            {
+              "schluessel": "search_in_feed_3",
+              "geraet": "all",
+              "wartetAufEinwilligung": true,
+              "geladen": true,
+              "eingeklappt": false,
+              "sichtbar": true,
+              "hoehe": 310
+            }
+          ],
+          "offeneHeadVorlagen": 0,
+          "offeneFragmente": 0,
+          "adsbygoogleGeladen": true,
+          "eingesetzteAnzeigen": 2
+        }
+      }
+    ]
+  },
+  {
+    "gemessen": "2026-10-16T12:46:16.063Z",
+    "breite": 360,
+    "seiten": [
+      {
+        "url": "https://bodenlegerfinden.com/firmen",
+        "geklickt": true,
+        "vorKlick": {
+          "cls": 0,
+          "verschiebungen": [],
+          "anker": [
+            {
+              "schluessel": "search_in_feed_3",
+              "geraet": "all",
+              "wartetAufEinwilligung": true,
+              "geladen": false,
+              "eingeklappt": false,
+              "sichtbar": true,
+              "hoehe": 310
+            }
+          ],
+          "offeneHeadVorlagen": 1,
+          "offeneFragmente": 1,
+          "adsbygoogleGeladen": false,
+          "eingesetzteAnzeigen": 0
+        },
+        "nachKlick": {
+          "cls": 0,
+          "verschiebungen": [],
+          "anker": [
+            {
+              "schluessel": "search_in_feed_3",
+              "geraet": "all",
+              "wartetAufEinwilligung": true,
+              "geladen": true,
+              "eingeklappt": false,
+              "sichtbar": true,
+              "hoehe": 310
+            }
+          ],
+          "offeneHeadVorlagen": 0,
+          "offeneFragmente": 0,
+          "adsbygoogleGeladen": true,
+          "eingesetzteAnzeigen": 2
+        },
+        "gesamt": {
+          "cls": 0,
+          "verschiebungen": [],
+          "anker": [
+            {
+              "schluessel": "search_in_feed_3",
+              "geraet": "all",
+              "wartetAufEinwilligung": true,
+              "geladen": true,
+              "eingeklappt": false,
+              "sichtbar": true,
+              "hoehe": 310
+            }
+          ],
+          "offeneHeadVorlagen": 0,
+          "offeneFragmente": 0,
+          "adsbygoogleGeladen": true,
+          "eingesetzteAnzeigen": 2
+        }
+      }
+    ]
+  }
+]

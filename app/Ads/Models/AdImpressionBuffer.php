@@ -25,6 +25,7 @@ use Stancl\Tenancy\Database\Concerns\CentralConnection;
  * @property int $placement_id
  * @property string $device
  * @property int $impressions
+ * @property int $deliveries
  */
 class AdImpressionBuffer extends Model
 {
@@ -39,6 +40,7 @@ class AdImpressionBuffer extends Model
         'placement_id',
         'device',
         'impressions',
+        'deliveries',
     ];
 
     protected function casts(): array
@@ -47,6 +49,7 @@ class AdImpressionBuffer extends Model
             'hour' => 'datetime',
             'placement_id' => 'integer',
             'impressions' => 'integer',
+            'deliveries' => 'integer',
         ];
     }
 }
