@@ -1,0 +1,61 @@
+Lauf: php artisan ads:golive:check
+Wo:   Produktion /home/sanitaerfinden/htdocs/sanitaerfinden.dev (als sanitaerfinden, /usr/bin/php8.4)
+Wann: 2026-10-16, nach dem Deploy nach docs/ad-slots-golive.md §2 (Ticket #38)
+Code: 9bbe1dfc (Merge PR #9)
+Exit: 0 — kein FAIL
+
+OK    APP_KEY (Editor-Token)                   gesetzt
+OK    Editor-Herkunft (ADS_EDITOR_ORIGIN)      https://sanitaerfinden.com
+WARN  CSP-Modus (CSP_MODE)                     report — Verstoesse werden gemeldet, nicht verhindert
+OK    CSP script-src                           Google-Anzeigenhosts freigegeben
+OK    CSP frame-src                            Google-Anzeigenhosts freigegeben
+OK    Slot-Katalog                             Version 4, 32 Anker, Themes: sun-v2
+OK    Netz-Publisher-ID                        keine — jedes Portal bringt seine eigene mit
+
+WARN  firmenfreund.de                          Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+WARN  bodenlegerfinden.com                     Altsystem liefert hier noch 6 aktive Slots aus (Parallelphase)
+WARN  sanitaerfinden.com                       Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+WARN  fahrschulefinder.de                      Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+WARN  malerfinder.de                           Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+WARN  geruestbauer.gmbh                        Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+WARN  metallbauer.io                           Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+WARN  tierarztportal.com                       freigegeben, aber Theme default hat keine Anker im Katalog
+WARN  tierarztportal.com                       Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+WARN  kfzwerkstatt.io                          Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+WARN  findegutachter.de                        Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+WARN  fliesenleger.io                          Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+WARN  mjet.net                                 Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+WARN  apotheke.firmenfreund.de                 Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+WARN  unfallarzt.firmenfreund.de               Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+WARN  zahnarzt.firmenfreund.de                 Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+WARN  arztfinder.firmenfreund.de               Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
++----+----------------------------+----------------------+-------------+--------------+----------+----------------+---------+-----+
+| ID | Domain                     | Theme                | ads_enabled | Publisher-ID | Auto Ads | Belegungen     | ads.txt | alt |
++----+----------------------------+----------------------+-------------+--------------+----------+----------------+---------+-----+
+| 24 | firmenfreund.de            | sun-v2               | ja          | eigene       | ja       | 5 (5× AdSense) | 1       | 1   |
+| 27 | bodenlegerfinden.com       | sun-v2               | ja          | eigene       | nein     | 5 (5× AdSense) | 1       | 1   |
+| 28 | sanitaerfinden.com         | sun-v2               | ja          | eigene       | ja       | 5 (5× AdSense) | 1       | 1   |
+| 29 | fahrschulefinder.de        | sun-v2               | ja          | eigene       | ja       | 5 (5× AdSense) | 1       | 1   |
+| 30 | elektrikerportal.com       | sun-v2               | nein        | eigene       | nein     | 0              | 1       | 1   |
+| 33 | malerfinder.de             | sun-v2               | ja          | eigene       | ja       | 5 (5× AdSense) | 1       | 1   |
+| 37 | geruestbauer.gmbh          | sun-v2               | ja          | eigene       | ja       | 5 (5× AdSense) | 1       | 1   |
+| 38 | metallbauer.io             | sun-v2               | ja          | eigene       | ja       | 5 (5× AdSense) | 1       | 1   |
+| 43 | tierarztportal.com         | default (ohne Anker) | ja          | eigene       | ja       | 5 (5× AdSense) | 1       | 1   |
+| 44 | kfzwerkstatt.io            | sun-v2               | ja          | eigene       | ja       | 5 (5× AdSense) | 1       | 1   |
+| 45 | findegutachter.de          | sun-v2               | ja          | eigene       | ja       | 5 (5× AdSense) | 1       | 1   |
+| 46 | fliesenleger.io            | sun-v2               | ja          | eigene       | ja       | 5 (5× AdSense) | 1       | 1   |
+| 47 | mjet.net                   | sun-v2               | ja          | eigene       | ja       | 5 (5× AdSense) | 1       | 1   |
+| 49 | sanitaerfinder.com         | sun-v2               | nein        | —            | nein     | 0              | 1       | 1   |
+| 50 | apotheke.firmenfreund.de   | sun-v2               | ja          | eigene       | ja       | 5 (5× AdSense) | 1       | 1   |
+| 51 | firmenfreund.net           | default (ohne Anker) | nein        | —            | nein     | 0              | 404     | 0   |
+| 52 | unfallarzt.firmenfreund.de | sun-v2               | ja          | eigene       | ja       | 5 (5× AdSense) | 1       | 0   |
+| 53 | zahnarzt.firmenfreund.de   | sun-v2               | ja          | eigene       | ja       | 5 (5× AdSense) | 1       | 0   |
+| 54 | klempner.firmenfreund.de   | sun-v2               | nein        | —            | nein     | 0              | 404     | 0   |
+| 55 | energieberaterportal.net   | sun-v2               | nein        | —            | nein     | 0              | 404     | 0   |
+| 56 | arztfinder.firmenfreund.de | sun-v2               | ja          | eigene       | ja       | 5 (5× AdSense) | 1       | 0   |
+| 57 | speditionportal.com        | sun-v2               | nein        | —            | nein     | 0              | 404     | 0   |
+| 58 | schluesseldienstportal.com | sun-v2               | nein        | —            | nein     | 0              | 404     | 0   |
++----+----------------------------+----------------------+-------------+--------------+----------+----------------+---------+-----+
+OK    Freigegebene Portale                     16 von 23 (ads_enabled)
+
+Go-Live-Check Werbeplaetze: 0 FAIL, 18 WARN — bereit.

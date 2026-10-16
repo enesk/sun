@@ -1,16 +1,18 @@
 # Go-Live der Werbeplätze SUN-V2 — Checkliste, Pilot, Rollout, Abnahme
 
-Status: **Maschinenanteil erledigt (16.10.2026). Offen sind §3 (Pilot, drei Tage),
-§4 (Rollout) und §6 (Abnahme) — alle drei brauchen die Produktion, ein echtes
-Gerät und das AdSense-Konto.**
-Nachtrag 16.10.2026 (#31): §1.1 ist mit den aus der Produktion gelesenen Spalten
-Theme und Altbestand vorbelegt, die Belegablage
-`docs/messungen/werbeplaetze-golive/` steht samt Protokoll. Der Start hängt
-weiterhin an B1 — das Modul ist nicht eingecheckt, auf der Produktion liegt kein
-Code. Ohne Deploy nach §2 ist weder ein Prüflauf noch der Pilot möglich.
+Status: **§2 (Deploy) erledigt am 16.10.2026. Offen sind §3 (Pilot, drei Tage),
+§4 (Rollout) und §6 (Abnahme) — alle drei brauchen ein echtes Gerät und das
+AdSense-Konto.**
+Nachtrag 16.10.2026 (#38): B1 bis B3 sind erledigt. Das Modul liegt in `main`
+(PR #9, Merge `9bbe1dfc`), die acht Central-Migrationen sind auf der Produktion
+gelaufen, `ad_settings` hat 23 Zeilen, `ads:legacy-takeover` ist durch (111 von
+118 Alt-Slots übernommen) und `ads:golive:check` meldet auf der Produktion
+**0 FAIL** (`docs/messungen/werbeplaetze-golive/golive-check-2026-10-16.txt`).
+Damit hängt der Start nur noch an §1.1 (Freigabeliste) und §3 (Pilot).
 Ticket: #11 (Maschinenanteil: Security-Review, Prüfwerkzeug, diese Checkliste,
 Slot-Empfehlung — erledigt; Durchführung und Abnahme: Enes)
-Stand: 2026-10-16, Arbeitskopie — **das Modul ist noch nicht eingecheckt**
+Stand: 2026-10-16 — **das Modul ist in `main` und auf der Produktion
+deployt** (#38)
 Architektur, Katalog und Begründungen: `docs/ad-slots.md`
 Sicherheitsseite: `docs/ad-slots-security-review.md`
 Pilot-Empfehlung je Anker: `docs/ad-slots.md` §13
@@ -38,14 +40,14 @@ sudo -u sanitaerfinden /usr/bin/php8.4 artisan <befehl>
 
 | Nr. | Blocker | Wer | Stand |
 | --- | --- | --- | --- |
-| B1 | Das Modul ist nicht eingecheckt — `app/Ads/**`, die vier Migrationen, `config/ad-slots.php`, die Filament-Flächen und die Brücke liegen nur in der Arbeitskopie des Zweigs `feature/portale-blockiert` | Entwicklung | offen |
-| B2 | Vier Migrationen der **Central**-DB stehen aus (`ad_units`, `ad_placements`, `ad_placement_tenant`, `ad_settings` plus zwei Nachträge) | Deploy, §2 | offen |
-| B3 | `ads:legacy-takeover` ist auf der Produktion nicht gelaufen. Bis dahin verlieren 13 Domains beim Deploy ihre `ads.txt` (Security-Review S2) | Deploy, §2 | offen |
+| B1 | ~~Das Modul ist nicht eingecheckt~~ | Entwicklung | **erledigt** 16.10.2026 (#38): PR #9 nach `main`, Merge `9bbe1dfc` |
+| B2 | ~~Migrationen der **Central**-DB stehen aus~~ | Deploy, §2 | **erledigt** 16.10.2026: alle acht `2026_10_19_*` gelaufen, `ad_settings` 23 Zeilen |
+| B3 | ~~`ads:legacy-takeover` ist auf der Produktion nicht gelaufen~~ | Deploy, §2 | **erledigt** 16.10.2026: 111 von 118 Alt-Slots übernommen, keine Domain hat ihre `ads.txt`-Zeile verloren |
 | B4 | Keine Freigabeliste von Enes — welches Portal `ads_enabled` bekommen soll, steht nirgends. Der Seeder setzt überall `false`, der Takeover setzt für jedes Portal mit Altbestand `true` (§1) | Enes | **teilweise**: Theme und Altbestand je Portal am 16.10.2026 aus der Produktion eingetragen (§1.1); offen bleiben AdSense-Status und die Entscheidung je Portal |
 | B5 | Pilot-Portal nicht benannt. Der Ticketvorschlag `unfallarzt.net` ist **keine** Portal-Domain des Netzes; die nächstliegende ist `unfallarzt.firmenfreund.de` (Prod-ID 52). Geprüft am 16.10.2026: 52 fährt auf der Produktion `sun-v2` und ist als Pilot technisch geeignet | Enes, §3 | offen |
 | B6 | AdSense-Site-Status je Portal unbekannt (Kontobeschränkung). Ohne ihn ist eine Freigabe geraten | Enes, §4 | offen |
 | B7 | Netzwerk-Mitschnitt vor/nach Einwilligung (#25) und der Datenschutzabschnitt „Werbung mit Google AdSense" (#26) sind nicht abgeschlossen. Beides muss **vor** der ersten echten Auslieferung stehen | #25, #26 | **erledigt** (beide Tickets abgeschlossen) |
-| B8 | Aus der Messung zu #25 offen: #32 (Format `responsive` reißt auf 90/100-px-Bannern CLS 0,136) und #29 (Datenschutzabschnitt deckt den HtmlProvider nicht). #32 trifft die drei Pilot-Anker **nicht** (280/250 px reserviert), wohl aber `home_after_hero` und die übrigen Banner — die bleiben bis #32 unbelegt | #29, #32 | offen |
+| B8 | Aus der Messung zu #25 offen: #32 (Format `responsive` reißt auf 90/100-px-Bannern CLS 0,136) und #29 (Datenschutzabschnitt deckt den HtmlProvider nicht). #32 trifft die drei Pilot-Anker **nicht** (280/250 px reserviert), wohl aber `home_after_hero` und die übrigen Banner — die bleiben bis #32 unbelegt | #29, #32 | offen. **Nachtrag 16.10.2026 (#38):** der Takeover hat `company_before_footer` (100 px mobil / 90 px Desktop) mit übernommen — genau die Geometrie aus #32. Beide Belegungen (#2 und #8, je 8 Portale) stehen deshalb auf `paused`. Kein Verlust: das Altsystem liefert `after_change_request` dort weiter aus. Wieder auf `active` erst nach #32 |
 
 Was dagegen maschinell steht: Security-Review ohne offene Punkte
 (`docs/ad-slots-security-review.md`), CLS-Messung mit allen 32 Ankern belegt
@@ -167,20 +169,46 @@ Zwei Dinge, die beim Ausfüllen auffallen sollen:
 Reihenfolge ist wichtig: der Takeover muss **vor** dem ersten Aufruf von
 `/ads.txt` aus der neuen Route gelaufen sein.
 
+Drei Dinge, die beim Lauf am 16.10.2026 (#38) anders waren als hier
+aufgeschrieben — so gehört es beim nächsten Mal in dieser Form gefahren:
+
+1. **`git pull` läuft als root, nicht als `sanitaerfinden`.** Nur root hat auf
+   dieser Maschine einen GitHub-Schlüssel; als `sanitaerfinden` scheitert der
+   Pull mit „Could not read from remote repository". Danach das Eigentum
+   zurückgeben: `chown -R sanitaerfinden:sanitaerfinden .`
+2. **`config:clear` muss VOR der Migration und vor dem Takeover kommen.** Die
+   Produktion fährt einen Config-Cache, und ein Cache aus der Zeit vor dem
+   Deploy kennt `config/ad-slots.php` überhaupt nicht — `config('ad-slots.…')`
+   liefert dann `null` und Takeover wie Prüflauf arbeiten auf einem leeren
+   Katalog. `config:cache` am Ende baut ihn mit dem neuen Schlüssel neu auf.
+3. **Zwischen `git pull` und `migrate` antworten alle Portale mit HTTP 500.**
+   Die Produktion hat keinen Route-Cache, die neue `/ads.txt`-Route ist also
+   sofort nach dem Pull scharf, während `ad_settings` noch fehlt. Das Fenster
+   gehört so kurz wie möglich: Pull, `config:clear`, `migrate`, Seeder,
+   Takeover ohne Pause nacheinander fahren.
+
+Wenn `composer.lock` sich nicht geändert hat, genügt statt
+`composer install --no-dev` ein `composer dump-autoload --optimize` — das nimmt
+keine Pakete weg. Ebenso `npm run build` statt `npm ci && npm run build`,
+solange `package-lock.json` unverändert ist.
+
 ```bash
 # 1. Code und Abhängigkeiten
 cd /home/sanitaerfinden/htdocs/sanitaerfinden.dev
-sudo -u sanitaerfinden git pull
+git pull --ff-only                                    # als root
+chown -R sanitaerfinden:sanitaerfinden .
 sudo -u sanitaerfinden composer install --no-dev --optimize-autoloader
 sudo -u sanitaerfinden npm ci && sudo -u sanitaerfinden npm run build
 
-# 2. Migrationen der CENTRAL-DB (keine Tenant-Migration in diesem Modul)
+# 2. Config-Cache weg (sonst fehlt ad-slots), dann Migrationen der CENTRAL-DB
+#    (keine Tenant-Migration in diesem Modul)
+sudo -u sanitaerfinden /usr/bin/php8.4 artisan config:clear
 sudo -u sanitaerfinden /usr/bin/php8.4 artisan migrate --force
 sudo -u sanitaerfinden /usr/bin/php8.4 artisan db:seed --class=AdSettingSeeder --force
 
 # 3. Altbestand übernehmen — erst trocken, dann echt
 sudo -u sanitaerfinden /usr/bin/php8.4 artisan ads:legacy-takeover --dry-run
-sudo -u sanitaerfinden /usr/bin/php8.4 artisan ads:legacy-takeover
+sudo -u sanitaerfinden /usr/bin/php8.4 artisan ads:legacy-takeover --force
 
 # 4. Caches neu, Konfiguration zuletzt
 sudo -u sanitaerfinden /usr/bin/php8.4 artisan view:clear
@@ -191,16 +219,23 @@ sudo -u sanitaerfinden /usr/bin/php8.4 artisan route:cache
 sudo -u sanitaerfinden /usr/bin/php8.4 artisan ads:golive:check
 ```
 
-- [ ] Schritt 2: vier Tabellen angelegt, 23 Zeilen in `ad_settings`
-- [ ] Schritt 3 trocken: die Tabelle „Nicht uebernommen" gelesen — sie ist die
-      Abnahmeliste aus `docs/ad-slots.md` 11.1
-- [ ] Schritt 5: **kein FAIL**. Insbesondere keine Zeile
-      „ads.txt verliert … Zeile(n) aus der Tenant-DB" — das ist S2 und bedeutet,
-      dass Schritt 3 fehlt oder unvollständig war
-- [ ] `curl -s https://<domain>/ads.txt` für jedes freigegebene Portal: HTTP 200,
-      die Google-Zeile mit der richtigen Publisher-ID, keine doppelten Zeilen
+- [x] 2026-10-16 Schritt 2: vier Tabellen angelegt, 23 Zeilen in `ad_settings`
+- [x] 2026-10-16 Schritt 3 trocken: die Tabelle „Nicht uebernommen" gelesen — sie ist die
+      Abnahmeliste aus `docs/ad-slots.md` 11.1. Beleg:
+      `docs/messungen/werbeplaetze-golive/legacy-takeover-trockenlauf-2026-10-16.txt`
+- [x] 2026-10-16 Schritt 5: **kein FAIL** (0 FAIL, 18 WARN). Beleg:
+      `docs/messungen/werbeplaetze-golive/golive-check-2026-10-16.txt`
+- [x] 2026-10-16 `curl -s https://<domain>/ads.txt`: HTTP 200, genau eine
+      Google-Zeile mit der richtigen Publisher-ID je Konto, keine Dubletten
+      (geprüft auf sanitaerfinden.com, firmenfreund.de, malerfinder.de,
+      unfallarzt.firmenfreund.de)
 - [ ] Freigabeliste aus §1.1 durchgesetzt (nicht gewünschte Portale im Panel
-      wieder auf `ads_enabled = aus`)
+      wieder auf `ads_enabled = aus`) — **offen, Enes.** Der Takeover hat 16
+      Portale freigegeben; `tierarztportal.com` (43) ist darunter, obwohl §1.1
+      es nach #16 auf `nein` führt. Nicht von mir umgeschaltet, weil der
+      Schalter fail-closed auch die `ads.txt` nimmt und das Altsystem dort
+      weiter ausliefert — das Abschalten gehört in #31 zusammen mit dem
+      AdSense-Status
 
 Nach Schritt 3 laufen Alt- und Neusystem **parallel**: das Altsystem liefert
 weiter aus, die neuen Anker bleiben leer, solange keine Belegung für sie

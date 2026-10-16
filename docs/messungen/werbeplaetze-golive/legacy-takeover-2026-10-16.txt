@@ -1,0 +1,104 @@
+Lauf: php artisan ads:legacy-takeover --force
+Wo:   Produktion, 2026-10-16 (Ticket #38, §2 Schritt 3)
+
+Alt-Slots gelesen: 118, davon uebernommen: 111.
+
+Werbemittel und Belegungen
++----------------------+---------------------------+---------+------------+-------------------------+------------+---------+
+| Alt-Position         | Anker                     | Geraet  | Format     | Konto                   | Block      | Portale |
++----------------------+---------------------------+---------+------------+-------------------------+------------+---------+
+| after_breadcrumb     | company_after_header_card | mobile  | responsive | ca-pub-2563111817853634 | 7998360462 | 8       |
+| after_change_request | company_before_footer     | all     | responsive | ca-pub-2563111817853634 | 3828015317 | 8       |
+| after_photos         | company_after_reviews     | all     | responsive | ca-pub-2563111817853634 | 1258358579 | 8       |
+| content_before_intro | company_after_about       | all     | responsive | ca-pub-2563111817853634 | 9923316650 | 8       |
+| sidebar_after_claim  | company_sidebar_top       | desktop | responsive | ca-pub-2563111817853634 | 1010280285 | 8       |
+| sidebar_top          | company_sidebar_sticky    | desktop | responsive | ca-pub-2563111817853634 | 8366692400 | 8       |
+| after_breadcrumb     | company_after_header_card | mobile  | responsive | ca-pub-1901800422608466 | 5840179950 | 8       |
+| after_change_request | company_before_footer     | all     | responsive | ca-pub-1901800422608466 | 4148391584 | 8       |
+| after_photos         | company_after_reviews     | all     | responsive | ca-pub-1901800422608466 | 3464330450 | 8       |
+| content_before_intro | company_after_about       | all     | responsive | ca-pub-1901800422608466 | 6710408499 | 8       |
+| sidebar_after_claim  | company_sidebar_top       | desktop | responsive | ca-pub-1901800422608466 | 4411548216 | 8       |
+| sidebar_top          | company_sidebar_sticky    | desktop | responsive | ca-pub-1901800422608466 | 8525085445 | 8       |
++----------------------+---------------------------+---------+------------+-------------------------+------------+---------+
+Einstellungen je Portal
++-------------------------------+-------------------------+----------+----------+--------------+
+| Portal                        | Publisher-ID            | Auto Ads | ads.txt  | ads_enabled  |
++-------------------------------+-------------------------+----------+----------+--------------+
+| Hoch-  und Tiefbauunternehmen | ca-pub-2563111817853634 | ja       | 1 Zeilen | wird gesetzt |
+| BodenlegerFinden              | ca-pub-2563111817853634 | —        | 1 Zeilen | wird gesetzt |
+| SanitärFinden                 | ca-pub-2563111817853634 | ja       | 1 Zeilen | wird gesetzt |
+| FahrschuleFinder              | ca-pub-1901800422608466 | ja       | 1 Zeilen | wird gesetzt |
+| ElektrikerPortal              | ca-pub-1901800422608466 | —        | 1 Zeilen | bleibt       |
+| Malerfinder.de                | ca-pub-1901800422608466 | ja       | 1 Zeilen | wird gesetzt |
+| Gerüstabauer.GmbH             | ca-pub-1901800422608466 | ja       | 1 Zeilen | wird gesetzt |
+| Metallbauer.io                | ca-pub-1901800422608466 | ja       | 1 Zeilen | wird gesetzt |
+| Tierarztportal.com            | ca-pub-1901800422608466 | ja       | 1 Zeilen | wird gesetzt |
+| kfzwerkstatt                  | ca-pub-1901800422608466 | ja       | 1 Zeilen | wird gesetzt |
+| FindeGutachter                | ca-pub-2563111817853634 | ja       | 1 Zeilen | wird gesetzt |
+| Fliesenleger                  | ca-pub-1901800422608466 | ja       | 1 Zeilen | wird gesetzt |
+| Gartenbauer                   | ca-pub-1901800422608466 | ja       | 1 Zeilen | wird gesetzt |
+| SanitaerFinder                | —                       | —        | 1 Zeilen | bleibt       |
+| ApothekeFinden                | ca-pub-2563111817853634 | ja       | 1 Zeilen | wird gesetzt |
+| Unfallchirurgie in der Nähe   | ca-pub-2563111817853634 | ja       | —        | wird gesetzt |
+| Zahnarzt in der Nähe          | ca-pub-2563111817853634 | ja       | —        | wird gesetzt |
+| ArztFinder                    | ca-pub-2563111817853634 | ja       | —        | wird gesetzt |
++-------------------------------+-------------------------+----------+----------+--------------+
+Nicht uebernommen
++-------------------------------+----------------------+-------------------------------------------------------------------------------------------------+
+| Portal                        | Position             | Grund                                                                                           |
++-------------------------------+----------------------+-------------------------------------------------------------------------------------------------+
+| Hoch-  und Tiefbauunternehmen | after_breadcrumb     | Geraetewahl von all auf mobile verengt — der Anker company_after_header_card laesst nur das zu. |
+| Hoch-  und Tiefbauunternehmen | sidebar_after_claim  | Geraetewahl von all auf desktop verengt — der Anker company_sidebar_top laesst nur das zu.      |
+| BodenlegerFinden              | after_breadcrumb     | Geraetewahl von all auf mobile verengt — der Anker company_after_header_card laesst nur das zu. |
+| BodenlegerFinden              | sidebar_after_claim  | Geraetewahl von all auf desktop verengt — der Anker company_sidebar_top laesst nur das zu.      |
+| SanitärFinden                 | after_breadcrumb     | Geraetewahl von all auf mobile verengt — der Anker company_after_header_card laesst nur das zu. |
+| SanitärFinden                 | sidebar_after_claim  | Geraetewahl von all auf desktop verengt — der Anker company_sidebar_top laesst nur das zu.      |
+| FahrschuleFinder              | after_breadcrumb     | Geraetewahl von all auf mobile verengt — der Anker company_after_header_card laesst nur das zu. |
+| FahrschuleFinder              | sidebar_after_claim  | Geraetewahl von all auf desktop verengt — der Anker company_sidebar_top laesst nur das zu.      |
+| FahrschuleFinder              | sidebar_top          | Geraetewahl von all auf desktop verengt — der Anker company_sidebar_sticky laesst nur das zu.   |
+| ElektrikerPortal              | after_breadcrumb     | Alt-Slot ist abgeschaltet — nicht uebernommen.                                                  |
+| ElektrikerPortal              | after_change_request | Alt-Slot ist abgeschaltet — nicht uebernommen.                                                  |
+| ElektrikerPortal              | after_photos         | Alt-Slot ist abgeschaltet — nicht uebernommen.                                                  |
+| ElektrikerPortal              | auto_ads             | Alt-Slot ist abgeschaltet — nicht uebernommen.                                                  |
+| ElektrikerPortal              | content_before_intro | Alt-Slot ist abgeschaltet — nicht uebernommen.                                                  |
+| ElektrikerPortal              | sidebar_after_claim  | Alt-Slot ist abgeschaltet — nicht uebernommen.                                                  |
+| ElektrikerPortal              | sidebar_top          | Alt-Slot ist abgeschaltet — nicht uebernommen.                                                  |
+| Malerfinder.de                | after_breadcrumb     | Geraetewahl von all auf mobile verengt — der Anker company_after_header_card laesst nur das zu. |
+| Malerfinder.de                | sidebar_after_claim  | Geraetewahl von all auf desktop verengt — der Anker company_sidebar_top laesst nur das zu.      |
+| Malerfinder.de                | sidebar_top          | Geraetewahl von all auf desktop verengt — der Anker company_sidebar_sticky laesst nur das zu.   |
+| Gerüstabauer.GmbH             | after_breadcrumb     | Geraetewahl von all auf mobile verengt — der Anker company_after_header_card laesst nur das zu. |
+| Gerüstabauer.GmbH             | sidebar_after_claim  | Geraetewahl von all auf desktop verengt — der Anker company_sidebar_top laesst nur das zu.      |
+| Gerüstabauer.GmbH             | sidebar_top          | Geraetewahl von all auf desktop verengt — der Anker company_sidebar_sticky laesst nur das zu.   |
+| Metallbauer.io                | after_breadcrumb     | Geraetewahl von all auf mobile verengt — der Anker company_after_header_card laesst nur das zu. |
+| Metallbauer.io                | sidebar_after_claim  | Geraetewahl von all auf desktop verengt — der Anker company_sidebar_top laesst nur das zu.      |
+| Metallbauer.io                | sidebar_top          | Geraetewahl von all auf desktop verengt — der Anker company_sidebar_sticky laesst nur das zu.   |
+| Tierarztportal.com            | after_breadcrumb     | Geraetewahl von all auf mobile verengt — der Anker company_after_header_card laesst nur das zu. |
+| Tierarztportal.com            | sidebar_after_claim  | Geraetewahl von all auf desktop verengt — der Anker company_sidebar_top laesst nur das zu.      |
+| Tierarztportal.com            | sidebar_top          | Geraetewahl von all auf desktop verengt — der Anker company_sidebar_sticky laesst nur das zu.   |
+| kfzwerkstatt                  | after_breadcrumb     | Geraetewahl von all auf mobile verengt — der Anker company_after_header_card laesst nur das zu. |
+| kfzwerkstatt                  | sidebar_after_claim  | Geraetewahl von all auf desktop verengt — der Anker company_sidebar_top laesst nur das zu.      |
+| kfzwerkstatt                  | sidebar_top          | Geraetewahl von all auf desktop verengt — der Anker company_sidebar_sticky laesst nur das zu.   |
+| FindeGutachter                | after_breadcrumb     | Geraetewahl von all auf mobile verengt — der Anker company_after_header_card laesst nur das zu. |
+| FindeGutachter                | sidebar_after_claim  | Geraetewahl von all auf desktop verengt — der Anker company_sidebar_top laesst nur das zu.      |
+| Fliesenleger                  | after_breadcrumb     | Geraetewahl von all auf mobile verengt — der Anker company_after_header_card laesst nur das zu. |
+| Fliesenleger                  | sidebar_after_claim  | Geraetewahl von all auf desktop verengt — der Anker company_sidebar_top laesst nur das zu.      |
+| Fliesenleger                  | sidebar_top          | Geraetewahl von all auf desktop verengt — der Anker company_sidebar_sticky laesst nur das zu.   |
+| Gartenbauer                   | after_breadcrumb     | Geraetewahl von all auf mobile verengt — der Anker company_after_header_card laesst nur das zu. |
+| Gartenbauer                   | sidebar_after_claim  | Geraetewahl von all auf desktop verengt — der Anker company_sidebar_top laesst nur das zu.      |
+| Gartenbauer                   | sidebar_top          | Geraetewahl von all auf desktop verengt — der Anker company_sidebar_sticky laesst nur das zu.   |
+| ApothekeFinden                | after_breadcrumb     | Geraetewahl von all auf mobile verengt — der Anker company_after_header_card laesst nur das zu. |
+| ApothekeFinden                | sidebar_after_claim  | Geraetewahl von all auf desktop verengt — der Anker company_sidebar_top laesst nur das zu.      |
+| Unfallchirurgie in der Nähe   | after_breadcrumb     | Geraetewahl von all auf mobile verengt — der Anker company_after_header_card laesst nur das zu. |
+| Unfallchirurgie in der Nähe   | sidebar_after_claim  | Geraetewahl von all auf desktop verengt — der Anker company_sidebar_top laesst nur das zu.      |
+| Zahnarzt in der Nähe          | after_breadcrumb     | Geraetewahl von all auf mobile verengt — der Anker company_after_header_card laesst nur das zu. |
+| Zahnarzt in der Nähe          | sidebar_after_claim  | Geraetewahl von all auf desktop verengt — der Anker company_sidebar_top laesst nur das zu.      |
+| ArztFinder                    | after_breadcrumb     | Geraetewahl von all auf mobile verengt — der Anker company_after_header_card laesst nur das zu. |
+| ArztFinder                    | sidebar_after_claim  | Geraetewahl von all auf desktop verengt — der Anker company_sidebar_top laesst nur das zu.      |
++-------------------------------+----------------------+-------------------------------------------------------------------------------------------------+
+
+Geschrieben:
++-----------------+---------------------+----------------+--------------------+--------------------+---------------+
+| Werbemittel neu | Werbemittel erkannt | Belegungen neu | Belegungen erkannt | Portal-Zuordnungen | Einstellungen |
++-----------------+---------------------+----------------+--------------------+--------------------+---------------+
+| 12              | 0                   | 12             | 0                  | 96                 | 18            |
++-----------------+---------------------+----------------+--------------------+--------------------+---------------+
