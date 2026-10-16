@@ -47,6 +47,34 @@ Schlüssel (Endung `…6ELWLM`) antwortet mit `REQUEST_DENIED` und
 läuft damit derzeit nicht — vor Abschnitt 4 muss also erst ein nutzbares Projekt
 mit aktiver Abrechnung bereitstehen.
 
+**Nachmessung 16.10.2026 (#56), unverändert tot:** Derselbe `.env`-Schlüssel
+(`…6ELWLM`) antwortet an `places.googleapis.com/v1/places:searchText` mit
+**HTTP 403 `PERMISSION_DENIED`**, `reason: CONSUMER_SUSPENDED`,
+`consumer: projects/1085014436279`. Gesperrt ist also **das Projekt
+`1085014436279`**, nicht der Schlüssel; der übliche Grund ist eine offene
+Abrechnung. Gegen `chromeuxreport.googleapis.com` kommt zusätzlich
+`API_KEY_SERVICE_BLOCKED` — der Schlüssel ist auf Places eingeschränkt und taugt
+auch nicht als Ersatz für CrUX-Abfragen.
+
+**Reichweite: nur die Entwicklung.** Die Produktions-`.env`
+(`/home/sanitaerfinden/htdocs/sanitaerfinden.dev/.env`) führt überhaupt keine
+`GOOGLE_PLACES_API_KEY`-Zeile; dort läuft kein Abruf auf diesem Schlüssel.
+
+**Was der `reason` im Fehlerblock bedeutet** — `places:keys:audit` stellt ihn
+seit #56 der Meldung voran, der Schlüssel selbst wird in der Ausgabe maskiert:
+
+| `reason` | Bedeutung | Nächster Schritt |
+| --- | --- | --- |
+| `CONSUMER_SUSPENDED` | Das Cloud-Projekt ist gesperrt (meist Abrechnung), der Schlüssel wäre gültig | Projekt reaktivieren **oder** Schlüssel aus einem aktiven Projekt in die lokale `.env` legen |
+| `API_KEY_SERVICE_BLOCKED` | Der Schlüssel ist auf andere APIs eingeschränkt | API-Einschränkung erweitern oder eigenen Schlüssel ausstellen |
+| `API_KEY_INVALID` | Wert gelöscht, falsch oder mit Anführungszeichen eingelesen | Wert prüfen, sonst neu ausstellen (Abschnitt 3) |
+| `SERVICE_DISABLED` | Places API im Projekt nicht freigeschaltet | `gcloud services enable places.googleapis.com` (Abschnitt 0) |
+
+Bis das erledigt ist, scheitert lokal **jeder** Places-Abruf mit 403 und nicht mit
+einem Konfigurationsfehler — `tenants:import-google` und
+`companies:zipcode-backfill` brechen mit „Google lehnt den Places-Schlüssel ab"
+ab. Das ist erwartetes Verhalten, kein Fehler im Code.
+
 Trage jedes Ergebnis in die Tabelle am Ende ein.
 
 ## Kurzfassung (15 Minuten, alles Weitere ist Begründung)

@@ -178,7 +178,7 @@ class PlacesKeysAudit extends Command
             'key' => $this->maskiert($key),
             'verdikt' => $this->verdikt($status, $meldung),
             'status' => $status,
-            'meldung' => $meldung !== '' ? $meldung : $status,
+            'meldung' => $this->ohneSchluessel($meldung !== '' ? $meldung : $status),
         ];
     }
 
@@ -210,13 +210,37 @@ class PlacesKeysAudit extends Command
 
         $json = $antwort->json();
         $meldung = (string) ($json['error']['message'] ?? ($antwort->successful() ? 'OK' : $antwort->body()));
+        $grund = $this->grund($json);
+
+        if ($grund !== '') {
+            $meldung = $grund.': '.$meldung;
+        }
 
         return [
             'key' => $this->maskiert($key),
             'verdikt' => $antwort->successful() ? 'nutzbar' : 'nicht nutzbar',
             'status' => (string) $antwort->status(),
-            'meldung' => Str::limit($meldung, 120),
+            'meldung' => $this->ohneSchluessel($meldung),
         ];
+    }
+
+    /**
+     * Der `reason` aus dem ErrorInfo-Detail benennt die Ursache eindeutig und
+     * spart die Suche: `CONSUMER_SUSPENDED` ist das gesperrte Cloud-Projekt
+     * (nicht der Schluessel), `API_KEY_SERVICE_BLOCKED` die API-Einschraenkung
+     * des Schluessels, `API_KEY_INVALID` ein geloeschter oder falscher Wert.
+     *
+     * @param  array<mixed>|null  $json
+     */
+    private function grund(?array $json): string
+    {
+        foreach ($json['error']['details'] ?? [] as $detail) {
+            if (is_array($detail) && ($detail['reason'] ?? '') !== '') {
+                return (string) $detail['reason'];
+            }
+        }
+
+        return '';
     }
 
     /**
@@ -233,6 +257,16 @@ class PlacesKeysAudit extends Command
             $lebt => self::ALIVE,
             default => self::UNKLAR,
         };
+    }
+
+    /**
+     * Google gibt den Schluessel in der Fehlermeldung zurueck ("Consumer
+     * 'api_key:AIza…' has been suspended") — er darf weder in der Tabelle noch
+     * im Markdown-Protokoll landen.
+     */
+    private function ohneSchluessel(string $meldung): string
+    {
+        return Str::limit((string) preg_replace('/AIzaSy[A-Za-z0-9_-]{10,}/', 'AIzaSy…', $meldung), 160);
     }
 
     private function maskiert(string $key): string
