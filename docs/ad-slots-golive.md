@@ -343,7 +343,7 @@ sudo -u sanitaerfinden /usr/bin/php8.4 artisan route:cache
 # Deckt alle drei Panels ab (admin, content, dashboard).
 sudo -u sanitaerfinden /usr/bin/php8.4 artisan filament:optimize
 
-# 5. Nachweis
+# 5. Nachweis — beides, nicht nur das erste
 sudo -u sanitaerfinden /usr/bin/php8.4 artisan ads:golive:check
 scripts/panel-seiten-pruefen.sh        # jede Panel-Seite per HTTP: 302 erwartet
 ```
@@ -787,25 +787,67 @@ Eigene Spur, weil sie sieben Tage echte Daten braucht. Stand am 16.10.2026
       `config:cache` **plus** `systemctl reload php8.5-fpm`.
 - [x] Migrationen `ad_impression_daily` und `ad_impression_buffer` (zentral)
       sind mit dem Deploy aus §2 gelaufen (`migrate:status` → beide `Ran`).
-- [ ] Nachtrag aus #44: die Migration
+- [x] Nachtrag aus #44: die Migration
       `2026_10_19_000009_add_covering_indexes_to_ad_impression_daily_table`
-      (abdeckende Indizes des Widgets) muss auf der **Central**-DB noch
-      laufen — sie kommt mit dem nächsten Deploy nach §2 mit, der Schritt ist
-      derselbe `artisan migrate --force`. Reiner Indexbau, kein
-      Datenverlustrisiko; auf der heutigen Zeilenzahl Sekundenbruchteile.
-- [ ] Nachtrag aus #47 (Nenner der Viewability-Quote): die Migration
-      `2026_10_19_000010_add_deliveries_to_ad_impression_tables` muss auf der
-      **Central**-DB laufen — eine Spalte `deliveries` in
-      `ad_impression_buffer` und `ad_impression_daily` plus die beiden
-      abdeckenden Indizes in der Fassung **mit** `deliveries`
-      (`…_cover2`; die `…_cover`-Fassungen aus #44 fallen dabei weg). Kommt mit
-      demselben `artisan migrate --force`, läuft **nach** der Migration aus #44
-      und setzt sie voraus. Kein Datenverlustrisiko: die Altzeilen bekommen
-      `deliveries = 0`.
-      Danach einmal die Assets neu bauen (`npm run build`) — der Nenner wird im
-      Browser gemeldet, ein zwischengespeichertes `ads.js` kennt die Meldung
-      noch nicht und zählt weiter nur Sichtkontakte. Die Quote im Widget bleibt
-      deshalb ein Gedankenstrich, bis ein ganzes Fenster nach dem Deploy liegt.
+      (abdeckende Indizes des Widgets) ist am **16.10.2026** mit dem Deploy auf
+      der **Central**-DB gelaufen (#52) — `migrate:status` zeigt sie als `Ran`
+      in Batch 15. Reiner Indexbau, kein Datenverlustrisiko.
+- [x] Nachtrag aus #47 (Nenner der Viewability-Quote): die Migration
+      `2026_10_19_000010_add_deliveries_to_ad_impression_tables` ist am
+      **16.10.2026** auf der **Central**-DB gelaufen (#52, Batch 15, direkt
+      nach der Migration aus #44, die sie voraussetzt) — eine Spalte
+      `deliveries` in `ad_impression_buffer` und `ad_impression_daily` plus die
+      beiden abdeckenden Indizes in der Fassung **mit** `deliveries`
+      (`…_cover2`; die `…_cover`-Fassungen aus #44 fallen dabei weg). Die
+      Altzeilen haben `deliveries = 0`.
+      Die Assets sind danach neu gebaut worden (16.10.2026, **13:25 UTC**) —
+      `ads.js` liegt nicht in einem eigenen Entry, sondern im gemeinsamen Chunk
+      `public/build/assets/stats-beacon-*.js`, und der kennt die Meldung
+      `event=delivered`. Seitdem meldet echter Verkehr den Nenner: 53
+      ausgelieferte Fragmente in den ersten 17 Minuten im Stundenpuffer.
+      Der Stand ist in einem Aufruf lesbar, statt die vier Vorbedingungen
+      einzeln abzuklappern:
+
+      ```bash
+      scripts/ads-viewability-quote.sh            # Stand + Quote, Fenster 7 Tage
+      scripts/ads-viewability-quote.sh --kurz     # nur der naechste Handgriff
+      ```
+
+      Exit 0 = Quote ablesbar, 70 = Nenner laeuft, Fenster noch nicht reif,
+      71 = eine Vorbedingung fehlt.
+- [x] **Erste unverfälschte Ablesung (16.10.2026, Stunde 14:00 UTC, #52):**
+      68 % über alle Anker (201 Sichtkontakte / 294 ausgelieferte Fragmente),
+      je Anker 37–70 % bei einem Ausreißer `company_sidebar_top` 22/22.
+      Gelesen aus `ad_impression_buffer` statt aus dem Tagesaggregat — in einer
+      Stunde, die vollständig **nach** dem Deploy begonnen hat, hat jede Zeile
+      ihren Nenner, das Verhältnis ist also nicht verfälscht:
+
+      ```bash
+      scripts/ads-viewability-quote.sh --kurz --stunde
+      ```
+
+      Das ist eine **Stichprobe**, keine Fensterquote: eine Tageszeit,
+      Grundmengen von 14 bis 152 Fragmenten je Anker. Keine Ableitung nach
+      §13.3 daraus — auch nicht für `company_sidebar_sticky` (37 %, unter der
+      40-%-Schwelle). Beleg:
+      `docs/messungen/werbeplaetze-golive/viewability-nenner-2026-10-16.txt`.
+- [ ] **Quote ablesen, frühestens 23.10.2026** (Siebentagefenster ab dem
+      Deploytag; bei `--tage=30` entsprechend der 15.11.2026). Vorher ist jede
+      abgelesene Quote **zu hoch — in der Regel genau 100 %**, und das ist die
+      gefährlichere Richtung. Grund: Tage vor dem Deploy bringen Zeilen mit
+      Sichtkontakten, aber `deliveries = 0`. Über das Fenster summiert landen
+      sie im Zähler und nicht im Nenner, das Verhältnis steigt über 1, und
+      `AdImpressionStats::quote()` kappt bei 100 %. Am 16.10.2026 um 14:09 UTC
+      gemessen: 699 Sichtkontakte / 156 ausgelieferte Fragmente = rechnerisch
+      448 %, angezeigt **100 %**. Unter §13.3 (über 70 % ⇒
+      `applies_to_all_tenants`) würde das jeden Anker netzweit ausrollen.
+      `scripts/ads-viewability-quote.sh` rechnet das Reifedatum aus und
+      verweigert bis dahin die Freigabe (Exit 70). Dann: Spalte
+      „Sichtbar" je Anker in `docs/ad-slots.md` §13.2 eintragen, die Ausgabe
+      nach `docs/messungen/werbeplaetze-golive/` legen und §13.3 je Anker
+      anwenden (unter 40 % ⇒ Belegung auf `paused`, über 70 % ⇒
+      `applies_to_all_tenants`). Zum Schluss gegen den AdSense-Report desselben
+      Portals stellen (#48) — Abweichung über Faktor 2 ist ein Befund.
 - [x] Beobachter im ausgelieferten Bundle: belegt durch echte Beacons mehrerer
       Portale im Puffer (18 Zeilen / 29 Impressionen in der ersten Stunde).
 - [x] Netzwerk-Nachweis „consent-unabhängig, keine personenbezogenen Daten":
@@ -870,5 +912,6 @@ Eigene Spur, weil sie sieben Tage echte Daten braucht. Stand am 16.10.2026
 | **Pilot auf 27 `bodenlegerfinden.com` (16.10.2026, #31)** | `docs/messungen/werbeplaetze-golive/pilot-bodenlegerfinden-2026-10-16.md` + sieben JSON-Rohdaten `pilot-bodenlegerfinden-com-*-2026-10-16.json` |
 | `ads.txt` über alle 23 Domains | `docs/messungen/werbeplaetze-golive/adstxt-sweep-2026-10-16.txt`, Lauf `bash scripts/ads-txt-sweep.sh` |
 | Netzwerk-Mitschnitt Einwilligung | `docs/ad-slots.md` 9.5 (#25) |
+| **Nenner der Viewability-Quote (16.10.2026, #52 aus #47)** | `docs/messungen/werbeplaetze-golive/viewability-nenner-2026-10-16.txt`, Lauf `scripts/ads-viewability-quote.sh` (`--stunde` für die saubere Zwischenablesung) |
 | **Abnahme Impression-Zählung (16.10.2026, #37)** | `docs/messungen/werbeplaetze-golive/impression-abnahme-2026-10-16.txt`, Auslesen mit `artisan ads:impressionen-abnahme` |
 | Prüfläufe `ads:golive:check` | `docs/messungen/werbeplaetze-golive/golive-check-<datum>.txt`; der lokale Lauf vom 16.10.2026 liegt dort als `…-lokal.txt` und ist nur ein Werkzeugnachweis |

@@ -2368,6 +2368,24 @@ seit **Ticket #47** selbst (`ad_impression_daily.deliveries`, §14.1a) — die
 Quote steht im Widget, sobald ein ganzes Fenster nach dem Deploy liegt. Nur
 noch kontogebunden sind Klickrate und RPM.
 
+**Nenner seit 16.10.2026, 13:25 UTC auf der Produktion** (#52): Migration
+`…_000010_add_deliveries_to_ad_impression_tables` gelaufen, Assets neu gebaut,
+echter Verkehr meldet `event=delivered`. Die Spalte „Viewability-Quote" unten
+bleibt bis zum **23.10.2026** leer — jedes frühere Siebentagefenster enthält
+Tage ohne Nenner und zeigt die Quote **zu hoch**, gekappt auf 100 %
+(§13.3, vorletzter Absatz).
+Stand und Quote in einem Aufruf: `scripts/ads-viewability-quote.sh`.
+
+**Erste unverfälschte Ablesung, 16.10.2026, Stunde 14:00 UTC** (#52): 68 % über
+alle Anker (201 / 294), je Anker 37–70 % bei einem Ausreißer
+`company_sidebar_top` 22/22. Gelesen aus `ad_impression_buffer` — in einer
+Stunde, die vollständig nach dem Deploy begonnen hat, hat jede Zeile ihren
+Nenner. Sie steht **absichtlich nicht in der Tabelle unten**: eine Tageszeit,
+Grundmengen von 14 bis 152 Fragmenten je Anker, und damit keine Grundlage für
+§13.3 — auch nicht für `company_sidebar_sticky` (37 %, unter der 40-%-Schwelle).
+Sie zeigt nur, dass die Quote ab jetzt aus eigener Kraft messbar ist. Beleg:
+`docs/messungen/werbeplaetze-golive/viewability-nenner-2026-10-16.txt`.
+
 Portal: **alle 15 freigegebenen** (nicht ein einzelnes, s. u.) · Zeitraum:
 16.10.2026 12:09–13:01 UTC, erste gezählte Stunde des Netzes · 391
 Sichtkontakte · abgelesen von Kay (#31)
@@ -2410,6 +2428,19 @@ Portal, gerechnet als `impressions / deliveries` über das gewählte Fenster.
 Das Widget färbt sie nach genau diesen Schwellen. Ein Gedankenstrich heißt
 „kein Nenner im Fenster" — nicht 0 %; das ist der Fall für jedes Fenster, das
 noch Tage vor der Einführung des Nenners enthält.
+
+Gefährlicher als der Gedankenstrich ist die **halbe** Quote: enthält das
+Fenster Tage von vor dem 16.10.2026, zählen deren Zeilen mit `deliveries = 0`
+nicht in den Nenner, ihre Sichtkontakte aber in den Zähler. Das Verhältnis
+steigt über 1, und `AdImpressionStats::quote()` kappt bei 100 % — die Quote
+liest sich also **zu hoch**, nicht zu niedrig, und zwar meist als glatte
+100 %. Gemessen am 16.10.2026, 14:09 UTC: 699 Sichtkontakte / 156
+ausgelieferte Fragmente, rechnerisch 448 %, angezeigt 100 %. Unter der Regel
+„über 70 % ⇒ `applies_to_all_tenants`" würde das jeden Anker netzweit
+ausrollen. Darum erst ab dem 23.10.2026 (7 Tage) bzw. 15.11.2026 (30 Tage)
+nach §13.3 entscheiden; `scripts/ads-viewability-quote.sh` rechnet das Datum
+aus und verweigert vorher die Freigabe (Exit 70). Eine glatte 100 % ist auch
+später ein Grund, „Tage mit Daten im Fenster" gegenzulesen.
 
 * **Viewability unter 40 %** ⇒ Anker abschalten, nicht „laufen lassen". Er
   kostet Ladezeit, erzeugt Requests an Google und verwässert den Kontowert.
