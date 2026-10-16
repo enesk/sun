@@ -310,10 +310,15 @@ schritt "PHP-FPM nachladen (ohne das wirkt die .env im Web nicht)" "systemctl re
 abschnitt 2 "Codestand"
 schritt "git pull --ff-only als root (nur root hat den GitHub-Schluessel)" \
   "git pull --ff-only && git log --oneline -1" root
-# node_modules bleibt aussen vor: dort liegen ueber hunderttausend Dateien,
-# der Abschnitt lief darueber minutenlang ohne Ausgabe. Schritt 4 chownt es.
-schritt "Eigentuemer zuruecksetzen (ohne node_modules)" \
-  "find . -mindepth 1 -maxdepth 1 -not -name node_modules -exec chown -R ${APP_USER}:${APP_USER} {} + && echo ok" root
+# Eigentum nur dort richten, wo wirklich root draufsteht (#59). Die frueheren
+# Fassungen chownten rekursiv ueber das ganze Verzeichnis: der Lauf vom
+# 08.10.2026 riss dabei mitten in diesem Abschnitt ab (#47), und am 16.10.2026
+# lief ein solcher Lauf als Waise 17 Minuten durch `storage/` — den Datei-Cache
+# von 29 Portalen — und zog die Maschine auf Load 53 und TTFB 49 s, obwohl nur
+# sieben Dateien root gehoerten. storage/, node_modules/ und .git/ bleiben
+# deshalb ganz aussen vor; den Build-Ordner chownt Schritt 4 gezielt.
+schritt "Eigentuemer der neuen Dateien richten (ohne storage, node_modules, .git)" \
+  "find . -xdev \\( -path './storage/*' -o -path './node_modules/*' -o -path './.git/*' \\) -prune -o -user root -print0 | xargs -0 -r chown ${APP_USER}:${APP_USER}; echo ok" root
 schritt "composer install --no-dev -o" \
   "composer install --no-dev -o --no-interaction" app
 
@@ -361,6 +366,11 @@ schritt "Datenschutz-Backfill schreibend" \
   "${PHP_BIN} artisan tenants:datenschutz:turnstile-backfill --write" app
 
 abschnitt 6 "Caches und Dienste"
+# filament:optimize ist hier nicht Kosmetik (#64): es baut den
+# Komponenten-Cache der drei Panels neu. Fehlt der Neubau, liest Filament die
+# alte Liste und jede neu dazugekommene Panel-Seite antwortet mit 404, obwohl
+# `route:list` sie anzeigt — am 16.10.2026 war /admin/werbeplaetze deshalb
+# acht Tage lang unerreichbar.
 schritt "config:cache, route:clear, view:clear, filament:optimize" \
   "${PHP_BIN} artisan config:clear && ${PHP_BIN} artisan config:cache && ${PHP_BIN} artisan route:clear && ${PHP_BIN} artisan view:clear && ${PHP_BIN} artisan filament:optimize" app
 schritt "PHP-FPM nachladen" "systemctl reload ${FPM_SERVICE}" root
@@ -374,6 +384,13 @@ if [ "$LOS" -eq 0 ]; then
 else
   log "§1.3 ist durch. Der Schutz ist global AUS (TURNSTILE_ENABLED=false) und die"
   log "CSP meldet nur (CSP_MODE=report) — beides absichtlich."
+  log ""
+  log "Panel-Seiten gegenpruefen (#64): scripts/panel-seiten-pruefen.sh"
+  log "  Jede Seite per HTTP, 302 erwartet. Ein 404 heisst \"nicht registriert\" —"
+  log "  dann ist der Filament-Komponenten-Cache alt (filament:optimize)."
+  log "  'route:list' taugt dafuer NICHT: es zeigt auch Seiten, die das Panel"
+  log "  nicht kennt (nachgewiesen am 16.10.2026)."
+  log ""
   log "Weiter im Dokument: §1.4 (antispam:backup), §1.5 (Scheduler, Verteiler,"
   log "24 h CSP-Messung), §1.6 (alle Portale herausnehmen, dann global scharf)."
 fi

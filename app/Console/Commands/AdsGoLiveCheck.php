@@ -107,6 +107,8 @@ class AdsGoLiveCheck extends Command
             'https://tpc.googlesyndication.com',
         ]);
 
+        $this->checkPanelCache();
+
         $catalog = AdSlotCatalog::all();
         $themes = AdSlotCatalog::themes();
 
@@ -133,6 +135,95 @@ class AdsGoLiveCheck extends Command
     /**
      * @param  list<string>  $hosts
      */
+    /**
+     * Der Filament-Komponenten-Cache (Ticket #64).
+     *
+     * Liegt `bootstrap/cache/filament/panels/*.php`, liest Filament **nur**
+     * diese Liste und durchsucht die Verzeichnisse nicht mehr. Eine Panel-Seite,
+     * die nach dem letzten `filament:cache-components` dazugekommen ist, ist
+     * dann nicht registriert — ihre Route existiert laut `route:list`, aber der
+     * Aufruf endet mit **404**. Genau so war die Seite „Werbeplaetze" auf der
+     * Produktion unerreichbar, mit einem Cache vom 08.10.2026.
+     *
+     * Geprueft wird deshalb zweierlei: ist der Cache aelter als der
+     * ausgelieferte Codestand, und stehen die Werbe-Klassen darin.
+     */
+    private function checkPanelCache(): void
+    {
+        $datei = base_path('bootstrap/cache/filament/panels/admin.php');
+
+        if (! is_file($datei)) {
+            // Ohne Cache durchsucht Filament die Verzeichnisse — langsamer,
+            // aber immer vollstaendig. Das ist der lokale Normalfall.
+            $this->result(self::OK, 'Panel-Komponenten-Cache', 'keiner, Filament durchsucht die Verzeichnisse');
+
+            return;
+        }
+
+        $cacheZeit = (int) filemtime($datei);
+        $codeZeit = $this->codeZeit();
+
+        // Der Cache ist PHP-Quelltext aus var_export: Klassennamen stehen dort
+        // mit doppelten Backslashes ('App\\Filament\\…'). Vor dem Vergleich
+        // deshalb auf einfache zusammenziehen, sonst findet str_contains nie
+        // etwas und jede Pruefung meldet "fehlt".
+        $inhalt = str_replace('\\\\', '\\', (string) file_get_contents($datei));
+
+        $fehlend = array_values(array_filter(
+            [
+                \App\Filament\Admin\Pages\AdPlacementEditor::class,
+                \App\Filament\Admin\Pages\AdSettings::class,
+            ],
+            fn (string $klasse): bool => ! str_contains($inhalt, $klasse),
+        ));
+
+        if ($fehlend !== []) {
+            $this->result(self::FAIL, 'Panel-Komponenten-Cache', sprintf(
+                'vom %s ohne %s: 404. Behebung: filament:optimize',
+                date('d.m.Y H:i', $cacheZeit),
+                implode(', ', array_map('class_basename', $fehlend)),
+            ));
+
+            return;
+        }
+
+        if ($codeZeit !== null && $cacheZeit < $codeZeit) {
+            $this->result(self::WARN, 'Panel-Komponenten-Cache', sprintf(
+                'vom %s, aelter als der Code (%s): filament:optimize',
+                date('d.m.Y H:i', $cacheZeit),
+                date('d.m.Y H:i', $codeZeit),
+            ));
+
+            return;
+        }
+
+        $this->result(self::OK, 'Panel-Komponenten-Cache', sprintf(
+            'vom %s, Werbe-Seiten drin',
+            date('d.m.Y H:i', $cacheZeit),
+        ));
+    }
+
+    /**
+     * Zeitstempel des ausgelieferten Codestands. Ohne Git-Verzeichnis (oder
+     * ohne `git` im Pfad) gibt es keinen Vergleich — dann prueft nur die Liste
+     * der Klassen.
+     */
+    private function codeZeit(): ?int
+    {
+        $head = base_path('.git/HEAD');
+
+        if (! is_file($head)) {
+            return null;
+        }
+
+        // Nicht `git log` aufrufen: der Befehl steht in einem Artisan-Lauf
+        // nicht zwingend zur Verfuegung. Der Zeitstempel von .git/HEAD
+        // bewegt sich bei jedem Pull und Checkout — das genuegt hier.
+        $zeit = (int) filemtime($head);
+
+        return $zeit > 0 ? $zeit : null;
+    }
+
     private function checkCspHosts(string $directive, array $hosts): void
     {
         $erlaubt = array_map(strval(...), (array) config("csp.directives.{$directive}", []));

@@ -295,7 +295,12 @@ aufgeschrieben — so gehört es beim nächsten Mal in dieser Form gefahren:
 1. **`git pull` läuft als root, nicht als `sanitaerfinden`.** Nur root hat auf
    dieser Maschine einen GitHub-Schlüssel; als `sanitaerfinden` scheitert der
    Pull mit „Could not read from remote repository". Danach das Eigentum
-   zurückgeben: `chown -R sanitaerfinden:sanitaerfinden .`
+   zurückgeben — **niemals** mit `chown -R … .`, sondern mit
+   `scripts/deploy-eigentuemer-richten.sh --los` (#59). Der rekursive Befehl
+   läuft durch `storage/` und damit durch den Datei-Cache von 29 Portalen; am
+   16.10.2026 hat genau das die Maschine 17 Minuten lang auf Load 53 und
+   **TTFB 49 s** gezogen, obwohl nur sieben Dateien root gehörten. Das Skript
+   fasst genau diese sieben an und braucht dafür unter einer Sekunde.
 2. **`config:clear` muss VOR der Migration und vor dem Takeover kommen.** Die
    Produktion fährt einen Config-Cache, und ein Cache aus der Zeit vor dem
    Deploy kennt `config/ad-slots.php` überhaupt nicht — `config('ad-slots.…')`
@@ -316,7 +321,7 @@ solange `package-lock.json` unverändert ist.
 # 1. Code und Abhängigkeiten
 cd /home/sanitaerfinden/htdocs/sanitaerfinden.dev
 git pull --ff-only                                    # als root
-chown -R sanitaerfinden:sanitaerfinden .
+scripts/deploy-eigentuemer-richten.sh --los           # NIE chown -R . (#59)
 sudo -u sanitaerfinden composer install --no-dev --optimize-autoloader
 sudo -u sanitaerfinden npm ci && sudo -u sanitaerfinden npm run build
 
@@ -334,10 +339,32 @@ sudo -u sanitaerfinden /usr/bin/php8.4 artisan ads:legacy-takeover --force
 sudo -u sanitaerfinden /usr/bin/php8.4 artisan view:clear
 sudo -u sanitaerfinden /usr/bin/php8.4 artisan config:cache
 sudo -u sanitaerfinden /usr/bin/php8.4 artisan route:cache
+# Panel-Komponenten NEU bauen (#64) — sonst bleibt jede neue Panel-Seite 404.
+# Deckt alle drei Panels ab (admin, content, dashboard).
+sudo -u sanitaerfinden /usr/bin/php8.4 artisan filament:optimize
 
 # 5. Nachweis
 sudo -u sanitaerfinden /usr/bin/php8.4 artisan ads:golive:check
+scripts/panel-seiten-pruefen.sh        # jede Panel-Seite per HTTP: 302 erwartet
 ```
+
+**Schritt 4 ist kein Beiwerk (#64).** Liegt
+`bootstrap/cache/filament/panels/*.php`, liest Filament **nur** diese Liste und
+durchsucht die Verzeichnisse nicht mehr. Eine Panel-Seite, die nach dem letzten
+`filament:cache-components` dazugekommen ist, ist dann nicht registriert: ihre
+Route steht in `route:list`, der Aufruf endet aber mit **404**. Genau so war
+`/admin/werbeplaetze` nach diesem Deploy unerreichbar — mit einem Cache vom
+08.10.2026, acht Tage alt. `filament:optimize` baut Komponenten- und
+Icon-Cache neu.
+
+**Und die Prüfung gehört über HTTP, nicht über `route:list` (#64).**
+`route:list` baut die Routen frisch auf und zeigt deshalb auch Seiten an, die
+im Panel nicht registriert sind — es hat den Fehler am 16.10. zweimal
+verdeckt. `scripts/panel-seiten-pruefen.sh` ruft jede Seite auf; erwartet ist
+`302` auf die Anmeldung, ein `404` heißt „nicht registriert". Das Panel
+`dashboard` prüft das Skript bewusst nicht: dessen Seiten liegen hinter
+`/dashboard/{tenant}/…`, und ohne Sitzung antwortet dort **jede** Adresse mit
+404 — auch eine vollständig registrierte.
 
 - [x] 2026-10-16 Schritt 2: vier Tabellen angelegt, 23 Zeilen in `ad_settings`
 - [x] 2026-10-16 Schritt 3 trocken: die Tabelle „Nicht uebernommen" gelesen — sie ist die
