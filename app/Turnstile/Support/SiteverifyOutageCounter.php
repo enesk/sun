@@ -27,7 +27,7 @@ use Throwable;
  * Store: `config('turnstile.alerts.siteverify_unreachable.store')`, Vorgabe
  * `file`. Bewusst nicht der Standard-Store (in Produktion `database`, dessen
  * Verbindung im Tenant-Kontext auf die Tenant-DB ohne cache-Tabelle zeigt).
- * Der file-Store wechselt je Portal (App\Listeners\Tenant\SetTenantStorageUrl),
+ * Der file-Store wechselt je Portal (App\Support\Tenancy\TenantUrlBootstrapper),
  * der Zaehler laeuft also je Portal — passend dazu, dass auch Schluessel und
  * Fail-Mode je Portal gelten.
  *

@@ -1,0 +1,13 @@
+{
+ "url": "https://elektriker.test/firmen",
+ "formFactor": "mobile",
+ "cls": 0.0441905682438789,
+ "shifts": [
+  {
+   "selector": "body.bg-zinc-50 > main#main > div.container-portal > div.mt-6",
+   "score": 0.0441905682438789
+  }
+ ],
+ "lighthouse": "13.5.0",
+ "fetchTime": "2026-10-16T10:09:38.896Z"
+}

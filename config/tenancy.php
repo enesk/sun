@@ -25,6 +25,7 @@ return [
         Stancl\Tenancy\Bootstrappers\FilesystemTenancyBootstrapper::class,
         Stancl\Tenancy\Bootstrappers\QueueTenancyBootstrapper::class,
         App\Support\Tenancy\TranslationBootstrapper::class,
+        App\Support\Tenancy\TenantUrlBootstrapper::class, // #24: setzt app.url/public-Disk/file-Cache je Portal und stellt sie zurueck
         // Stancl\Tenancy\Bootstrappers\RedisTenancyBootstrapper::class, // Note: phpredis is needed
     ],
 

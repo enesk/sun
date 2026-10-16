@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Filament;
 
+use App\Analytics\TrackingScriptsConsent;
 use App\Models\EmailProvider;
 use App\Models\VerificationProvider;
 use App\Services\ConfigService;
@@ -50,6 +51,7 @@ class GeneralSettings extends Component implements HasForms
             'default_currency' => $this->configService->get('app.default_currency'),
             'google_tracking_id' => $this->configService->get('app.google_tracking_id'),
             'tracking_scripts' => $this->configService->get('app.tracking_scripts'),
+            'tracking_scripts_consent' => $this->configService->get('app.tracking_scripts_consent', TrackingScriptsConsent::DEFAULT_CATEGORY),
             'payment_proration_enabled' => $this->configService->get('app.payment.proration_enabled'),
             'default_email_provider' => $this->configService->get('mail.default'),
             'default_email_from_name' => $this->configService->get('mail.from.name'),
@@ -210,8 +212,18 @@ class GeneralSettings extends Component implements HasForms
                                 ->helperText(__('Google analytics will only be inserted if either "Cookie Consent Bar" is disabled or in case user has consented to cookies.'))
                                 ->label(__('Google Tracking ID')),
                             Textarea::make('tracking_scripts')
-                                ->helperText(__('Paste in any other analytics or tracking scripts here. Those scripts will only be inserted if either "Cookie Consent Bar" is disabled or in case user has consented to cookies.'))
+                                ->helperText(__('Paste in any other analytics or tracking scripts here. Those scripts are only executed once the visitor has consented to the category selected below.'))
                                 ->label(__('Other Tracking Scripts')),
+                            // Welche Einwilligung der Schnipsel oben braucht (#28).
+                            Select::make('tracking_scripts_consent')
+                                ->options([
+                                    'marketing' => __('Marketing'),
+                                    'statistics' => __('Statistics'),
+                                ])
+                                ->default(TrackingScriptsConsent::DEFAULT_CATEGORY)
+                                ->selectablePlaceholder(false)
+                                ->helperText(__('Consent category required before the scripts above are executed. Choose "Marketing" if in doubt - it is the stricter one.'))
+                                ->label(__('Tracking Scripts Consent Category')),
                         ]),
                     Tab::make(__('Subscription Trials'))
                         ->icon('heroicon-s-eye-dropper')
@@ -358,6 +370,7 @@ class GeneralSettings extends Component implements HasForms
         $this->configService->set('app.default_currency', $data['default_currency']);
         $this->configService->set('app.google_tracking_id', $data['google_tracking_id'] ?? '');
         $this->configService->set('app.tracking_scripts', $data['tracking_scripts'] ?? '');
+        $this->configService->set('app.tracking_scripts_consent', $data['tracking_scripts_consent'] ?? TrackingScriptsConsent::DEFAULT_CATEGORY);
         $this->configService->set('app.payment.proration_enabled', $data['payment_proration_enabled']);
         $this->configService->set('mail.default', $data['default_email_provider']);
         $this->configService->set('mail.from.name', $data['default_email_from_name']);

@@ -172,3 +172,21 @@ Schedule::command('csp:prune')
     ->dailyAt('03:50')
     ->withoutOverlapping()
     ->onOneServer();
+
+/*
+| Werbeplaetze: eigenes Impression-Zaehlen (#12, docs/ad-slots.md 14)
+|
+| Verdichtet stuendlich zur Minute 7 den Stundenpuffer ad_impression_buffer
+| ins Tagesaggregat ad_impression_daily und loescht Tageszeilen jenseits von
+| ad-slots.impressions.retention_days. Zur Minute 7, damit die vorige Stunde
+| sicher abgeschlossen ist — die laufende Stunde laesst der Job ohnehin
+| liegen.
+|
+| ZENTRALE Tabellen, ein Lauf fuer alle Portale, deshalb kein `tenants:run`.
+| onOneServer, damit nicht zwei Anwendungsserver dieselbe Stunde verdichten
+| (der Job zaehlt hoch, ein Doppellauf wuerde die Zahlen verdoppeln); der Job
+| ist zusaetzlich ShouldBeUnique.
+*/
+Schedule::job(new App\Ads\Jobs\AggregateAdImpressions)
+    ->hourlyAt(7)
+    ->onOneServer();

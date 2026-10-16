@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Verwaltung;
 
+use App\Ads\Support\AdThemeContext;
+use App\Ads\Support\ThemeAnchorIndex;
 use App\Constants\TenancyPermissionConstants;
 use App\Models\Portal\AdSetting;
 use App\Models\Portal\AdSlot;
@@ -11,6 +13,16 @@ use App\Services\TenantPermissionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
+/**
+ * Werbung im Portal-Backoffice (Werbesystem der ersten Generation).
+ *
+ * Die Positionen aus `config/ad-positions.php` gelten global, ihre Anker
+ * stehen aber je Theme — eine Position ohne Anker im aktiven Theme wird nie
+ * ausgeliefert. Darum bietet das Formular nur noch Positionen mit Anker an
+ * und die Uebersicht weist bestehende, stumme Slots aus (Ticket #14). Die
+ * Pruefregel bleibt absichtlich auf dem ganzen Katalog: ein Altbestand soll
+ * speicherbar bleiben, auch wenn sein Anker im Theme fehlt.
+ */
 class VerwaltungAdController extends VerwaltungBaseController
 {
     public function __construct(TenantPermissionService $permissionService)
@@ -31,8 +43,15 @@ class VerwaltungAdController extends VerwaltungBaseController
         $slots = AdSlot::sorted()->get()->groupBy('position');
         $positions = config('ad-positions', []);
         $adSettings = AdSetting::instance();
+        $silentPositions = ThemeAnchorIndex::silentPositions(AdThemeContext::current());
 
-        return view('pages.verwaltung.ads.index', compact('navigationItems', 'slots', 'positions', 'adSettings'));
+        return view('pages.verwaltung.ads.index', compact(
+            'navigationItems',
+            'slots',
+            'positions',
+            'adSettings',
+            'silentPositions',
+        ));
     }
 
     public function create()
@@ -45,7 +64,7 @@ class VerwaltungAdController extends VerwaltungBaseController
         ]);
 
         $navigationItems = $this->getNavigationItems();
-        $positions = config('ad-positions', []);
+        $positions = $this->selectablePositions();
 
         return view('pages.verwaltung.ads.create', compact('navigationItems', 'positions'));
     }
@@ -56,7 +75,7 @@ class VerwaltungAdController extends VerwaltungBaseController
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'position' => 'required|string|in:' . implode(',', array_keys(config('ad-positions', []))),
+            'position' => 'required|string|in:'.implode(',', array_keys(config('ad-positions', []))),
             'code' => 'nullable|string',
             'is_active' => 'boolean',
             'sort_order' => 'integer|min:0',
@@ -85,7 +104,7 @@ class VerwaltungAdController extends VerwaltungBaseController
         ]);
 
         $navigationItems = $this->getNavigationItems();
-        $positions = config('ad-positions', []);
+        $positions = $this->selectablePositions((string) $adSlot->getAttribute('position'));
 
         return view('pages.verwaltung.ads.edit', compact('navigationItems', 'adSlot', 'positions'));
     }
@@ -98,7 +117,7 @@ class VerwaltungAdController extends VerwaltungBaseController
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'position' => 'required|string|in:' . implode(',', array_keys(config('ad-positions', []))),
+            'position' => 'required|string|in:'.implode(',', array_keys(config('ad-positions', []))),
             'code' => 'nullable|string',
             'is_active' => 'boolean',
             'sort_order' => 'integer|min:0',
@@ -113,6 +132,27 @@ class VerwaltungAdController extends VerwaltungBaseController
 
         return redirect()->route('verwaltung.ads.index')
             ->with('success', 'Ad-Slot wurde aktualisiert.');
+    }
+
+    /**
+     * Positionen fuer das Formular: die Anker des aktiven Themes, dazu die
+     * bereits gespeicherte Position — sonst wuerde das Bearbeiten eines alten,
+     * stummen Slots dessen Position stillschweigend umstellen. Beschriftung
+     * der Nachzuegler mit Hinweis, damit der Zustand sichtbar bleibt.
+     *
+     * @return array<string, string>
+     */
+    private function selectablePositions(?string $keep = null): array
+    {
+        $theme = AdThemeContext::current();
+        $positions = ThemeAnchorIndex::availablePositions($theme);
+
+        if ($keep !== null && ! array_key_exists($keep, $positions)) {
+            $label = config("ad-positions.{$keep}", $keep);
+            $positions[$keep] = "{$label} — wird in diesem Portal nicht ausgeliefert";
+        }
+
+        return $positions;
     }
 
     public function updateAdsTxt(Request $request): RedirectResponse

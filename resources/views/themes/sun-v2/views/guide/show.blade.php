@@ -98,12 +98,31 @@
         @include('guide.partials.key-facts', ['keyFacts' => $article['key_facts']])
 
         {{-- Anzeige fruehestens nach Block 5 --}}
+        {{-- Altsystem, faellt in SUN-AD-011 --}}
         <x-ad-slot position="content_after_intro" />
 
-        {{-- Block 6: Hauptteil. Abschnitts-IDs aus der Gliederung (OutlineAnchors) --}}
-        <div class="{{ $proseClasses }}">
-          {!! $article['body_before'] !!}
-        </div>
+        <x-sun.ad-slot key="guide_after_key_facts" wrap="mt-8" />
+
+        {{-- Block 6: Hauptteil. Abschnitts-IDs aus der Gliederung (OutlineAnchors)
+             In-Article-Anker (#5): der Text wird nur dann hinter dem 3. und 8.
+             Absatz geteilt, wenn dort auch etwas ausgespielt wird — sonst
+             entstuenden zwei zusaetzliche Prose-Rahmen und damit ein anderes
+             Schriftbild als heute. --}}
+        @php
+            $inArticle = ['guide_in_article_1', 'guide_in_article_2'];
+            $bodyChunks = collect($inArticle)->contains(fn (string $key) => \App\View\Components\Sun\AdSlot::isActive($key))
+                ? app(\App\Guide\Services\TocBuilder::class)->splitAfterParagraphs($article['body_before'], [3, 8])
+                : [$article['body_before']];
+        @endphp
+        @foreach($bodyChunks as $chunk)
+          <div class="{{ $proseClasses }}">
+            {!! $chunk !!}
+          </div>
+
+          @if(! $loop->last && isset($inArticle[$loop->index]))
+            <x-sun.ad-slot :key="$inArticle[$loop->index]" wrap="mt-8" />
+          @endif
+        @endforeach
 
         {{-- Block 7: Verweisleiste Firmensuche — ohne Anzeige davor oder danach --}}
         @include('guide.partials.cta', ['cta' => $article['cta'], 'variant' => 'bar'])
@@ -161,18 +180,27 @@
 
     {{-- Seitenspalte ab xl: sidebar_top, klebendes Inhaltsverzeichnis, sidebar_sticky --}}
     <aside class="hidden xl:block" aria-label="Inhalt und Hinweise">
+      {{-- Altsystem, faellt in SUN-AD-011 --}}
       <x-ad-slot position="sidebar_top" />
+
+      <x-sun.ad-slot key="guide_sidebar_top" wrap="mb-4" />
       <div class="sticky top-24 flex flex-col gap-4">
         @include('guide.partials.toc', [
             'toc' => $article['toc'],
             'hasFaq' => $article['faq'] !== [],
             'variant' => 'sidebar',
         ])
+        {{-- Altsystem, faellt in SUN-AD-011 --}}
         <x-ad-slot position="sidebar_sticky" />
+
+        <x-sun.ad-slot key="guide_sidebar_sticky" />
       </div>
     </aside>
   </div>
 
+  {{-- Altsystem, faellt in SUN-AD-011 --}}
   <x-ad-slot position="footer_above" />
+
+  <x-sun.ad-slot key="guide_before_footer" wrap="mt-12" />
 </div>
 @endsection

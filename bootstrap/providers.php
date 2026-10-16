@@ -16,4 +16,5 @@ return [
     App\Providers\TenancyServiceProvider::class,
     App\Providers\ThemeServiceProvider::class,
     App\Turnstile\TurnstileServiceProvider::class,
+    App\Ads\AdsServiceProvider::class,
 ];

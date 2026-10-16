@@ -4,8 +4,6 @@
      Rangfolge und Markup stecken in <x-analytics-meta> (#14). --}}
 <x-analytics-meta :tenant="$currentTenant ?? null" :defer="1500" />
 
-{{-- Fremdes Tracking-HTML aus der Verwaltung: bringt eigene <script>-Bloecke mit
-     und bekommt darum das Nonce des Requests. --}}
-@if (!empty(config('app.tracking_scripts')))
-    {!! \App\Services\Security\CspNonce::inject(config('app.tracking_scripts')) !!}
-@endif
+{{-- Fremdes Tracking-HTML aus der Verwaltung: bringt eigene <script>-Bloecke
+     mit (Nonce des Requests) und laeuft erst nach Einwilligung (#28). --}}
+<x-tracking-scripts />

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Portal;
 
+use App\Ads\Support\AdSensePrivacySection;
 use App\Constants\TenantConfigConstants;
 use App\Http\Controllers\Controller;
 use App\Services\TenantBrandingService;
@@ -67,6 +68,7 @@ class StaticPageController extends Controller
 
     public function __construct(
         private TenantBrandingService $branding,
+        private AdSensePrivacySection $adsensePrivacy,
     ) {}
 
     public function impressum(): View
@@ -76,9 +78,19 @@ class StaticPageController extends Controller
         return view('pages.impressum', compact('content'));
     }
 
+    /**
+     * Der Abschnitt "Google AdSense" steht nicht im gepflegten Portaltext,
+     * sondern kommt aus einem Partial im Repository und wird hier angehaengt —
+     * ein Text fuer alle Portale, der sich mit der Ausspielung aendern kann
+     * (Ticket #9, {@see AdSensePrivacySection}). Angehaengt wird vor der
+     * Theme-Schicht, damit sun-v2 ihn durch dieselbe Abschnittszerlegung
+     * schickt wie den uebrigen Text.
+     */
     public function datenschutz(): View
     {
-        $content = $this->resolveContent(TenantConfigConstants::DATENSCHUTZ);
+        $content = $this->adsensePrivacy->appendTo(
+            $this->resolveContent(TenantConfigConstants::DATENSCHUTZ),
+        );
 
         return view('pages.datenschutz', compact('content'));
     }

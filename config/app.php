@@ -168,6 +168,15 @@ return [
     'google_tracking_id' => env('GOOGLE_TRACKING_ID'),
     'tracking_scripts' => env('TRACKING_SCRIPTS'),
 
+    /*
+     * Einwilligungs-Kategorie fuer 'tracking_scripts' (#28): 'statistics'
+     * oder 'marketing'. Was dort eingetragen ist, weiss nur der Mensch, der
+     * es eintraegt — darum die strengere Vorgabe 'marketing'. Ausgewertet in
+     * App\Analytics\TrackingScriptsConsent, einstellbar auch in der
+     * Verwaltung unter Analytics & Cookies.
+     */
+    'tracking_scripts_consent' => env('TRACKING_SCRIPTS_CONSENT', 'marketing'),
+
     'payment' => [
         'proration_enabled' => env('PAYMENT_PRORATION_ENABLED', true),
     ],

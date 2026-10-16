@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Livewire\Filament;
 
-use App\DTOs\ImportPreview;
-use App\DTOs\ImportResult;
 use App\Jobs\BulkAdSlotImportJob;
 use App\Models\Tenant;
 use App\Services\AdSlotExportService;
@@ -20,18 +18,28 @@ class AdSlotDistribution extends Component
 
     // Export
     public ?string $exportTenantId = null;
+
     public ?int $exportSlotCount = null;
 
     // Import
     public $importFile = null;
+
     public ?array $importData = null;
+
     public ?array $validationErrors = null;
+
     public ?array $previewData = null;
+
     public array $importTenantIds = [];
+
     public string $importMode = 'add';
+
     public string $conflictStrategy = 'skip';
+
     public ?array $importResultData = null;
+
     public bool $showReplaceConfirmation = false;
+
     public string $replaceConfirmText = '';
 
     public function render()
@@ -89,7 +97,7 @@ class AdSlotDistribution extends Component
         $exportService = app(AdSlotExportService::class);
         $json = $exportService->exportToJson($tenant);
 
-        $filename = 'ad-slots-export-' . str($tenant->name)->slug() . '-' . now()->format('Y-m-d') . '.json';
+        $filename = 'ad-slots-export-'.str($tenant->name)->slug().'-'.now()->format('Y-m-d').'.json';
 
         return response()->streamDownload(function () use ($json) {
             echo $json;
@@ -118,7 +126,7 @@ class AdSlotDistribution extends Component
             $data = json_decode($content, true);
 
             if (json_last_error() !== JSON_ERROR_NONE) {
-                $this->validationErrors = ['Die Datei enthält kein gültiges JSON: ' . json_last_error_msg()];
+                $this->validationErrors = ['Die Datei enthält kein gültiges JSON: '.json_last_error_msg()];
 
                 return;
             }
@@ -134,7 +142,7 @@ class AdSlotDistribution extends Component
 
             $this->importData = $data;
         } catch (\Throwable $e) {
-            $this->validationErrors = ['Fehler beim Lesen der Datei: ' . $e->getMessage()];
+            $this->validationErrors = ['Fehler beim Lesen der Datei: '.$e->getMessage()];
         }
     }
 
@@ -264,7 +272,7 @@ class AdSlotDistribution extends Component
             }
 
             Notification::make()
-                ->title($tenants->count() . ' Import-Jobs in die Queue gestellt')
+                ->title($tenants->count().' Import-Jobs in die Queue gestellt')
                 ->body('Die Imports werden asynchron im Hintergrund verarbeitet. Ergebnisse werden im Log protokolliert.')
                 ->success()
                 ->send();
@@ -292,11 +300,21 @@ class AdSlotDistribution extends Component
                 'updated' => $result->updated,
                 'errors' => $result->errors,
                 'tenantName' => $tenant->name,
+                'theme' => $result->theme,
+                'silentPositions' => $result->silentPositions,
             ];
+
+            $body = "Tenant: {$tenant->name} — {$result->imported} importiert, {$result->skipped} übersprungen, {$result->updated} aktualisiert";
+
+            if ($result->silentPositions !== []) {
+                $positions = implode(', ', array_keys($result->silentPositions));
+                $count = count($result->silentPositions);
+                $body .= " — Theme \"{$result->theme}\" hat für {$count} importierte Position(en) keinen Anker, dort belegte Slots werden nicht ausgeliefert: {$positions}";
+            }
 
             Notification::make()
                 ->title('Import erfolgreich')
-                ->body("Tenant: {$tenant->name} — {$result->imported} importiert, {$result->skipped} übersprungen, {$result->updated} aktualisiert")
+                ->body($body)
                 ->success()
                 ->send();
         } catch (\Throwable $e) {

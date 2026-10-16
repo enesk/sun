@@ -1,0 +1,120 @@
+{
+  "gemessen": "2026-10-16T11:59:17.468Z",
+  "breite": 360,
+  "seiten": [
+    {
+      "url": "http://elektrikerportal.com/",
+      "geklickt": true,
+      "vorKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "home_after_hero",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 130
+          }
+        ],
+        "offeneHeadVorlagen": 1,
+        "offeneFragmente": 1,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "nachKlick": {
+        "cls": 0.027392864583333336,
+        "verschiebungen": [
+          {
+            "wert": 0.027392864583333336,
+            "zeit": 17937,
+            "quellen": [
+              "div.fc-stacks.fc-dialog-restricted-content",
+              "div.fc-footer.fc-dialog-restricted-content",
+              "button.fc-faq-header.fc-dialog-restricted-content",
+              "p"
+            ]
+          }
+        ],
+        "anker": [
+          {
+            "schluessel": "home_after_hero",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 130
+          }
+        ],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": true,
+        "eingesetzteAnzeigen": 2
+      },
+      "gesamt": {
+        "cls": 0.027392864583333336,
+        "verschiebungen": [
+          {
+            "wert": 0.027392864583333336,
+            "zeit": 17937,
+            "quellen": [
+              "div.fc-stacks.fc-dialog-restricted-content",
+              "div.fc-footer.fc-dialog-restricted-content",
+              "button.fc-faq-header.fc-dialog-restricted-content",
+              "p"
+            ]
+          }
+        ],
+        "anker": [
+          {
+            "schluessel": "home_after_hero",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 130
+          }
+        ],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": true,
+        "eingesetzteAnzeigen": 2
+      }
+    },
+    {
+      "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+      "geklickt": true,
+      "vorKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "nachKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "gesamt": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      }
+    }
+  ]
+}

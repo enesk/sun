@@ -47,6 +47,14 @@ export function initStatsBeacon() {
     if (window.__statsBeaconBound) {
         return;
     }
+
+    // Vorschau der Werbeplaetze (#6): im Editor-Modus wird nichts gezaehlt.
+    // Enes klickt dort Anker-Rahmen, keine Telefonnummern — ein Klick in der
+    // Vorschau darf nicht als Lead oder Anruf in der Betriebsstatistik stehen.
+    if (document.body?.dataset.adEditor !== undefined) {
+        return;
+    }
+
     window.__statsBeaconBound = true;
 
     const sent = new Set();

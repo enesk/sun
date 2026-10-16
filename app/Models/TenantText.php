@@ -52,7 +52,7 @@ class TenantText extends Model
      * Sprache oder Gruppe, auch den vorherigen Cache-Eintrag.
      *
      * Der Loader (#4) schreibt im Tenant-Kontext, und dort zeigt der
-     * Cache-Store woanders hin (SetTenantStorageUrl lenkt den file-Store auf
+     * Cache-Store woanders hin (TenantUrlBootstrapper lenkt den file-Store auf
      * storage/tenant<uuid>). Gepflegt wird aber zentral im Admin-Panel —
      * deshalb wird im Kontext des jeweiligen Tenants geleert.
      */

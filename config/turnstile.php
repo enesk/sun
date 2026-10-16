@@ -186,7 +186,7 @@ return [
     | `store` ist bewusst nicht der Standard-Store: in Produktion ist das
     | `database`, und im Tenant-Kontext zeigt die Standardverbindung auf die
     | Tenant-DB, die keine cache-Tabelle hat. Der file-Store wechselt je Portal
-    | (App\Listeners\Tenant\SetTenantStorageUrl), der Breaker zaehlt also je
+    | (App\Support\Tenancy\TenantUrlBootstrapper), der Breaker zaehlt also je
     | Portal — passend dazu, dass auch der Fail-Mode je Portal gilt.
     |
     */
@@ -358,7 +358,7 @@ return [
         |
         | `store` wie beim Circuit Breaker bewusst `file` und nicht der
         | Standard-Store: der Listener laeuft im Portalkontext, dort zeigt der
-        | file-Store in das Portal (SetTenantStorageUrl) und der Zaehler laeuft
+        | file-Store in das Portal (TenantUrlBootstrapper) und der Zaehler laeuft
         | damit je Portal — genau wie Schluessel und Fail-Mode.
         */
         'siteverify_unreachable' => [

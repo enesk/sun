@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Analytics\TrackingScriptsConsent;
+
 class AppTest extends FeatureTest
 {
     public function test_the_application_returns_a_successful_response(): void
@@ -11,33 +13,52 @@ class AppTest extends FeatureTest
         $response->assertStatus(200);
     }
 
-    public function test_can_see_tracking_scripts_when_cookie_consent_bar_is_disabled()
+    /**
+     * Ohne Entscheidung darf der Schnipsel nicht laufen (#28): er liegt inert
+     * in einem <template>, aus dem der Browser nichts laedt, und wird von
+     * resources/js/consent-scripts.js erst nach der Einwilligung eingesetzt.
+     */
+    public function test_tracking_scripts_are_held_back_until_consent_is_given()
     {
         config(['app.tracking_scripts' => '<javascript>Google Analytics</javascript>']);
-        config(['cookie-consent.enabled' => false]);
 
         $response = $this->get('/');
 
-        $response->assertSeeHtml('<javascript>Google Analytics</javascript>');
+        $response->assertSeeHtml('<template data-consent-script="marketing"><javascript>Google Analytics</javascript></template>');
     }
 
-    public function test_can_not_see_tracking_scripts_when_cookie_consent_bar_is_enabled_but_not_accepted()
+    public function test_tracking_scripts_are_inserted_directly_once_consent_is_given()
     {
         config(['app.tracking_scripts' => '<javascript>Google Analytics</javascript>']);
-        config(['cookie-consent.enabled' => true]);
 
-        $response = $this->get('/');
+        $response = $this->withCookie(TrackingScriptsConsent::cookieName(), '1')->get('/');
+
+        $response->assertSeeHtml('<javascript>Google Analytics</javascript>');
+        $response->assertDontSeeHtml('<template data-consent-script=');
+    }
+
+    public function test_tracking_scripts_are_left_out_completely_when_consent_is_refused()
+    {
+        config(['app.tracking_scripts' => '<javascript>Google Analytics</javascript>']);
+
+        $response = $this->withCookie(TrackingScriptsConsent::cookieName(), '0')->get('/');
 
         $response->assertDontSeeHtml('<javascript>Google Analytics</javascript>');
     }
 
-    public function test_can_see_tracking_scripts_when_cookie_consent_bar_is_enabled_and_accepted()
+    /** Die Kategorie entscheidet, auf welches Cookie gewartet wird. */
+    public function test_tracking_scripts_can_wait_for_the_statistics_category()
     {
-        config(['app.tracking_scripts' => '<javascript>Google Analytics</javascript>']);
-        config(['cookie-consent.enabled' => true]);
+        config([
+            'app.tracking_scripts' => '<javascript>Google Analytics</javascript>',
+            'app.tracking_scripts_consent' => 'statistics',
+        ]);
 
-        $response = $this->withCookie(config('cookie-consent.cookie_name'), 'accepted')->get('/');
+        $this->assertSame('cookie_consent_statistics', TrackingScriptsConsent::cookieName());
+
+        $response = $this->withCookie('cookie_consent_statistics', '1')->get('/');
 
         $response->assertSeeHtml('<javascript>Google Analytics</javascript>');
+        $response->assertDontSeeHtml('<template data-consent-script=');
     }
 }

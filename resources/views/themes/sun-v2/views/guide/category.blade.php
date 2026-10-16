@@ -7,6 +7,12 @@
 
 @php
     $tz = \App\Guide\Services\GuidePageData::DISPLAY_TIMEZONE;
+
+    // Listen-Anker (#5): nach der 5. Themenkarte. Die Liste ist hier
+    // einspaltig (flex flex-col gap-4), darum ist der Anker zulaessig —
+    // anders als im Karten-Raster der Uebersicht. `minFollowing: 1` haelt die
+    // bestehende Bedingung "nur ab 6 Karten".
+    $feedAds = \App\Ads\Support\ListSlotHelper::make([5 => 'guide_index_in_feed_5'], $topics->count(), 1);
 @endphp
 
 @push('scripts')
@@ -39,8 +45,13 @@
           @include('guide.partials.topic-card', ['card' => $card, 'headingTag' => 'h2'])
 
           {{-- Anzeige nach der 5. Karte, nur wenn mindestens 6 Karten folgen --}}
+          {{-- Altsystem, faellt in SUN-AD-011 --}}
           @if($loop->iteration === 5 && $loop->count >= 6)
             <x-ad-slot position="content_after_intro" />
+          @endif
+
+          @if($feedSlot = $feedAds->keyAfter($loop->iteration))
+            <x-sun.ad-slot :key="$feedSlot" />
           @endif
         @endforeach
       </div>
@@ -48,6 +59,8 @@
       @if($topics->hasPages())
         <x-sun.pagination :paginator="$topics" :pages="\App\Themes\SunV2\PageWindow::for($topics)" />
       @endif
+
+      <x-sun.ad-slot key="guide_index_after_first_block" wrap="mt-12" />
 
       @if($otherCategories !== [])
         <section class="mt-12 xl:hidden" aria-labelledby="ratgeber-more-heading">
@@ -62,6 +75,9 @@
     </div>
 
     <aside class="hidden xl:block" aria-label="Weitere Themen">
+      {{-- Altsystem, faellt in SUN-AD-011. `guide_sidebar_top` ist kein
+           `guide_index`-Anker, der Katalog hat hier nur die klebende
+           Seitenspalte (docs/ad-slots.md 10). --}}
       <x-ad-slot position="sidebar_top" />
       <div class="sticky top-24 flex flex-col gap-4">
         @if($otherCategories !== [])
@@ -74,11 +90,17 @@
             </ul>
           </nav>
         @endif
+        {{-- Altsystem, faellt in SUN-AD-011 --}}
         <x-ad-slot position="sidebar_sticky" />
+
+        <x-sun.ad-slot key="guide_index_sidebar_sticky" />
       </div>
     </aside>
   </div>
 
+  {{-- Altsystem, faellt in SUN-AD-011 --}}
   <x-ad-slot position="footer_above" />
+
+  <x-sun.ad-slot key="guide_index_before_footer" wrap="mt-12" />
 </div>
 @endsection

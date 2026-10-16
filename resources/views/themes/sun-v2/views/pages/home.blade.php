@@ -87,6 +87,8 @@
   </div>
 </section>
 
+<x-sun.ad-slot key="home_after_hero" wrap="container-portal pt-8 md:pt-10" />
+
 <!-- ========== LEISTUNGEN ========== -->
 @if($sun['services'] !== [])
 <section class="section">
@@ -105,6 +107,8 @@
     </div>
   </div>
 </section>
+
+<x-sun.ad-slot key="home_after_services" wrap="container-portal pb-12 md:pb-16" />
 @endif
 
 <!-- ========== TOP BEWERTET ========== -->
@@ -119,6 +123,8 @@
     </div>
   </div>
 </section>
+
+<x-sun.ad-slot key="home_after_top_rated" wrap="container-portal pb-12 md:pb-16" />
 @endif
 
 <!-- ========== RATGEBER ========== -->
@@ -151,9 +157,11 @@
     </div>
   </div>
 </section>
+
+<x-sun.ad-slot key="home_after_guide" wrap="container-portal pb-12 md:pb-16" />
 @endif
 
-<!-- ========== AD-SLOT ========== -->
+<!-- ========== AD-SLOT (Altsystem, faellt in SUN-AD-011) ========== -->
 @if(\App\View\Components\AdSlot::hasSlotsForPosition('home_content'))
 <div class="container-portal pb-12 md:pb-16">
   <div class="rounded-2xl bg-zinc-100 overflow-hidden" style="min-height:280px">
@@ -202,6 +210,8 @@
     </div>
   </div>
 </section>
+
+<x-sun.ad-slot key="home_after_cities" wrap="container-portal pb-12 md:pb-16" />
 @endif
 
 <!-- ========== SEO-TEXT ========== -->
@@ -215,5 +225,7 @@
     </div>
   </div>
 </section>
+
+<x-sun.ad-slot key="home_before_footer" wrap="container-portal pb-12 md:pb-16" />
 
 @endsection

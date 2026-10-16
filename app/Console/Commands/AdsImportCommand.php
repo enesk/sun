@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\DTOs\ImportResult;
 use App\Jobs\BulkAdSlotImportJob;
 use App\Models\Tenant;
 use App\Services\AdSlotImportService;
@@ -33,7 +34,7 @@ class AdsImportCommand extends Command
         $data = json_decode($json, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            $this->error('Ungültige JSON-Datei: ' . json_last_error_msg());
+            $this->error('Ungültige JSON-Datei: '.json_last_error_msg());
 
             return self::FAILURE;
         }
@@ -116,7 +117,26 @@ class AdsImportCommand extends Command
             [[$result->imported, $result->skipped, $result->updated]],
         );
 
+        $this->reportSilentPositions($result);
+
         return self::SUCCESS;
+    }
+
+    /**
+     * Weist Positionen aus, die das Theme des Ziel-Portals nicht rendert
+     * (Ticket #17). Der Import laeuft trotzdem durch — ein Slot kann fuer
+     * eine geplante Theme-Umstellung gedacht sein.
+     */
+    private function reportSilentPositions(ImportResult $result): void
+    {
+        if ($result->silentPositions === []) {
+            return;
+        }
+
+        $count = count($result->silentPositions);
+        $positions = implode(', ', array_keys($result->silentPositions));
+
+        $this->warn("Theme \"{$result->theme}\" hat für {$count} importierte Position(en) keinen Anker — dort belegte Slots werden nicht ausgeliefert: {$positions}");
     }
 
     private function importAllTenants(array $data, string $mode, string $conflictStrategy): int

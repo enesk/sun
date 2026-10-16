@@ -679,7 +679,7 @@
                         </div>
                     </div>
                 @endif
-                  <x-ad-slot position="sidebar_opening_hours" />
+                <x-ad-slot position="sidebar_after_opening_hours" />
                 {{-- Google Maps Embed (falls Adresse vorhanden) --}}
                 @if($company->full_address)
                     <div class="rounded-xl overflow-hidden border border-base-200 aspect-[4/3] reveal" data-stagger-delay="200ms">

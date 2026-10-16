@@ -14,6 +14,8 @@
  * Oeffnen von aussen: window.dispatchEvent(new Event('open-cookie-settings'))
  */
 
+import { melde as meldeEinwilligung } from '../../../../../js/consent-adapter';
+
 const STORAGE_KEY = 'cookie_consent_preferences';
 const LIFETIME_DAYS = 365;
 const CATEGORIES = ['statistics', 'marketing'];
@@ -46,6 +48,21 @@ function writeCookie(name, value, maxAge) {
     document.cookie = `${name}=${value};path=/;max-age=${maxAge};SameSite=Lax`;
 }
 
+/**
+ * Die drei Server-Cookies schreiben. Getrennt von store(), weil sie beim
+ * Seitenaufbau nachgezogen werden muessen: die Entscheidung steht ohne Ablauf
+ * in localStorage, die Cookies laufen nach 365 Tagen ab oder werden vom
+ * Browser geraeumt. Fehlt das Cookie, sieht der Server "keine Entscheidung"
+ * und spielt keine Werbung aus, obwohl eingewilligt wurde (#9).
+ */
+function writeConsentCookies(state) {
+    const maxAge = LIFETIME_DAYS * 86400;
+
+    writeCookie('cookie_consent_given', '1', maxAge);
+    writeCookie('cookie_consent_statistics', state.statistics ? '1' : '0', maxAge);
+    writeCookie('cookie_consent_marketing', state.marketing ? '1' : '0', maxAge);
+}
+
 function store(state) {
     const prefs = {
         essential: true,
@@ -62,20 +79,21 @@ function store(state) {
         writeCookie(STORAGE_KEY, encodeURIComponent(JSON.stringify(prefs)), maxAge);
     }
 
-    writeCookie('cookie_consent_given', '1', maxAge);
-    writeCookie('cookie_consent_statistics', state.statistics ? '1' : '0', maxAge);
-    writeCookie('cookie_consent_marketing', state.marketing ? '1' : '0', maxAge);
+    writeConsentCookies(state);
 }
 
 /**
- * Die Zustimmung schaltet die Messung frei (#14): resources/js/analytics.js
- * startet mit consent 'denied' und laedt gtag.js erst auf dieses Ereignis bzw.
- * beim naechsten Besuch anhand der Cookies aus persist().
+ * Die Entscheidung weitermelden. Zustaendig ist resources/js/consent-adapter.js,
+ * die einzige Stelle, die das Einwilligungs-Werkzeug kennt (#9): sie liest den
+ * Zustand aus den Cookies aus store() und sendet 'consent:marketing' (Werbung,
+ * resources/js/ads.js — zieht die Anzeigen ohne Reload nach) sowie
+ * 'cookie-consent-statistics' (Messung, resources/js/analytics.js, #14).
+ *
+ * Bewusst aus den Cookies und nicht aus `state`: so sagen Server und Browser
+ * dasselbe, und ein vergessener Cookie-Schreibvorgang fiele sofort auf.
  */
-function applyConsent(state) {
-    if (state.statistics) {
-        window.dispatchEvent(new CustomEvent('cookie-consent-statistics', { detail: { allowed: true } }));
-    }
+function applyConsent() {
+    meldeEinwilligung();
 }
 
 export function initCookieConsent() {
@@ -106,7 +124,7 @@ export function initCookieConsent() {
             modal.close();
         }
 
-        applyConsent(state);
+        applyConsent();
     };
 
     const actions = {
@@ -164,7 +182,10 @@ export function initCookieConsent() {
     renderToggles();
 
     if (stored) {
-        applyConsent(state);
+        // Erst die Cookies nachziehen (der Zeitstempel in localStorage bleibt
+        // der der echten Entscheidung), dann melden.
+        writeConsentCookies(state);
+        applyConsent();
 
         return;
     }

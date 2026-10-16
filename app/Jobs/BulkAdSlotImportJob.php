@@ -47,6 +47,8 @@ class BulkAdSlotImportJob implements ShouldQueue
             'imported' => $result->imported,
             'skipped' => $result->skipped,
             'updated' => $result->updated,
+            'theme' => $result->theme,
+            'positionen_ohne_anker' => array_keys($result->silentPositions),
         ]);
     }
 

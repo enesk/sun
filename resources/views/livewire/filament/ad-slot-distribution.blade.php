@@ -396,6 +396,19 @@
                             </ul>
                         </div>
                     @endif
+
+                    @if(!empty($importResultData['silentPositions']))
+                        <div class="mt-2 text-sm text-warning-700 dark:text-warning-300">
+                            <strong>Theme „{{ $importResultData['theme'] }}" hat für
+                                {{ count($importResultData['silentPositions']) }} importierte Position(en) keinen Anker</strong>
+                            — dort belegte Slots werden nicht ausgeliefert:
+                            <ul class="list-disc list-inside mt-1">
+                                @foreach($importResultData['silentPositions'] as $position => $label)
+                                    <li>{{ $label }} <span class="opacity-70">({{ $position }})</span></li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
                 </div>
             @endif
         </div>

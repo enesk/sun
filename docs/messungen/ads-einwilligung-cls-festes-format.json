@@ -1,0 +1,94 @@
+{
+  "gemessen": "2026-10-16T11:43:15.381Z",
+  "breite": 360,
+  "seiten": [
+    {
+      "url": "http://elektrikerportal.com/",
+      "geklickt": true,
+      "vorKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "home_after_hero",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 130
+          },
+          {
+            "schluessel": "home_after_services",
+            "geraet": "all",
+            "wartetAufEinwilligung": false,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          }
+        ],
+        "offeneHeadVorlagen": 1,
+        "offeneFragmente": 1,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "nachKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "home_after_hero",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 130
+          },
+          {
+            "schluessel": "home_after_services",
+            "geraet": "all",
+            "wartetAufEinwilligung": false,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          }
+        ],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": true,
+        "eingesetzteAnzeigen": 2
+      },
+      "gesamt": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "home_after_hero",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 130
+          },
+          {
+            "schluessel": "home_after_services",
+            "geraet": "all",
+            "wartetAufEinwilligung": false,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          }
+        ],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": true,
+        "eingesetzteAnzeigen": 2
+      }
+    }
+  ]
+}

@@ -17,9 +17,18 @@
         $brandColor = config('themes.sun-v2.default_brand_color');
     }
     $hasStickyAd = \App\View\Components\AdSlot::hasSlotsForPosition('mobile_sticky_bottom');
+    // Vorschau der Werbeplaetze (#6): gueltiger Editor-Token in der Adresse.
+    // Schaltet Analytics, Cookie-Hinweis und Turnstile ab, setzt noindex und
+    // bindet allein hier das Editor-Bundle ein.
+    $adEditor = \App\Ads\Support\AdEditorMode::active();
     // Robots/Canonical: SeoService (#7) hat Vorrang, sonst die @section der Seite.
     $seo = app(\App\Services\Seo\SeoService::class);
     $metaRobots = $seo->robots() !== null ? e($seo->robots()) : ($__env->hasSection('meta_robots') ? $__env->yieldContent('meta_robots') : null);
+    // Eine signierte Adresse ist nicht geheim: die Vorschau darf unter keinen
+    // Umstaenden in den Index, darum hat sie Vorrang vor allem anderen.
+    if ($adEditor) {
+        $metaRobots = 'noindex,nofollow';
+    }
     $canonicalUrl = $seo->canonical() !== null ? e($seo->canonical()) : $__env->yieldContent('canonical', url()->current());
     // Title/Description/OG wie im Default-Layout: SeoService (Ratgeber, #17) vor @section
     $metaTitle = $seo->title() !== null ? e($seo->title()) : $__env->yieldContent('title', $portalName);
@@ -69,14 +78,39 @@
 @endif
 @stack('styles')
 
+{{-- Skripte, die ein Werbemittel im <head> braucht (#5): die Komponente
+     <x-sun.ad-slot> sammelt sie je Seite ein und wirft Doppelte weg — der
+     AdSense-Loader steht also auch bei sechs Ankern genau einmal hier. Der
+     Stack wird vom Seiten-View gefuellt, der vor dem Layout gerendert wird. --}}
+@stack('head')
+
+@if(! $adEditor)
 @include('partials.analytics')
+@endif
+
+{{-- Bruecke zum Panel (#6). Eigenes Bundle, nur in der Vorschau geladen. --}}
+@if($adEditor)
+@vite(['resources/views/themes/sun-v2/js/ad-editor.js'])
+@endif
 
 {{-- Auto Ads: auf Ratgeber-Routen nicht ausliefern (Vorgabe #100) --}}
 @if(\App\View\Components\AdSlot::autoAdsAllowedHere())
     <x-ad-slot position="auto_ads" />
 @endif
+
+{{-- Auto Ads aus der Portal-Einstellung `ad_settings.adsense_auto_ads` (#18).
+     Haelt sich zurueck, solange das Altsystem die Position `auto_ads` in
+     diesem Portal noch selbst ausliefert; mit dessen Abschaltung (#11) fallen
+     die vier Zeilen darueber weg und diese Komponente uebernimmt. --}}
+<x-sun.auto-ads />
 </head>
-<body class="bg-zinc-50 text-zinc-700 font-sans overflow-x-clip @if($hasStickyAd) pb-[60px] lg:pb-0 @endif @yield('body_class')">
+<body class="bg-zinc-50 text-zinc-700 font-sans overflow-x-clip @if($hasStickyAd) pb-[60px] lg:pb-0 @endif @yield('body_class')"
+@if($adEditor)
+    data-ad-editor
+    data-ad-editor-origin="{{ \App\Ads\EditorToken::origin() }}"
+    data-ad-catalog-version="{{ \App\Ads\EditorToken::catalogVersion() }}"
+    data-ad-page-type="{{ \App\Ads\Enums\AdPageType::fromRoute(request()->route()?->getName())?->value ?? \App\Ads\EditorToken::pageType(request()) }}"
+@endif>
 
 <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 btn-secondary">{{ __('portal.layout.skip_link') }}</a>
 
@@ -103,7 +137,11 @@
     </div>
 @endif
 
+{{-- Kein Cookie-Hinweis in der Vorschau (#6): es wird nichts Fremdes
+     geladen, und der Kasten verdeckt die unteren Anker. --}}
+@if(! $adEditor)
 @include('partials.sun.cookie-consent')
+@endif
 
 @stack('scripts')
 </body>

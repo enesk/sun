@@ -1,5 +1,10 @@
 {{-- LEGAL-3: DSGVO Cookie-Consent — 3-Stufen (Banner, Modal, Footer-Link) --}}
 {{-- Stack: Alpine.js + localStorage — kein Backend noetig --}}
+@php
+    // Spielt dieses Portal Werbung aus? Derselbe Schalter wie der
+    // AdSense-Abschnitt der Datenschutzerklaerung (#26).
+    $adsActive = app(\App\Ads\Support\AdSensePrivacySection::class)->active();
+@endphp
 <div x-data="cookieConsent" x-cloak>
 
     {{-- ═══ STUFE 1: Bottom-Banner (Erstbesuch) ═══ --}}
@@ -187,13 +192,17 @@
                         </details>
                     </div>
 
-                    {{-- 3. Marketing (default AUS, aktuell leer — zukunftssicher) --}}
+                    {{-- 3. Marketing (default AUS; Text haengt daran, ob das Portal Werbung ausspielt — #26) --}}
                     <div class="cookie-category">
                         <div class="cookie-category__header">
                             <div class="cookie-category__info">
                                 <h3 class="cookie-category__title">Marketing</h3>
                                 <p class="cookie-category__description">
-                                    Werden genutzt, um Ihnen relevante Werbung und Inhalte anzuzeigen. Aktuell setzen wir keine Marketing-Cookies ein.
+                                    @if($adsActive)
+                                        Werden genutzt, um Ihnen relevante Werbung anzuzeigen. Wir binden dafuer Google AdSense ein; ohne Ihre Einwilligung wird kein Werbe-Skript geladen und es werden keine Daten an Google uebertragen.
+                                    @else
+                                        Werden genutzt, um Ihnen relevante Werbung und Inhalte anzuzeigen. Aktuell setzen wir keine Marketing-Cookies ein.
+                                    @endif
                                 </p>
                             </div>
                             <label class="cookie-toggle" for="cookie-marketing">

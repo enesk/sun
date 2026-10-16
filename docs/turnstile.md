@@ -318,7 +318,7 @@ Der Zaehler liegt im Cache-Store `circuit_breaker.store`, Vorgabe `file` —
 bewusst nicht der Standard-Store: in Produktion ist das `database`, und im
 Tenant-Kontext zeigt die Standardverbindung auf die Tenant-DB, die keine
 `cache`-Tabelle hat. Der file-Store wechselt je Portal
-(`App\Listeners\Tenant\SetTenantStorageUrl`), der Breaker zaehlt also je
+(`App\Support\Tenancy\TenantUrlBootstrapper`), der Breaker zaehlt also je
 Portal. Jeder Cache-Zugriff ist gekapselt: ein kaputter Cache darf kein
 Formular blockieren.
 
@@ -1888,7 +1888,7 @@ registrieren; pruefen mit `php artisan event:list --event=SiteverifyUnreachable`
   Listener faellt mitten in eine Anfrage, die schon in eine Zeitueberschreitung
   gelaufen ist; eine Aggregation ueber `turnstile_verifications` wuerde sie ein
   zweites Mal ausbremsen. Store `file` wie beim Breaker, damit je Portal
-  gezaehlt wird (`SetTenantStorageUrl`) — die genaue Quote liefert ohnehin das
+  gezaehlt wird (`TenantUrlBootstrapper`) — die genaue Quote liefert ohnehin das
   Log.
 * **Synchron, nicht `ShouldQueue`.** Er macht nur einen Cache-Zugriff und legt
   erst ab der Schwelle eine Mail in die Queue. Ueber die Queue zu zaehlen waere

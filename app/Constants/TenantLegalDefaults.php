@@ -315,8 +315,8 @@ IMPRESSUM_HTML;
                 <td>Sitzungsende</td>
             </tr>
             <tr>
-                <td>cookie_consent</td>
-                <td>Speicherung Ihrer Cookie-Präferenzen</td>
+                <td>cookie_consent_* (cookie_consent_given, cookie_consent_statistics, cookie_consent_marketing, cookie_consent_preferences)</td>
+                <td>Speicherung Ihrer Cookie-Entscheidung (erteilt, Statistik, Marketing) und Ihrer Präferenzen</td>
                 <td>12 Monate</td>
             </tr>
         </tbody>

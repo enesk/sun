@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Ads\Support\AdThemeContext;
+use App\Ads\Support\ThemeAnchorIndex;
 use App\DTOs\ImportPreview;
 use App\DTOs\ImportResult;
 use App\DTOs\ValidationResult;
@@ -43,7 +45,7 @@ class AdSlotImportService
             if (empty($slot['position'])) {
                 $errors[] = "$prefix: position ist ein Pflichtfeld.";
             } elseif (! in_array($slot['position'], $validPositions, true)) {
-                $errors[] = "$prefix: Unbekannte Position '{$slot['position']}'. Erlaubt: " . implode(', ', $validPositions);
+                $errors[] = "$prefix: Unbekannte Position '{$slot['position']}'. Erlaubt: ".implode(', ', $validPositions);
             }
 
             if (isset($slot['device_visibility'])) {
@@ -52,7 +54,7 @@ class AdSlotImportService
                 } else {
                     $invalid = array_diff($slot['device_visibility'], $validDevices);
                     if (! empty($invalid)) {
-                        $errors[] = "$prefix: Ungültige device_visibility-Werte: " . implode(', ', $invalid);
+                        $errors[] = "$prefix: Ungültige device_visibility-Werte: ".implode(', ', $invalid);
                     }
                 }
             }
@@ -89,7 +91,7 @@ class AdSlotImportService
 
         $existingIndex = [];
         foreach ($existingSlots as $existing) {
-            $key = $existing['position'] . '::' . $existing['name'];
+            $key = $existing['position'].'::'.$existing['name'];
             $existingIndex[$key] = true;
         }
 
@@ -97,7 +99,7 @@ class AdSlotImportService
         $newCount = 0;
 
         foreach ($slots as $slot) {
-            $key = $slot['position'] . '::' . $slot['name'];
+            $key = $slot['position'].'::'.$slot['name'];
             if (isset($existingIndex[$key])) {
                 $conflicts[] = [
                     'name' => $slot['name'],
@@ -128,8 +130,9 @@ class AdSlotImportService
     public function import(array $data, Tenant $tenant, string $mode = 'add', string $conflictStrategy = 'skip'): ImportResult
     {
         $slots = $data['slots'] ?? [];
+        $theme = AdThemeContext::forTenant($tenant);
 
-        return $tenant->run(function () use ($slots, $mode, $conflictStrategy) {
+        $result = $tenant->run(function () use ($slots, $mode, $conflictStrategy) {
             return DB::connection('tenant')->transaction(function () use ($slots, $mode, $conflictStrategy) {
                 if ($mode === 'replace') {
                     AdSlot::query()->delete();
@@ -140,6 +143,58 @@ class AdSlotImportService
                 return $this->importAdd($slots, $conflictStrategy);
             });
         });
+
+        return new ImportResult(
+            imported: $result->imported,
+            skipped: $result->skipped,
+            updated: $result->updated,
+            errors: $result->errors,
+            theme: $theme,
+            silentPositions: $this->silentPositionsForTheme($slots, $theme),
+        );
+    }
+
+    /**
+     * Positionen eines Imports, die das Theme des Ziel-Portals nicht rendert
+     * (Ticket #17).
+     *
+     * Der Positionskatalog `config/ad-positions.php` ist global, die Anker
+     * stehen je Theme. Ein Export aus einem `default`-Portal kann darum
+     * Positionen mitbringen, die ein `sun-v2`-Portal nie ausliefert. Das ist
+     * kein Grund, den Import abzulehnen — ein Slot kann fuer eine geplante
+     * Theme-Umstellung gedacht sein —, aber es gehoert in die Zusammenfassung.
+     *
+     * @return array<string, string> Positionsschluessel => Beschriftung
+     */
+    public function silentPositions(array $data, Tenant $tenant): array
+    {
+        return $this->silentPositionsForTheme(
+            $data['slots'] ?? [],
+            AdThemeContext::forTenant($tenant),
+        );
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function silentPositionsForTheme(array $slots, string $theme): array
+    {
+        $labels = (array) config('ad-positions', []);
+        $silent = [];
+
+        foreach ($slots as $slot) {
+            $position = $slot['position'] ?? null;
+
+            if (! is_string($position) || $position === '' || isset($silent[$position])) {
+                continue;
+            }
+
+            if (! ThemeAnchorIndex::has($theme, $position)) {
+                $silent[$position] = $labels[$position] ?? $position;
+            }
+        }
+
+        return $silent;
     }
 
     private function insertAll(array $slots): ImportResult
@@ -157,7 +212,7 @@ class AdSlotImportService
         }
 
         if (! empty($errors)) {
-            throw new \RuntimeException('Import fehlgeschlagen: ' . implode('; ', $errors));
+            throw new \RuntimeException('Import fehlgeschlagen: '.implode('; ', $errors));
         }
 
         return new ImportResult(imported: $imported);
@@ -168,7 +223,7 @@ class AdSlotImportService
         $existingSlots = AdSlot::all(['id', 'name', 'position']);
         $existingIndex = [];
         foreach ($existingSlots as $existing) {
-            $key = $existing->position . '::' . $existing->name;
+            $key = $existing->position.'::'.$existing->name;
             $existingIndex[$key] = $existing->id;
         }
 
@@ -178,7 +233,7 @@ class AdSlotImportService
         $errors = [];
 
         foreach ($slots as $index => $slotData) {
-            $key = $slotData['position'] . '::' . $slotData['name'];
+            $key = $slotData['position'].'::'.$slotData['name'];
 
             try {
                 if (isset($existingIndex[$key])) {
@@ -199,7 +254,7 @@ class AdSlotImportService
         }
 
         if (! empty($errors)) {
-            throw new \RuntimeException('Import fehlgeschlagen: ' . implode('; ', $errors));
+            throw new \RuntimeException('Import fehlgeschlagen: '.implode('; ', $errors));
         }
 
         return new ImportResult(

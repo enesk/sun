@@ -164,6 +164,16 @@ return [
 
         'skip_link' => 'Zum Inhalt springen',
         'ad_label' => 'Anzeige',
+
+        /*
+         * Werbeplatz-Editor (#6). Sichtbar nur in der Vorschau des Panels,
+         * nie fuer Besucher — die Rahmen entstehen ausschliesslich mit
+         * gueltigem Editor-Token.
+         */
+        'ad_editor' => [
+            'empty' => 'frei',
+            'notice' => 'Vorschau der Werbeplätze — keine Anzeigen, kein Tracking.',
+        ],
         'reading_time' => ':minuten Min. Lesezeit',
         'close' => 'Schließen',
         'optional' => '(optional)',
@@ -1079,7 +1089,10 @@ return [
 
         'marketing' => [
             'title' => 'Marketing',
+            // Zwei Varianten: Portale ohne Werbeausspielung behalten den
+            // bisherigen Satz, Portale mit AdSense nennen den Dienst (#26).
             'text' => 'Werden genutzt, um dir relevante Werbung und Inhalte anzuzeigen. Aktuell setzen wir keine Marketing-Cookies ein.',
+            'text_ads' => 'Werden genutzt, um dir relevante Werbung anzuzeigen. Wir binden dafür Google AdSense ein; ohne deine Einwilligung wird kein Werbe-Skript geladen und es werden keine Daten an Google übertragen.',
         ],
     ],
 

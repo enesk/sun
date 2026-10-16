@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Turnstile\View\Components\Concerns;
 
+use App\Ads\Support\AdEditorMode;
 use App\Turnstile\Config\ResolvedTurnstileConfig;
 use App\Turnstile\Config\TurnstileConfigResolver;
 use App\Turnstile\Enums\TurnstileAction;
@@ -46,9 +47,20 @@ trait ResolvesTurnstileConfig
         }
     }
 
-    /** Bei deaktivierter Aktion steht am Formular nichts — auch kein leeres Feld. */
+    /**
+     * Bei deaktivierter Aktion steht am Formular nichts — auch kein leeres
+     * Feld.
+     *
+     * In der Werbeplatz-Vorschau (#6) ebenfalls nichts: dort darf kein
+     * fremdes Skript in den Quelltext, und abgeschickt wird in der Vorschau
+     * ohnehin kein Formular (die Middleware laesst nur GET zu).
+     */
     public function shouldRender(): bool
     {
+        if (AdEditorMode::active()) {
+            return false;
+        }
+
         return $this->config?->enabled === true;
     }
 

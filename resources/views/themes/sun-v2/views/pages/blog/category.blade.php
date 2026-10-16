@@ -9,6 +9,14 @@
     $portalName = $currentTenant->name ?? config('app.name');
     $total = $posts->total();
     $intro = $category->description ?: __('portal.blog.category.intro', ['kategorie' => $category->name]);
+
+    // Rueckfall der Ratgeber-Kategorie: GuideController::category() gibt an
+    // PublicBlogController::category() ab, solange die Kategorie nicht im
+    // Ratgeber-System liegt. Der Routenname bleibt `guide.category`, der
+    // Seitentyp also `guide_index` — darum dieselben Katalog-Anker wie in
+    // guide/category.blade.php (#23). Zum Schnitt nach der 5. Karte und zur
+    // fehlenden Seitenspalte siehe pages/blog/index.blade.php.
+    $feedAds = \App\Ads\Support\ListSlotHelper::make([5 => 'guide_index_in_feed_5'], $posts->getCollection()->count(), 1);
 @endphp
 
 @section('title', $category->name.' — '.__('portal.layout.header.guide').' — '.$portalName)
@@ -89,11 +97,15 @@
       </div>
     @endif
 
-    @foreach([$posts->getCollection()->take(3), $posts->getCollection()->slice(3)] as $group)
+    @foreach([$posts->getCollection()->take(5), $posts->getCollection()->slice(5)] as $group)
       @if($loop->index === 1 && $group->isNotEmpty())
+        {{-- Altsystem, faellt in SUN-AD-011 --}}
         <div class="mt-4">
           <x-ad-slot position="listing_between_results" />
         </div>
+      @endif
+      @if($loop->index === 1 && ($feedSlot = $feedAds->keyAfter(5)))
+        <x-sun.ad-slot :key="$feedSlot" wrap="mt-4" />
       @endif
       @if($group->isNotEmpty())
         <div class="{{ $loop->first ? 'mt-6' : 'mt-4' }} grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -120,6 +132,10 @@
     <div class="mt-8">
       <x-sun.pagination :paginator="$posts" :pages="\App\Themes\SunV2\PageWindow::for($posts)" />
     </div>
+
+    {{-- Nach dem ersten Themenblock — hier die abgeschlossene Artikelliste.
+         Abstand setzt `wrap`, weil der Anker innerhalb der Sektion sitzt. --}}
+    <x-sun.ad-slot key="guide_index_after_first_block" wrap="mt-12" />
   </section>
 
   <!-- ===== CTA ===== -->
@@ -136,6 +152,9 @@
       </form>
     </div>
   </section>
+
+  {{-- `guide_index_sidebar_sticky` entfaellt: diese View ist einspaltig. --}}
+  <x-sun.ad-slot key="guide_index_before_footer" />
 
 </div>
 @endsection

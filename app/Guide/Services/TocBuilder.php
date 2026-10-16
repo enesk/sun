@@ -101,6 +101,104 @@ class TocBuilder
     }
 
     /**
+     * Teilt den Text hinter dem n-ten <p>-Block auf oberster Ebene, fuer die
+     * In-Article-Anker des Werbeplatz-Katalogs (docs/ad-slots.md 3.4,
+     * Ticket #5).
+     *
+     * Gezaehlt werden nur **direkte Kinder** des Wurzelknotens — ein <p> in
+     * <blockquote>, <li>, <table> oder <figure> zaehlt nicht mit, sonst
+     * landet der Schnitt mitten in einem Block.
+     *
+     * Ein Schnitt faellt weg, wenn hinter ihm weniger als zwei Absaetze
+     * folgen: die Anzeige stuende sonst praktisch am Textende und doppelte
+     * den Anker ueber der Fusszeile (Anker-Regel 2.6).
+     *
+     * Rueckgabe sind die Textstuecke in Reihenfolge — bei zwei wirksamen
+     * Schnitten drei Stuecke, ohne wirksamen Schnitt genau eines. Die
+     * Zahl der Stuecke sagt der View, wie viele Anker sie setzen darf.
+     *
+     * @param  list<int>  $paragraphs  Absatznummern (1-basiert), hinter denen geschnitten wird
+     * @return list<string>
+     */
+    public function splitAfterParagraphs(string $html, array $paragraphs, int $minFollowing = 2): array
+    {
+        $html = trim($html);
+
+        if ($html === '' || $paragraphs === []) {
+            return [$html];
+        }
+
+        $document = new DOMDocument('1.0', 'UTF-8');
+
+        $previous = libxml_use_internal_errors(true);
+        $document->loadHTML(
+            '<?xml encoding="UTF-8"?><div id="toc-root">'.$html.'</div>',
+            LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+        );
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+
+        $root = (new DOMXPath($document))->query('//div[@id="toc-root"]')->item(0);
+
+        if (! $root instanceof DOMElement) {
+            return [$html];
+        }
+
+        // Kinder des Wurzelknotens einmal einsammeln: ihre Reihenfolge ist
+        // der Text, die Absatznummern zaehlen nur die <p> darunter.
+        $children = [];
+        $absatzNummern = [];
+
+        foreach ($root->childNodes as $child) {
+            $children[] = $child;
+
+            if ($child instanceof DOMElement && $child->nodeName === 'p') {
+                $absatzNummern[count($children) - 1] = count($absatzNummern) + 1;
+            }
+        }
+
+        $absaetze = count($absatzNummern);
+        $schnitte = [];
+
+        foreach ($paragraphs as $absatz) {
+            $absatz = (int) $absatz;
+
+            if ($absatz < 1 || $absaetze - $absatz < $minFollowing) {
+                continue;
+            }
+
+            $index = array_search($absatz, $absatzNummern, true);
+
+            if ($index !== false) {
+                $schnitte[] = (int) $index;
+            }
+        }
+
+        if ($schnitte === []) {
+            return [$this->innerHtml($document)];
+        }
+
+        sort($schnitte);
+        $stuecke = [];
+        $aktuell = '';
+        $naechster = array_shift($schnitte);
+
+        foreach ($children as $index => $child) {
+            $aktuell .= (string) $document->saveHTML($child);
+
+            if ($naechster !== null && $index === $naechster) {
+                $stuecke[] = $aktuell;
+                $aktuell = '';
+                $naechster = $schnitte === [] ? null : array_shift($schnitte);
+            }
+        }
+
+        $stuecke[] = $aktuell;
+
+        return array_values(array_filter($stuecke, fn (string $stueck): bool => trim($stueck) !== ''));
+    }
+
+    /**
      * @param  array<string, true>  $used
      */
     private function uniqueId(string $candidate, array $used): string

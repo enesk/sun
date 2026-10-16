@@ -19,7 +19,18 @@
  * Aufruf:
  *   node scripts/csp-messung.mjs --seiten=/tmp/seiten.json --aus=/tmp/csp.json
  *
- * Die Seitenliste ist ein Array aus { name, url, scrollen? }.
+ * Die Seitenliste ist ein Array aus { name, url, scrollen?, klick?, cookies? }.
+ *
+ * `cookies` setzt Cookies, BEVOR die Seite laedt — damit laesst sich die
+ * Einwilligung (#9) in beiden Richtungen messen, ohne zu klicken:
+ *
+ *   { "name": "Start ohne Einwilligung", "url": "https://elektriker.test/" }
+ *   { "name": "Start mit Einwilligung",  "url": "https://elektriker.test/",
+ *     "cookies": { "cookie_consent_given": "1", "cookie_consent_marketing": "1" } }
+ *
+ * Die Gegenprobe je Seite zeigt dann in `fremdeHosts`, ob ueberhaupt ein
+ * Google-Host angesprochen wurde, und in `pruefung`, ob Loader und
+ * Anzeigenbloecke gelaufen sind.
  */
 
 const args = Object.fromEntries(
@@ -109,12 +120,51 @@ async function messen(seite) {
     await cdp.senden('Network.enable');
     await cdp.senden('Page.addScriptToEvaluateOnNewDocument', { source: LAUSCHER });
 
+    // Jede Seite faengt ohne Einwilligung an (#25). Alle Ziele teilen das
+    // Browser-Profil: ohne das Leeren schleppt der Fall "ohne Einwilligung"
+    // die Einwilligung des vorherigen Falls mit und misst damit das
+    // Gegenteil von dem, was sein Name sagt.
+    //
+    // Cookies allein genuegen nicht: der Cookie-Hinweis der Portale fuehrt
+    // die Entscheidung in localStorage und schreibt die drei Cookies beim
+    // naechsten Seitenaufbau daraus NEU (themes/sun-v2/js/modules/cookie-consent.js,
+    // writeConsentCookies). Ein Lauf nach einem Lauf mit Einwilligung waere
+    // sonst stillschweigend eingewilligt.
+    await cdp.senden('Network.clearBrowserCookies');
+    await cdp.senden('Storage.clearDataForOrigin', {
+        origin: new URL(seite.url).origin,
+        storageTypes: 'cookies,local_storage,indexeddb,cache_storage,websql,service_workers',
+    });
+
+    // Einwilligungs-Cookies vor dem ersten Request setzen (#9): nur so zeigt
+    // der Mitschnitt den Zustand "ohne Einwilligung" wirklich ohne Google.
+    for (const [name, value] of Object.entries(seite.cookies || {})) {
+        await cdp.senden('Network.setCookie', {
+            name,
+            value: String(value),
+            url: seite.url,
+            path: '/',
+        });
+    }
+
     await cdp.senden('Page.navigate', { url: seite.url });
     await schlafen(WARTEN);
 
+    // Schrittweise scrollen, nicht springen (#25): ein Sprung an das
+    // Seitenende laesst die Anker in der Mitte nie den Viewport schneiden —
+    // ihr Werbemittel bleibt dann im <template> liegen und der Mitschnitt
+    // zeigt weniger Verkehr, als die Seite wirklich macht.
     if (seite.scrollen !== false) {
         await cdp.senden('Runtime.evaluate', {
-            expression: 'window.scrollTo(0, document.body.scrollHeight)',
+            expression: `(async () => {
+                const schritt = window.innerHeight * 0.75;
+                for (let y = 0; y < document.body.scrollHeight; y += schritt) {
+                    window.scrollTo(0, y);
+                    await new Promise((ok) => setTimeout(ok, 400));
+                }
+                window.scrollTo(0, document.body.scrollHeight);
+            })()`,
+            awaitPromise: true,
         });
         await schlafen(3000);
     }
@@ -153,6 +203,11 @@ async function messen(seite) {
             livewire: typeof window.Livewire,
             alpine: typeof window.Alpine,
             offeneVorlagen: document.querySelectorAll('template[data-ad-code]').length,
+            // Katalog v2 und das Einwilligungs-Gate (#9)
+            offeneFragmente: document.querySelectorAll('template[data-ad-fragment]').length,
+            offeneHeadVorlagen: document.querySelectorAll('template[data-ad-head]').length,
+            wartendeAnker: document.querySelectorAll('[data-ad-consent]').length,
+            eingeklappt: document.querySelectorAll('.ad-slot--collapsed').length,
             eingesetzteAnzeigen: document.querySelectorAll('ins.adsbygoogle[data-adsbygoogle-status]').length,
             dialogOffen: document.getElementById('leadDialog') ? !document.getElementById('leadDialog').classList.contains('hidden') : null,
         })`,
