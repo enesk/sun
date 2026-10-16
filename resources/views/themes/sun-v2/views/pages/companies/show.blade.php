@@ -94,6 +94,7 @@
       </section>
 
       <!-- Ad-Slot unter dem Kopf (nur Mobile/Tablet, Desktop hat die rechte Spalte) -->
+      {{-- Altsystem, faellt in SUN-AD-011 --}}
       @unlesspremiumFeature($company, \App\Enums\PremiumFeature::AdFree)
       @if(\App\View\Components\AdSlot::hasSlotsForPosition('after_company_card'))
         <div class="rounded-2xl bg-zinc-100 overflow-hidden lg:hidden" style="min-height:250px">
@@ -102,6 +103,10 @@
         </div>
       @endif
       @endpremiumFeature
+
+      {{-- Katalog v2 (#5). Das Premium-Merkmal AdFree prueft die Komponente
+           selbst (:subject) — darum hier kein @unlesspremiumFeature mehr. --}}
+      <x-sun.ad-slot key="company_after_header_card" :subject="$company" />
 
       <!-- Leistungen -->
       @if($company->categories->isNotEmpty())
@@ -154,6 +159,8 @@
           @endif
           <p class="mt-5 pt-5 border-t border-zinc-200 text-sm text-zinc-500">{{ __('portal.profile.about.suggest_edit_text') }} <a href="{{ route('companies.suggest-edit', $company->slug) }}#aendern" class="text-brand hover:underline">{{ __('portal.profile.about.suggest_edit') }}</a></p>
         </section>
+
+        <x-sun.ad-slot key="company_after_about" :subject="$company" />
       @endif
 
       <!-- Öffnungszeiten + Adresse -->
@@ -263,6 +270,8 @@
         @endif
       </section>
 
+      <x-sun.ad-slot key="company_after_reviews" :subject="$company" />
+
       <!-- Offene Stellen (hoechstens 3 aktive Anzeigen, Top-Job laut Feature job_highlight) -->
       @if($companyJobs->isNotEmpty())
         <section class="card p-5 md:p-8" aria-labelledby="stellen">
@@ -310,6 +319,7 @@
 
     <!-- ================= RECHTE SPALTE (Desktop) ================= -->
     <aside class="hidden lg:flex flex-col gap-4 lg:sticky lg:top-20">
+      <x-sun.ad-slot key="company_sidebar_top" :subject="$company" />
       <div class="card p-5">
         <p class="text-sm text-zinc-500">{{ __('portal.profile.sidebar.lead_text', ['firma' => $company->name]) }}</p>
         @if($leadFunnel)
@@ -326,6 +336,7 @@
           <address class="not-italic mt-4 pt-4 border-t border-zinc-200 text-sm text-zinc-500 leading-relaxed">{{ trim("{$company->street} {$company->house_no}") }}<br>{{ trim("{$company->zipcode} {$company->city?->name}") }}<br><a href="{{ $profile['mapsUrl'] }}" class="text-brand hover:underline" target="_blank" rel="noopener">{{ __('portal.profile.location.show_on_map') }}</a></address>
         @endif
       </div>
+      {{-- Altsystem, faellt in SUN-AD-011 --}}
       @unlesspremiumFeature($company, \App\Enums\PremiumFeature::AdFree)
       @if(\App\View\Components\AdSlot::hasSlotsForPosition('listing_detail_sidebar'))
         <div class="rounded-2xl bg-zinc-100 overflow-hidden" style="min-height:600px">
@@ -334,6 +345,8 @@
         </div>
       @endif
       @endpremiumFeature
+
+      <x-sun.ad-slot key="company_sidebar_sticky" :subject="$company" />
     </aside>
   </div>
 
@@ -375,6 +388,8 @@
       </div>
     </section>
   @endif
+
+  <x-sun.ad-slot key="company_before_footer" :subject="$company" wrap="mt-12 md:mt-16" />
 
 </div>
 

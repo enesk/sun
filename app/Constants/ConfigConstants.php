@@ -38,6 +38,7 @@ class ConfigConstants
         'app.default_currency',
         'app.google_tracking_id',
         'app.tracking_scripts',
+        'app.tracking_scripts_consent',
         'app.payment.proration_enabled',
         'mail.default',
         'mail.from.name',

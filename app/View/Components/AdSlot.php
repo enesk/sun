@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\View\Components;
 
+use App\Ads\Support\AdConsent;
 use App\Models\Portal\AdSlot as AdSlotModel;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
@@ -103,8 +104,20 @@ class AdSlot extends Component
         return app()->bound(self::SUPPRESSED_KEY) && app(self::SUPPRESSED_KEY) === true;
     }
 
+    /**
+     * Nichts rendern, wenn die Einwilligung in Werbung ausdruecklich
+     * abgelehnt wurde und `ad-slots.consent.on_denied` auf 'collapse' steht
+     * (#9): dann bleibt auch kein reservierter Container stehen. Ohne
+     * Entscheidung wird gerendert, das Werbemittel bleibt aber im <template>
+     * (resources/views/components/ad-slot.blade.php) — der Platz ist
+     * reserviert und springt nach einer Einwilligung nicht.
+     */
     public function shouldRender(): bool
     {
+        if (AdConsent::denied() && AdConsent::collapseWhenDenied()) {
+            return false;
+        }
+
         return $this->slots->isNotEmpty();
     }
 

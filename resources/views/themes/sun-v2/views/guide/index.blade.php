@@ -59,6 +59,19 @@
     </section>
   @endif
 
+  {{-- Nach dem ersten gerenderten Block — genau einer der drei Zweige greift.
+       `guide_index_in_feed_5` entfaellt auf dieser View: die Themenkarten
+       stehen in einem Grid mit mehr als einer Spalte (sm:grid-cols-2), dort
+       verschiebt ein zusaetzliches Kind die ganze Folgereihe
+       (docs/ad-slots.md 10, Anker-Regel 3.2).
+       `guide_index_sidebar_sticky` entfaellt ebenfalls: die Uebersicht ist
+       auf allen Breiten einspaltig (container-portal ohne Spaltenraster), es
+       gibt keine Seitenspalte, in die ein klebender Anker gehoerte. Der
+       Anker steht darum nur auf der Kategorieseite — seit #27 steht das als
+       `routes => ['guide.category']` im Katalog, nicht nur im Kommentar:
+       das Panel bietet ihn fuer diese Seite nicht mehr als belegbar an. --}}
+  <x-sun.ad-slot key="guide_index_after_first_block" wrap="mt-12" />
+
   @if(! $searching && $recent !== [])
     <section class="mt-12" aria-labelledby="ratgeber-recent-heading">
       <h2 id="ratgeber-recent-heading" class="text-2xl font-semibold text-zinc-900">Zuletzt aktualisiert</h2>
@@ -70,6 +83,9 @@
     </section>
   @endif
 
+  {{-- Altsystem, faellt in SUN-AD-011 --}}
   <x-ad-slot position="footer_above" />
+
+  <x-sun.ad-slot key="guide_index_before_footer" wrap="mt-12" />
 </div>
 @endsection

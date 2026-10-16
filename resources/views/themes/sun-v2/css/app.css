@@ -22,6 +22,8 @@
 /* Werbeplaetze: <x-ad-slot> rendert Klassen aus Komponente und View */
 @source '../../../components/ad-slot.blade.php';
 @source '../../../../../app/View/Components/AdSlot.php';
+/* Werbeplatz-Katalog v2 (#5): <x-sun.ad-slot>, dazu der Editor-Rahmen (#6) */
+@source '../../../components/sun';
 /* Verifiziert-Badge (#11): <x-company.verified-badge> */
 @source '../../../components/company';
 /* Premium-Modul (#17): Preisseite, x-premium.*, Livewire-Views im Betriebsbereich */
@@ -263,5 +265,67 @@
         &::-webkit-scrollbar {
             display: none;
         }
+    }
+
+    /*
+     * Werbeplatz-Anker (Ticket #5) — <x-sun.ad-slot>, Markup in
+     * resources/views/components/sun/ad-slot.blade.php.
+     *
+     * Die Mindesthoehe kommt als CSS-Variable aus dem Katalog
+     * (config/ad-slots.php) und nicht als Tailwind-Klasse: eine Klasse wie
+     * `min-h-[280px]` muesste zur Bauzeit im Quelltext stehen, der Wert
+     * steht aber in der Konfiguration. `min-height`, nie `height` — AdSense
+     * garantiert bei `responsive` keine Hoehe, und ein groesseres Format
+     * darf nicht abgeschnitten werden (docs/ad-slots.md 2).
+     *
+     * Reserviert wird auf der Flaeche, nicht auf dem Rahmen: sonst frisst
+     * das Wort "Anzeige" von der Hoehe der Anzeige.
+     */
+    .ad-slot {
+        @apply rounded-2xl bg-zinc-100 overflow-hidden;
+    }
+
+    .ad-slot__area {
+        min-height: var(--ad-mh, 0px);
+
+        /* Fremde Rahmen (HtmlProvider-Sandbox) nie breiter als die Spalte —
+           sonst laeuft die Seite bei 360 px quer (#18). */
+        & iframe,
+        & ins,
+        & img {
+            max-width: 100%;
+        }
+    }
+
+    @media (min-width: 64rem) {
+        .ad-slot__area {
+            min-height: var(--ad-mh-lg, var(--ad-mh, 0px));
+        }
+    }
+
+    /*
+     * Eingeklappter Platz (#9): die Einwilligung in Werbung wurde
+     * ausdruecklich abgelehnt und `ad-slots.consent.on_denied` steht auf
+     * 'collapse'. Dann bleibt keine leere graue Flaeche stehen. Gesetzt wird
+     * die Klasse serverseitig von der Komponente und, bei einer Ablehnung im
+     * laufenden Besuch, von resources/js/ads.js. `display:none` und nicht
+     * `height:0`, damit auch der Abstand des Containers verschwindet.
+     */
+    .ad-slot--collapsed {
+        display: none;
+    }
+
+    /*
+     * Editor-Modus (#6): den sichtbaren Rahmen traegt der <button> der
+     * Position (components/sun/ad-slot-editor-frame.blade.php) — gruen und
+     * durchgezogen, wenn belegt, sonst gestrichelt. Der Container gibt nur
+     * den Grund frei: eine zweite Outline mit `outline-offset` waere ein
+     * doppelter Rahmen und ragt ueber die reservierte Flaeche hinaus
+     * (Akzeptanz 6 — bei 360 px darf nichts ueberlappen). `overflow-visible`,
+     * damit die Hervorhebung aus `slot:highlight` (ring) nicht abgeschnitten
+     * wird.
+     */
+    .ad-slot--editor {
+        @apply bg-transparent overflow-visible;
     }
 }

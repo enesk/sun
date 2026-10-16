@@ -5,6 +5,10 @@
     DSGVO: alle drei Knoepfe gleich gross, Statistik und Marketing vorab aus.
 --}}
 @php
+    // Spielt dieses Portal Werbung aus? Derselbe Schalter wie der
+    // AdSense-Abschnitt der Datenschutzerklaerung (#26).
+    $adsActive = app(\App\Ads\Support\AdSensePrivacySection::class)->active();
+
     $cookieCategories = [
         [
             'key' => null,
@@ -27,7 +31,7 @@
         [
             'key' => 'marketing',
             'title' => __('portal.consent.marketing.title'),
-            'text' => __('portal.consent.marketing.text'),
+            'text' => __($adsActive ? 'portal.consent.marketing.text_ads' : 'portal.consent.marketing.text'),
             'details' => [],
         ],
     ];

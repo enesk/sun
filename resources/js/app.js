@@ -2,6 +2,8 @@ import intersect from '@alpinejs/intersect'
 import focus from '@alpinejs/focus'
 import { initAnalytics } from './analytics'
 import { initAds } from './ads'
+import { initConsentScripts } from './consent-scripts'
+import { melde as meldeEinwilligung } from './consent-adapter'
 import { registerAlpineData } from './modules/alpine-data'
 import { initContactTracking } from './modules/contact-tracking'
 import { initCookieBar } from './modules/cookie-bar'
@@ -37,6 +39,11 @@ document.addEventListener('alpine:init', () => {
                 this.statistics = stored.statistics || false;
                 this.marketing = stored.marketing || false;
                 this.showBanner = false;
+                // Cookies nachziehen: die Entscheidung steht ohne Ablauf in
+                // localStorage, die Server-Cookies laufen nach 365 Tagen ab.
+                // Fehlt das Cookie, sieht der Server "keine Entscheidung" und
+                // spielt keine Werbung aus, obwohl eingewilligt wurde (#9).
+                this._writeConsentCookies();
                 this._applyConsent();
             } else {
                 // Delay banner appearance (300ms) so user sees content first
@@ -101,7 +108,15 @@ document.addEventListener('alpine:init', () => {
                 document.cookie = this.STORAGE_KEY + '=' + encodeURIComponent(JSON.stringify(prefs))
                     + ';path=/;max-age=' + maxAge + ';SameSite=Lax';
             }
-            // Server-side cookies for Dimitri's backend checks (analytics.blade.php)
+            this._writeConsentCookies();
+        },
+
+        // Serverseitig gelesen: App\Ads\Support\AdConsent (Werbung, #9) und
+        // App\Analytics (Messung). Klartext, darum in der Ausnahmeliste von
+        // EncryptCookies (bootstrap/app.php, #21).
+        _writeConsentCookies() {
+            const maxAge = this.COOKIE_LIFETIME_DAYS * 86400;
+
             document.cookie = 'cookie_consent_given=1;path=/;max-age=' + maxAge + ';SameSite=Lax';
             document.cookie = 'cookie_consent_statistics=' + (this.statistics ? '1' : '0') + ';path=/;max-age=' + maxAge + ';SameSite=Lax';
             document.cookie = 'cookie_consent_marketing=' + (this.marketing ? '1' : '0') + ';path=/;max-age=' + maxAge + ';SameSite=Lax';
@@ -122,12 +137,18 @@ document.addEventListener('alpine:init', () => {
         },
 
         _applyConsent() {
-            // Die Zustimmung schaltet die Messung frei (#14): resources/js/analytics.js
-            // startet mit consent 'denied' und laedt gtag.js erst hier bzw. beim
-            // naechsten Besuch anhand der Cookies aus _save().
-            if (this.statistics) {
-                window.dispatchEvent(new CustomEvent('cookie-consent-statistics', { detail: { allowed: true } }));
-            }
+            // Reihenfolge: Alpine startet ueber Livewire, die Module aus
+            // initInlineErsatz() haengen an DOMContentLoaded — welches von
+            // beiden zuerst laeuft, ist nicht festgelegt. Meldet init() hier
+            // eine nachgezogene localStorage-Entscheidung, bevor die Lauscher
+            // stehen, faengt der Merker in consent-adapter.js sie auf (#33).
+            //
+            // Weitergemeldet wird ueber resources/js/consent-adapter.js — die
+            // einzige Stelle, die das Einwilligungs-Werkzeug kennt (#9). Der
+            // Adapter liest den Zustand aus den Cookies aus _save() und sendet
+            // 'consent:marketing' (Werbung, resources/js/ads.js) sowie
+            // 'cookie-consent-statistics' (Messung, resources/js/analytics.js).
+            meldeEinwilligung()
         }
     }))
 
@@ -237,6 +258,7 @@ function initRipple() {
 function initInlineErsatz() {
     initAnalytics();
     initAds();
+    initConsentScripts();
     initCookieBar();
     initRecaptchaBridge();
     initLucideIcons();

@@ -40,6 +40,9 @@
             <p class="dash-input-error-msg">{{ $message }}</p>
         @enderror
 
+        {{-- Nur Positionen, die im Layout dieses Portals vorkommen (Ticket #14) --}}
+        <p class="dash-input-hint">Die Liste zeigt nur Positionen, die im Layout dieses Portals vorkommen. Eine bereits gespeicherte Position bleibt wählbar, auch wenn sie hier nicht ausgeliefert wird — sie ist dann entsprechend gekennzeichnet.</p>
+
         {{-- Warnung zu Auto Ads (Vorgabe #100, 4.2). Ohne JavaScript sichtbar: kein x-cloak, kein hidden. --}}
         <div id="auto-ads-warning"
              class="dash-flash dash-flash-warning dash-flash-block"

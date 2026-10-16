@@ -78,13 +78,24 @@ return [
             'https://www.google-analytics.com',
 
             // AdSense: Auto Ads und Anzeigenbloecke laden ueber mehrere Hosts
-            // nach (resources/views/components/ad-slot.blade.php)
+            // nach (components/sun/ad-slot.blade.php und das Altsystem
+            // components/ad-slot.blade.php). Google selbst empfiehlt
+            // inzwischen Nonce plus 'strict-dynamic' statt einer Hostliste —
+            // das setzt aber voraus, dass JEDES Skript der Seite ein Nonce
+            // traegt, auch die aus Vite. Solange das nicht so ist, bleibt es
+            // bei Hosts; was fehlt, zeigt die Sammelstelle (#51,
+            // `php artisan csp:berichte`) auf dem Pilot-Portal (#11).
             'https://pagead2.googlesyndication.com',
             'https://tpc.googlesyndication.com',
             'https://partner.googleadservices.com',
             'https://adservice.google.com',
             'https://googleads.g.doubleclick.net',
+            'https://securepubads.g.doubleclick.net',
             'https://fundingchoicesmessages.google.com',
+
+            // Sichtbarkeits- und Betrugspruefung (Sodar) laedt ihr Skript
+            // ueber ep2; ep1 ist die Gegenstelle der Meldungen (connect-src).
+            'https://ep2.adtrafficquality.google',
 
             // reCAPTCHA (SaaSykit-Registrierung, config('app.recaptcha_enabled'))
             'https://www.google.com',
@@ -116,6 +127,13 @@ return [
             'https://pagead2.googlesyndication.com',
             'https://ep2.adtrafficquality.google',
 
+            // Einwilligungs-Nachrichten von Google (Privacy & messaging im
+            // AdSense-Konto). Wir fragen die Einwilligung selbst ab, aber der
+            // Loader zieht den Rahmen nach, sobald im Konto eine Nachricht
+            // aktiv ist — ohne Freigabe steht dann ein CSP-Verstoss in der
+            // Konsole statt einer Nachricht.
+            'https://fundingchoicesmessages.google.com',
+
             // Kartenausschnitt auf der Firmendetailseite der Themes
             // default/starter (pages/companies/show.blade.php)
             'https://maps.google.com',
@@ -135,10 +153,17 @@ return [
             'https://*.analytics.google.com',
 
             // AdSense meldet Sichtbarkeit und Fehler zurueck. ep1 ist die
-            // Sodar-Konfiguration, gemessen in #28.
+            // Sodar-Konfiguration, gemessen in #28; ep2 kommt bei der
+            // Betrugspruefung dazu, csi.gstatic.com sind die Ladezeiten.
             'https://pagead2.googlesyndication.com',
             'https://googleads.g.doubleclick.net',
+            'https://securepubads.g.doubleclick.net',
+            'https://tpc.googlesyndication.com',
+            'https://fundingchoicesmessages.google.com',
             'https://ep1.adtrafficquality.google',
+            'https://ep2.adtrafficquality.google',
+            'https://csi.gstatic.com',
+            'https://www.google.com',
         ],
 
         'style-src' => [
@@ -154,6 +179,9 @@ return [
             // Verifizierung, Checkout der SaaSykit-Layouts)
             'https://fonts.googleapis.com',
         ],
+        // 'https:' deckt die Zaehlpixel von AdSense (googlesyndication.com,
+        // g.doubleclick.net, www.google.com, ep1.adtrafficquality.google) mit
+        // ab; eine eigene Hostliste waere hier nur Pflege ohne Gewinn.
         'img-src' => ["'self'", 'data:', 'blob:', 'https:'],
         'font-src' => ["'self'", 'data:', 'https://fonts.gstatic.com'],
         'media-src' => ["'self'", 'data:', 'blob:'],

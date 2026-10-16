@@ -13,7 +13,7 @@ return [
     | using this caching library. This connection is used when another is
     | not explicitly specified when executing a given caching function.
     |
-    | Standard ist bewusst "file" (#22): SetTenantStorageUrl lenkt den Pfad je
+    | Standard ist bewusst "file" (#22): TenantUrlBootstrapper lenkt den Pfad je
     | Tenant um, TenantOverrideLoader und TenantText::forgetFor() bauen darauf.
     | Gelesen wird CACHE_DRIVER, nicht CACHE_STORE.
     |

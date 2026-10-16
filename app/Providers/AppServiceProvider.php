@@ -103,6 +103,9 @@ class AppServiceProvider extends ServiceProvider
 
         FilamentAsset::register([
             Js::make('components-script', __DIR__.'/../../resources/js/components.js'),
+            // Bruecke zum Vorschau-iframe der Seite "Werbeplaetze" (#7);
+            // Protokoll in docs/ad-slots.md 6.2.
+            Js::make('ad-editor-bridge', __DIR__.'/../../resources/js/filament/ad-editor-bridge.js'),
         ]);
 
         // temporarily fix until this is fixed in filament breezy: https://github.com/Jacobtims/filament-breezy/issues/496

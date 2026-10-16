@@ -14,6 +14,21 @@
     $isStart = ! $activeCategory && $posts->currentPage() === 1;
     $featured = $isStart ? $sunBlog['featured'] : null;
     $listPosts = $posts->getCollection()->reject(fn ($post) => $featured && $post->id === $featured->id)->values();
+
+    // Diese View ist der Rueckfall der Ratgeber-Uebersicht: GuideController::index()
+    // gibt an PublicBlogController::index() ab, solange das Portal keine
+    // Ratgeber-Kategorien veroeffentlicht hat. Der Routenname bleibt
+    // `guide.index`, der Seitentyp also `guide_index` — darum stehen hier
+    // dieselben Katalog-Anker wie in guide/index.blade.php (#23).
+    //
+    // Listen-Anker (#5): nach der 5. Artikelkarte. Die Karten stehen in einem
+    // mehrspaltigen Raster, in dem kein Anker sitzen darf
+    // (docs/ad-slots.md 10, Regel 3.2) — der Schnitt zwischen den beiden
+    // Kartenbloecken ist aber die Grenze zweier abgeschlossener Raster und
+    // damit zulaessig. Der Block ist deshalb nach der 5. Karte geschnitten
+    // (vorher nach der 3.), damit Position und Katalog-Schluessel
+    // uebereinstimmen. `minFollowing: 1` haelt die Anzeige vom Listenende weg.
+    $feedAds = \App\Ads\Support\ListSlotHelper::make([5 => 'guide_index_in_feed_5'], $listPosts->count(), 1);
 @endphp
 
 @section('title', __('portal.layout.header.guide').' — '.$portalName)
@@ -120,6 +135,14 @@
   </section>
   @endif
 
+  {{-- Nach dem ersten Themenblock: Kategorien bzw. "Meistgelesen". Gefiltert
+       oder weitergeblaettert gibt es beide nicht, dann sitzt der Anker
+       zwischen Suchbereich und Artikelliste — in beiden Faellen die Grenze
+       zweier abgeschlossener Sektionen. Den Abstand setzt das `gap` des
+       Flex-Containers; ohne Belegung entsteht hier kein Element und damit
+       auch kein Abstand. --}}
+  <x-sun.ad-slot key="guide_index_after_first_block" />
+
   <!-- ===== ALLE ARTIKEL ===== -->
   <section>
     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 sm:gap-4">
@@ -143,11 +166,15 @@
       </div>
     @endif
 
-    @foreach([$listPosts->take(3), $listPosts->slice(3)] as $group)
+    @foreach([$listPosts->take(5), $listPosts->slice(5)] as $group)
       @if($loop->index === 1 && $group->isNotEmpty())
+        {{-- Altsystem, faellt in SUN-AD-011 --}}
         <div class="mt-4">
           <x-ad-slot position="listing_between_results" />
         </div>
+      @endif
+      @if($loop->index === 1 && ($feedSlot = $feedAds->keyAfter(5)))
+        <x-sun.ad-slot :key="$feedSlot" wrap="mt-4" />
       @endif
       @if($group->isNotEmpty())
         <div class="{{ $loop->first ? 'mt-6' : 'mt-4' }} grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -179,6 +206,11 @@
       </form>
     </div>
   </section>
+
+  {{-- `guide_index_sidebar_sticky` entfaellt auf dieser View: die
+       Ratgeber-Uebersicht ist einspaltig, es gibt keine Seitenspalte, in die
+       ein klebender Anker gehoerte (festgehalten in config/ad-slots.php). --}}
+  <x-sun.ad-slot key="guide_index_before_footer" />
 
 </div>
 @endsection

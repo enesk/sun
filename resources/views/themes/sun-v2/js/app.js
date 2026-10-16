@@ -21,10 +21,20 @@ import { initStatsChart } from './modules/stats-chart';
 import { initStatsBeacon } from '../../../../js/stats-beacon';
 import { initAnalytics } from '../../../../js/analytics';
 import { initAds } from '../../../../js/ads';
+import { initConsentScripts } from '../../../../js/consent-scripts';
 import { initPasswordToggle } from './modules/password-toggle';
 import { initLoginPanels } from './modules/login-panels';
 
 function boot() {
+    // Zuerst die Verbraucher der Einwilligung (#33): initCookieConsent() holt
+    // eine frueher getroffene Entscheidung aus localStorage und meldet sie
+    // sofort weiter. Stehen die Lauscher dann noch nicht, geht die Meldung
+    // verloren und die Seite bleibt bis zum naechsten Aufruf ohne Werbung.
+    // Vorher Inline-Skripte der Views (#21)
+    initAnalytics();
+    initAds();
+    initConsentScripts();
+
     initMobileMenu();
     initCookieConsent();
     initDisclosures();
@@ -35,9 +45,6 @@ function boot() {
     initMdEditor();
     initStatsChart();
     initStatsBeacon();
-    // Vorher Inline-Skripte der Views (#21)
-    initAnalytics();
-    initAds();
     initPasswordToggle();
     initLoginPanels();
 }

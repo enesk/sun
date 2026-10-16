@@ -220,3 +220,13 @@ Route::controller(InvoiceController::class)
         Route::get('/generate/{transactionUuid}', 'generate')->name('invoice.generate');
         Route::get('/preview', 'preview')->name('invoice.preview');
     });
+
+// Vorschau eines Werbemittels im Admin-Panel (#10). Eigene Route und nicht
+// `srcdoc`, weil fremdes Markup nicht unter der CSP des Panels laufen darf;
+// der Zugang liegt beim Betreiber (AdsAdminAccess prueft der Controller).
+// Nicht unter /admin, damit sie nicht mit den Routen des Filament-Panels
+// konkurriert.
+Route::get('/werbemittel/{adUnit}/vorschau', App\Ads\Http\Controllers\AdUnitPreviewController::class)
+    ->middleware('auth')
+    ->whereNumber('adUnit')
+    ->name('admin.ads.unit-preview');

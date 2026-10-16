@@ -1,0 +1,70 @@
+OK    APP_KEY (Editor-Token)                   gesetzt
+OK    Editor-Herkunft (ADS_EDITOR_ORIGIN)      https://sun.test
+OK    CSP-Modus (CSP_MODE)                     enforce
+OK    CSP script-src                           Google-Anzeigenhosts freigegeben
+OK    CSP frame-src                            Google-Anzeigenhosts freigegeben
+OK    Slot-Katalog                             Version 4, 32 Anker, Themes: sun-v2
+OK    Netz-Publisher-ID                        keine — jedes Portal bringt seine eigene mit
+
+FAIL  firmenfreund.de                          ads.txt verliert 1 Zeile(n) aus der Tenant-DB: google.com, pub-2563111817853634, DIRECT, f08c47fec0942fa0 — vorher php artisan ads:legacy-takeover
+WARN  firmenfreund.de                          Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+WARN  bodenlegerfinden.com                     freigegeben, aber Theme default hat keine Anker im Katalog
+FAIL  bodenlegerfinden.com                     ads.txt verliert 1 Zeile(n) aus der Tenant-DB: google.com, pub-2563111817853634, DIRECT, f08c47fec0942fa0 — vorher php artisan ads:legacy-takeover
+WARN  bodenlegerfinden.com                     Altsystem liefert hier noch 6 aktive Slots aus (Parallelphase)
+FAIL  sanitaerfinden.com                       ads.txt verliert 1 Zeile(n) aus der Tenant-DB: google.com, pub-2563111817853634, DIRECT, f08c47fec0942fa0 — vorher php artisan ads:legacy-takeover
+WARN  sanitaerfinden.com                       Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+FAIL  fahrschulefinder.de                      ads.txt verliert 1 Zeile(n) aus der Tenant-DB: google.com, pub-1901800422608466, DIRECT, f08c47fec0942fa0 — vorher php artisan ads:legacy-takeover
+WARN  fahrschulefinder.de                      Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+FAIL  elektrikerportal.com                     ads.txt verliert 1 Zeile(n) aus der Tenant-DB: google.com, pub-1901800422608466, DIRECT, f08c47fec0942fa0 — vorher php artisan ads:legacy-takeover
+FAIL  malerfinder.de                           ads.txt verliert 1 Zeile(n) aus der Tenant-DB: google.com, pub-1901800422608466, DIRECT, f08c47fec0942fa0 — vorher php artisan ads:legacy-takeover
+WARN  malerfinder.de                           Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+FAIL  geruestbauer.gmbh                        ads.txt verliert 1 Zeile(n) aus der Tenant-DB: google.com, pub-1901800422608466, DIRECT, f08c47fec0942fa0 — vorher php artisan ads:legacy-takeover
+WARN  geruestbauer.gmbh                        Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+FAIL  metallbauer.io                           ads.txt verliert 1 Zeile(n) aus der Tenant-DB: google.com, pub-1901800422608466, DIRECT, f08c47fec0942fa0 — vorher php artisan ads:legacy-takeover
+WARN  metallbauer.io                           Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+FAIL  tierarztportal.com                       ads.txt verliert 1 Zeile(n) aus der Tenant-DB: google.com, pub-1901800422608466, DIRECT, f08c47fec0942fa0 — vorher php artisan ads:legacy-takeover
+WARN  tierarztportal.com                       Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+FAIL  kfzwerkstatt.io                          ads.txt verliert 1 Zeile(n) aus der Tenant-DB: google.com, pub-1901800422608466, DIRECT, f08c47fec0942fa0 — vorher php artisan ads:legacy-takeover
+WARN  kfzwerkstatt.io                          Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+FAIL  findegutachter.de                        ads.txt verliert 1 Zeile(n) aus der Tenant-DB: google.com, pub-2563111817853634, DIRECT, f08c47fec0942fa0 — vorher php artisan ads:legacy-takeover
+WARN  findegutachter.de                        Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+WARN  fliesenleger.io                          freigegeben, aber Theme default hat keine Anker im Katalog
+WARN  fliesenleger.io                          Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+FAIL  sun.test                                 ads.txt verliert 1 Zeile(n) aus der Tenant-DB: google.com, pub-1901800422608466, DIRECT, f08c47fec0942fa0 — vorher php artisan ads:legacy-takeover
+WARN  sun.test                                 Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+FAIL  sanitaerfinder.com                       ads.txt verliert 1 Zeile(n) aus der Tenant-DB: google.com, pub-2563111817853634, DIRECT, f08c47fec0942fa0 — vorher php artisan ads:legacy-takeover
+FAIL  apotheke.firmenfreund.de                 ads.txt verliert 1 Zeile(n) aus der Tenant-DB: google.com, pub-2563111817853634, DIRECT, f08c47fec0942fa0 — vorher php artisan ads:legacy-takeover
+WARN  apotheke.firmenfreund.de                 Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+WARN  unfallarzt.firmenfreund.de               Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+WARN  zahnarzt.firmenfreund.de                 Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
+WARN  arztfinder.firmenfreund.de               Altsystem liefert hier noch 7 aktive Slots aus (Parallelphase)
++----+----------------------------+----------------------+-------------+--------------+----------+----------------+---------+-----+
+| ID | Domain                     | Theme                | ads_enabled | Publisher-ID | Auto Ads | Belegungen     | ads.txt | alt |
++----+----------------------------+----------------------+-------------+--------------+----------+----------------+---------+-----+
+| 24 | firmenfreund.de            | default (ohne Anker) | nein        | —            | nein     | 1 (1× AdSense) | 404     | 1   |
+| 27 | bodenlegerfinden.com       | default (ohne Anker) | ja          | eigene       | nein     | 2 (1× AdSense) | 1       | 1   |
+| 28 | sanitaerfinden.com         | sun-v2               | ja          | eigene       | nein     | 1 (1× AdSense) | 1       | 1   |
+| 29 | fahrschulefinder.de        | sun-v2               | nein        | —            | nein     | 1 (1× AdSense) | 404     | 1   |
+| 30 | elektrikerportal.com       | sun-v2               | nein        | —            | nein     | 1 (1× AdSense) | 404     | 1   |
+| 33 | malerfinder.de             | default (ohne Anker) | nein        | —            | nein     | 1 (1× AdSense) | 404     | 1   |
+| 37 | geruestbauer.gmbh          | default (ohne Anker) | nein        | —            | nein     | 1 (1× AdSense) | 404     | 1   |
+| 38 | metallbauer.io             | default (ohne Anker) | nein        | —            | nein     | 1 (1× AdSense) | 404     | 1   |
+| 43 | tierarztportal.com         | default (ohne Anker) | nein        | —            | nein     | 1 (1× AdSense) | 404     | 1   |
+| 44 | kfzwerkstatt.io            | sun-v2               | nein        | —            | nein     | 1 (1× AdSense) | 404     | 1   |
+| 45 | findegutachter.de          | sun-v2               | nein        | —            | nein     | 1 (1× AdSense) | 404     | 1   |
+| 46 | fliesenleger.io            | default (ohne Anker) | ja          | eigene       | ja       | 6 (6× AdSense) | 1       | 1   |
+| 47 | sun.test                   | default (ohne Anker) | nein        | —            | nein     | 1 (1× AdSense) | 404     | 1   |
+| 49 | sanitaerfinder.com         | default (ohne Anker) | nein        | —            | nein     | 1 (1× AdSense) | 404     | 1   |
+| 50 | apotheke.firmenfreund.de   | default (ohne Anker) | nein        | —            | nein     | 1 (1× AdSense) | 404     | 1   |
+| 51 | firmenfreund.net           | default (ohne Anker) | nein        | —            | nein     | 1 (1× AdSense) | 404     | 0   |
+| 52 | unfallarzt.firmenfreund.de | default (ohne Anker) | nein        | —            | nein     | 1 (1× AdSense) | 404     | 0   |
+| 53 | zahnarzt.firmenfreund.de   | default (ohne Anker) | nein        | —            | nein     | 1 (1× AdSense) | 404     | 0   |
+| 54 | klempner.firmenfreund.de   | default (ohne Anker) | nein        | —            | nein     | 1 (1× AdSense) | 404     | 0   |
+| 55 | energieberaterportal.net   | default (ohne Anker) | nein        | —            | nein     | 1 (1× AdSense) | 404     | 0   |
+| 56 | arztfinder.firmenfreund.de | default (ohne Anker) | nein        | —            | nein     | 1 (1× AdSense) | 404     | 0   |
+| 57 | speditionportal.com        | default (ohne Anker) | nein        | —            | nein     | 1 (1× AdSense) | 404     | 0   |
+| 58 | schluesseldienstportal.com | default (ohne Anker) | nein        | —            | nein     | 1 (1× AdSense) | 404     | 0   |
++----+----------------------------+----------------------+-------------+--------------+----------+----------------+---------+-----+
+OK    Freigegebene Portale                     3 von 23 (ads_enabled)
+
+Go-Live-Check Werbeplaetze: 14 FAIL, 18 WARN — nicht bereit.

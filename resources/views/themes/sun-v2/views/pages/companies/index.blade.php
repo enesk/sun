@@ -12,6 +12,20 @@
     $skyscraperAd = $hasMap && \App\View\Components\AdSlot::hasSlotsForPosition('sidebar_sticky');
     $center = $search['pins']['center'];
     $portalName = $currentTenant->name ?? config('app.name');
+
+    // Listen-Anker (#5): nach dem 3. und dem 8. Treffer, aber nur solange
+    // dahinter noch zwei Treffer kommen — sonst steht die Anzeige praktisch
+    // am Listenende und doppelt den Anker ueber der Fusszeile.
+    $feedAds = \App\Ads\Support\ListSlotHelper::make([
+        3 => 'search_in_feed_3',
+        8 => 'search_in_feed_8',
+    ], $companies->count());
+
+    // Die Seitenspalte gab es bisher nur mit Geodaten. Sie entsteht jetzt auch
+    // fuer den Seitenspalten-Anker allein, sonst fehlt er auf jedem Portal
+    // ohne Karte (docs/ad-slots.md 10).
+    $sidebarAd = \App\View\Components\Sun\AdSlot::isActive('search_sidebar_sticky');
+    $hasSidebar = $hasMap || $sidebarAd;
 @endphp
 
 @section('title', $search['heading'].' | '.($currentTenant->name ?? config('app.name')))
@@ -94,7 +108,9 @@
     @endforeach
   </div>
 
-  <div @class(['mt-6 grid gap-8', 'xl:grid-cols-[1fr_18rem]' => $hasMap, 'max-w-3xl' => ! $hasMap])>
+  <x-sun.ad-slot key="search_above_results" wrap="mt-6" />
+
+  <div @class(['mt-6 grid gap-8', 'xl:grid-cols-[1fr_18rem]' => $hasSidebar, 'max-w-3xl' => ! $hasSidebar])>
 
     <!-- ========== ERGEBNISLISTE ========== -->
     <div class="flex flex-col gap-4 min-w-0">
@@ -102,22 +118,30 @@
         <x-sun.listing-card :company="$company" :distance="$search['distances'][$company->city_id] ?? null" />
 
         @if($loop->iteration === 3 && $betweenAd)
+          {{-- Altsystem, faellt in SUN-AD-011 --}}
           <div class="rounded-2xl bg-zinc-100 overflow-hidden" style="min-height:280px">
             <span class="block text-xs text-zinc-400 px-3 pt-2">{{ __('portal.layout.ad_label') }}</span>
             <x-ad-slot position="listing_between_results" />
           </div>
+        @endif
+
+        @if($feedSlot = $feedAds->keyAfter($loop->iteration))
+          <x-sun.ad-slot :key="$feedSlot" />
         @endif
       @empty
         @include('pages.companies._empty-state')
       @endforelse
 
       <x-sun.pagination :paginator="$companies" :pages="$search['pages']" />
+
+      <x-sun.ad-slot key="search_after_pagination" />
     </div>
 
     <!-- ========== RECHTE SPALTE (nur Desktop, nur mit Geodaten) ========== -->
-    @if($hasMap)
+    @if($hasSidebar)
       <aside class="hidden xl:block">
         <div class="sticky top-36 flex flex-col gap-4">
+          @if($hasMap)
           <div class="card overflow-hidden">
             <div class="aspect-[4/3] bg-zinc-100 relative" role="img" aria-label="{{ trans_choice('portal.search.map_label', count($search['pins']['items']), ['anzahl' => count($search['pins']['items'])]) }}">
               <x-sun.icon name="map-lines" class="absolute inset-0 size-full text-zinc-200" viewBox="0 0 400 300" />
@@ -129,12 +153,16 @@
               <a href="https://www.openstreetmap.org/#map=11/{{ round($center['lat'], 4) }}/{{ round($center['lng'], 4) }}" class="btn-secondary w-full" target="_blank" rel="noopener noreferrer">{{ __('portal.search.map_open') }}</a>
             </div>
           </div>
+          @endif
           @if($skyscraperAd)
+            {{-- Altsystem, faellt in SUN-AD-011 --}}
             <div class="rounded-2xl bg-zinc-100 overflow-hidden" style="min-height:600px">
               <span class="block text-xs text-zinc-400 px-3 pt-2">{{ __('portal.layout.ad_label') }}</span>
               <x-ad-slot position="sidebar_sticky" />
             </div>
           @endif
+
+          <x-sun.ad-slot key="search_sidebar_sticky" />
         </div>
       </aside>
     @endif
@@ -162,6 +190,8 @@
       <p class="mt-4 text-base leading-relaxed">{{ $paragraph }}</p>
     @endforeach
   </section>
+
+  <x-sun.ad-slot key="search_before_footer" wrap="mt-12 md:mt-16" />
 
 </div>
 

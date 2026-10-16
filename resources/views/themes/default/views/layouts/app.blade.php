@@ -74,6 +74,12 @@
     @if(\App\View\Components\AdSlot::autoAdsAllowedHere())
         <x-ad-slot position="auto_ads" />
     @endif
+
+    {{-- Auto Ads aus der Portal-Einstellung `ad_settings.adsense_auto_ads` (#18).
+         Haelt sich zurueck, solange das Altsystem die Position `auto_ads` in
+         diesem Portal noch selbst ausliefert; mit dessen Abschaltung (#11) fallen
+         die vier Zeilen darueber weg und diese Komponente uebernimmt. --}}
+    <x-sun.auto-ads />
 </head>
 <body class="min-h-screen flex flex-col bg-base-100 text-base-content antialiased @if(\App\View\Components\AdSlot::hasSlotsForPosition('mobile_sticky_bottom')) pb-[60px] lg:pb-0 @endif">
 

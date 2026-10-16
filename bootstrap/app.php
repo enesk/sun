@@ -47,6 +47,8 @@ return Illuminate\Foundation\Application::configure(basePath: dirname(__DIR__))
             'sitemapped' => \App\Http\Middleware\Sitemapped::class,
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            // Vorschau der Werbeplaetze im Panel (#6); ohne Token wirkungslos.
+            'ad-editor' => \App\Ads\Http\Middleware\AdEditorMode::class,
         ]);
 
         $middleware->group('universal', [

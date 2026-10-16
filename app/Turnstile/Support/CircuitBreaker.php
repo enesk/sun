@@ -24,7 +24,7 @@ use Throwable;
  * Store: `config('turnstile.circuit_breaker.store')`, Vorgabe `file`. Bewusst
  * NICHT der Standard-Store: in Produktion ist das `database`, und im
  * Tenant-Kontext zeigt die Standardverbindung auf die Tenant-DB, die keine
- * cache-Tabelle hat. Der file-Store wechselt je Portal (SetTenantStorageUrl),
+ * cache-Tabelle hat. Der file-Store wechselt je Portal (TenantUrlBootstrapper),
  * der Breaker zaehlt also je Portal — fuer den Zweck genau richtig, weil der
  * Fail-Mode ohnehin je Portal gilt.
  *

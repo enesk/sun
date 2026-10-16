@@ -36,6 +36,24 @@
             </div>
         </div>
     @else
+        @php
+            // Aktive Slots auf Positionen, die dieses Theme nicht rendert (Ticket #14).
+            $silentActiveSlots = collect($silentPositions)
+                ->flatMap(fn ($label, $key) => ($slots[$key] ?? collect())->where('is_active', true))
+                ->count();
+        @endphp
+
+        @if($silentActiveSlots > 0)
+            <div class="dash-flash dash-flash-warning" style="margin-bottom: 1.5rem;" role="note">
+                <svg class="dash-flash-icon" style="color: var(--dash-warning, #d97706);" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                </svg>
+                <span class="dash-flash-body">
+                    {{ $silentActiveSlots }} {{ $silentActiveSlots === 1 ? 'aktiver Slot steht' : 'aktive Slots stehen' }} auf einer Position, die es im Layout dieses Portals nicht gibt — {{ $silentActiveSlots === 1 ? 'er wird' : 'sie werden' }} nicht ausgeliefert. Die betroffenen Positionen sind unten gekennzeichnet.
+                </span>
+            </div>
+        @endif
+
         @foreach($positions as $positionKey => $positionLabel)
             @php
                 $positionSlots = $slots[$positionKey] ?? collect();
@@ -47,6 +65,16 @@
                         <h2 class="dash-card-header-title">{{ $positionLabel }}</h2>
                         <span class="dash-badge dash-badge-neutral">{{ $positionSlots->count() }} {{ $positionSlots->count() === 1 ? 'Slot' : 'Slots' }}</span>
                     </div>
+
+                    @if(isset($silentPositions[$positionKey]))
+                        {{-- Position ohne Anker im aktiven Theme (Ticket #14) --}}
+                        <div class="dash-flash dash-flash-warning" style="margin: 0 1rem 1rem 1rem;" role="note">
+                            <svg class="dash-flash-icon" style="color: var(--dash-warning, #d97706);" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                            </svg>
+                            <span class="dash-flash-body">Diese Position kommt im Layout dieses Portals nicht vor. Hier hinterlegter Code wird nicht ausgeliefert — am besten auf eine andere Position umstellen oder den Slot löschen.</span>
+                        </div>
+                    @endif
 
                     @if($positionKey === 'auto_ads' && $positionSlots->contains(fn ($positionSlot) => $positionSlot->is_active))
                         {{-- Kurzfassung der Warnung aus dem Formular (Vorgabe #100, 4.4) --}}

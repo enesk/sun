@@ -10,6 +10,10 @@
     $filters = $citySun['filters'];
     $portalName = $currentTenant->name ?? config('app.name');
     $betweenAd = \App\View\Components\AdSlot::hasSlotsForPosition('listing_between_results');
+
+    // Listen-Anker (#5): nach dem 3. Treffer, nur solange dahinter noch zwei
+    // Treffer kommen.
+    $feedAds = \App\Ads\Support\ListSlotHelper::make([3 => 'city_in_feed_3'], $companies->count());
 @endphp
 
 {{-- Title/Description/H1 aus SeoService::cityMeta() (#10) --}}
@@ -95,6 +99,8 @@
     @endforeach
   </div>
 
+  <x-sun.ad-slot key="city_above_results" wrap="mt-6 max-w-3xl" />
+
   {{-- Ohne Geodaten keine Karte: Liste einspaltig, wie in der Suche --}}
   <div class="mt-6 grid gap-8 max-w-3xl">
     <div class="flex flex-col gap-4 min-w-0">
@@ -102,10 +108,15 @@
         <x-sun.listing-card :company="$company" />
 
         @if($loop->iteration === 3 && $betweenAd)
+          {{-- Altsystem, faellt in SUN-AD-011 --}}
           <div class="rounded-2xl bg-zinc-100 overflow-hidden" style="min-height:280px">
             <span class="block text-xs text-zinc-400 px-3 pt-2">{{ __('portal.layout.ad_label') }}</span>
             <x-ad-slot position="listing_between_results" />
           </div>
+        @endif
+
+        @if($feedSlot = $feedAds->keyAfter($loop->iteration))
+          <x-sun.ad-slot :key="$feedSlot" />
         @endif
       @empty
         <div class="card p-6 md:p-10">
@@ -135,6 +146,8 @@
       @endforelse
 
       <x-sun.pagination :paginator="$companies" :pages="$citySun['pages']" />
+
+      <x-sun.ad-slot key="city_after_pagination" />
     </div>
   </div>
 
@@ -191,5 +204,7 @@
       <p class="mt-4 text-base leading-relaxed">{{ $paragraph }}</p>
     @endforeach
   </section>
+
+  <x-sun.ad-slot key="city_before_footer" wrap="mt-12 md:mt-16" />
 </div>
 @endsection

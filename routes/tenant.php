@@ -3,6 +3,7 @@
 use App\Guide\Http\Middleware\EnsureContentPreviewAccess;
 use App\Guide\Http\Middleware\HandleGuideRedirects;
 use App\Guide\Seo\GuideSitemapGenerator;
+use App\Http\Controllers\AdsTxtController;
 use App\Http\Controllers\GuideController;
 use App\Http\Controllers\GuidePreviewController;
 use App\Http\Controllers\IndexNowKeyController;
@@ -75,9 +76,10 @@ Route::middleware([
 ])->group(function () {
     Route::get('/sitemap.xml', function () {
         $path = storage_path('app/public/sitemap.xml');
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             abort(404);
         }
+
         return response()->file($path, ['Content-Type' => 'application/xml']);
     })->name('portal.sitemap');
 
@@ -88,6 +90,7 @@ Route::middleware([
         if ($xml === null) {
             abort(404);
         }
+
         return response($xml, 200, [
             'Content-Type' => 'application/xml; charset=UTF-8',
             'Cache-Control' => 'public, max-age='.GuideSitemapGenerator::CACHE_TTL,
@@ -97,20 +100,22 @@ Route::middleware([
     Route::get('/sitemap-{name}.xml', function (string $name) {
         $name = preg_replace('/[^a-z0-9\-]/', '', $name);
         $path = storage_path("app/public/sitemap-{$name}.xml");
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             abort(404);
         }
+
         return response()->file($path, ['Content-Type' => 'application/xml']);
     })->where('name', '[a-z0-9\-]+')->name('portal.sitemap.part');
 
     Route::get('/robots.txt', function (\App\Services\RobotsTxtBuilder $robots) {
         $path = storage_path('app/public/robots.txt');
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             // Fallback bis der Sitemap-Job die Datei geschrieben hat — gleicher
             // Inhalt inkl. KI-Crawler-Regeln (#18).
             return response($robots->build('https://'.request()->getHost()), 200)
                 ->header('Content-Type', 'text/plain');
         }
+
         return response()->file($path, ['Content-Type' => 'text/plain']);
     })->name('portal.robots');
 
@@ -118,14 +123,11 @@ Route::middleware([
     Route::get('/llms.txt', [LlmsTxtController::class, 'index'])->name('portal.llms');
     Route::get('/llms-full.txt', [LlmsTxtController::class, 'full'])->name('portal.llms-full');
 
-    // ads.txt (dynamisch pro Tenant)
-    Route::get('/ads.txt', function () {
-        $content = \App\Models\Portal\AdSetting::query()->value('ads_txt_content');
-        if (empty($content)) {
-            abort(404);
-        }
-        return response($content, 200)->header('Content-Type', 'text/plain');
-    })->name('portal.ads-txt');
+    // ads.txt je Portal-Domain (#10). Inhalt aus `ad_settings` der Central-DB:
+    // wirksame Publisher-ID plus Zusatzzeilen, eine Stunde im Cache. Steht hier
+    // oben bei robots.txt und llms.txt, damit die Catch-all-Routen am Ende der
+    // Gruppe (/{citySlug}/{companySlug}) den Aufruf nicht verschlucken.
+    Route::get('/ads.txt', AdsTxtController::class)->name('portal.ads-txt');
 
     // RSS-Feed (#204)
     Route::get('/ratgeber/feed', [BlogFeedController::class, 'rss'])->name('portal.blog.feed');
@@ -166,6 +168,46 @@ Route::middleware([
         ->name('portal.reviews.widget');
 });
 
+// Zustellung eigener Werbemittel in den Sandbox-Rahmen (#4, SUN-AD-003).
+//
+// Bewusst OHNE 'web': keine Session, kein CSRF und damit kein Cookie im
+// Rahmen — fremdes Markup soll nichts vom Portal erreichen. Die Antwort setzt
+// ihre eigene CSP (`sandbox …; frame-ancestors 'self'`), der iframe traegt
+// dieselbe Sandbox zusaetzlich als Attribut. Siehe docs/ad-slots.md 5.2.
+Route::middleware([
+    App\Providers\TenancyServiceProvider::TENANCY_INITIALIZER,
+    Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
+    // SubstituteBindings steckt sonst in der 'web'-Gruppe; ohne sie bekaeme
+    // der Controller ein leeres AdUnit-Model statt des gesuchten.
+    Illuminate\Routing\Middleware\SubstituteBindings::class,
+    'throttle:240,1',
+])->group(function () {
+    Route::get('/_ads/html/{adUnit}', App\Ads\Http\Controllers\AdHtmlController::class)
+        ->where('adUnit', '[0-9]+')
+        ->name('portal.ads.html');
+});
+
+// Eigenes Impression-/Viewability-Zaehlen (#12, docs/ad-slots.md 14).
+//
+// Ebenfalls OHNE 'web': keine Session, kein CSRF, kein Cookie — der Zaehler
+// soll nachweisbar nichts Personenbezogenes anfassen, und sendBeacon schickt
+// ohnehin kein Token. Mit Tenancy-Initializer, weil das Portal aus der Domain
+// kommt und nie aus dem Rumpf.
+//
+// throttle:60,1 je IP (technischer Hinweis des Tickets): ein Seitenaufruf
+// schickt hoechstens zwei Beacons (Sichtbarkeit und Seitenwechsel), 60 je
+// Minute sind also reichlich. Das Limit laeuft wegen Laravels
+// $middlewarePriority VOR der Tenancy-Middleware — es ist deshalb ein reines
+// IP-Limit ohne Portalbezug, was hier genau richtig ist.
+Route::middleware([
+    App\Providers\TenancyServiceProvider::TENANCY_INITIALIZER,
+    Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
+    'throttle:60,1',
+])->group(function () {
+    Route::post('/_ads/impressions', App\Ads\Http\Controllers\AdImpressionController::class)
+        ->name('portal.ads.impressions');
+});
+
 // CSP-Berichte (#51): Sammelstelle fuer `report-uri`/`report-to` aus
 // config/csp.php. Ohne Session, ohne CSRF und ohne Auth — der Browser schickt
 // den Bericht ohne Token, oft erst nach dem Verlassen der Seite.
@@ -192,6 +234,10 @@ Route::middleware([
     'universal',
     App\Providers\TenancyServiceProvider::TENANCY_INITIALIZER,
     App\Http\Middleware\ResolveTheme::class,
+    // Vorschau der Werbeplaetze (#6): schaltet nur mit gueltigem Token im
+    // Query um, sonst laeuft die Seite unveraendert durch. Steht an der
+    // ganzen Gruppe, weil die Vorschau jeden Seitentyp zeigt.
+    'ad-editor',
 ])->group(function () {
 
     // Portal Homepage

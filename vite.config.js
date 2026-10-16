@@ -17,6 +17,9 @@ export default defineConfig({
                 'resources/css/content/theme.css',
                 'resources/views/themes/sun-v2/css/app.css',
                 'resources/views/themes/sun-v2/js/app.js',
+                // Nur im Editor-Modus der Werbeplaetze (#6), siehe
+                // layouts/sun.blade.php — kein Gewicht fuer Besucher.
+                'resources/views/themes/sun-v2/js/ad-editor.js',
             ],
             refresh: true,
         }),
