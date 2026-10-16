@@ -276,6 +276,7 @@ durchprobiert. Alle vier Prüfungen waren rein lesend.
 | CrUX API mit dem lokalen `GOOGLE_PLACES_API_KEY` | HTTP **403** `API_KEY_SERVICE_BLOCKED` und `CONSUMER_SUSPENDED` — Schlüssel auf Places eingeschränkt, Projekt gesperrt (→ **#56**) |
 | CrUX API mit dem Produktions-Dienstkonto (`GOOGLE_SERVICE_ACCOUNT_JSON`, Scope `cloud-platform`, Token wird ausgestellt) | HTTP **400** `INVALID_ARGUMENT` für jedes Origin, auch `https://www.google.com` — die CrUX API nimmt nur einen API-Schlüssel, kein Dienstkonto-Token |
 | AdSense Management API v2 mit demselben Dienstkonto (`AdSenseClient::accounts()`, Scope `adsense.readonly`) | Token ok, HTTP **403**: „AdSense Management API has not been used in project `321830197826` before or it is disabled" |
+| Service Usage API mit demselben Dienstkonto (Scope `cloud-platform`), 16.10.2026 | **HTTP 200** — `services.get` liefert `state`, `services:enable` schaltet frei: damit war Handgriff 1 aus #55 ohne Google-Konsole zu erledigen (#58) |
 
 Daraus folgt für die Sitzung:
 
@@ -288,6 +289,31 @@ Daraus folgt für die Sitzung:
   `sun-portal@analytics-460722.iam.gserviceaccount.com` in **beiden** Konten
   als Nutzer eintragen. Beides steht in **#55**; wer die Sitzung sowieso im
   Konto hat, erledigt es dort gleich mit und liest §6.2/§6.4 danach per API.
+
+  **Handgriff 1 ist am 16.10.2026 erledigt — ohne Konsole** (#58): das
+  Produktions-Dienstkonto darf im Projekt `321830197826` Service Usage
+  bedienen. Mit einem Token auf Scope `cloud-platform` (dieselbe
+  Schlüsseldatei, nur anderer Bereich) antwortet
+  `GET serviceusage.googleapis.com/v1/projects/321830197826/services/adsense.googleapis.com`
+  mit `state: DISABLED`, und
+  `POST …/services/adsense.googleapis.com:enable` (Rumpf `{}`, nicht leer —
+  ein leerer Rumpf gibt HTTP 400 „Root element must be a message") schaltet
+  sie frei. Danach `state: ENABLED`, und `ads:adsense-konto` fällt von Exit 70
+  auf **71**. Der Weg steht auch für jede weitere Google-API dieses Projekts
+  offen; ein `gcloud` gibt es weder lokal noch auf der Produktion.
+
+  **Handgriff 2 bleibt offen und ist fraglich.** Die API nimmt das
+  Dienstkonto-Token an und antwortet auf `accounts.list` mit HTTP 200 und
+  **null** Konten — das Konto sieht nichts, was ihm nicht zugeteilt ist. Die
+  Doku der Management API sagt aber ausdrücklich, dass AdSense **keine
+  Dienstkonten unterstützt** und der Installed-Application-Flow mit einem
+  authentifizierten Nutzer vorgesehen ist; eine Nutzereinladung in AdSense
+  geht an eine E-Mail-Adresse und muss aus einem Google-Konto **angenommen**
+  werden, was ein Dienstkonto nicht kann. Schlägt der Eintrag in der
+  Oberfläche also fehl, ist das kein Bedienfehler, sondern die Grenze des
+  Dienstkonto-Wegs — dann braucht der Client ein Refresh-Token eines echten
+  Nutzers (**#61**). Der Versuch kostet nichts und ist damit die billigere
+  Reihenfolge.
 
   Das Ablesen selbst ist seit #55 eingecheckt und braucht die Oberfläche nicht
   mehr:
