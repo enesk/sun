@@ -1,0 +1,67 @@
+{
+  "gemessen": "2026-10-16T12:43:59.771Z",
+  "breite": 360,
+  "seiten": [
+    {
+      "url": "https://elektriker.test/15651-baalhorn-elektrotechnik",
+      "geklickt": true,
+      "vorKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "company_before_footer",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 130
+          }
+        ],
+        "offeneHeadVorlagen": 1,
+        "offeneFragmente": 1,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "nachKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "company_before_footer",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 130
+          }
+        ],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": true,
+        "eingesetzteAnzeigen": 2
+      },
+      "gesamt": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "company_before_footer",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 130
+          }
+        ],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": true,
+        "eingesetzteAnzeigen": 2
+      }
+    }
+  ]
+}

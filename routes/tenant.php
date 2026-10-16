@@ -194,11 +194,17 @@ Route::middleware([
 // ohnehin kein Token. Mit Tenancy-Initializer, weil das Portal aus der Domain
 // kommt und nie aus dem Rumpf.
 //
-// throttle:60,1 je IP (technischer Hinweis des Tickets): ein Seitenaufruf
-// schickt hoechstens zwei Beacons (Sichtbarkeit und Seitenwechsel), 60 je
-// Minute sind also reichlich. Das Limit laeuft wegen Laravels
-// $middlewarePriority VOR der Tenancy-Middleware — es ist deshalb ein reines
-// IP-Limit ohne Portalbezug, was hier genau richtig ist.
+// throttle:60,1 (technischer Hinweis des Tickets): ein Seitenaufruf schickt
+// hoechstens zwei Beacons (Sichtbarkeit und Seitenwechsel). Das Limit laeuft
+// wegen Laravels $middlewarePriority VOR der Tenancy-Middleware — es ist
+// deshalb ein Limit ohne Portalbezug, was hier richtig ist.
+//
+// Seit #43 ist es ein Limit je BESUCHER, auch hinter Cloudflare: der aeussere
+// nginx-Block loest `CF-Connecting-IP` auf, `$request->ip()` ist die echte
+// Adresse (docs/echte-besucher-ip.md, abgenommen 16.10.2026). Vorher zaehlte
+// die Cloudflare-Edge — ein Eimer fuer viele Besucher (Review #39, Befund S3).
+// Wichtig bleibt: ein 429 verliert Impressionen unsichtbar, weil sendBeacon
+// keine Antwort auswertet. Wer das Limit senkt, verliert also still Zahlen.
 Route::middleware([
     App\Providers\TenancyServiceProvider::TENANCY_INITIALIZER,
     Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,

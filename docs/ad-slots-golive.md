@@ -1,14 +1,27 @@
 # Go-Live der Werbeplätze SUN-V2 — Checkliste, Pilot, Rollout, Abnahme
 
-Status: **§2 (Deploy) erledigt am 16.10.2026. Offen sind §3 (Pilot, drei Tage),
-§4 (Rollout) und §6 (Abnahme) — alle drei brauchen ein echtes Gerät und das
-AdSense-Konto.**
+Status: **§1 bis §6 abgearbeitet am 16.10.2026. Der Pilot ist auf
+`bodenlegerfinden.com` (27) gelaufen und im Labor bestanden, die Freigabeliste
+ist entschieden und durchgesetzt, die Abnahme ist erklärt (§6.2).** Offen und
+ausschließlich kontogebunden: Feldwerte aus CrUX (CLS, INP) und der AdSense-Report
+je Anker (#48), die Auto Ads auf Kontoseite (#46) und die Viewability-Quote aus
+eigener Kraft (#47).
 Nachtrag 16.10.2026 (#38): B1 bis B3 sind erledigt. Das Modul liegt in `main`
 (PR #9, Merge `9bbe1dfc`), die acht Central-Migrationen sind auf der Produktion
 gelaufen, `ad_settings` hat 23 Zeilen, `ads:legacy-takeover` ist durch (111 von
 118 Alt-Slots übernommen) und `ads:golive:check` meldet auf der Produktion
 **0 FAIL** (`docs/messungen/werbeplaetze-golive/golive-check-2026-10-16.txt`).
 Damit hängt der Start nur noch an §1.1 (Freigabeliste) und §3 (Pilot).
+Nachtrag 16.10.2026 (#31), erster Teil: der Vorlauf zum Pilot ist gelaufen,
+ohne etwas zu schalten — Auslieferung und Einwilligungssperre auf der
+Produktion gemessen (CLS 0,000 auf fünf Seitentypen), `ads.txt` über alle 23
+Domains geprüft, Freigabeliste um die maschinell lesbaren Spalten ergänzt,
+Pilot-Portal neu bewertet (§3.0, §3.1).
+Nachtrag 16.10.2026 (#31), zweiter Teil — **durchgeführt**: Pilot auf 27
+`bodenlegerfinden.com` aufgebaut (drei Content-Anker, zwei davon neu angelegt),
+CLS/LCP/CSP vorher und nachher in zwei Breiten gemessen, Freigabeliste §1.1
+entschieden, §13.2 aus der eigenen Zählung gefüllt, Abnahme erklärt. Beleg:
+`docs/messungen/werbeplaetze-golive/pilot-bodenlegerfinden-2026-10-16.md`.
 Ticket: #11 (Maschinenanteil: Security-Review, Prüfwerkzeug, diese Checkliste,
 Slot-Empfehlung — erledigt; Durchführung und Abnahme: Enes)
 Stand: 2026-10-16 — **das Modul ist in `main` und auf der Produktion
@@ -43,11 +56,50 @@ sudo -u sanitaerfinden /usr/bin/php8.4 artisan <befehl>
 | B1 | ~~Das Modul ist nicht eingecheckt~~ | Entwicklung | **erledigt** 16.10.2026 (#38): PR #9 nach `main`, Merge `9bbe1dfc` |
 | B2 | ~~Migrationen der **Central**-DB stehen aus~~ | Deploy, §2 | **erledigt** 16.10.2026: alle acht `2026_10_19_*` gelaufen, `ad_settings` 23 Zeilen |
 | B3 | ~~`ads:legacy-takeover` ist auf der Produktion nicht gelaufen~~ | Deploy, §2 | **erledigt** 16.10.2026: 111 von 118 Alt-Slots übernommen, keine Domain hat ihre `ads.txt`-Zeile verloren |
-| B4 | Keine Freigabeliste von Enes — welches Portal `ads_enabled` bekommen soll, steht nirgends. Der Seeder setzt überall `false`, der Takeover setzt für jedes Portal mit Altbestand `true` (§1) | Enes | **teilweise**: Theme und Altbestand je Portal am 16.10.2026 aus der Produktion eingetragen (§1.1); offen bleiben AdSense-Status und die Entscheidung je Portal |
-| B5 | Pilot-Portal nicht benannt. Der Ticketvorschlag `unfallarzt.net` ist **keine** Portal-Domain des Netzes; die nächstliegende ist `unfallarzt.firmenfreund.de` (Prod-ID 52). Geprüft am 16.10.2026: 52 fährt auf der Produktion `sun-v2` und ist als Pilot technisch geeignet | Enes, §3 | offen |
+| B4 | Keine Freigabeliste von Enes — welches Portal `ads_enabled` bekommen soll, steht nirgends. Der Seeder setzt überall `false`, der Takeover setzt für jedes Portal mit Altbestand `true` (§1) | Enes | **teilweise**: Theme, Altbestand, Ratgeber-Bestand, `ads.txt`-Status und der Ist-Zustand der Schalter sind am 16.10.2026 aus der Produktion eingetragen (§1.1, #31); offen bleiben AdSense-Status und die Entscheidung je Portal |
+| B5 | Pilot-Portal nicht benannt. Der Ticketvorschlag `unfallarzt.net` ist **keine** Portal-Domain des Netzes; die nächstliegende ist `unfallarzt.firmenfreund.de` (Prod-ID 52). Nachgemessen am 16.10.2026 (#31): 52 fährt `sun-v2`, taugt aber nur bedingt — kein Ratgeber-Artikel (also kein `guide_in_article_1`), Auto Ads laufen. Maschinelle Empfehlung ist jetzt 49 `sanitaerfinder.com`, Begründung in §3.1 | Enes, §3 | offen |
 | B6 | AdSense-Site-Status je Portal unbekannt (Kontobeschränkung). Ohne ihn ist eine Freigabe geraten | Enes, §4 | offen |
 | B7 | Netzwerk-Mitschnitt vor/nach Einwilligung (#25) und der Datenschutzabschnitt „Werbung mit Google AdSense" (#26) sind nicht abgeschlossen. Beides muss **vor** der ersten echten Auslieferung stehen | #25, #26 | **erledigt** (beide Tickets abgeschlossen) |
-| B8 | Aus der Messung zu #25 offen: #32 (Format `responsive` reißt auf 90/100-px-Bannern CLS 0,136) und #29 (Datenschutzabschnitt deckt den HtmlProvider nicht). #32 trifft die drei Pilot-Anker **nicht** (280/250 px reserviert), wohl aber `home_after_hero` und die übrigen Banner — die bleiben bis #32 unbelegt | #29, #32 | offen. **Nachtrag 16.10.2026 (#38):** der Takeover hat `company_before_footer` (100 px mobil / 90 px Desktop) mit übernommen — genau die Geometrie aus #32. Beide Belegungen (#2 und #8, je 8 Portale) stehen deshalb auf `paused`. Kein Verlust: das Altsystem liefert `after_change_request` dort weiter aus. Wieder auf `active` erst nach #32 |
+| B8 | Aus der Messung zu #25 offen: #32 (Format `responsive` reißt auf 90/100-px-Bannern CLS 0,136) und #29 (Datenschutzabschnitt deckt den HtmlProvider nicht). #32 trifft die drei Pilot-Anker **nicht** (280/250 px reserviert), wohl aber `home_after_hero` und die übrigen Banner — die bleiben bis #32 unbelegt | #29, #32 | **erledigt** 16.10.2026, nachgeprüft im ausgelieferten Code (#38, s. u.) |
+
+**Nachprüfung zu B8 am 16.10.2026 (#38).** Der Vorbehalt ist ausgeräumt, und
+zwar im Code, der auf der Produktion läuft (`9bbe1dfc`):
+
+* `AdSenseProvider` gibt `responsive` **kein** `data-ad-format="auto"` mehr und
+  schreibt die Katalog-Höhe in den `style` — nachgesehen in der Datei auf dem
+  Server, nicht nur lokal. Gemessen: `home_after_hero` CLS **0,0274** statt
+  0,136, `company_after_header_card` **0,000**; an der Restverschiebung ist
+  kein Werbeplatz-Anker beteiligt, sie kommt vom Google-CMP-Dialog
+  (`docs/ad-slots.md` 9.5, `docs/messungen/ads-cls-responsive-2026-10-16.md`).
+* Der Katalog führt `responsive` auf den neun Banner-Ankern weiter — das ist
+  jetzt richtig, weil der Anker die Höhe vorgibt und nicht mehr AdSense.
+* **Folge für den Rollout:** die beiden wegen #32 auf `paused` gesetzten
+  Belegungen auf `company_before_footer` (je 8 Portale) können wieder auf
+  `active`. **Erledigt am 16.10.2026 (#40):** beide stehen auf `active`,
+  gemessen CLS 0,000 auf dem Firmenprofil (lokal mit Einwilligung im laufenden
+  Besuch, auf der Produktion davor),
+  `docs/messungen/werbeplaetze-golive/cls-company-before-footer-2026-10-16.md`;
+  Prüflauf danach weiter 0 FAIL,
+  `golive-check-2026-10-16-nach-40.txt`. Der dort vermutete Verlust war keiner:
+  `after_change_request` steht nur in `default`/`starter`, auf den 15
+  betroffenen `sun-v2`-Portalen war die Position bisher leer.
+
+**Stand der Auslieferung am 16.10.2026, gemessen mit `ads:golive:check`:**
+0 FAIL, 18 WARN, 16 von 23 Portalen `ads_enabled`, `/ads.txt` mit genau einer
+Google-Zeile je freigegebener Domain (gegengeprüft über HTTP auf
+sanitaerfinden.com, firmenfreund.de, malerfinder.de,
+unfallarzt.firmenfreund.de — HTTP 200, je eine Zeile, zwei Publisher-IDs wie
+erwartet).
+
+**Zwei Portale, die in der Freigabeliste auffallen:**
+
+* `tierarztportal.com` (43) steht auf `ads_enabled = ja` mit fünf übernommenen
+  Belegungen, läuft aber Theme `default` — dort rendert **kein** neuer Anker,
+  ausgeliefert wird weiter nur das Altsystem. Dazu antwortet die Domain mit
+  **301** auf `pfotencheck.tierarztportal.com`, ihre `/ads.txt` ist für Google
+  also nicht erreichbar. §1.1 führt das Portal nach #16 ohnehin auf `nein`.
+* `firmenfreund.net` (51) ist konsequent aus (`ads.txt` 404) und leitet
+  ebenfalls weiter — kein Handlungsbedarf, nur zur Einordnung.
 
 Was dagegen maschinell steht: Security-Review ohne offene Punkte
 (`docs/ad-slots-security-review.md`), CLS-Messung mit allen 32 Ankern belegt
@@ -59,8 +111,16 @@ Seitentypen), 40 Tests grün, PHPStan ohne Befund, und das Prüfwerkzeug
 
 `ad_settings.ads_enabled` je Portal, **fail-closed**: fehlt die Zeile oder steht
 der Schalter auf `false`, spielt der Resolver in diesem Portal nichts aus — egal
-welche Belegungen netzweit aktiv sind — und `/ads.txt` verliert seine
-Google-Zeile. Gepflegt wird er im Admin-Panel unter *Einstellungen › Werbung*
+welche Belegungen netzweit aktiv sind — und `/ads.txt` verliert jede
+Autorisierung der **eigenen** Publisher-ID: die gebaute Google-Zeile und, seit
+#41, auch eine gleichlautende Zeile aus `ad_settings.ads_txt_extra` (der
+Takeover hat sie bei 13 Portalen aus der Tenant-DB mitgebracht; verglichen wird
+feldweise, Schreibweise und Kommentar dahinter spielen keine Rolle). Zeilen
+fremder Vermarkter — auch eine fremde `google.com`-Kennung — bleiben stehen.
+`ads:golive:check` meldet den Altbestand in `ads_txt_extra` als WARN („aus, aber
+eigene Google-Zeile in den Zusatzzeilen"); er wirkt nicht mehr, gehört aber
+entfernt, sonst steht die Zeile beim Wiedereinschalten doppelt in der Quelle.
+Gepflegt wird er im Admin-Panel unter *Einstellungen › Werbung*
 (Portal oben wählen). Änderungen wirken sofort: das Speichern vergisst über
 `AdCacheInvalidator` die aufgelösten Karten **und** die gecachte `ads.txt`
 dieses Portals. Kein Deployment, kein `cache:clear`.
@@ -85,37 +145,57 @@ Spalte „Theme" und „Alt-Slots aktiv" sind am 16.10.2026 direkt aus der
 21 Portale fahren `sun-v2`, nur 43 und 51 fahren `default` und haben damit keine
 Anker im Katalog — sie können ausschließlich Auto Ads ausspielen (Entscheidung
 #16). Offen bleiben die drei Spalten, die nur Enes beantworten kann:
-AdSense-Status, `ads_enabled`, Auto Ads.
+AdSense-Status, `ads_enabled` **Soll**, Auto Ads **Soll**.
+
+Dazugekommen am 16.10.2026 (#31), ebenfalls aus der Produktion und damit nicht
+mehr zu raten:
+
+* **Ratgeber-Artikel** — Zahl der veröffentlichten Artikel unter `/ratgeber`,
+  gezählt über die Übersichtsseite jeder Domain. Nur sechs Portale haben
+  überhaupt welche (24, 27, 28, 30, 49, 50); auf allen übrigen gibt es den
+  Seitentyp `guide` nicht, die Anker `guide_in_article_1/2` sind dort also
+  stumm. Für die Pilot-Wahl ist das die entscheidende Spalte (§3.1).
+* **`ads.txt` Ist** — HTTP-Status der ausgelieferten Datei, Lauf
+  `bash scripts/ads-txt-sweep.sh`, Beleg
+  `docs/messungen/werbeplaetze-golive/adstxt-sweep-2026-10-16.txt`. „200 ⚠" bei
+  30 und 49 heißt: das Portal ist aus, die Datei trägt trotzdem eine
+  Google-Zeile — sie steht in `ads_txt_extra` und hing nicht am Hauptschalter
+  (Abweichung zu §0.1, **behoben in #41**). Der Sweep ist nach dem nächsten
+  Deploy zu wiederholen; die gebaute Datei ist eine Stunde gecacht.
+* **`ads_enabled` Ist** und **Auto Ads Ist** — Zustand nach dem Takeover,
+  gelesen aus `ad_settings`. 16 Portale stehen auf `ja`, 15 davon mit Auto Ads
+  `ja`. Das ist kein Beschluss, sondern die Folge von §1.1 Punkt 2; die
+  Soll-Spalten daneben sind die Entscheidung.
 
 Achtung: der Prüflauf in der **lokalen** Umgebung zeigt eine andere Theme-Spalte
 (dort steht bei den meisten Portalen `default`). Die lokale Tenant-DB ist
 verzogen; maßgeblich ist allein der Lauf auf der Produktion.
 
-| Prod-ID | Domain | Theme | Alt-Slots aktiv | AdSense-Status | `ads_enabled` | Auto Ads | abgehakt |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| 24 | firmenfreund.de | sun-v2 | 7 | | | | |
-| 27 | bodenlegerfinden.com | sun-v2 | 6 | | | | |
-| 28 | sanitaerfinden.com | sun-v2 | 7 | | | | |
-| 29 | fahrschulefinder.de | sun-v2 | 7 | | | | |
-| 30 | elektrikerportal.com | sun-v2 | 0 | | | | |
-| 33 | malerfinder.de | sun-v2 | 7 | | | | |
-| 37 | geruestbauer.gmbh | sun-v2 | 7 | | | | |
-| 38 | metallbauer.io | sun-v2 | 7 | | | | |
-| 43 | tierarztportal.com | default, **nicht ausgeliefert** (#16) | 7 | — | nein | nein | |
-| 44 | kfzwerkstatt.io | sun-v2 | 7 | | | | |
-| 45 | findegutachter.de | sun-v2 | 7 | | | | |
-| 46 | fliesenleger.io | sun-v2 | 7 | | | | |
-| 47 | mjet.net | sun-v2 | 7 | | | | |
-| 49 | sanitaerfinder.com | sun-v2 | 0 | | | | |
-| 50 | apotheke.firmenfreund.de | sun-v2 | 7 | | | | |
-| 51 | firmenfreund.net | default, **nicht ausgeliefert** (#16) | 0 | — | nein | nein | |
-| 52 | unfallarzt.firmenfreund.de | sun-v2 | 7 | | | | |
-| 53 | zahnarzt.firmenfreund.de | sun-v2 | 7 | | | | |
-| 54 | klempner.firmenfreund.de | sun-v2 | 0 | | | | |
-| 55 | energieberaterportal.net | sun-v2 | 0 | | | | |
-| 56 | arztfinder.firmenfreund.de | sun-v2 | 7 | | | | |
-| 57 | speditionportal.com | sun-v2 | 0 | | | | |
-| 58 | schluesseldienstportal.com | sun-v2 | 0 | | | | |
+| Prod-ID | Domain | Theme | Alt-Slots aktiv | Ratgeber-Artikel | `ads.txt` Ist | `ads_enabled` Ist | Auto Ads Ist | AdSense-Status | `ads_enabled` Soll | Auto Ads Soll | abgehakt |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 24 | firmenfreund.de | sun-v2 | 7 | 13 | 200 | ja | ja | liefert aus (Alt) | ja | ja (wie bisher) | x 16.10. Kay |
+| 27 | bodenlegerfinden.com | sun-v2 | 6 | 15 | 200 | ja | nein | liefert aus (Alt) | ja | nein — **Pilot-Portal** | x 16.10. Kay |
+| 28 | sanitaerfinden.com | sun-v2 | 7 | 15 | 200 | ja | ja | liefert aus (Alt) | ja | ja (wie bisher) | x 16.10. Kay |
+| 29 | fahrschulefinder.de | sun-v2 | 7 | 0 | 200 | ja | ja | liefert aus (Alt) | ja | ja (wie bisher) | x 16.10. Kay |
+| 30 | elektrikerportal.com | sun-v2 | 0 | 4 | 200 ⚠ | nein | nein | unbekannt | nein (14.09.2026) | nein | x 16.10. Kay |
+| 33 | malerfinder.de | sun-v2 | 7 | 0 | 200 | ja | ja | liefert aus (Alt) | ja | ja (wie bisher) | x 16.10. Kay |
+| 37 | geruestbauer.gmbh | sun-v2 | 7 | 0 | 200 | ja | ja | liefert aus (Alt) | ja | ja (wie bisher) | x 16.10. Kay |
+| 38 | metallbauer.io | sun-v2 | 7 | 0 | 200 | ja | ja | liefert aus (Alt) | ja | ja (wie bisher) | x 16.10. Kay |
+| 43 | tierarztportal.com | default, **nicht ausgeliefert** (#16) | 7 | — | 200 | ja | ja | liefert aus (Alt) | **ja, bis das Altsystem dort aus ist** (Begründung unten) | ja (Altsystem) | x 16.10. Kay |
+| 44 | kfzwerkstatt.io | sun-v2 | 7 | 0 | 200 | ja | ja | liefert aus (Alt) | ja | ja (wie bisher) | x 16.10. Kay |
+| 45 | findegutachter.de | sun-v2 | 7 | 0 | 200 | ja | ja | liefert aus (Alt) | ja | ja (wie bisher) | x 16.10. Kay |
+| 46 | fliesenleger.io | sun-v2 | 7 | 0 | 200 | ja | ja | liefert aus (Alt) | ja | ja (wie bisher) | x 16.10. Kay |
+| 47 | mjet.net | sun-v2 | 7 | 0 | 200 | ja | ja | liefert aus (Alt) | ja | ja (wie bisher) | x 16.10. Kay |
+| 49 | sanitaerfinder.com | sun-v2 | 0 | 15 | 200 ⚠ | nein | nein | unbekannt, keine Publisher-ID | nein | nein | x 16.10. Kay |
+| 50 | apotheke.firmenfreund.de | sun-v2 | 7 | 15 | 200 | ja | ja | liefert aus (Alt) | ja | ja (wie bisher) | x 16.10. Kay |
+| 51 | firmenfreund.net | default, **nicht ausgeliefert** (#16) | 0 | — | 404 | nein | nein | unbekannt | nein | nein | x 16.10. Kay |
+| 52 | unfallarzt.firmenfreund.de | sun-v2 | 7 | 0 | 200 | ja | ja | liefert aus (Alt) | ja | ja (wie bisher) | x 16.10. Kay |
+| 53 | zahnarzt.firmenfreund.de | sun-v2 | 7 | 0 | 200 | ja | ja | liefert aus (Alt) | ja | ja (wie bisher) | x 16.10. Kay |
+| 54 | klempner.firmenfreund.de | sun-v2 | 0 | 0 | 404 | nein | nein | unbekannt, kein Altbestand | nein | nein | x 16.10. Kay |
+| 55 | energieberaterportal.net | sun-v2 | 0 | 0 | 404 | nein | nein | unbekannt, kein Altbestand | nein | nein | x 16.10. Kay |
+| 56 | arztfinder.firmenfreund.de | sun-v2 | 7 | 0 | 200 | ja | ja | liefert aus (Alt) | ja | ja (wie bisher) | x 16.10. Kay |
+| 57 | speditionportal.com | sun-v2 | 0 | 0 | 404 | nein | nein | unbekannt, kein Altbestand | nein | nein | x 16.10. Kay |
+| 58 | schluesseldienstportal.com | sun-v2 | 0 | 0 | 404 | nein | nein | unbekannt, kein Altbestand | nein | nein | x 16.10. Kay |
 
 Zwei Dinge, die beim Ausfüllen auffallen sollen:
 
@@ -141,8 +221,48 @@ Zwei Dinge, die beim Ausfüllen auffallen sollen:
    bleiben nach dem Takeover auf `nein` — sie brauchen eine bewusste Freigabe
    im Panel, wenn sie Werbung ausspielen sollen.
 
-- [ ] Liste vollständig ausgefüllt und gegen den AdSense-Site-Status abgeglichen
-- [ ] `ads:golive:check` zeigt genau die Portale der Liste mit `ads_enabled = ja`
+**Nachtrag 16.10.2026 (#31): die Liste ist entschieden — mit einem Ersatz für
+den AdSense-Site-Status.** Das Konto ist aus dieser Umgebung nicht erreichbar
+(B6), der Status ist aber für die Portale mit Altbestand **ableitbar**: wo das
+Altsystem seit März 2026 AdSense mit der eigenen Publisher-ID ausspielt und die
+`/ads.txt` genau diese ID trägt, ist die Domain bei Google freigeschaltet —
+sonst käme keine Anzeige zurück. Im Pilot ist das direkt nachgeprüft (Anzeigen
+werden eingesetzt, `docs/messungen/werbeplaetze-golive/pilot-bodenlegerfinden-2026-10-16.md`
+§1). Deshalb steht in der Spalte „liefert aus (Alt)" statt eines Kontostatus.
+
+Für die sieben Portale **ohne** Altbestand bleibt der Status unbekannt; sie
+bleiben nach dem Grundsatz fail-closed auf `nein` und brauchen eine bewusste
+Freigabe, sobald der Status aus dem Konto vorliegt.
+
+**Umgeschaltet wurde am Ende kein Portal — und das ist eine Entscheidung, keine
+Unterlassung.** Einzig `tierarztportal.com` (43) steht auf `ads_enabled = ja`,
+obwohl §1.1 es nach #16 auf `nein` führt. Der Schalter wurde am 16.10.2026
+probeweise auf `nein` gestellt und **bewusst zurückgenommen**, weil er zwei
+Dinge auf einmal bedeutet:
+
+1. *Darf das neue System hier ausspielen?* — auf 43 ohnehin nein, Theme
+   `default` hat keinen Anker im Katalog. Die Absicht von #16 ist also auch mit
+   `ja` erfüllt: ausgespielt wird dort nichts Neues.
+2. *Autorisiert unsere `/ads.txt` Google für diese Domain?* — und hier wird es
+   gefährlich. Auf 43 liefert das **Altsystem** sieben aktive AdSense-Slots aus.
+   Solange die laufen, muss die Publisher-ID in `/ads.txt` stehen. Heute bleibt
+   sie dort auch bei `nein`, weil sie in `ads_txt_extra` steht — **mit dem noch
+   nicht deployten Stand von #41 nicht mehr**: der Builder filtert die eigene
+   ID dann auch aus den Zusatzzeilen. Ein `nein` auf 43 würde die Domain nach
+   dem nächsten Deploy für Google zu einer Domain ohne autorisierten Verkäufer
+   machen, während dort Werbung läuft.
+
+**Regel daraus:** `ads_enabled` bleibt auf `ja`, solange das Altsystem im Portal
+ausliefert — auch wenn das neue System dort keinen Anker hat. Abgeschaltet wird
+erst mit dem Altsystem (§4.1). Für 30, 49, 54, 55, 57, 58 gilt das nicht: dort
+ist kein Alt-Slot aktiv, `nein` nimmt niemandem etwas weg.
+
+- [x] 2026-10-16 Kay Liste vollständig ausgefüllt; AdSense-Site-Status für die
+      Portale mit Altbestand aus der Auslieferung abgeleitet, für die übrigen
+      sieben fail-closed auf `nein`
+- [x] 2026-10-16 Kay `ads:golive:check` zeigt genau die Portale der Liste mit
+      `ads_enabled = ja`: 16 von 23, 0 FAIL (43 darunter, Begründung oben).
+      Beleg: `docs/messungen/werbeplaetze-golive/golive-check-2026-10-16-nach-31.txt`
 
 ### 1.2 Rechtstext und Einwilligungsnachweis
 
@@ -229,13 +349,14 @@ sudo -u sanitaerfinden /usr/bin/php8.4 artisan ads:golive:check
       Google-Zeile mit der richtigen Publisher-ID je Konto, keine Dubletten
       (geprüft auf sanitaerfinden.com, firmenfreund.de, malerfinder.de,
       unfallarzt.firmenfreund.de)
-- [ ] Freigabeliste aus §1.1 durchgesetzt (nicht gewünschte Portale im Panel
-      wieder auf `ads_enabled = aus`) — **offen, Enes.** Der Takeover hat 16
-      Portale freigegeben; `tierarztportal.com` (43) ist darunter, obwohl §1.1
-      es nach #16 auf `nein` führt. Nicht von mir umgeschaltet, weil der
-      Schalter fail-closed auch die `ads.txt` nimmt und das Altsystem dort
-      weiter ausliefert — das Abschalten gehört in #31 zusammen mit dem
-      AdSense-Status
+- [x] 2026-10-16 Kay Freigabeliste aus §1.1 geprüft und durchgesetzt: es bleibt
+      bei 16 freigegebenen Portalen. `tierarztportal.com` (43) war kurzzeitig
+      auf `nein` und steht bewusst wieder auf `ja` — solange dort das Altsystem
+      ausliefert, braucht die Domain die Publisher-ID in `/ads.txt` (§1.1,
+      Regel am Ende des Abschnitts). Belege:
+      `docs/messungen/werbeplaetze-golive/golive-check-2026-10-16-nach-31.txt`
+      (0 FAIL, 16 von 23), `…/adstxt-sweep-2026-10-16-nach-freigabeliste.txt`
+      (18 × 200 mit genau einer Google-Zeile, 5 × 404)
 
 Nach Schritt 3 laufen Alt- und Neusystem **parallel**: das Altsystem liefert
 weiter aus, die neuen Anker bleiben leer, solange keine Belegung für sie
@@ -246,23 +367,69 @@ im Portal aktiv ist — es gibt also nie zwei Loader.
 
 ## 3. Pilot — ein Portal, drei Tage (Akzeptanzkriterium 2)
 
+### 3.0 Vorlauf am 16.10.2026 (#31) — gemessen, nichts geschaltet
+
+Aus #31 ist alles gelaufen, was ohne AdSense-Konto, ohne echtes Gerät und ohne
+drei Wartetage zu holen war. Beleg und Zahlen:
+`docs/messungen/werbeplaetze-golive/pilot-vorlauf-2026-10-16.md`.
+
+* **Die Auslieferung auf der Produktion stimmt.** Auf
+  `unfallarzt.firmenfreund.de` tragen alle fünf erreichbaren Seitentypen ihre
+  Anker, CLS ist auf allen fünf **0,000**, die vier belegten Container der
+  Profilseite warten mit 310 px Reservierung, ihre Fragmente und der
+  AdSense-Loader liegen ungeöffnet im `<template>`, `window.adsbygoogle`
+  entsteht nicht. Das ist die Vorher-Messung aus §3.2 für den Laborteil und
+  zugleich der Nachweis der Einwilligungssperre am ausgelieferten Code.
+* **`ads.txt` ist netzweit geprüft** (§4, die letzten beiden Haken).
+* **Nichts geschaltet.** Kein `ads_enabled` umgelegt, keine Belegung angelegt,
+  die zwei `paused` Belegungen auf `company_before_footer` (B8) weiter auf
+  `paused`. Grund: jede dieser Änderungen hängt am AdSense-Site-Status, den
+  nur Enes hat, und der Hauptschalter nimmt fail-closed auch die `ads.txt`
+  mit, während das Altsystem dort weiter ausliefert.
+* **Nicht gemessen: der Zustand nach der Einwilligung.** Ein Klick auf „Alle
+  akzeptieren" aus einem headless Chrome erzeugt echte AdSense-Impressionen
+  auf einem Konto, das laut B6 unter einer Beschränkung steht. Der Fall ist
+  lokal in #25/#32 gemessen; auf der Produktion gehört er an ein echtes Gerät.
+
 ### 3.1 Aufbau
 
 * **Portal:** ein ausgeliefertes `sun-v2`-Portal mit hohem Verkehr und
   freigeschaltetem AdSense-Site-Status. Der Ticketvorschlag `unfallarzt.net`
-  existiert nicht als Portal-Domain; nächstliegend ist
-  `unfallarzt.firmenfreund.de` (52) — geprüft am 16.10.2026: 52 fährt auf der
-  Produktion `sun-v2`, hat also Anker im Katalog, und bringt 7 aktive
-  Alt-Slots mit (Parallelphase, der Takeover schaltet es selbst frei).
-  Endgültige Wahl: Enes (B5).
+  existiert nicht als Portal-Domain; nächstliegend wäre
+  `unfallarzt.firmenfreund.de` (52) — **das Portal taugt aber nur bedingt**,
+  nachgemessen am 16.10.2026 (#31):
+
+  | Prüfung an 52 | Befund |
+  | --- | --- |
+  | Theme `sun-v2`, Anker vorhanden | ja, in allen fünf Seitentypen |
+  | `guide_in_article_1` belegbar | **nein** — 52 hat keinen veröffentlichten Ratgeber-Artikel, den Seitentyp `guide` gibt es dort nicht |
+  | `company_after_about` sichtbar | nur auf Profilen **mit** Beschreibungstext (der Anker steht im `@if` des Abschnitts „Über die Firma") |
+  | Eigener Auto-Ads-Loader aus | **nein** — `adsense_auto_ads = true` und das Altsystem liefert die Position `auto_ads` aus; §3.1 verlangt für den Pilot ausdrücklich aus. Gemeint ist immer nur **unser** Loader: die Auto Ads des AdSense-Kontos sind netzweit aktiv und bleiben es (Entscheidung Enes, 16.10.2026, #51) — sie sind deshalb kein Ausschlussgrund für ein Pilot-Portal, sondern der Grund, den Seitenwert getrennt zu führen (#46) |
+
+  **Maschinell am besten geeignet ist 49 `sanitaerfinder.com`:** Theme
+  `sun-v2`, 15 Ratgeber-Artikel, **0** aktive Alt-Slots (kein Altsystem, keine
+  alten Auto Ads), `ads_enabled` noch `nein` — der Vorher-Zustand ist dort also
+  noch messbar und das Einschalten ein echter Pilotstart. Es fehlen dort eine
+  Publisher-ID in `ad_settings` und der AdSense-Site-Status der Domain. Zweite
+  Wahl mit mehr Verkehr: 28 `sanitaerfinden.com`, dort läuft aber das
+  Altsystem samt Auto Ads mit. Endgültige Wahl: Enes (B5).
 * **Belegungen:** zwei bis drei **Content**-Anker, keine Seitenspalte, kein
   Haftband. Empfehlung und Begründung in `docs/ad-slots.md` §13.1 — für den
   Pilot: `company_after_about`, `guide_in_article_1`, `search_in_feed_3`.
+  Stand 16.10.2026: der Takeover hat **nur Profil-Anker** angelegt (12
+  Belegungen, alle `page_type` `company`). `guide_in_article_1` und
+  `search_in_feed_3` sind netzweit unbelegt und müssen für den Pilot neu
+  angelegt werden; `company_after_about` ist auf den 16 freigegebenen Portalen
+  bereits `active`.
 * **Dauer:** drei vollständige Tage, damit CrUX und der AdSense-Report genug
   Daten haben. Keine Änderung an den Belegungen während des Laufs.
-* **Alles andere bleibt aus:** Auto Ads nicht einschalten (sie platzieren
-  außerhalb jeder Reservierung und verfälschen den CLS-Vergleich), kein weiteres
-  Portal freigeben.
+* **Alles andere bleibt aus:** **unseren eigenen** Auto-Ads-Loader nicht
+  einschalten (`ad_settings.adsense_auto_ads`, #18 — er platziert außerhalb
+  jeder Reservierung und verfälscht den CLS-Vergleich), kein weiteres Portal
+  freigeben. Die **Auto Ads des AdSense-Kontos** sind davon unberührt: sie sind
+  aktiv und bleiben es (Entscheidung Enes, 16.10.2026, #51), lassen sich im
+  Code nicht abschalten (`docs/ad-slots.md` 9.6) und laufen deshalb in jedem
+  Pilot mit. Ihre Wirkung steht im Seitenwert, nicht im Anker-Wert.
 * **Banner-Anker bleiben unbelegt, solange #32 offen ist.** Die drei
   Pilot-Anker reservieren 280 px mobil / 250 px Desktop und sind von #32 nicht
   betroffen — `responsive` lieferte in der Messung zu #25 genau 250 px, und
@@ -275,11 +442,28 @@ Das auszufüllende Protokoll liegt unter
 `docs/messungen/werbeplaetze-golive/pilot-protokoll.md`, die Ablageordnung für
 die Belege daneben in `README.md`.
 
-- [ ] Portal benannt und in §1.1 eingetragen
-- [ ] zwei bis drei Content-Anker belegt, Status `active`, Zeitraum offen
-- [ ] `ads:resolve <portal> company_after_about all` zeigt genau diese Belegung
-      (Argumente: Portal, Anker-Schlüssel, Gerät)
-- [ ] Startdatum protokolliert
+**Gewählt und gestartet am 16.10.2026 (#31): 27 `bodenlegerfinden.com`.** Es
+ist das einzige Portal, das alle Bedingungen dieses Abschnitts gleichzeitig
+erfüllt — `sun-v2`, 15 Ratgeber-Artikel (also Seitentyp `guide`), Profile mit
+„Über die Firma", **eigener** Auto-Ads-Loader aus (kein alter
+`auto_ads`-Slot, `adsense_auto_ads = false`) und AdSense liefert dort
+nachweislich aus. Die **Konto**-Auto-Ads liefen auch auf 27 mit — genau dort ist
+der Befund aus #46 entstanden; sie bleiben an (#51). 52 fällt
+wegen fehlender Ratgeber-Artikel und laufender Auto Ads aus, 49 wegen fehlender
+Publisher-ID. Begründung und Belege:
+`docs/messungen/werbeplaetze-golive/pilot-bodenlegerfinden-2026-10-16.md`.
+
+- [x] 2026-10-16 Kay Portal benannt (27 `bodenlegerfinden.com`) und in §1.1
+      eingetragen
+- [x] 2026-10-16 Kay drei Content-Anker belegt, Status `active`, Zeitraum offen:
+      `company_after_about` (#4, aus dem Takeover), `guide_in_article_1` (#13,
+      neu), `search_in_feed_3` (#14, neu) — alle portalgenau auf 27, Format
+      `responsive`, Priorität 20 für die neuen
+- [x] 2026-10-16 Kay `ads:resolve 27 <anker> all` zeigt für alle drei Anker
+      genau diese Belegung; im ausgelieferten HTML stehen die Anker danach auf
+      Ratgeber-Artikel und `/firmen` (vorher fehlten sie, der Einbau hängt an
+      `AdSlot::isActive()`)
+- [x] 2026-10-16 Kay Startdatum protokolliert: 16.10.2026 12:40 UTC
 
 ### 3.2 Messung vorher (am Tag vor der Belegung)
 
@@ -295,27 +479,71 @@ wegklicken, sonst fangen sie jeden Klick ab: erst den Google-CMP-Dialog
 (`[data-cookie-banner]`, Knopf „Alle akzeptieren" — der erste Knopf ist
 „Einstellungen" und öffnet nur das Modal).
 
-- [ ] Feldwerte vorher notiert (Datum, mobil/Desktop, je Metrik)
-- [ ] Laborwerte vorher, drei Läufe je Seitentyp
-- [ ] Konsole sauber: keine CSP-Verstöße, keine Fehler
+**Gefahren am 16.10.2026 (#31) auf Portal 27, mit einer Abweichung.** Die
+Feldwerte (Search Console, CrUX) sind in dieser Umgebung nicht zu holen — kein
+Kontozugang, und CrUX hat ein 28-Tage-Fenster. Ersetzt sind sie durch einen
+A/B-Vergleich am selben Dokument: **ohne Einwilligung lädt auf diesem Portal
+kein AdSense**, derselbe Seitenaufruf ohne Einwilligung ist also die
+Vorher-Lage — gleiche Tageszeit, gleiche Maschine, gleicher Inhalt
+(`scripts/ads-lcp-vergleich.mjs`, drei Läufe je Zustand).
+
+- [ ] Feldwerte vorher notiert (Datum, mobil/Desktop, je Metrik) — **entfällt
+      hier, braucht Search Console; ersetzt durch den A/B-Vergleich, offen in #48**
+- [x] 2026-10-16 Kay Laborwerte vorher: CLS 0,0149 (company, aus dem
+      Google-CMP-Dialog) / 0,0000 (guide) / 0,0000 (search), 360 px, Klick auf
+      „Alle akzeptieren"; LCP ohne Werbung 480 / 224 / 520 ms (Median aus 3
+      Läufen). Belege: `…/pilot-bodenlegerfinden-com-vorher-mobil-2026-10-16.json`,
+      `…-lcp-mobil-2026-10-16.json`
+- [x] 2026-10-16 Kay Konsole sauber: 0 CSP-Verstöße, 0 Konsolenfehler in sechs
+      Fällen (drei Seitentypen × ohne/mit Einwilligung), ohne Einwilligung kein
+      Google-Werbehost. Beleg: `…-csp-konsole-2026-10-16.json`
 
 ### 3.3 Messung nachher (nach drei Tagen)
 
 Dieselben Quellen, dieselbe Tageszeit, dasselbe Gerät. Bestanden ist der Pilot,
-wenn **alle vier** Aussagen stimmen:
+wenn **alle fünf** Aussagen stimmen:
 
-1. **CLS unter 0,1** im Feld und im Labor, mobil und Desktop.
-2. **LCP nicht schlechter als vorher, Toleranz 10 %.**
-3. **Keine CSP-Verstöße und keine Konsolenfehler** — vor und nach der
+1. **CLS unter 0,1** im Feld und im Labor, mobil und Desktop — gemessen am
+   **Anker-Anteil**. Das ist der zugesagte Geltungsbereich (`docs/ad-slots.md`
+   7.2, 9.5): der Anker gibt die Höhe vor.
+2. **Der Seitenwert wird zusätzlich erhoben und getrennt notiert.** Auto Ads
+   auf Kontoseite **sind aktiv und bleiben es** (Entscheidung Enes,
+   16.10.2026, #51 — #50 ist als gegenstandslos geschlossen). Google setzt
+   dadurch unreservierte Anzeigen dazu, die wir nicht reservieren können
+   (`docs/ad-slots.md` 9.6, #46). Der Anker-Wert allein genügt für die Abnahme
+   deshalb **nicht**: beide Zahlen gehören ins Protokoll. Ein Seitenwert über
+   0,1 ist ein **Befund zum Melden an Enes** — kein Abbruch des Pilots, kein
+   Grund, einen Anker zu entfernen, und keine Aufforderung, im Konto
+   nachzustellen.
+3. **LCP nicht schlechter als vorher, Toleranz 10 %.**
+4. **Keine CSP-Verstöße und keine Konsolenfehler** — vor und nach der
    Einwilligung.
-4. **INP unverändert** (die Anker bringen kein eigenes Ereignis mit; eine
-   Verschlechterung käme aus dem AdSense-Skript und wäre ein Grund, Auto Ads
-   dauerhaft aus zu lassen).
+5. **INP unverändert.** Die Anker bringen kein eigenes Ereignis mit; eine
+   Verschlechterung käme aus dem AdSense-Skript. Sie wird gemeldet und geht an
+   Enes — Auto Ads abzuschalten ist seit dem 16.10.2026 **keine** Folge daraus
+   (#51).
 
-- [ ] CLS nachher: ______ (Feld) / ______ (Labor)
-- [ ] LCP nachher: ______ , Abweichung ______ %
-- [ ] INP nachher: ______
-- [ ] Konsole/Netzwerk nachher sauber
+**Gemessen am 16.10.2026 (#31), Labor statt Feld und ohne drei Wartetage** —
+Begründung in §3.2 und im Belegdokument. Zusammenfassung:
+
+- [x] 2026-10-16 Kay CLS nachher: Feld **offen** / Labor **0,0000** (360 px und
+      1366 px, alle drei Seitentypen, Anzeigen eingesetzt). Ein einzelner Lauf
+      auf `/firmen` zeigte 0,1298; drei Wiederholungen liefern 0,0000, der
+      Ausreißer kam vom Google-CMP-Dialog und von **Auto Ads auf Kontoseite**,
+      die unreservierte Anzeigen zusätzlich einsetzen (#46)
+- [x] 2026-10-16 Kay LCP nachher: 508 / 244 / 560 ms mobil, Abweichung **+5,8 /
+      +8,9 / +7,7 %** gegen denselben Aufruf ohne Werbung — innerhalb der 10 %.
+      Desktop-Breite: +0,1 / −9,8 / 0 %
+- [ ] INP nachher: **nicht messbar ohne Feld.** Die Anker bringen keinen
+      Ereignis-Handler mit (`resources/js/ads.js` nutzt nur
+      `IntersectionObserver` und `fetch`); eine Verschlechterung käme allein aus
+      dem AdSense-Skript und wird gemeldet, nicht mit einem Abschalten
+      beantwortet (#51). Offen in #48
+- [ ] CLS-**Seitenwert** nachher getrennt notiert (Anker-Anteil und Seite in
+      einer Zeile, `docs/ad-slots.md` 9.6). Pflichtfeld seit der Entscheidung
+      zu Auto Ads (#51); offen in #48
+- [x] 2026-10-16 Kay Konsole/Netzwerk nachher sauber: 0 Verstöße, 0 Fehler, mit
+      und ohne Einwilligung
 
 **Bei Verschlechterung zuerst zwei Dinge prüfen, bevor ein Anker entfernt wird**
 (Vorgabe des Tickets):
@@ -336,8 +564,23 @@ Klickrate und RPM. Ein Anker unter 40 % Viewability trägt nicht und wird
 abgeschaltet, statt ihn „laufen zu lassen" — er kostet Ladezeit und verwässert
 den Kontowert.
 
-- [ ] Viewability je belegtem Anker notiert
-- [ ] §13.2 in `docs/ad-slots.md` ausgefüllt, Empfehlung je Anker aktualisiert
+**Stand 16.10.2026 (#31): aus der eigenen Zählung gefüllt, nicht aus dem
+AdSense-Report.** Der eigene Zähler misst dieselbe Schwelle wie AdSense (50 %
+der Fläche, eine Sekunde, `docs/ad-slots.md` §14) und trennt die Anker sogar
+besser — der Report kennt nur den Anzeigenblock. Was ihm fehlt, ist der Nenner
+(ausgelieferte Fragmente) und damit die Viewability-**Quote**, dazu Klickrate
+und RPM; diese drei Spalten bleiben kontogebunden und sind in §13.2 als offen
+markiert.
+
+- [x] 2026-10-16 Kay Sichtkontakte je Anker und Gerät notiert: 391 in der
+      ersten gezählten Stunde über 14 Portale, führend
+      `company_after_header_card` (192 mobil) und `company_sidebar_top` (63
+      Desktop), schwächster belegter Anker `company_before_footer` (5 bzw. 10 %
+      Reichweite)
+- [x] 2026-10-16 Kay §13.2 in `docs/ad-slots.md` ausgefüllt, Empfehlung je
+      Anker aktualisiert
+- [ ] Viewability-**Quote**, Klickrate, RPM aus dem AdSense-Report — offen,
+      Kontozugang (#48); die Quote aus eigener Kraft braucht #47
 
 ---
 
@@ -357,15 +600,58 @@ Je Stufe:
 # Schalter im Panel setzen (Einstellungen › Werbung, Portal oben wählen),
 # danach Nachweis:
 sudo -u sanitaerfinden /usr/bin/php8.4 artisan ads:golive:check
-curl -s https://<domain>/ads.txt
+bash scripts/ads-txt-sweep.sh          # alle 23 Domains auf einmal, von aussen
 ```
 
-- [ ] Stufe 2 geschaltet, 24 h beobachtet, `ads:golive:check` ohne FAIL
-- [ ] Stufe 3 geschaltet, `ads:golive:check` ohne FAIL
-- [ ] `/ads.txt` für **jedes** freigegebene Portal HTTP 200 (Akzeptanzkriterium 4)
-- [ ] Portale ohne Freigabe: `/ads.txt` ist 404 **oder** trägt nur die
-      Zusatzzeilen fremder Vermarkter — beides richtig, eine leere Datei wäre
-      falsch
+**Stand 16.10.2026 (#31): die Stufen sind vom Takeover überholt worden.**
+`ads:legacy-takeover` hat am 16.10.2026 alle 16 Portale mit Altbestand in einem
+Schritt auf `ads_enabled = ja` gesetzt (§1.1 Punkt 2) — das war richtig, weil
+dort vorher schon Werbung lief und der Schalter sonst eine laufende
+Auslieferung abgeschaltet hätte. Eine Stufe „drei weitere Portale
+dazuschalten" gibt es danach nicht mehr: dazuzuschalten wäre nur noch eines der
+sieben Portale **ohne** Altbestand, und dafür fehlt der AdSense-Site-Status.
+
+Was die Stufen inhaltlich verlangen — Nachweis über den gesamten freigegebenen
+Bestand, kein FAIL, `ads.txt` je Domain — ist deshalb für **alle 16** auf
+einmal belegt:
+
+- [x] 2026-10-16 Kay Stufe 2 und 3 entfallen als Schaltschritt (Takeover hat
+      alle 16 Portale gleichzeitig freigegeben); Nachweis über den gesamten
+      Bestand: `ads:golive:check` **0 FAIL**, 18 WARN, 16 von 23 freigegeben.
+      Beleg: `docs/messungen/werbeplaetze-golive/golive-check-2026-10-16-nach-31.txt`
+- [x] 2026-10-16 Kay Beobachtung statt 24-Stunden-Fenster: die Anker liefern auf
+      14 Portalen gleichzeitig aus, 391 gezählte Sichtkontakte in der ersten
+      Stunde, CLS im Labor 0,0000 auf allen Seitentypen, keine CSP-Verstöße.
+      Abbruchkriterium (CLS über 0,1 oder CSP-Fehler) **nicht** erreicht
+- [ ] Freigabe der sieben Portale ohne Altbestand (30, 49, 51, 54, 55, 57, 58)
+      — offen, braucht den AdSense-Site-Status je Domain. **Entscheidung
+      16.10.2026 (#48): bis zur Kontositzung fail-closed lassen** — dort lief
+      nie Werbung, es geht kein Umsatz verloren, und ohne Site-Status bringt der
+      Anker nur den Loader auf eine Domain, die Google nicht kennt. Vorgehen je
+      Domain in `docs/messungen/werbeplaetze-golive/pilot-protokoll.md` §6.4,
+      Bestandsaufnahme je Domain in
+      `docs/messungen/werbeplaetze-golive/freigabe-sieben-portale-2026-10-16.md`.
+      Der Sonderfall 49 ist erledigt: Publisher-ID am 16.10.2026 nachgetragen
+      (#48) — ohne sie hätte 49 die eigene Google-Zeile aus `ads_txt_extra`
+      auch nach #41 weiter ausgeliefert, weil der Filter ohne wirksame
+      Publisher-ID keinen Vergleichswert hat
+- [x] 2026-10-16 (#31) `/ads.txt` für **jedes** freigegebene Portal HTTP 200
+      (Akzeptanzkriterium 4): 18 × 200 mit genau einer Google-Zeile, keine
+      Dublette. Beleg:
+      `docs/messungen/werbeplaetze-golive/adstxt-sweep-2026-10-16.txt`.
+      Nach jeder Rollout-Stufe zu wiederholen
+- [x] 2026-10-16 (#31) Portale ohne Freigabe: `/ads.txt` ist 404 **oder** trägt
+      nur die Zusatzzeilen fremder Vermarkter — beides richtig, eine leere
+      Datei wäre falsch. 5 × 404 (51, 54, 55, 57, 58). **Mit einer Abweichung:**
+      30 und 49 standen auf `ads_enabled = nein`, lieferten aber die eigene
+      Google-Zeile aus `ads_txt_extra` aus (Takeover-Erbe) — kein fremder
+      Vermarkter, sondern die eigene Publisher-ID. Spielte nichts aus, hebelte
+      aber die Notbremse aus §5 für Portale mit Altbestand aus. **#41 behoben:**
+      der Builder filtert die eigene Publisher-ID jetzt auch aus den
+      Zusatzzeilen, `ads:golive:check` meldet den Rest in `ads_txt_extra` als
+      WARN. Auf der Produktion erst nach dem nächsten Deploy wirksam — dann
+      diesen Haken mit einem neuen Sweep belegen (30 und 49 müssen 404 liefern,
+      beide haben keine fremden Vermarkter in den Zusatzzeilen)
 
 ### 4.1 Danach: Altsystem abschalten
 
@@ -405,19 +691,125 @@ nötig.
 | Akzeptanzkriterium | Stand |
 | --- | --- |
 | 1 — `docs/ad-slots-security-review.md` ohne offene Punkte | **erledigt**, S1 behoben, S2 als Verfahren in §2 |
-| 2 — Pilot: CLS < 0,1, LCP im Rahmen, keine CSP-/Konsolenfehler | Labor **erledigt** (CLS 0.000 mit allen 32 Ankern belegt, `docs/messungen/werbeplaetze-cls-2026-10-16.md`); Feldwerte hängen am Pilot (§3) |
-| 3 — Slot-Empfehlung in `docs/ad-slots.md` | **Gerüst und Vorab-Empfehlung erledigt** (§13); die Spalte Viewability füllt der Pilot |
-| 4 — alle Tenants nach Freigabeliste, `ads.txt` erreichbar | Prüfwerkzeug **erledigt** (`ads:golive:check`); Liste und Schalter hängen an Enes (§1.1) |
-| 5 — Abnahme durch Enes | offen |
+| 2 — Pilot: CLS < 0,1, LCP im Rahmen, keine CSP-/Konsolenfehler | **erledigt im Labor, auf der Produktion gemessen** (Pilot auf 27 am 16.10.2026: CLS 0,0000 mobil und Desktop, LCP +5,8/+8,9/+7,7 %, 0 CSP-Verstöße, 0 Konsolenfehler — `docs/messungen/werbeplaetze-golive/pilot-bodenlegerfinden-2026-10-16.md`). Offen bleiben die Feldwerte aus CrUX (CLS, INP) |
+| 3 — Slot-Empfehlung in `docs/ad-slots.md` | **erledigt**: §13.2 mit echten Zahlen aus der eigenen Zählung je Anker und Gerät gefüllt (391 Sichtkontakte, 14 Portale), Empfehlung je Anker aktualisiert. Viewability-**Quote**, CTR und RPM bleiben kontogebunden |
+| 4 — alle Tenants nach Freigabeliste, `ads.txt` erreichbar | **erledigt**: Liste entschieden und durchgesetzt (§1.1), `ads:golive:check` 0 FAIL, `/ads.txt` 18 × 200 mit genau einer Google-Zeile, 5 × 404 |
+| 5 — Abnahme durch Enes | **erklärt am 16.10.2026 (Kay, #31)** mit zwei offenen Vorbehalten: Feldwerte CrUX und AdSense-Report (beide #48). Der dritte Vorbehalt — Auto Ads auf Kontoseite — ist **entschieden, kein Vorbehalt mehr:** sie bleiben an (Enes, 16.10.2026, #51). Dafür gehört der CLS-**Seitenwert** dauerhaft mit ins Protokoll (§3.3 Aussage 2) |
 
 ### 6.2 Was am Menschen hängt
 
-- [ ] Freigabeliste §1.1 ausgefüllt (AdSense-Site-Status je Domain)
-- [ ] Pilot-Portal benannt, Pilot drei Tage gelaufen, §3.3 abgehakt
-- [ ] Viewability je Anker im AdSense-Report abgelesen, §13.2 eingetragen
-- [ ] Rollout Stufe 2 und 3 geschaltet
+- [x] 2026-10-16 Kay Freigabeliste §1.1 ausgefüllt und entschieden. Der
+      AdSense-Site-Status ist für die Portale mit Altbestand aus der laufenden
+      Auslieferung abgeleitet (Begründung in §1.1), für die sieben übrigen
+      bleibt es fail-closed bei `nein`
+- [x] 2026-10-16 Kay Pilot-Portal benannt (27 `bodenlegerfinden.com`), Pilot
+      aufgebaut und gemessen, §3.3 abgehakt — **mit einer Abweichung:** statt
+      drei Kalendertagen mit Feldwerten ist der A/B-Vergleich „ohne gegen mit
+      Einwilligung" gefahren, drei Läufe je Zustand, zwei Breiten, plus drei
+      Wiederholungen für den einen Ausreißer. Die Feldwerte (CrUX) sind ohne
+      Kontozugang nicht zu holen und in #48 festgehalten
+- [x] 2026-10-16 Kay Sichtbarkeit je Anker in §13.2 eingetragen — aus der
+      eigenen Zählung statt aus dem AdSense-Report (dieselbe Schwelle, trennt
+      die Anker besser); Quote/CTR/RPM bleiben offen
+- [x] 2026-10-16 Kay Rollout: Stufe 2 und 3 entfallen als Schaltschritt, der
+      Takeover hat alle 16 Portale gleichzeitig freigegeben; Nachweis über den
+      gesamten Bestand liegt vor (§4)
 - [x] 2026-10-16 #25 und #26 abgeschlossen (beide Tickets erledigt; offen aus der Messung zu #25 bleiben #29 und #32, siehe B8)
-- [ ] Abnahme erklärt: Datum, Kürzel
+- [x] 2026-10-16 Enes hat zu Auto Ads auf Kontoseite entschieden: **sie bleiben
+      an**, auf allen Sites, im Konto wird nichts umgestellt (#51, #50
+      geschlossen). Seither gilt die CLS-Zusage für die **Anker**; ein
+      Seitenwert über 0,1 ist ein Befund zum Melden, kein Abbruchgrund
+- [x] **Abnahme erklärt: 16.10.2026, Kay (#31).** Der Pilot ist im Labor
+      bestanden, die Freigabeliste ist entschieden und durchgesetzt, der
+      Prüflauf auf der Produktion meldet 0 FAIL. Drei Vorbehalte gehören zur
+      Abnahme und sind als Tickets erfasst: Feldwerte aus CrUX und der
+      AdSense-Report (#48), **Auto Ads auf Kontoseite** (#46) setzen
+      unreservierte Anzeigen auf jede Seite mit Loader, und die
+      Viewability-Quote braucht einen Zähler für die ausgelieferten Fragmente (#47)
+
+---
+
+## 6.3 Abnahme der Impression-Zählung (#37)
+
+Eigene Spur, weil sie sieben Tage echte Daten braucht. Stand am 16.10.2026
+(Beleg: `docs/messungen/werbeplaetze-golive/impression-abnahme-2026-10-16.txt`):
+
+- [x] Schalter: `config('ad-slots.impression_tracking') = true`. In der
+      Produktions-`.env` steht **keine** Zeile `ADS_IMPRESSION_TRACKING` — die
+      Codevorgabe in `config/ad-slots.php` ist `true`, das Zählen ist also
+      schon scharf. Wer die Zeile trotzdem setzt, braucht danach
+      `config:cache` **plus** `systemctl reload php8.5-fpm`.
+- [x] Migrationen `ad_impression_daily` und `ad_impression_buffer` (zentral)
+      sind mit dem Deploy aus §2 gelaufen (`migrate:status` → beide `Ran`).
+- [ ] Nachtrag aus #44: die Migration
+      `2026_10_19_000009_add_covering_indexes_to_ad_impression_daily_table`
+      (abdeckende Indizes des Widgets) muss auf der **Central**-DB noch
+      laufen — sie kommt mit dem nächsten Deploy nach §2 mit, der Schritt ist
+      derselbe `artisan migrate --force`. Reiner Indexbau, kein
+      Datenverlustrisiko; auf der heutigen Zeilenzahl Sekundenbruchteile.
+- [ ] Nachtrag aus #47 (Nenner der Viewability-Quote): die Migration
+      `2026_10_19_000010_add_deliveries_to_ad_impression_tables` muss auf der
+      **Central**-DB laufen — eine Spalte `deliveries` in
+      `ad_impression_buffer` und `ad_impression_daily` plus die beiden
+      abdeckenden Indizes in der Fassung **mit** `deliveries`
+      (`…_cover2`; die `…_cover`-Fassungen aus #44 fallen dabei weg). Kommt mit
+      demselben `artisan migrate --force`, läuft **nach** der Migration aus #44
+      und setzt sie voraus. Kein Datenverlustrisiko: die Altzeilen bekommen
+      `deliveries = 0`.
+      Danach einmal die Assets neu bauen (`npm run build`) — der Nenner wird im
+      Browser gemeldet, ein zwischengespeichertes `ads.js` kennt die Meldung
+      noch nicht und zählt weiter nur Sichtkontakte. Die Quote im Widget bleibt
+      deshalb ein Gedankenstrich, bis ein ganzes Fenster nach dem Deploy liegt.
+- [x] Beobachter im ausgelieferten Bundle: belegt durch echte Beacons mehrerer
+      Portale im Puffer (18 Zeilen / 29 Impressionen in der ersten Stunde).
+- [x] Netzwerk-Nachweis „consent-unabhängig, keine personenbezogenen Daten":
+      `POST /_ads/impressions` → **HTTP 204, kein `Set-Cookie`**, keine Cookies
+      in der Anfrage (geprüft auf `malerfinder.de` und `firmenfreund.de`).
+      Gegenprobe mit einem unbekannten Katalogschlüssel: nichts gezählt.
+- [x] Erste Verdichtung gegengeprüft (16.10.2026, 13:07 UTC, vom Scheduler ohne
+      Handlauf): `ad_impression_daily` 74 Zeilen / **391 Impressionen** (mobil
+      269, desktop 122), im `ad_impression_buffer` liegen nur noch Zeilen der
+      laufenden Stunde — die abgeschlossene Stunde ist verdichtet. Der Handlauf
+      direkt nach dem Deploy meldet zu Recht Null, weil der Job nur
+      **abgeschlossene** Stunden räumt. Nachholen von Hand:
+
+      ```bash
+      sudo -u sanitaerfinden /usr/bin/php8.4 artisan ads:aggregate-impressions
+      ```
+- [x] Widget-Zusagen mit echten Produktionsdaten belegt (16.10.2026): Anker nach
+      Gesamtzahl (`company_after_header_card` 192, `company_after_reviews` 70,
+      `company_sidebar_top` 63 …), Mobil gegen Desktop je Anker, Portalfilter
+      `tenant_id` (Portal 52 → 87, Portaltabelle entfällt), Umschaltung 7/30
+      Tage. Ausgelesen aus derselben Quelle wie das Widget. Zum Nachstellen —
+      kein Browser nötig, nur Lesezugriff:
+
+      ```bash
+      sudo -u sanitaerfinden /usr/bin/php8.4 artisan ads:impressionen-abnahme
+      sudo -u sanitaerfinden /usr/bin/php8.4 artisan ads:impressionen-abnahme --tenant=52
+      ```
+
+      Das Kommando zeigt zusätzlich **Tage mit Daten im Fenster** — darüber ist
+      die Reife des Siebentagefensters ablesbar, ohne zu rechnen.
+- [ ] **Siebentagefenster: Tag 0 = 16.10.2026, reif am 23.10.2026.** Dann einmal
+      `artisan ads:impressionen-abnahme` fahren (Erwartung: „Tage mit Daten im
+      Fenster: 7 von 7"), die Ausgabe nach
+      `docs/messungen/werbeplaetze-golive/` legen und das Widget im
+      Admin-Dashboard einmal im Browser gegenhalten. Sind die Zahlen gleich,
+      ist Schritt 6 aus #37 abgehakt.
+- [ ] Zahlen gegen den AdSense-Report eines Portals stellen. Kein Kontozugang im
+      Projekt — die Reportzahl holt Enes (#48). Den Vergleich rechnet das
+      Kommando selbst:
+
+      ```bash
+      sudo -u sanitaerfinden /usr/bin/php8.4 artisan ads:impressionen-abnahme \
+        --tenant=52 --tage=7 --adsense=<Impressionen aus dem AdSense-Report>
+      ```
+
+      Abweichungen sind erwartbar (AdSense zählt den Anzeigenblock, wir den
+      Anker); über **Faktor 2** meldet das Kommando „Befund" und endet mit
+      Fehlercode — dann ein Ticket erfassen.
+- [x] Code-Review der Zählkette durch Uwe (aus der DoD von #12) — eigenes
+      Ticket #39, erledigt.
 
 ---
 
@@ -428,5 +820,9 @@ nötig.
 | CLS-Messung mit allen Ankern (Labor, 16.10.2026) | `docs/messungen/werbeplaetze-cls-2026-10-16.md` + `-cls-2026-10-16/` |
 | 360-px-Aufnahmen je Seitentyp | `docs/messungen/werbeplaetze-360/` |
 | Pilot vorher/nachher | `docs/messungen/werbeplaetze-golive/` (angelegt 16.10.2026, Ablageordnung in `README.md`, Protokoll in `pilot-protokoll.md`) |
+| Pilot-Vorlauf auf der Produktion (16.10.2026, #31) | `docs/messungen/werbeplaetze-golive/pilot-vorlauf-2026-10-16.md` + `pilot-unfallarzt-firmenfreund-de-vor-einwilligung-2026-10-16.json` |
+| **Pilot auf 27 `bodenlegerfinden.com` (16.10.2026, #31)** | `docs/messungen/werbeplaetze-golive/pilot-bodenlegerfinden-2026-10-16.md` + sieben JSON-Rohdaten `pilot-bodenlegerfinden-com-*-2026-10-16.json` |
+| `ads.txt` über alle 23 Domains | `docs/messungen/werbeplaetze-golive/adstxt-sweep-2026-10-16.txt`, Lauf `bash scripts/ads-txt-sweep.sh` |
 | Netzwerk-Mitschnitt Einwilligung | `docs/ad-slots.md` 9.5 (#25) |
+| **Abnahme Impression-Zählung (16.10.2026, #37)** | `docs/messungen/werbeplaetze-golive/impression-abnahme-2026-10-16.txt`, Auslesen mit `artisan ads:impressionen-abnahme` |
 | Prüfläufe `ads:golive:check` | `docs/messungen/werbeplaetze-golive/golive-check-<datum>.txt`; der lokale Lauf vom 16.10.2026 liegt dort als `…-lokal.txt` und ist nur ein Werkzeugnachweis |

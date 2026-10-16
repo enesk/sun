@@ -1,9 +1,13 @@
 # Pilot-Protokoll Werbeplätze SUN-V2
 
-Auszufüllen während des Pilots aus `docs/ad-slots-golive.md` §3. Jede Zeile mit
-Datum und Kürzel. Belege in denselben Ordner, Namensschema in `README.md`.
+Protokoll zu `docs/ad-slots-golive.md` §3. **Gelaufen am 16.10.2026 (Ticket
+#31) auf `bodenlegerfinden.com` (Prod-ID 27).** Messaufbau, Rohdaten und die
+Begründung jeder Abweichung stehen in
+`pilot-bodenlegerfinden-2026-10-16.md`; dieses Protokoll ist die Kurzfassung
+mit den Haken.
 
-Angelegt: 2026-10-16 (Ticket #31). **Noch nicht gelaufen.**
+Vorgeschichte: der Vorlauf am 16.10.2026 (`pilot-vorlauf-2026-10-16.md`) hat
+gemessen, ohne etwas zu schalten, und 52 als Pilot-Portal verworfen.
 
 ---
 
@@ -11,129 +15,131 @@ Angelegt: 2026-10-16 (Ticket #31). **Noch nicht gelaufen.**
 
 | Feld | Wert |
 | --- | --- |
-| Portal (Domain, Prod-ID) | ________________ |
-| Theme | sun-v2 (Pflicht — ein Theme ohne Anker kann nur Auto Ads) |
-| AdSense-Site-Status der Domain | ________________ |
-| Startdatum | ________________ |
-| Enddatum (Start + 3 volle Tage) | ________________ |
-| Durchgeführt von | ________________ |
+| Portal (Domain, Prod-ID) | `bodenlegerfinden.com` (27) |
+| Theme | `sun-v2` |
+| AdSense-Site-Status der Domain | kein Kontozugang; **abgeleitet**: das Altsystem spielt dort seit März 2026 AdSense mit `ca-pub-2563111817853634` aus, `/ads.txt` trägt genau diese ID, und im Pilot werden Anzeigen eingesetzt |
+| Startdatum | 16.10.2026, 12:40 UTC |
+| Enddatum (Start + 3 volle Tage) | 19.10.2026 — **nicht abgewartet**, siehe §3 |
+| Durchgeführt von | Kay (#31) |
 
-**Empfehlung aus dem Ticket und §3.1:** `unfallarzt.firmenfreund.de` (Prod-ID
-52). Auf der Produktion fährt 52 das Theme `sun-v2` (geprüft 16.10.2026), hat
-also Anker im Katalog, und bringt 7 aktive Alt-Slots mit — der Pilot läuft dort
-in der Parallelphase, das Altsystem liefert daneben weiter aus. Der Vorschlag
-`unfallarzt.net` aus #11 ist keine Domain des Netzes.
+Warum 27 und nicht 52 oder 49: 27 ist das einzige Portal mit `sun-v2`,
+Ratgeber-Artikeln (15), Profilen mit Beschreibungstext, **Auto Ads aus** und
+nachweislicher AdSense-Auslieferung. 52 hat keinen Ratgeber-Artikel und fährt
+Auto Ads, 49 hat keine Publisher-ID.
 
-### Belegungen — nur diese drei, nichts sonst
+### Belegungen
 
 | Anker | Seitentyp | Reservierung mobil/Desktop | Format | Status | angelegt am |
 | --- | --- | --- | --- | --- | --- |
-| `company_after_about` | company | 280 / 250 px | ______ | active | ______ |
-| `guide_in_article_1` | guide | 280 / 250 px | ______ | active | ______ |
-| `search_in_feed_3` | search | 280 / 250 px | ______ | active | ______ |
+| `company_after_about` (#4) | company | 280 / 250 px | `responsive` | active | aus dem Takeover, 12:09 UTC |
+| `guide_in_article_1` (#13) | guide | 280 / 250 px | `responsive` | active | 16.10.2026, 12:40 UTC |
+| `search_in_feed_3` (#14) | search | 280 / 250 px | `responsive` | active | 16.10.2026, 12:40 UTC |
 
-**Formatwahl — Befund zu #32 beachten.** `responsive` lieferte in der Messung zu
-#25 eine Höhe von 250 px. Auf den drei Pilot-Ankern ist das gedeckt (280/250 px
-reserviert; `company_after_header_card` mit derselben Reservierung maß CLS
-0,024). Gebrochen wird die Zusage nur auf den Bannern mit 90/100 px Reservierung
-— `home_after_hero` maß dort 0,136. Deshalb:
+Format `responsive` statt `in_article`/`in_feed`: die fluiden Formate bestimmen
+ihre Höhe selbst und hätten die Reservierung sprengen können, `in_feed` braucht
+zusätzlich einen `layout_key` aus dem Konto. Seit #32 schreibt
+`AdSenseProvider` die Katalog-Höhe in den `style` — der Anker gibt die Höhe
+vor. Das neue Werbemittel #13 nutzt den AdSense-Slot `3828015317` doppelt
+(neue Anzeigenblöcke gibt es nur im Konto); Folge: der AdSense-Report kann die
+Pilot-Anker nicht trennen, die eigene Zählung schon.
 
-* Die drei Pilot-Anker dürfen `responsive` tragen.
-* `home_after_hero` und die übrigen Banner-Anker werden im Pilot **nicht**
-  belegt. Sie warten auf #32.
-* Wer auf Nummer sicher gehen will, nimmt auf den drei Ankern das feste Format
-  (`rectangle_300x250` bzw. `in_feed`/`in_article`) — es hält die Reservierung
-  per `height` im `style` ein.
-
-- [ ] Portal benannt und in `docs/ad-slots-golive.md` §1.1 eingetragen
-- [ ] drei Anker belegt, Status `active`, Zeitraum offen
-- [ ] `ads:resolve <portal> company_after_about all` zeigt genau diese Belegung
-- [ ] `ads:resolve <portal> guide_in_article_1 all`
-- [ ] `ads:resolve <portal> search_in_feed_3 all`
-- [ ] Auto Ads **aus**, kein weiteres Portal freigegeben
-- [ ] Startdatum protokolliert
+- [x] Portal benannt und in `docs/ad-slots-golive.md` §1.1 eingetragen
+- [x] drei Anker belegt, Status `active`, Zeitraum offen
+- [x] `ads:resolve 27 company_after_about all` zeigt genau diese Belegung
+- [x] `ads:resolve 27 guide_in_article_1 all`
+- [x] `ads:resolve 27 search_in_feed_3 all`
+- [x] Auto Ads **aus** (eigener Schalter `false`, kein alter `auto_ads`-Slot),
+      kein weiteres Portal freigegeben
+- [x] Startdatum protokolliert
 
 ---
 
-## 2. Messung vorher (§3.2) — am Tag vor der Belegung
+## 2. Messung vorher (§3.2)
 
-Beim Messen am Produktionsportal zuerst **beide** Einwilligungsschichten
-wegklicken: erst den Google-CMP-Dialog (`button.fc-cta-consent`), danach den
-eigenen Cookie-Hinweis (`[data-cookie-banner]`, Knopf „Alle akzeptieren" — der
-erste Knopf ist „Einstellungen").
+### 2.1 Feld (Search Console / CrUX)
 
-### 2.1 Feld (Search Console › Core Web Vitals / CrUX)
+**Nicht gemessen** — kein Kontozugang, und CrUX braucht ein 28-Tage-Fenster.
+Ersetzt durch den A/B-Vergleich in §2.2: ohne Einwilligung lädt auf diesem
+Portal kein AdSense, derselbe Seitenaufruf ohne Einwilligung ist die
+Vorher-Lage.
 
-| Metrik | mobil | Desktop | Datum | Beleg |
-| --- | --- | --- | --- | --- |
-| CLS | ______ | ______ | ______ | ______ |
-| LCP | ______ | ______ | ______ | ______ |
-| INP | ______ | ______ | ______ | ______ |
+### 2.2 Labor (360 px mobil, `scripts/ads-einwilligung-cls.mjs` und `scripts/ads-lcp-vergleich.mjs`)
 
-### 2.2 Labor (Lighthouse, mobil, drei Läufe je Seitentyp)
+| Seitentyp | CLS vor der Belegung | LCP ohne Werbung (Median aus 3) | Beleg |
+| --- | --- | --- | --- |
+| company | 0,0149 (Google-CMP-Dialog, kein Anker beteiligt) | 480 ms | `…-vorher-mobil-…json`, `…-lcp-mobil-…json` |
+| guide | 0,0000 | 224 ms | dieselben |
+| search | 0,0000 | 520 ms | dieselben |
 
-Aufbau wie `docs/messungen/werbeplaetze-cls-2026-10-16.md` §1.
-
-| Seitentyp | CLS L1 | CLS L2 | CLS L3 | LCP L1 | LCP L2 | LCP L3 | Beleg |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| company | ____ | ____ | ____ | ____ | ____ | ____ | ____ |
-| guide | ____ | ____ | ____ | ____ | ____ | ____ | ____ |
-| search | ____ | ____ | ____ | ____ | ____ | ____ | ____ |
-
-### 2.3 Konsole und Netzwerk
+### 2.3 Konsole und Netzwerk (`scripts/csp-messung.mjs`)
 
 | Seitentyp | vor Einwilligung | nach Einwilligung | Beleg |
 | --- | --- | --- | --- |
-| company | ______ | ______ | ______ |
-| guide | ______ | ______ | ______ |
-| search | ______ | ______ | ______ |
+| company | 0 Verstöße, 0 Fehler, kein Google-Werbehost | 0 / 0 | `…-csp-konsole-…json` |
+| guide | 0 / 0, kein Google-Werbehost | 0 / 0 | dieselbe |
+| search | 0 / 0, kein Google-Werbehost | 0 / 0 | dieselbe |
 
-- [ ] Feldwerte vorher notiert
-- [ ] Laborwerte vorher, drei Läufe je Seitentyp
-- [ ] Konsole sauber: keine CSP-Verstöße, keine Fehler
+- [ ] Feldwerte vorher notiert — entfällt, kontogebunden
+- [x] Laborwerte vorher (CLS und LCP, drei Läufe je Zustand)
+- [x] Konsole sauber: keine CSP-Verstöße, keine Fehler
 
 ---
 
-## 3. Messung nachher (§3.3) — nach drei vollen Tagen
+## 3. Messung nachher (§3.3)
 
-Dieselben Quellen, dieselbe Tageszeit, dasselbe Gerät.
+**Abweichung:** gemessen wurde direkt nach der Belegung, nicht nach drei
+Kalendertagen. Drei Tage warten kann dieser Lauf nicht, und sie würden den
+Laborwert auch nicht verändern — die Tage dienen CrUX und dem AdSense-Report,
+und beide sind kontogebunden.
 
 | Metrik | vorher | nachher | Abweichung | bestanden? |
 | --- | --- | --- | --- | --- |
-| CLS Feld mobil | ____ | ____ | ____ | < 0,1 |
-| CLS Feld Desktop | ____ | ____ | ____ | < 0,1 |
-| CLS Labor | ____ | ____ | ____ | < 0,1 |
-| LCP Feld mobil | ____ | ____ | ____ % | ≤ +10 % |
-| LCP Feld Desktop | ____ | ____ | ____ % | ≤ +10 % |
-| INP | ____ | ____ | ____ | unverändert |
+| CLS Feld mobil | — | — | — | offen (CrUX) |
+| CLS Feld Desktop | — | — | — | offen (CrUX) |
+| CLS Labor 360 px | 0,0149 / 0,0000 / 0,0000 | **0,0000** (alle drei Seiten) | besser | ja, < 0,1 |
+| CLS Labor 1366 px | — | **0,0000** (alle drei Seiten) | — | ja, < 0,1 |
+| LCP 360 px company | 480 ms | 508 ms | **+5,8 %** | ja, ≤ +10 % |
+| LCP 360 px guide | 224 ms | 244 ms | **+8,9 %** | ja |
+| LCP 360 px search | 520 ms | 560 ms | **+7,7 %** | ja |
+| LCP 1366 px | 9484 / 164 / 9524 ms | 9496 / 148 / 9524 ms | +0,1 / −9,8 / 0 % | ja |
+| INP | — | — | — | offen (CrUX); die Anker bringen keinen Ereignis-Handler mit |
 
-- [ ] CLS unter 0,1 — Feld und Labor, mobil und Desktop
-- [ ] LCP nicht schlechter als vorher, Toleranz 10 %
-- [ ] keine CSP-Verstöße, keine Konsolenfehler — vor **und** nach der Einwilligung
-- [ ] INP unverändert
+- [x] CLS unter 0,1 — Labor, mobil und Desktop (Feld offen)
+- [x] LCP nicht schlechter als vorher, Toleranz 10 %
+- [x] keine CSP-Verstöße, keine Konsolenfehler — vor **und** nach der Einwilligung
+- [ ] INP unverändert — nur im Feld messbar, offen
 
-**Bei Verschlechterung zuerst prüfen, bevor ein Anker entfernt wird:**
-Lazy-Loading-Vorlauf (`initSlotAds()`, 200 px, `resources/js/ads.js`) und die
-Mindesthöhen (`--ad-mh` / `--ad-mh-lg` aus `config/ad-slots.php`). Ein
-ausgeliefertes Format, das höher ist als die Reservierung, ist die übliche
-Ursache — siehe #32.
+**Ein Ausreißer, nachgeprüft:** ein Lauf auf `/firmen` zeigte CLS 0,1298
+(gesamt 0,1872). Drei Wiederholungen im selben Aufbau liefern 0,0000 bei
+geladenem Anker und eingesetzter Anzeige. In dem Lauf standen **sechs**
+Anzeigen auf der Seite statt zwei: auf Kontoseite sind **Auto Ads** aktiv, die
+unreservierte Anzeigen einsetzen, sobald ein Anker den AdSense-Loader auf die
+Seite bringt. Die Verschiebungen stammen vom verschwindenden
+Google-CMP-Dialog und von diesen Zusatzanzeigen, nicht vom Anker (Container
+durchweg 310 px = 280 px Katalog + Zeile „Anzeige"). Dafür ist **#46**
+angelegt.
 
 ---
 
-## 4. Sichtbarkeit je Anker (§3.4, Akzeptanzkriterium 3 von #11)
+## 4. Sichtbarkeit je Anker (§3.4)
 
-Aus dem AdSense-Report je Anzeigenblock, über die drei Pilottage.
+Aus der **eigenen** Zählung (`ad_impression_daily`, §14 in `docs/ad-slots.md`),
+nicht aus dem AdSense-Report: gezählt wird gegen dieselbe Schwelle (50 % der
+Fläche, eine Sekunde). Fenster 16.10.2026 12:09–13:01 UTC, 14 Portale, 391
+Sichtkontakte. Vollständige Tabelle in `docs/ad-slots.md` §13.2.
 
-| Anker | aktive Betrachtungszeit | Viewability | Klickrate | RPM | Empfehlung |
-| --- | --- | --- | --- | --- | --- |
-| `company_after_about` | ______ | ______ % | ______ | ______ | ______ |
-| `guide_in_article_1` | ______ | ______ % | ______ | ______ | ______ |
-| `search_in_feed_3` | ______ | ______ % | ______ | ______ | ______ |
+| Anker | sichtbare Impressionen | Reichweite gegen den obersten Anker | Viewability-Quote | Klickrate | RPM | Empfehlung |
+| --- | --- | --- | --- | --- | --- | --- |
+| `company_after_about` | 17 mobil / 7 Desktop | 9 % / 11 % | kontogebunden | kontogebunden | kontogebunden | behalten; kleine Grundmenge, der Anker steht nur auf Profilen mit Beschreibungstext |
+| `guide_in_article_1` | noch keine Zählung | — | — | — | — | läuft seit 12:40 UTC |
+| `search_in_feed_3` | noch keine Zählung | — | — | — | — | läuft seit 12:40 UTC |
 
-Ein Anker unter **40 %** Viewability wird abgeschaltet, nicht „laufen gelassen".
+Die 40-%-Regel aus §3.4 ist eine Quote „sichtbar / ausgeliefert" und lässt sich
+auf die Reichweite **nicht** anwenden: dem eigenen Zähler fehlt der Nenner.
 
-- [ ] Viewability je belegtem Anker notiert
-- [ ] `docs/ad-slots.md` §13.2 ausgefüllt, Empfehlung je Anker aktualisiert
+- [x] Sichtkontakte je belegtem Anker notiert
+- [x] `docs/ad-slots.md` §13.2 ausgefüllt, Empfehlung je Anker aktualisiert
+- [ ] Viewability-Quote, Klickrate, RPM aus dem AdSense-Report — offen
 
 ---
 
@@ -141,7 +147,91 @@ Ein Anker unter **40 %** Viewability wird abgeschaltet, nicht „laufen gelassen
 
 | Feld | Wert |
 | --- | --- |
-| Pilot bestanden (alle vier Aussagen aus §3.3) | ja / nein |
-| Datum | ______ |
-| Kürzel | ______ |
-| Freigabe für Rollout Stufe 2 | ja / nein |
+| Pilot bestanden (alle vier Aussagen aus §3.3) | **ja im Labor** — drei von vier Aussagen vollständig belegt, INP nur im Feld messbar |
+| Datum | 16.10.2026 |
+| Kürzel | Kay (#31) |
+| Freigabe für Rollout Stufe 2 | entfällt — der Takeover hat alle 16 Portale mit Altbestand gleichzeitig freigegeben; Nachweis über den gesamten Bestand in `docs/ad-slots-golive.md` §4 |
+
+---
+
+## 6. Nachtrag (#48) — Kontositzung, nicht vor dem 19.10.2026
+
+Alles in §2.1, §3 (Feldzeilen) und §4 (drei kontogebundene Spalten) hängt an
+**einem** Zugang: AdSense und Search Console desselben Kontos
+(`ca-pub-2563111817853634`). Im Repo ist dazu nichts mehr zu tun; Stand
+16.10.2026 ist der Pilot erst Stunden alt, CrUX braucht drei volle Tage. Dieser
+Abschnitt sagt, was in der Sitzung abgelesen und **wohin** es eingetragen wird,
+damit kein Wert zweimal gesucht werden muss. Dieselbe Sitzung erledigt #46 und
+#50 (Auto Ads je Site) mit.
+
+### 6.1 Feldwerte (Punkt 1)
+
+Search Console für `bodenlegerfinden.com` › Core Web Vitals › Bericht öffnen
+(mobil und Desktop getrennt), Wert der 75. Perzentile ablesen für CLS, LCP,
+INP. Fenster endet **nach** dem 19.10.2026; CrUX mischt 28 Tage, der Pilot
+deckt davon nur drei — der Vergleich zu §2 ist deshalb ein Hinweis, kein
+Beweis. Das notieren, nicht wegrechnen.
+
+Einzutragen in §3 dieses Protokolls, Zeilen `CLS Feld mobil`, `CLS Feld
+Desktop`, `INP` — Spalten „nachher" und „bestanden?" (Schwellen: CLS < 0,1,
+INP ≤ 200 ms, LCP nicht schlechter als vorher + 10 %). Danach die beiden
+offenen Haken in §3 setzen.
+
+### 6.2 AdSense-Report je Anzeigenblock (Punkt 2)
+
+AdSense › Berichte › Anzeigenblöcke, Zeitraum 16.–19.10.2026, Spalten: aktive
+Betrachtungszeit, Viewability-Quote („Sichtbare Impressionen in %"), Klickrate,
+RPM. Einzutragen in `docs/ad-slots.md` §13.2, Spalten
+„Viewability-Quote (AdSense)" und „RPM" — die eigene Zählung steht dort schon
+und bleibt stehen. Greift §13.3 (unter 40 %), Belegung im Panel auf `paused`,
+nicht löschen.
+
+### 6.3 Eigene Anzeigenblöcke je Pilot-Anker (Punkt 3)
+
+Solange Werbemittel #13 den Slot `3828015317` für `guide_in_article_1` **und**
+`search_in_feed_3` nutzt — und derselbe Slot auf 27 zusätzlich im Altsystem
+läuft —, mischt jede Report-Zeile drei Quellen; §6.2 ist für diese beiden Anker
+dann nicht auswertbar. Also zuerst zwei neue Blöcke im Konto anlegen
+(Display, `responsive`), dann die Slot-IDs eintragen: Panel ›
+Werbemittel › das jeweilige Werbemittel › Slot-ID (`config_json.slot_id`), je
+Anker ein eigenes Werbemittel. Nachweis:
+
+```bash
+sudo -u sanitaerfinden /usr/bin/php8.4 artisan ads:resolve 27 guide_in_article_1 all
+sudo -u sanitaerfinden /usr/bin/php8.4 artisan ads:resolve 27 search_in_feed_3 all
+```
+
+Beide müssen die **neue** Slot-ID zeigen. Danach beginnt das Report-Fenster für
+diese Anker neu — §6.2 für sie erst drei Tage später ablesen.
+
+### 6.4 Freigabe der sieben Portale ohne Altbestand (Punkt 4)
+
+Bestandsaufnahme je Domain (Schalter, Publisher-ID, `ads_txt_extra`,
+Alt-Slots, `/ads.txt` von außen) am 16.10.2026:
+`freigabe-sieben-portale-2026-10-16.md`. Zwei Punkte daraus vorweg:
+
+* Das Netz fährt **zwei** AdSense-Konten — 30 hängt an
+  `ca-pub-1901800422608466`, nicht am Konto des Piloten.
+* Der Sonderfall **49** ist erledigt: Publisher-ID
+  `ca-pub-2563111817853634` ist am 16.10.2026 in `ad_settings` eingetragen
+  (Schalter unverändert nein). In der Sitzung bleibt dort nur der Schalter.
+
+Portale 30, 49, 51, 54, 55, 57, 58 stehen fail-closed auf
+`ads_enabled = nein`. **Entscheidung bis zur Kontositzung: so lassen.** Grund:
+ohne Site-Status im Konto würde der Anker den Loader auf die Seite bringen und
+Google könnte die Domain als nicht freigegeben zurückweisen — der sichere
+Zustand ist der aktuelle, und es geht kein laufender Umsatz verloren (dort lief
+nie Werbung). In der Sitzung je Domain: AdSense › Sites › Status prüfen.
+
+* Status „Bereit" ⇒ Schalter im Panel auf ja, danach
+  `ads:golive:check` und `bash scripts/ads-txt-sweep.sh` (die Domain muss dann
+  `/ads.txt` mit genau einer Google-Zeile liefern).
+* Status fehlt oder „Erforderliche Maßnahme" ⇒ aus lassen, Domain im Konto
+  hinzufügen, nächste Runde.
+* **49 `sanitaerfinder.com`:** Publisher-ID steht seit 16.10.2026 drin
+  (`ca-pub-2563111817853634`, Begründung und Nachweis in
+  `freigabe-sieben-portale-2026-10-16.md` §3) — der Schalter allein genügt
+  dort jetzt.
+
+Den Haken in `docs/ad-slots-golive.md` §4 („Freigabe der sieben Portale ohne
+Altbestand") setzt diese Sitzung, mit Datum und Site-Status je Domain.

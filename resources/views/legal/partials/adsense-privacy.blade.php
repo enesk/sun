@@ -1,5 +1,5 @@
 {{--
-    Datenschutz-Abschnitt "Google AdSense" (SUN-AD-009, Ticket #9).
+    Werbe-Abschnitt der Datenschutzerklaerung (SUN-AD-009, Tickets #9, #26, #35).
 
     EIN Text fuer alle Portale, bewusst nicht in den gepflegten Portaltext
     (branding.datenschutz, Tenant-DB) kopiert: dort muesste er 23-mal
@@ -11,29 +11,42 @@
     Abschnittszerlegung wie der gepflegte Text (Sprungmarke, Inhalts-
     verzeichnis).
 
-    Er erscheint nur, wenn das Portal Werbung tatsaechlich ausspielt
-    (ad_settings.ads_enabled und eine wirksame Publisher-ID) — ein Portal
-    ohne Werbung soll keinen Abschnitt ueber Werbung haben.
+    Zwei Teile, unabhaengig voneinander geschaltet
+    (AdSensePrivacySection::sections()):
+
+    * $showAdSense — Google AdSense. Nur wenn das Portal AdSense ausspielt
+      (ad_settings.ads_enabled und eine wirksame Publisher-ID) und der
+      gepflegte Text das Wort "AdSense" nicht selbst enthaelt. Wortlaut
+      freigegeben in Ticket #26 (Rechtsstand 16.10.2026); Aenderungen daran
+      nur mit erneuter Durchsicht. Zwei dort entschiedene Punkte: der
+      Abschnitt bleibt ohne eigene Nummer (die Nummerierung wird je Portal
+      gepflegt), und die AdSense-Cookies werden nicht namentlich aufgefuehrt
+      (Google gibt Namen und Laufzeiten nicht stabil an; genannt werden
+      Zwecke und Laufzeitspanne).
+    * $showHtml — eigene HTML-Werbemittel (App\Ads\Providers\HtmlProvider).
+      Nur wenn auf dem Portal eine laufende HTML-Belegung liegt, deren
+      Werbemittel einwilligungspflichtig ist. Der Absatz sagt "erst nach
+      Einwilligung" zu; dieselbe Angabe
+      (config_json->third_party, Ticket #36) laesst den Rahmen warten und
+      diesen Absatz erscheinen — Text und Technik haengen an einem Wert
+      (docs/ad-slots.md 9.4, ProviderConfigForm::htmlLegalRule()).
+
+    Ohne AdSense-Teil steht "Weitere Werbemittel" als h2 statt als h3, damit
+    die Zerlegung in sun-v2 eine Sprungmarke und einen Eintrag im
+    Inhaltsverzeichnis bekommt. Der Satz zum Widerruf verweist dann nicht
+    nach oben, sondern nennt den Weg selbst.
 
     Nur Standard-HTML, keine Theme-Klassen: default/starter gestalten ueber
     .legal-content, sun-v2 ueber Utility-Varianten auf Kindelemente.
 
     Platzhalter in Klammerform werden wie im uebrigen Rechtstext von
     TenantBrandingService::resolveLegalPlaceholders() aufgeloest.
-
-    Nicht abgedeckt: eigene HTML-Werbemittel (App\Ads\Providers\HtmlProvider).
-    Der Abschnitt nennt nur AdSense; bis er um einen freigegebenen Absatz zu
-    Drittanbieter-Werbemitteln ergaenzt ist, gilt die Auslieferungsregel aus
-    Ticket #29 — nachzulesen in docs/ad-slots.md 9.4 und im Panel an der
-    Provider-Auswahl (ProviderConfigForm::htmlLegalRule()).
-
-    Wortlaut freigegeben in Ticket #26 (Durchsicht mit Datenschutz-Fokus,
-    Rechtsstand 16.10.2026). Zwei dort entschiedene Punkte: der Abschnitt
-    bleibt ohne eigene Nummer (die Nummerierung wird je Portal gepflegt),
-    und die AdSense-Cookies werden nicht namentlich aufgefuehrt (Google gibt
-    Namen und Laufzeiten nicht stabil an; genannt werden Zwecke und
-    Laufzeitspanne). Aenderungen am Wortlaut nur mit erneuter Durchsicht.
 --}}
+@php
+    $showAdSense = $showAdSense ?? true;
+    $showHtml = $showHtml ?? false;
+@endphp
+@if ($showAdSense)
 <h2>Werbung mit Google AdSense</h2>
 <p>
     Auf <strong>[PORTAL_NAME]</strong> schalten wir Werbung über Google AdSense, einen Dienst der
@@ -109,3 +122,37 @@
     und unter
     <a href="https://policies.google.com/technologies/ads?hl=de" target="_blank" rel="noreferrer noopener">„Wie Google Daten von Partner-Websites verwendet“</a>.
 </p>
+@endif
+
+@if ($showHtml)
+@if ($showAdSense)
+<h3>Weitere Werbemittel</h3>
+@else
+<h2>Weitere Werbemittel</h2>
+@endif
+<p>
+    @if ($showAdSense)
+        Neben Google AdSense schalten wir auf <strong>[PORTAL_NAME]</strong> vereinzelt Werbemittel,
+    @else
+        Auf <strong>[PORTAL_NAME]</strong> schalten wir vereinzelt Werbemittel,
+    @endif
+    die wir selbst einbinden — etwa Banner von Partnern oder Werbenetzwerken. Solche Werbemittel laufen in einem abgeschotteten Rahmen (iframe mit Sandbox), der keinen Zugriff
+    auf Ihre Sitzung und auf die übrige Portalseite hat.
+</p>
+<p>
+    Bringt ein Werbemittel eigene Skripte oder Inhalte mit, die von Servern des jeweiligen Anbieters
+    geladen werden, erhält dieser Anbieter dabei Ihre IP-Adresse, Angaben zu Browser und Gerät sowie
+    Datum und Uhrzeit des Aufrufs. Das geschieht erst, nachdem Sie in die Kategorie „Marketing“
+    eingewilligt haben; vorher bleibt die Werbefläche leer.
+</p>
+<p>
+    <strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. a DSGVO (Einwilligung) sowie
+    § 25 Abs. 1 TDDDG.
+    @if ($showAdSense)
+        Den Widerruf nehmen Sie wie oben beschrieben über die Cookie-Einstellungen vor.
+    @else
+        Den Widerruf nehmen Sie jederzeit mit Wirkung für die Zukunft vor: Öffnen Sie über den Link im
+        Seitenfuß die Cookie- bzw. Datenschutz-Einstellungen und entfernen Sie die Kategorie „Marketing“.
+    @endif
+</p>
+@endif

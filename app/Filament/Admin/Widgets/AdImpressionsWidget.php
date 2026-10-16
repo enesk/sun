@@ -19,6 +19,12 @@ use Filament\Widgets\Widget;
  * fuer Direktbuchungen ueber den HtmlProvider, fuer die es dort gar keine
  * Zahlen gibt.
  *
+ * Seit Ticket #47 steht neben den Sichtkontakten der Nenner (ausgelieferte
+ * Fragmente) und damit die Viewability-**Quote** — die Groesse, an der die
+ * Entscheidungsregel aus docs/ad-slots.md 13.3 haengt (unter 40 % abschalten,
+ * ueber 70 % ausweiten). Vorher war sie nur im AdSense-Konto zu holen, und
+ * das kennt nur den Anzeigenblock, nicht den Anker.
+ *
  * Das Portal kommt aus dem Dashboard-Filter `tenant_id` (dieselbe Quelle wie
  * beim {@see PremiumRevenueWidget}); mit Portalfilter entfaellt die
  * Portaltabelle, weil sie dann nur eine Zeile haette. Das Zeitfenster hat das

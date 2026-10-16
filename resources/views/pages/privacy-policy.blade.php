@@ -84,6 +84,11 @@
     <p class="mb-6">
             You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent. However, if you do not accept cookies, you may not be able to use some portions of our Service.
     </p>
+    {{-- Die drei Cookies des Kategorie-Hinweises, der seit #34 auch hier laeuft
+         (resources/views/components/cookie-consent-dialog.blade.php). --}}
+    <p class="mb-6">
+            Your choice in our cookie banner is stored in three cookies that contain no personal data and expire after 12 months: <code>cookie_consent_given</code> (a decision has been made), <code>cookie_consent_statistics</code> and <code>cookie_consent_marketing</code> (consent for the respective category, <code>1</code> or <code>0</code>). Statistics and marketing scripts are only loaded once the matching cookie is set to <code>1</code>. You can change or withdraw your choice at any time via "Cookie Settings" in the footer.
+    </p>
             Examples of Cookies we use:
 
     <p class="mb-6">

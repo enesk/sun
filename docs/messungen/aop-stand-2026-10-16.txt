@@ -1,0 +1,91 @@
+Stand Authenticated Origin Pulls (#49, Handgriff aus #45), 16.10.2026,
+gemessen auf 88.198.64.145. Nur lesend -- weder nginx noch die
+Cloudflare-Zonen wurden angefasst.
+
+== scripts/nginx-origin-pull-absichern.sh --pruefen ==
+
+== Client-Zertifikat der Kante ==
+  fehlt -- --einrichten noch nicht gelaufen
+
+== Portal-vhost ==
+  (nicht gepatcht)
+
+== map ==
+  fehlt
+
+== scharfe Hosts ==
+  keine -- CF-Connecting-IP ist auf allen Hosts weiter faelschbar,
+  wenn der Absender in einem Cloudflare-Netz sitzt (#45 offen).
+
+== scripts/nginx-origin-pull-absichern.sh --zonen-pruefen ==
+
+Folgenabschaetzung fuer Weg 1 (443 am Ursprung auf die CF-Netze sperren).
+Jeder Name, der NICHT hinter der Kante liegt, verliert dadurch seinen Zugang.
+
+  Kante   analytics.widimedia.com
+  Kante   anlagenkarte.de
+  Kante   api.minber.app
+  Kante   api-staging.minber.app
+  Kante   apothekefinden.net
+  Kante   apotheke.firmenfreund.de
+  Kante   arztfinder.firmenfreund.de
+  Kante   arztfinder.net
+  Kante   bodenlegerfinden.com
+  Kante   elektrikerportal.com
+  Kante   energieberaterportal.net
+  Kante   eneskul.com
+  Kante   esygraphy.de
+  Kante   fahrschulefinder.de
+  Kante   findegutachter.de
+  Kante   firmenfreund.com
+  Kante   firmenfreund.de
+  Kante   firmenfreund.net
+  Kante   fliesenleger.io
+  Kante   funnels.widimedia.com
+  Kante   ga4-mcp.widimedia.com
+  Kante   geruestbauer.gmbh
+  DIREKT  isitangeruestbau.de
+  Kante   kasernencheck.de
+  Kante   kfzwerkstatt.io
+  Kante   klempner.firmenfreund.de
+  Kante   leads.widimedia.com
+  Kante   malerfinder.de
+  Kante   metallbauer.io
+  Kante   minber.app
+  Kante   minber-demo.minber.app
+  Kante   minber-demo-nord.minber.app
+  Kante   mjet.net
+  Kante   perigee.widimedia.com
+  Kante   pfotencheck.tierarztportal.com
+  Kante   pickyourpic.de
+  Kante   pruefgemeinde.minber.app
+  DIREKT  sanitaerfinden.com
+  DIREKT  sanitaerfinden.dev
+  Kante   sanitaerfinder.com
+  Kante   schluesseldienstportal.com
+  Kante   speditionportal.com
+  Kante   theone-sportsbar.de
+  Kante   tierarztportal.com
+  Kante   unfallarzt.firmenfreund.de
+  Kante   unfallarzt.net
+  Kante   widimedia.com
+  Kante   zahnarzt.firmenfreund.de
+  Kante   zahnarztportal.com
+
+hinter der Kante: 46, direkt erreichbar: 3
+Weg 1 ist nur vertretbar, wenn die 3 direkten Namen wegfallen duerfen.
+
+== Werkzeuge am Ursprung ==
+
+/root/nginx-echte-besucher-ip.sh      9942114db6ee48ad637e0da9e21c40ab35ee5786f697bf80b067194f47c3f5e1
+/root/nginx-origin-pull-absichern.sh  3d2782a1ef93b5bf23260a995f3e35745625fdd5b63ff1c43e15f924206f67cd
+
+Beide gleich der Repo-Fassung. Das Werbeplatz-/AOP-Modul ist nicht Teil des
+Produktions-Checkouts (dort Stand abf578e7), deshalb liegen die Skripte wie
+die uebrigen root-Werkzeuge unter /root/.
+
+== Was offen ist ==
+
+Schritt 1 (Zone: SSL/TLS -> Origin Server -> Authenticated Origin Pulls) ist
+Kontoarbeit und bleibt Handarbeit von Enes (sun-kein-cloudflare-zugang).
+Checkliste der 17 Zonen: docs/echte-besucher-ip.md 6.3.

@@ -210,9 +210,31 @@ class AdsGoLiveCheck extends Command
                 $this->result(self::FAIL, $label, 'ads.txt waere leer (404) — Google sieht keinen autorisierten Verkaeufer');
             }
 
+            // 4a. Abgeschaltetes Portal, aber die eigene Google-Zeile steht in
+            //     den Zusatzzeilen (#41). Seit #41 filtert der Builder sie
+            //     heraus; die WARN sagt, dass in `ads_txt_extra` noch toter
+            //     Altbestand liegt, der beim Wiedereinschalten doppelt waere.
+            $eigeneGoogleExtra = $setting === null ? [] : array_values(array_filter(
+                $setting->adsTxtLines(),
+                static fn (string $zeile): bool => AdSensePublisherId::isGoogleLineFor($zeile, $publisher),
+            ));
+
+            if (! $enabled && $eigeneGoogleExtra !== []) {
+                $this->result(self::WARN, $label, 'aus, aber eigene Google-Zeile in den Zusatzzeilen — wird aus der ads.txt gefiltert (#41), gehoert aus ads_txt_extra entfernt');
+            }
+
             // 5. Der eigentliche Umstiegsfehler: die alte Datei hatte Zeilen,
-            //    die die neue nicht mehr fuehrt.
+            //    die die neue nicht mehr fuehrt. Die eigene Google-Zeile ist
+            //    dabei kein Verlust, wenn der Schalter aus ist: genau das ist
+            //    die Wirkung von fail-closed (#41).
             $verloren = $alteZeilen === null ? [] : array_values(array_diff($alteZeilen, $neueZeilen));
+
+            if (! $enabled) {
+                $verloren = array_values(array_filter(
+                    $verloren,
+                    static fn (string $zeile): bool => ! AdSensePublisherId::isGoogleLineFor($zeile, $publisher),
+                ));
+            }
 
             if ($verloren !== []) {
                 $this->result(self::FAIL, $label, sprintf(

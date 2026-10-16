@@ -20,7 +20,9 @@ use Illuminate\Support\Facades\DB;
  *
  * Nimmt aus `ad_impression_buffer` alle ABGESCHLOSSENEN Stunden, summiert sie
  * je Portal, Tag, Anker, Belegung und Geraet in `ad_impression_daily` und
- * loescht sie danach. Die laufende Stunde bleibt liegen — sonst waere der
+ * loescht sie danach. Summiert werden BEIDE Zaehler: `impressions`
+ * (Sichtkontakte) und `deliveries` (ausgelieferte Fragmente, Nenner der
+ * Viewability-Quote, Ticket #47). Die laufende Stunde bleibt liegen — sonst waere der
  * Zaehler eines Portals halb verdichtet, waehrend der naechste Besucher noch
  * dieselbe Zeile hochzaehlt.
  *
@@ -55,37 +57,44 @@ class AggregateAdImpressions implements ShouldBeUnique, ShouldQueue
     }
 
     /**
-     * @return array{rows: int, impressions: int, pruned: int}
+     * @return array{rows: int, impressions: int, deliveries: int, pruned: int}
      */
     public function handle(): array
     {
         if (! AdImpressionRecorder::enabled()) {
-            return ['rows' => 0, 'impressions' => 0, 'pruned' => 0];
+            return ['rows' => 0, 'impressions' => 0, 'deliveries' => 0, 'pruned' => 0];
         }
 
         $cutoff = Carbon::now()->startOfHour();
         $rows = 0;
         $impressions = 0;
+        $deliveries = 0;
 
         while (true) {
             $runde = $this->roll($cutoff);
 
             $rows += $runde['rows'];
             $impressions += $runde['impressions'];
+            $deliveries += $runde['deliveries'];
 
             if ($runde['rows'] < self::CHUNK) {
                 break;
             }
         }
 
-        return ['rows' => $rows, 'impressions' => $impressions, 'pruned' => $this->prune()];
+        return [
+            'rows' => $rows,
+            'impressions' => $impressions,
+            'deliveries' => $deliveries,
+            'pruned' => $this->prune(),
+        ];
     }
 
     /**
      * Eine Runde: hoechstens CHUNK Aggregatzeilen aus dem Puffer ins
      * Tagesaggregat, dann die verarbeiteten Pufferzeilen loeschen.
      *
-     * @return array{rows: int, impressions: int}
+     * @return array{rows: int, impressions: int, deliveries: int}
      */
     private function roll(Carbon $cutoff): array
     {
@@ -93,7 +102,7 @@ class AggregateAdImpressions implements ShouldBeUnique, ShouldQueue
             /** @var list<object> $gruppen */
             $gruppen = $this->buffer()
                 ->where('hour', '<', $cutoff->toDateTimeString())
-                ->selectRaw('tenant_id, date(hour) as day, slot_key, placement_id, device, sum(impressions) as impressions, max(id) as max_id')
+                ->selectRaw('tenant_id, date(hour) as day, slot_key, placement_id, device, sum(impressions) as impressions, sum(deliveries) as deliveries, max(id) as max_id')
                 ->groupBy('tenant_id', 'day', 'slot_key', 'placement_id', 'device')
                 ->orderBy('max_id')
                 ->limit(self::CHUNK)
@@ -102,15 +111,18 @@ class AggregateAdImpressions implements ShouldBeUnique, ShouldQueue
                 ->all();
 
             if ($gruppen === []) {
-                return ['rows' => 0, 'impressions' => 0];
+                return ['rows' => 0, 'impressions' => 0, 'deliveries' => 0];
             }
 
             $impressions = 0;
+            $deliveries = 0;
             $bindings = [];
 
             foreach ($gruppen as $gruppe) {
                 $summe = (int) $gruppe->impressions;
+                $ausgeliefert = (int) $gruppe->deliveries;
                 $impressions += $summe;
+                $deliveries += $ausgeliefert;
 
                 $bindings[] = (int) $gruppe->tenant_id;
                 $bindings[] = (string) $gruppe->day;
@@ -118,6 +130,7 @@ class AggregateAdImpressions implements ShouldBeUnique, ShouldQueue
                 $bindings[] = (int) $gruppe->placement_id;
                 $bindings[] = (string) $gruppe->device;
                 $bindings[] = $summe;
+                $bindings[] = $ausgeliefert;
                 $bindings[] = Carbon::now()->toDateTimeString();
                 $bindings[] = Carbon::now()->toDateTimeString();
             }
@@ -127,9 +140,10 @@ class AggregateAdImpressions implements ShouldBeUnique, ShouldQueue
             // `upsert()` koennte nur setzen und wuerde fruehere Stunden
             // desselben Tages ueberschreiben.
             DB::connection($this->connection())->statement(
-                'insert into ad_impression_daily (tenant_id, day, slot_key, placement_id, device, impressions, created_at, updated_at)'
-                .' values '.implode(', ', array_fill(0, count($gruppen), '(?, ?, ?, ?, ?, ?, ?, ?)'))
-                .' on duplicate key update impressions = impressions + values(impressions), updated_at = values(updated_at)',
+                'insert into ad_impression_daily (tenant_id, day, slot_key, placement_id, device, impressions, deliveries, created_at, updated_at)'
+                .' values '.implode(', ', array_fill(0, count($gruppen), '(?, ?, ?, ?, ?, ?, ?, ?, ?)'))
+                .' on duplicate key update impressions = impressions + values(impressions),'
+                .' deliveries = deliveries + values(deliveries), updated_at = values(updated_at)',
                 $bindings
             );
 
@@ -148,7 +162,7 @@ class AggregateAdImpressions implements ShouldBeUnique, ShouldQueue
                     ->delete();
             }
 
-            return ['rows' => count($gruppen), 'impressions' => $impressions];
+            return ['rows' => count($gruppen), 'impressions' => $impressions, 'deliveries' => $deliveries];
         });
     }
 

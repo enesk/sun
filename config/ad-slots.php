@@ -42,6 +42,19 @@ use App\Ads\Providers\HtmlProvider;
 | Baut ein Ticket den Anker in ein weiteres Theme ein, gehoert der Slug hier
 | in `themes` dazu — und `version` wird hochgezaehlt.
 |
+| Inhaltsbedingung: ein Anker sitzt zwischen zwei abgeschlossenen Sektionen —
+| steht die Sektion darueber unter einer Bedingung (keine Leistungen, kein
+| Ratgeber-Beitrag, kein Beschreibungstext), dann gibt es den Anker auf dieser
+| Seite nicht. Er wird deswegen **nicht** aus der Bedingung herausgezogen:
+| sonst stuenden auf einer inhaltsarmen Startseite bis zu vier Banner
+| unmittelbar hintereinander — layoutfremd, und bei AdSense sind Anzeigen ohne
+| Inhalt dazwischen ein Richtlinienverstoss. Stattdessen fuehrt der Slot
+| `requires`: einen Satz, der sagt, woran der Anker haengt. Das Panel zeigt ihn
+| an der Ankerliste und im Hinweis „im Katalog, aber nicht in der geladenen
+| Seite" (Ticket #22), damit keine Belegung entsteht, die niemand nachpruefen
+| kann. Ohne `requires` gilt: der Anker steht auf jeder Seite seines
+| Seitentyps.
+|
 | Mindesthoehen: die Reservierung steht schon im HTML — sonst springt das
 | Layout beim Nachladen (CLS). Reserviert wird `min-height` und nicht
 | `height`, damit ein fluides Format (`in_feed`, `in_article`) nicht
@@ -62,8 +75,10 @@ return [
      * v3: zweiter Seitenspalten-Anker auf dem Firmenprofil
      *     (`company_sidebar_top`, Ticket #19).
      * v4: Routen-Dimension (`routes`) je Slot ergaenzt (Ticket #27).
+     * v5: Inhaltsbedingung (`requires`) an den fuenf Ankern, die im Markup
+     *     innerhalb einer Sektions-Bedingung stehen (Ticket #22).
      */
-    'version' => 4,
+    'version' => 5,
 
     /*
      * AdSense-Vorgabe des Netzes. Ein Portal darf eine eigene Publisher-ID
@@ -128,8 +143,9 @@ return [
      * Einwilligung (SUN-AD-009, Ticket #9, docs/ad-slots.md 9).
      *
      * Ein Werbemittel, dessen Provider `requiresConsent()` mit true
-     * beantwortet (AdSense), laedt erst nach der Einwilligung in
-     * Marketing-Cookies. Bis dahin steht der reservierte Container in
+     * beantwortet (AdSense immer, eigenes HTML je nach
+     * `config_json->third_party` — Vorgabe true, #36), laedt erst nach der
+     * Einwilligung in Marketing-Cookies. Bis dahin steht der reservierte Container in
      * Katalog-Hoehe mit der Zeile "Anzeige" — und nichts darin: das Fragment
      * liegt in einem <template>, der Loader in einem zweiten. Beides ist
      * inert, es geht kein Request an Google (Akzeptanz 1).
@@ -173,7 +189,10 @@ return [
      *
      * Gezaehlt wird provider-unabhaengig und damit auch fuer
      * Direktbuchungen ueber den HtmlProvider, fuer die es kein
-     * AdSense-Reporting gibt.
+     * AdSense-Reporting gibt. Gezaehlt werden zwei Groessen je Anker: das
+     * ausgelieferte Fragment (`deliveries`) und der Sichtkontakt
+     * (`impressions`) — erst beide ergeben die Viewability-Quote, an der die
+     * Entscheidungsregel aus docs/ad-slots.md 13.3 haengt (Ticket #47).
      */
     'impression_tracking' => env('ADS_IMPRESSION_TRACKING', true),
 
@@ -188,17 +207,27 @@ return [
      *
      * `max_entries` ist die Obergrenze der Meldungen in EINEM Beacon. Ein
      * Seitenaufruf hat hoechstens eine Handvoll belegte Anker; alles darueber
-     * ist Muell und wird abgeschnitten, nicht abgelehnt.
+     * ist Muell und wird abgeschnitten, nicht abgelehnt. Seit Ticket #47
+     * meldet jeder Anker ZWEI Ereignisse (`delivered` und `viewable`), darum
+     * das doppelte Budget — sonst wuerde ein Seitenaufruf mit vielen Ankern
+     * abgeschnitten und die Quote waere je nach Reihenfolge verfaelscht.
      *
      * `retention_days` gilt fuer `ad_impression_daily`. 400 Tage, damit ein
      * Jahresvergleich moeglich bleibt — es sind Aggregate ohne Personenbezug,
      * Rohdaten entstehen ohnehin nie.
+     *
+     * `placement_cache_ttl` ist die Dauer der Liste gueltiger Belegungs-Ids je
+     * Portal, gegen die der Beacon seine `placement_id` prueft (#42). Kurz
+     * gehalten: eine gerade pausierte oder geloeschte Belegung soll nicht
+     * stundenlang weiter als gueltig durchgehen, und die Abfrage ist ein
+     * Index-Lookup.
      */
     'impressions' => [
         'threshold' => 0.5,
         'dwell_ms' => 1000,
-        'max_entries' => 20,
+        'max_entries' => 40,
         'retention_days' => 400,
+        'placement_cache_ttl' => 300,
     ],
 
     /*
@@ -293,6 +322,9 @@ return [
         ],
         [
             'key' => 'home_after_services',
+            // Inhaltsbedingung (#22): der Anker steht im Markup innerhalb der
+            // Sektion und fehlt mit ihr.
+            'requires' => 'Die Startseite führt Leistungen.',
             'label' => 'Startseite · nach den Leistungen',
             'page_type' => AdPageType::HOME->value,
             'devices' => AdDevice::ALL->value,
@@ -303,6 +335,9 @@ return [
         ],
         [
             'key' => 'home_after_top_rated',
+            // Inhaltsbedingung (#22): der Anker steht im Markup innerhalb der
+            // Sektion und fehlt mit ihr.
+            'requires' => 'Das Portal hat bestbewertete Betriebe.',
             'label' => 'Startseite · nach den Top-Betrieben',
             'page_type' => AdPageType::HOME->value,
             'devices' => AdDevice::ALL->value,
@@ -313,6 +348,9 @@ return [
         ],
         [
             'key' => 'home_after_guide',
+            // Inhaltsbedingung (#22): der Anker steht im Markup innerhalb der
+            // Sektion und fehlt mit ihr.
+            'requires' => 'Es gibt Ratgeber-Beiträge und der Ratgeber steht im Menü.',
             'label' => 'Startseite · nach den Ratgeber-Artikeln',
             'page_type' => AdPageType::HOME->value,
             'devices' => AdDevice::ALL->value,
@@ -323,6 +361,9 @@ return [
         ],
         [
             'key' => 'home_after_cities',
+            // Inhaltsbedingung (#22): der Anker steht im Markup innerhalb der
+            // Sektion und fehlt mit ihr.
+            'requires' => 'Das Portal führt Städte mit Betrieben.',
             'label' => 'Startseite · nach den Städten',
             'page_type' => AdPageType::HOME->value,
             'devices' => AdDevice::ALL->value,
@@ -421,6 +462,9 @@ return [
         ],
         [
             'key' => 'company_after_about',
+            // Inhaltsbedingung (#22): der Anker steht im Markup innerhalb der
+            // Sektion und fehlt mit ihr.
+            'requires' => 'Das Profil hat einen Beschreibungstext.',
             'label' => 'Profil · nach "Über uns"',
             'page_type' => AdPageType::COMPANY->value,
             'devices' => AdDevice::ALL->value,

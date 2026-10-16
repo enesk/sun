@@ -23,6 +23,7 @@ use Stancl\Tenancy\Database\Concerns\CentralConnection;
  * @property int $placement_id
  * @property string $device
  * @property int $impressions
+ * @property int $deliveries
  */
 class AdImpressionDaily extends Model
 {
@@ -37,6 +38,7 @@ class AdImpressionDaily extends Model
         'placement_id',
         'device',
         'impressions',
+        'deliveries',
     ];
 
     protected function casts(): array
@@ -45,6 +47,7 @@ class AdImpressionDaily extends Model
             'day' => 'date',
             'placement_id' => 'integer',
             'impressions' => 'integer',
+            'deliveries' => 'integer',
         ];
     }
 

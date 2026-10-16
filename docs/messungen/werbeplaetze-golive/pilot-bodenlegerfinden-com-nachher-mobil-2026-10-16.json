@@ -1,0 +1,563 @@
+{
+  "gemessen": "2026-10-16T12:43:15.880Z",
+  "breite": 360,
+  "seiten": [
+    {
+      "url": "https://bodenlegerfinden.com/12-parkett-loni",
+      "geklickt": true,
+      "vorKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "company_after_header_card",
+            "geraet": "mobile",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_after_about",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_after_reviews",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_sidebar_top",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          },
+          {
+            "schluessel": "company_sidebar_sticky",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          }
+        ],
+        "offeneHeadVorlagen": 1,
+        "offeneFragmente": 5,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "nachKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "company_after_header_card",
+            "geraet": "mobile",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_after_about",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_after_reviews",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_sidebar_top",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          },
+          {
+            "schluessel": "company_sidebar_sticky",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          }
+        ],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 4,
+        "adsbygoogleGeladen": true,
+        "eingesetzteAnzeigen": 2
+      },
+      "gesamt": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "company_after_header_card",
+            "geraet": "mobile",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_after_about",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_after_reviews",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_sidebar_top",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          },
+          {
+            "schluessel": "company_sidebar_sticky",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          }
+        ],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 2,
+        "adsbygoogleGeladen": true,
+        "eingesetzteAnzeigen": 4
+      }
+    },
+    {
+      "url": "https://bodenlegerfinden.com/ratgeber/guten-handwerker-finden-tipps",
+      "geklickt": true,
+      "vorKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "guide_in_article_1",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          }
+        ],
+        "offeneHeadVorlagen": 1,
+        "offeneFragmente": 1,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "nachKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "guide_in_article_1",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          }
+        ],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": true,
+        "eingesetzteAnzeigen": 2
+      },
+      "gesamt": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "guide_in_article_1",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          }
+        ],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": true,
+        "eingesetzteAnzeigen": 2
+      }
+    },
+    {
+      "url": "https://bodenlegerfinden.com/firmen",
+      "geklickt": true,
+      "vorKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "search_in_feed_3",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          }
+        ],
+        "offeneHeadVorlagen": 1,
+        "offeneFragmente": 1,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "nachKlick": {
+        "cls": 0.12982622111002606,
+        "verschiebungen": [
+          {
+            "wert": 0.024853362358940975,
+            "zeit": 20525,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.02339021172417535,
+            "zeit": 20542,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.02115825710720486,
+            "zeit": 20579,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.01868015625,
+            "zeit": 20585,
+            "quellen": [
+              "(entfernt)",
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.03387152777777778,
+            "zeit": 20652,
+            "quellen": [
+              "(entfernt)",
+              "(entfernt)",
+              "div.ad-slot @search_in_feed_3",
+              "article.card-interactive.p-5.flex",
+              "article.card-interactive.p-5.flex"
+            ]
+          },
+          {
+            "wert": 0.0039259657118055555,
+            "zeit": 22842,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.00290021240234375,
+            "zeit": 22859,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.00011666666666666668,
+            "zeit": 22875,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.00008645833333333333,
+            "zeit": 22892,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.00014756944444444445,
+            "zeit": 22909,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.00011666666666666668,
+            "zeit": 22925,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.00011666666666666668,
+            "zeit": 22942,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.00011666666666666668,
+            "zeit": 22959,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.00008645833333333333,
+            "zeit": 22975,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.00008645833333333333,
+            "zeit": 22992,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.00008645833333333333,
+            "zeit": 23009,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.00008645833333333333,
+            "zeit": 23025,
+            "quellen": [
+              "(entfernt)"
+            ]
+          }
+        ],
+        "anker": [
+          {
+            "schluessel": "search_in_feed_3",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          }
+        ],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": true,
+        "eingesetzteAnzeigen": 6
+      },
+      "gesamt": {
+        "cls": 0.1871797714572483,
+        "verschiebungen": [
+          {
+            "wert": 0.024853362358940975,
+            "zeit": 20525,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.02339021172417535,
+            "zeit": 20542,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.02115825710720486,
+            "zeit": 20579,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.01868015625,
+            "zeit": 20585,
+            "quellen": [
+              "(entfernt)",
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.03387152777777778,
+            "zeit": 20652,
+            "quellen": [
+              "(entfernt)",
+              "(entfernt)",
+              "div.ad-slot @search_in_feed_3",
+              "article.card-interactive.p-5.flex",
+              "article.card-interactive.p-5.flex"
+            ]
+          },
+          {
+            "wert": 0.0039259657118055555,
+            "zeit": 22842,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.00290021240234375,
+            "zeit": 22859,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.00011666666666666668,
+            "zeit": 22875,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.00008645833333333333,
+            "zeit": 22892,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.00014756944444444445,
+            "zeit": 22909,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.00011666666666666668,
+            "zeit": 22925,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.00011666666666666668,
+            "zeit": 22942,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.00011666666666666668,
+            "zeit": 22959,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.00008645833333333333,
+            "zeit": 22975,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.00008645833333333333,
+            "zeit": 22992,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.00008645833333333333,
+            "zeit": 23009,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.00008645833333333333,
+            "zeit": 23025,
+            "quellen": [
+              "(entfernt)"
+            ]
+          },
+          {
+            "wert": 0.005757378472222222,
+            "zeit": 29428,
+            "quellen": [
+              "div.mt-3.flex.flex-wrap",
+              "div.mt-3",
+              "div.flex.lg:flex-col.gap-2"
+            ]
+          },
+          {
+            "wert": 0.051596171875,
+            "zeit": 35648,
+            "quellen": [
+              "(entfernt)"
+            ]
+          }
+        ],
+        "anker": [
+          {
+            "schluessel": "search_in_feed_3",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          }
+        ],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": true,
+        "eingesetzteAnzeigen": 6
+      }
+    }
+  ]
+}

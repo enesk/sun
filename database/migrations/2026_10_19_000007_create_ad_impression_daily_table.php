@@ -56,6 +56,11 @@ return new class extends Migration
             // Ziel des Upserts im Aggregations-Job.
             $table->unique(['tenant_id', 'day', 'slot_key', 'placement_id', 'device'], 'ad_impr_daily_unique');
             // Auswertung im Widget: letzte 7/30 Tage, optional je Portal.
+            // ACHTUNG: beide folgenden Indizes fallen in
+            // 2026_10_19_000009_add_covering_indexes_to_ad_impression_daily_table
+            // wieder weg — sie decken die Gruppenabfragen des Widgets nicht ab
+            // (Ticket #44, docs/ad-slots-security-review.md 13.7). Hier bleiben
+            // sie stehen, weil die Tabelle so schon ausgeliefert ist.
             $table->index(['day', 'tenant_id'], 'ad_impr_daily_day_tenant');
             // Slot-Vergleich ueber alle Portale.
             $table->index(['slot_key', 'day'], 'ad_impr_daily_slot_day');

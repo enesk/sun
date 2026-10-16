@@ -1,0 +1,433 @@
+{
+  "gemessen": "2026-10-16T12:52:09.707Z",
+  "breite": 360,
+  "laeufe": 3,
+  "seiten": [
+    {
+      "url": "https://bodenlegerfinden.com/12-parkett-loni",
+      "ohneEinwilligung": [
+        {
+          "cls": 0,
+          "lcp": 544,
+          "anker": [
+            {
+              "schluessel": "company_after_header_card",
+              "geladen": false,
+              "hoehe": 310
+            },
+            {
+              "schluessel": "company_after_about",
+              "geladen": false,
+              "hoehe": 310
+            },
+            {
+              "schluessel": "company_after_reviews",
+              "geladen": false,
+              "hoehe": 310
+            },
+            {
+              "schluessel": "company_sidebar_top",
+              "geladen": false,
+              "hoehe": 0
+            },
+            {
+              "schluessel": "company_sidebar_sticky",
+              "geladen": false,
+              "hoehe": 0
+            },
+            {
+              "schluessel": "company_before_footer",
+              "geladen": false,
+              "hoehe": 130
+            }
+          ],
+          "eingesetzteAnzeigen": 0,
+          "adsbygoogleGeladen": false
+        },
+        {
+          "cls": 0,
+          "lcp": 464,
+          "anker": [
+            {
+              "schluessel": "company_after_header_card",
+              "geladen": false,
+              "hoehe": 310
+            },
+            {
+              "schluessel": "company_after_about",
+              "geladen": false,
+              "hoehe": 310
+            },
+            {
+              "schluessel": "company_after_reviews",
+              "geladen": false,
+              "hoehe": 310
+            },
+            {
+              "schluessel": "company_sidebar_top",
+              "geladen": false,
+              "hoehe": 0
+            },
+            {
+              "schluessel": "company_sidebar_sticky",
+              "geladen": false,
+              "hoehe": 0
+            },
+            {
+              "schluessel": "company_before_footer",
+              "geladen": false,
+              "hoehe": 130
+            }
+          ],
+          "eingesetzteAnzeigen": 0,
+          "adsbygoogleGeladen": false
+        },
+        {
+          "cls": 0,
+          "lcp": 480,
+          "anker": [
+            {
+              "schluessel": "company_after_header_card",
+              "geladen": false,
+              "hoehe": 310
+            },
+            {
+              "schluessel": "company_after_about",
+              "geladen": false,
+              "hoehe": 310
+            },
+            {
+              "schluessel": "company_after_reviews",
+              "geladen": false,
+              "hoehe": 310
+            },
+            {
+              "schluessel": "company_sidebar_top",
+              "geladen": false,
+              "hoehe": 0
+            },
+            {
+              "schluessel": "company_sidebar_sticky",
+              "geladen": false,
+              "hoehe": 0
+            },
+            {
+              "schluessel": "company_before_footer",
+              "geladen": false,
+              "hoehe": 130
+            }
+          ],
+          "eingesetzteAnzeigen": 0,
+          "adsbygoogleGeladen": false
+        }
+      ],
+      "mitEinwilligung": [
+        {
+          "cls": 0,
+          "lcp": 512,
+          "anker": [
+            {
+              "schluessel": "company_after_header_card",
+              "geladen": true,
+              "hoehe": 310
+            },
+            {
+              "schluessel": "company_after_about",
+              "geladen": true,
+              "hoehe": 310
+            },
+            {
+              "schluessel": "company_after_reviews",
+              "geladen": true,
+              "hoehe": 310
+            },
+            {
+              "schluessel": "company_sidebar_top",
+              "geladen": false,
+              "hoehe": 0
+            },
+            {
+              "schluessel": "company_sidebar_sticky",
+              "geladen": false,
+              "hoehe": 0
+            },
+            {
+              "schluessel": "company_before_footer",
+              "geladen": true,
+              "hoehe": 130
+            }
+          ],
+          "eingesetzteAnzeigen": 5,
+          "adsbygoogleGeladen": true
+        },
+        {
+          "cls": 0,
+          "lcp": 508,
+          "anker": [
+            {
+              "schluessel": "company_after_header_card",
+              "geladen": true,
+              "hoehe": 310
+            },
+            {
+              "schluessel": "company_after_about",
+              "geladen": true,
+              "hoehe": 310
+            },
+            {
+              "schluessel": "company_after_reviews",
+              "geladen": true,
+              "hoehe": 310
+            },
+            {
+              "schluessel": "company_sidebar_top",
+              "geladen": false,
+              "hoehe": 0
+            },
+            {
+              "schluessel": "company_sidebar_sticky",
+              "geladen": false,
+              "hoehe": 0
+            },
+            {
+              "schluessel": "company_before_footer",
+              "geladen": true,
+              "hoehe": 130
+            }
+          ],
+          "eingesetzteAnzeigen": 5,
+          "adsbygoogleGeladen": true
+        },
+        {
+          "cls": 0,
+          "lcp": 508,
+          "anker": [
+            {
+              "schluessel": "company_after_header_card",
+              "geladen": true,
+              "hoehe": 310
+            },
+            {
+              "schluessel": "company_after_about",
+              "geladen": true,
+              "hoehe": 310
+            },
+            {
+              "schluessel": "company_after_reviews",
+              "geladen": true,
+              "hoehe": 310
+            },
+            {
+              "schluessel": "company_sidebar_top",
+              "geladen": false,
+              "hoehe": 0
+            },
+            {
+              "schluessel": "company_sidebar_sticky",
+              "geladen": false,
+              "hoehe": 0
+            },
+            {
+              "schluessel": "company_before_footer",
+              "geladen": true,
+              "hoehe": 130
+            }
+          ],
+          "eingesetzteAnzeigen": 5,
+          "adsbygoogleGeladen": true
+        }
+      ],
+      "median": {
+        "lcpOhne": 480,
+        "lcpMit": 508,
+        "clsOhne": 0,
+        "clsMit": 0,
+        "lcpAbweichungProzent": 5.8
+      }
+    },
+    {
+      "url": "https://bodenlegerfinden.com/ratgeber/guten-handwerker-finden-tipps",
+      "ohneEinwilligung": [
+        {
+          "cls": 0,
+          "lcp": 264,
+          "anker": [
+            {
+              "schluessel": "guide_in_article_1",
+              "geladen": false,
+              "hoehe": 310
+            }
+          ],
+          "eingesetzteAnzeigen": 0,
+          "adsbygoogleGeladen": false
+        },
+        {
+          "cls": 0,
+          "lcp": 224,
+          "anker": [
+            {
+              "schluessel": "guide_in_article_1",
+              "geladen": false,
+              "hoehe": 310
+            }
+          ],
+          "eingesetzteAnzeigen": 0,
+          "adsbygoogleGeladen": false
+        },
+        {
+          "cls": 0,
+          "lcp": 216,
+          "anker": [
+            {
+              "schluessel": "guide_in_article_1",
+              "geladen": false,
+              "hoehe": 310
+            }
+          ],
+          "eingesetzteAnzeigen": 0,
+          "adsbygoogleGeladen": false
+        }
+      ],
+      "mitEinwilligung": [
+        {
+          "cls": 0,
+          "lcp": 244,
+          "anker": [
+            {
+              "schluessel": "guide_in_article_1",
+              "geladen": true,
+              "hoehe": 310
+            }
+          ],
+          "eingesetzteAnzeigen": 3,
+          "adsbygoogleGeladen": true
+        },
+        {
+          "cls": 0,
+          "lcp": 180,
+          "anker": [
+            {
+              "schluessel": "guide_in_article_1",
+              "geladen": true,
+              "hoehe": 310
+            }
+          ],
+          "eingesetzteAnzeigen": 3,
+          "adsbygoogleGeladen": true
+        },
+        {
+          "cls": 0,
+          "lcp": 260,
+          "anker": [
+            {
+              "schluessel": "guide_in_article_1",
+              "geladen": true,
+              "hoehe": 310
+            }
+          ],
+          "eingesetzteAnzeigen": 3,
+          "adsbygoogleGeladen": true
+        }
+      ],
+      "median": {
+        "lcpOhne": 224,
+        "lcpMit": 244,
+        "clsOhne": 0,
+        "clsMit": 0,
+        "lcpAbweichungProzent": 8.9
+      }
+    },
+    {
+      "url": "https://bodenlegerfinden.com/firmen",
+      "ohneEinwilligung": [
+        {
+          "cls": 0,
+          "lcp": 596,
+          "anker": [
+            {
+              "schluessel": "search_in_feed_3",
+              "geladen": false,
+              "hoehe": 310
+            }
+          ],
+          "eingesetzteAnzeigen": 0,
+          "adsbygoogleGeladen": false
+        },
+        {
+          "cls": 0,
+          "lcp": 520,
+          "anker": [
+            {
+              "schluessel": "search_in_feed_3",
+              "geladen": false,
+              "hoehe": 310
+            }
+          ],
+          "eingesetzteAnzeigen": 0,
+          "adsbygoogleGeladen": false
+        },
+        {
+          "cls": 0,
+          "lcp": 520,
+          "anker": [
+            {
+              "schluessel": "search_in_feed_3",
+              "geladen": false,
+              "hoehe": 310
+            }
+          ],
+          "eingesetzteAnzeigen": 0,
+          "adsbygoogleGeladen": false
+        }
+      ],
+      "mitEinwilligung": [
+        {
+          "cls": 0,
+          "lcp": 504,
+          "anker": [
+            {
+              "schluessel": "search_in_feed_3",
+              "geladen": true,
+              "hoehe": 310
+            }
+          ],
+          "eingesetzteAnzeigen": 2,
+          "adsbygoogleGeladen": true
+        },
+        {
+          "cls": 0,
+          "lcp": 560,
+          "anker": [
+            {
+              "schluessel": "search_in_feed_3",
+              "geladen": true,
+              "hoehe": 310
+            }
+          ],
+          "eingesetzteAnzeigen": 2,
+          "adsbygoogleGeladen": true
+        },
+        {
+          "cls": 0,
+          "lcp": 640,
+          "anker": [
+            {
+              "schluessel": "search_in_feed_3",
+              "geladen": true,
+              "hoehe": 310
+            }
+          ],
+          "eingesetzteAnzeigen": 2,
+          "adsbygoogleGeladen": true
+        }
+      ],
+      "median": {
+        "lcpOhne": 520,
+        "lcpMit": 560,
+        "clsOhne": 0,
+        "clsMit": 0,
+        "lcpAbweichungProzent": 7.7
+      }
+    }
+  ]
+}

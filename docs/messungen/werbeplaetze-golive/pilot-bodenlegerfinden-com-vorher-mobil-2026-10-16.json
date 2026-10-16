@@ -1,0 +1,257 @@
+{
+  "gemessen": "2026-10-16T12:40:29.538Z",
+  "breite": 360,
+  "seiten": [
+    {
+      "url": "https://bodenlegerfinden.com/12-parkett-loni",
+      "geklickt": true,
+      "vorKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "company_after_header_card",
+            "geraet": "mobile",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_after_about",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_after_reviews",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_sidebar_top",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          },
+          {
+            "schluessel": "company_sidebar_sticky",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          }
+        ],
+        "offeneHeadVorlagen": 1,
+        "offeneFragmente": 5,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "nachKlick": {
+        "cls": 0.01486782986111111,
+        "verschiebungen": [
+          {
+            "wert": 0.01486782986111111,
+            "zeit": 20254,
+            "quellen": [
+              "div.fc-stacks.fc-dialog-restricted-content",
+              "div.fc-footer.fc-dialog-restricted-content",
+              "button.fc-faq-header.fc-dialog-restricted-content"
+            ]
+          }
+        ],
+        "anker": [
+          {
+            "schluessel": "company_after_header_card",
+            "geraet": "mobile",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_after_about",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_after_reviews",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_sidebar_top",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          },
+          {
+            "schluessel": "company_sidebar_sticky",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          }
+        ],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 4,
+        "adsbygoogleGeladen": true,
+        "eingesetzteAnzeigen": 2
+      },
+      "gesamt": {
+        "cls": 0.01486782986111111,
+        "verschiebungen": [
+          {
+            "wert": 0.01486782986111111,
+            "zeit": 20254,
+            "quellen": [
+              "div.fc-stacks.fc-dialog-restricted-content",
+              "div.fc-footer.fc-dialog-restricted-content",
+              "button.fc-faq-header.fc-dialog-restricted-content"
+            ]
+          }
+        ],
+        "anker": [
+          {
+            "schluessel": "company_after_header_card",
+            "geraet": "mobile",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_after_about",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_after_reviews",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_sidebar_top",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          },
+          {
+            "schluessel": "company_sidebar_sticky",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          }
+        ],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 2,
+        "adsbygoogleGeladen": true,
+        "eingesetzteAnzeigen": 4
+      }
+    },
+    {
+      "url": "https://bodenlegerfinden.com/ratgeber/guten-handwerker-finden-tipps",
+      "geklickt": true,
+      "vorKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "nachKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "gesamt": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      }
+    },
+    {
+      "url": "https://bodenlegerfinden.com/firmen",
+      "geklickt": true,
+      "vorKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "nachKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "gesamt": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      }
+    }
+  ]
+}

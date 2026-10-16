@@ -47,9 +47,40 @@ final class AdCache
         return sprintf('ads-txt:v%d:%s', AdSlotCatalog::version(), $tenantId);
     }
 
+    /**
+     * Schluessel fuer "laeuft hier ein einwilligungspflichtiges
+     * HTML-Werbemittel?" (#35,
+     * {@see AdSensePrivacySection::htmlActive()}). Die Frage gilt fuer das
+     * ganze Portal, nicht je Seitentyp, und haengt am Cookie-Hinweis jeder
+     * Seite — deshalb ein eigener Eintrag, den {@see forgetTenant()} mit
+     * vergisst.
+     */
+    public static function htmlConsentKey(int|string $tenantId): string
+    {
+        return sprintf('ads-html-consent:v%d:%s', AdSlotCatalog::version(), $tenantId);
+    }
+
+    /**
+     * Schluessel fuer die Liste der gueltigen Belegungs-Ids je Anker (#42).
+     * Damit prueft {@see AdImpressionRecorder::normalize()} die gemeldete
+     * `placement_id` des Beacons mit einer Abfrage je Zeitfenster statt je
+     * Aufruf. Eigene, kurze Dauer ({@see impressionPlacementsTtl()}) — eine
+     * gerade pausierte Belegung soll nicht eine Stunde weiterzaehlen.
+     */
+    public static function impressionPlacementsKey(int|string $tenantId): string
+    {
+        return sprintf('ads-impression-placements:v%d:%s', AdSlotCatalog::version(), $tenantId);
+    }
+
     public static function ttl(): int
     {
         return (int) config('ad-slots.cache_ttl', 3600);
+    }
+
+    /** Dauer fuer {@see impressionPlacementsKey()} — Vorgabe fuenf Minuten. */
+    public static function impressionPlacementsTtl(): int
+    {
+        return max(1, (int) config('ad-slots.impressions.placement_cache_ttl', 300));
     }
 
     /**
@@ -66,6 +97,8 @@ final class AdCache
         }
 
         $keys[] = self::adsTxtKey($tenantId);
+        $keys[] = self::htmlConsentKey($tenantId);
+        $keys[] = self::impressionPlacementsKey($tenantId);
 
         foreach ($keys as $key) {
             Cache::forget($key);

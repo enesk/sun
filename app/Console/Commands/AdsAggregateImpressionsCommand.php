@@ -35,9 +35,10 @@ class AdsAggregateImpressionsCommand extends Command
         $ergebnis = (new AggregateAdImpressions)->handle();
 
         $this->info(sprintf(
-            '%d Aggregatzeilen, %d Impressionen verdichtet, %d alte Tageszeilen geloescht.',
+            '%d Aggregatzeilen, %d Sichtkontakte und %d ausgelieferte Fragmente verdichtet, %d alte Tageszeilen geloescht.',
             $ergebnis['rows'],
             $ergebnis['impressions'],
+            $ergebnis['deliveries'],
             $ergebnis['pruned'],
         ));
 

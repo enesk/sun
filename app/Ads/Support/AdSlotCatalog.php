@@ -34,7 +34,7 @@ use App\Ads\Enums\AdPageType;
  * routengebunden, Datenpruefungen routenfrei — eine Belegung gehoert dem
  * Anker, nicht der Route.
  *
- * @phpstan-type SlotArray array{key: string, label: string, page_type: string, devices: string, formats: list<string>, min_height_mobile: int, min_height_desktop: int, sort: int, themes: list<string>, routes?: list<string>}
+ * @phpstan-type SlotArray array{key: string, label: string, page_type: string, devices: string, formats: list<string>, min_height_mobile: int, min_height_desktop: int, sort: int, themes: list<string>, routes?: list<string>, requires?: string}
  */
 final class AdSlotCatalog
 {
@@ -138,6 +138,22 @@ final class AdSlotCatalog
     public static function supportsRoute(string $slotKey, string $route): bool
     {
         return in_array($route, self::routesOf($slotKey), true);
+    }
+
+    /**
+     * Woran haengt der Anker inhaltlich? (Ticket #22)
+     *
+     * Ein Satz, wenn der Anker im Markup innerhalb einer Sektions-Bedingung
+     * steht — „Es gibt Ratgeber-Beitraege …" —, sonst null. Der Anker wird
+     * bewusst nicht aus der Bedingung gezogen (Begruendung in
+     * config/ad-slots.php); dafuer sagt das Panel, warum er auf einer Seite
+     * fehlen kann, statt ihn still verschwinden zu lassen.
+     */
+    public static function requirementOf(string $slotKey): ?string
+    {
+        $wert = self::find($slotKey)['requires'] ?? null;
+
+        return is_string($wert) && $wert !== '' ? $wert : null;
     }
 
     /**
