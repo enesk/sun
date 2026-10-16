@@ -287,8 +287,9 @@ Daraus folgt für die Sitzung:
   Domain. Es fehlen genau zwei Handgriffe: AdSense Management API im Projekt
   `321830197826` aktivieren und das Dienstkonto
   `sun-portal@analytics-460722.iam.gserviceaccount.com` in **beiden** Konten
-  als Nutzer eintragen. Beides steht in **#55**; wer die Sitzung sowieso im
-  Konto hat, erledigt es dort gleich mit und liest §6.2/§6.4 danach per API.
+  als Nutzer eintragen. Beides steht in **#55**. Handgriff 1 ist erledigt,
+  Handgriff 2 ist als nicht machbar abgeschlossen (siehe unten) — §6.2/§6.4
+  werden per API erst mit **#61** lesbar.
 
   **Handgriff 1 ist am 16.10.2026 erledigt — ohne Konsole** (#58): das
   Produktions-Dienstkonto darf im Projekt `321830197826` Service Usage
@@ -302,18 +303,30 @@ Daraus folgt für die Sitzung:
   auf **71**. Der Weg steht auch für jede weitere Google-API dieses Projekts
   offen; ein `gcloud` gibt es weder lokal noch auf der Produktion.
 
-  **Handgriff 2 bleibt offen und ist fraglich.** Die API nimmt das
-  Dienstkonto-Token an und antwortet auf `accounts.list` mit HTTP 200 und
-  **null** Konten — das Konto sieht nichts, was ihm nicht zugeteilt ist. Die
-  Doku der Management API sagt aber ausdrücklich, dass AdSense **keine
-  Dienstkonten unterstützt** und der Installed-Application-Flow mit einem
-  authentifizierten Nutzer vorgesehen ist; eine Nutzereinladung in AdSense
-  geht an eine E-Mail-Adresse und muss aus einem Google-Konto **angenommen**
-  werden, was ein Dienstkonto nicht kann. Schlägt der Eintrag in der
-  Oberfläche also fehl, ist das kein Bedienfehler, sondern die Grenze des
-  Dienstkonto-Wegs — dann braucht der Client ein Refresh-Token eines echten
-  Nutzers (**#61**). Der Versuch kostet nichts und ist damit die billigere
-  Reihenfolge.
+  **Handgriff 2 ist nicht machbar — der Dienstkonto-Weg endet hier**
+  (entschieden 16.10.2026, #58). Die API nimmt das Dienstkonto-Token an und
+  antwortet auf `accounts.list` mit HTTP 200 und **null** Konten — das Konto
+  sieht nichts, was ihm nicht zugeteilt ist. Zugeteilt werden kann es nicht:
+
+  * [Management API, „Authorizing requests"](https://developers.google.com/adsense/management/direct_requests)
+    (Stand der Seite 16.01.2026): *„Note that AdSense doesn't support Service
+    Accounts, instead you must use the Installed Application flow."* und *„All
+    requests to the AdSense Management API must be authorized by an
+    authenticated user."*
+  * [Nutzer hinzufügen](https://support.google.com/adsense/answer/2659101):
+    *„To access your account, users must have a Google Account and can't be
+    linked to another active or closed AdSense account."* Die Einladung wird
+    erst aktiv, wenn der Eingeladene den Link in der E-Mail anklickt und sein
+    Google-Konto mit dem AdSense-Konto verknüpft; sie verfällt nach 30 Tagen.
+
+  Eine `…iam.gserviceaccount.com`-Adresse hat kein Postfach und kann sich nicht
+  interaktiv anmelden, die Einladung bliebe also dauerhaft „Pending". Der
+  Eintrag in der Oberfläche wird deshalb **nicht mehr versucht**; es ist kein
+  Bedienfehler, sondern die Grenze des Wegs. Weiter geht es nur über **#61**
+  (zweiter Anmeldeweg im `AdSenseClient` über ein Refresh-Token eines echten
+  Nutzers, einmal je Netz zu holen). Bis #61 geliefert ist, bleibt
+  `ads:adsense-konto` auf **Exit 71** und §6.2/§6.4 werden in der Oberfläche
+  abgelesen.
 
   Das Ablesen selbst ist seit #55 eingecheckt und braucht die Oberfläche nicht
   mehr:

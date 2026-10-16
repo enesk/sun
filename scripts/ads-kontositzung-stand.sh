@@ -113,8 +113,8 @@ else
     0)  zeile ok "§6.0" "Dienstkonto liest alle im Netz benutzten AdSense-Konten — §6.2/§6.4 per API" ;;
     70) zeile offen "§6.0" "AdSense Management API im Cloud-Projekt 321830197826 nicht freigeschaltet" \
           "Ohne Konsole machbar (#58): Token auf Scope cloud-platform holen, dann POST serviceusage.googleapis.com/v1/projects/321830197826/services/adsense.googleapis.com:enable mit Rumpf {} — siehe pilot-protokoll.md §6.5. Gegenprobe: artisan ads:adsense-konto." ;;
-    71) zeile offen "§6.0" "API frei, aber mindestens ein Konto fehlt dem Dienstkonto" \
-          "AdSense > Konto > Zugriff und Autorisierung > Nutzer: sun-portal@analytics-460722.iam.gserviceaccount.com in BEIDEN Konten eintragen (ca-pub-2563111817853634, ca-pub-1901800422608466). Welches fehlt, nennt artisan ads:adsense-konto. ACHTUNG: laut Doku unterstuetzt AdSense keine Dienstkonten und die Einladung muss aus einem Google-Konto angenommen werden — scheitert der Eintrag, greift der OAuth-Weg mit Refresh-Token eines echten Nutzers (#61)." ;;
+    71) zeile offen "§6.0" "Dienstkonto-Weg endet hier — Exit 71 bleibt bis #61 geliefert ist" \
+          "Nicht mehr versuchen, das Dienstkonto als AdSense-Nutzer einzutragen: die Doku der Management API sagt \"AdSense doesn't support Service Accounts, instead you must use the Installed Application flow\" (Stand 16.01.2026), und eine Einladung muss aus einem Google-Konto angenommen werden — eine …iam.gserviceaccount.com-Adresse hat kein Postfach, die Einladung bliebe Pending. Weiter geht es nur ueber #61 (Refresh-Token eines echten Nutzers im AdSenseClient); bis dahin §6.2/§6.4 in der Oberflaeche ablesen. Belegt in pilot-protokoll.md §6.5 (#58)." ;;
     65) zeile unklar "§6.0" "kein lesbarer Dienstkonto-Schluessel auf der Produktion (GOOGLE_SERVICE_ACCOUNT_JSON)" ;;
     1)  zeile unklar "§6.0" "ads:adsense-konto bricht ab (Befehl dort unbekannt oder Netzfehler) — Stand der Produktion aelter als #55?" ;;
     *)  zeile unklar "§6.0" "ads:adsense-konto endet mit Exit ${API_CODE:-?} — von Hand nachsehen" ;;
