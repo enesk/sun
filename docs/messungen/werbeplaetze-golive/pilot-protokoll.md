@@ -281,12 +281,31 @@ Daraus folgt für die Sitzung:
 
 * **§6.1 bleibt Oberflächenarbeit** (Search Console › Core Web Vitals), solange
   es keinen API-Schlüssel mit CrUX-Freigabe gibt.
-* **§6.2 und §6.4 wären maschinell lesbar** — `accounts.reports.generate` mit
+* **§6.2 und §6.4 sind maschinell lesbar** — `accounts.reports.generate` mit
   Dimension `AD_UNIT_NAME` bzw. `accounts.sites.list` mit dem Feld `state` je
   Domain. Es fehlen genau zwei Handgriffe: AdSense Management API im Projekt
   `321830197826` aktivieren und das Dienstkonto
   `sun-portal@analytics-460722.iam.gserviceaccount.com` in **beiden** Konten
   als Nutzer eintragen. Beides steht in **#55**; wer die Sitzung sowieso im
   Konto hat, erledigt es dort gleich mit und liest §6.2/§6.4 danach per API.
+
+  Das Ablesen selbst ist seit #55 eingecheckt und braucht die Oberfläche nicht
+  mehr:
+
+  ```
+  php artisan ads:adsense-konto            # Konten + state je Domain (§6.4)
+  php artisan ads:adsense-konto --report   # zusätzlich Report je Block (§6.2)
+  php artisan ads:adsense-konto --json     # maschinenlesbar
+  ```
+
+  Der Befehl ist rein lesend und deutet seinen Exit-Code selbst:
+  **0** = alle im Netz benutzten Konten lesbar, **70** = API im Cloud-Projekt
+  nicht freigeschaltet (Handgriff 1), **71** = Token gilt, aber ein Konto
+  fehlt dem Dienstkonto (Handgriff 2), **65** = kein Dienstkonto-Schlüssel.
+  `scripts/ads-kontositzung-stand.sh` fährt ihn als Abschnitt **§6.0** mit, vor
+  §6.1 — damit steht am Anfang jedes Anlaufs, ob die zwei Punkte diesmal per
+  API gehen. Die Soll-Liste der Konten baut der Befehl aus
+  `ad_settings.adsense_publisher_id` plus `ADSENSE_PUBLISHER_ID`; ein Konto,
+  das kein Portal benutzt, fällt damit nicht auf.
 * **§6.3 bleibt Handarbeit.** Die v2-API ist lesend, ein `adunits.create` gibt
   es nicht — neue Anzeigenblöcke entstehen nur in der Oberfläche.
