@@ -366,6 +366,11 @@ schritt "Datenschutz-Backfill schreibend" \
   "${PHP_BIN} artisan tenants:datenschutz:turnstile-backfill --write" app
 
 abschnitt 6 "Caches und Dienste"
+# filament:optimize ist hier nicht Kosmetik (#64): es baut den
+# Komponenten-Cache der drei Panels neu. Fehlt der Neubau, liest Filament die
+# alte Liste und jede neu dazugekommene Panel-Seite antwortet mit 404, obwohl
+# `route:list` sie anzeigt — am 16.10.2026 war /admin/werbeplaetze deshalb
+# acht Tage lang unerreichbar.
 schritt "config:cache, route:clear, view:clear, filament:optimize" \
   "${PHP_BIN} artisan config:clear && ${PHP_BIN} artisan config:cache && ${PHP_BIN} artisan route:clear && ${PHP_BIN} artisan view:clear && ${PHP_BIN} artisan filament:optimize" app
 schritt "PHP-FPM nachladen" "systemctl reload ${FPM_SERVICE}" root
@@ -379,6 +384,13 @@ if [ "$LOS" -eq 0 ]; then
 else
   log "§1.3 ist durch. Der Schutz ist global AUS (TURNSTILE_ENABLED=false) und die"
   log "CSP meldet nur (CSP_MODE=report) — beides absichtlich."
+  log ""
+  log "Panel-Seiten gegenpruefen (#64): scripts/panel-seiten-pruefen.sh"
+  log "  Jede Seite per HTTP, 302 erwartet. Ein 404 heisst \"nicht registriert\" —"
+  log "  dann ist der Filament-Komponenten-Cache alt (filament:optimize)."
+  log "  'route:list' taugt dafuer NICHT: es zeigt auch Seiten, die das Panel"
+  log "  nicht kennt (nachgewiesen am 16.10.2026)."
+  log ""
   log "Weiter im Dokument: §1.4 (antispam:backup), §1.5 (Scheduler, Verteiler,"
   log "24 h CSP-Messung), §1.6 (alle Portale herausnehmen, dann global scharf)."
 fi

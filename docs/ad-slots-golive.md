@@ -339,10 +339,32 @@ sudo -u sanitaerfinden /usr/bin/php8.4 artisan ads:legacy-takeover --force
 sudo -u sanitaerfinden /usr/bin/php8.4 artisan view:clear
 sudo -u sanitaerfinden /usr/bin/php8.4 artisan config:cache
 sudo -u sanitaerfinden /usr/bin/php8.4 artisan route:cache
+# Panel-Komponenten NEU bauen (#64) — sonst bleibt jede neue Panel-Seite 404.
+# Deckt alle drei Panels ab (admin, content, dashboard).
+sudo -u sanitaerfinden /usr/bin/php8.4 artisan filament:optimize
 
 # 5. Nachweis
 sudo -u sanitaerfinden /usr/bin/php8.4 artisan ads:golive:check
+scripts/panel-seiten-pruefen.sh        # jede Panel-Seite per HTTP: 302 erwartet
 ```
+
+**Schritt 4 ist kein Beiwerk (#64).** Liegt
+`bootstrap/cache/filament/panels/*.php`, liest Filament **nur** diese Liste und
+durchsucht die Verzeichnisse nicht mehr. Eine Panel-Seite, die nach dem letzten
+`filament:cache-components` dazugekommen ist, ist dann nicht registriert: ihre
+Route steht in `route:list`, der Aufruf endet aber mit **404**. Genau so war
+`/admin/werbeplaetze` nach diesem Deploy unerreichbar — mit einem Cache vom
+08.10.2026, acht Tage alt. `filament:optimize` baut Komponenten- und
+Icon-Cache neu.
+
+**Und die Prüfung gehört über HTTP, nicht über `route:list` (#64).**
+`route:list` baut die Routen frisch auf und zeigt deshalb auch Seiten an, die
+im Panel nicht registriert sind — es hat den Fehler am 16.10. zweimal
+verdeckt. `scripts/panel-seiten-pruefen.sh` ruft jede Seite auf; erwartet ist
+`302` auf die Anmeldung, ein `404` heißt „nicht registriert". Das Panel
+`dashboard` prüft das Skript bewusst nicht: dessen Seiten liegen hinter
+`/dashboard/{tenant}/…`, und ohne Sitzung antwortet dort **jede** Adresse mit
+404 — auch eine vollständig registrierte.
 
 - [x] 2026-10-16 Schritt 2: vier Tabellen angelegt, 23 Zeilen in `ad_settings`
 - [x] 2026-10-16 Schritt 3 trocken: die Tabelle „Nicht uebernommen" gelesen — sie ist die
