@@ -132,7 +132,10 @@
             <span class="size-10 shrink-0 rounded-xl bg-brand-50 text-brand flex items-center justify-center" aria-hidden="true"><x-sun.icon name="map-pin" class="icon" /></span>
             <span class="min-w-0">
               <span class="block font-semibold text-zinc-900 truncate">{{ $city['name'] }}</span>
-              <span class="block text-sm text-zinc-500">{{ trans_choice('portal.cities.top.count', $city['count'], ['anzahl' => number_format($city['count'], 0, ',', '.')]) }}</span>
+              {{-- Zweispaltig sind die Kacheln bei 360 px rund 154 px breit. Die
+                   Zeile traegt den Branchenbegriff ("29.150 Elektrobetriebe") und
+                   hat die Seite ohne Trennung waagerecht aufgezogen (#18). --}}
+              <span class="block text-sm text-zinc-500 hyphens-auto wrap-anywhere">{{ trans_choice('portal.cities.top.count', $city['count'], ['anzahl' => number_format($city['count'], 0, ',', '.')]) }}</span>
             </span>
           </a>
         @endforeach

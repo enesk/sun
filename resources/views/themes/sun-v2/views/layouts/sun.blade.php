@@ -76,7 +76,7 @@
     <x-ad-slot position="auto_ads" />
 @endif
 </head>
-<body class="bg-zinc-50 text-zinc-700 font-sans overflow-x-hidden @if($hasStickyAd) pb-[60px] lg:pb-0 @endif @yield('body_class')">
+<body class="bg-zinc-50 text-zinc-700 font-sans overflow-x-clip @if($hasStickyAd) pb-[60px] lg:pb-0 @endif @yield('body_class')">
 
 <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 btn-secondary">{{ __('portal.layout.skip_link') }}</a>
 

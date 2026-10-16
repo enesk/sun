@@ -7,10 +7,13 @@
 @endphp
 <footer class="bg-white border-t border-zinc-200">
   <div class="container-portal py-12">
+    {{-- Zwei Spalten auf dem Handy sind bei 360 px rund 140 px breit. Lange
+         Linkwoerter wie "Redaktionsprinzipien" passen dort nicht und haben die
+         Seite waagerecht aufgezogen (#18) — deshalb trennen die Listen. --}}
     <div class="grid grid-cols-2 {{ $columns }} gap-8">
       <div>
         <h3 class="font-semibold text-zinc-900 mb-3">{{ __('portal.layout.footer.portal') }}</h3>
-        <ul class="space-y-2 text-sm">
+        <ul class="space-y-2 text-sm hyphens-auto wrap-anywhere">
           <li><a href="{{ route('portal.companies.index') }}" class="hover:text-brand">{{ __('portal.layout.footer.directory') }}</a></li>
           <li><a href="{{ route('portal.categories.index') }}" class="hover:text-brand">{{ __('portal.layout.footer.services') }}</a></li>
           <li><a href="{{ route('portal.cities.index') }}" class="hover:text-brand">{{ __('portal.layout.footer.cities') }}</a></li>
@@ -21,7 +24,7 @@
       </div>
       <div>
         <h3 class="font-semibold text-zinc-900 mb-3">{{ __('portal.layout.footer.for_business') }}</h3>
-        <ul class="space-y-2 text-sm">
+        <ul class="space-y-2 text-sm hyphens-auto wrap-anywhere">
           <li><a href="{{ route('portal.companies.create') }}" class="hover:text-brand">{{ __('portal.layout.footer.signup') }}</a></li>
           <li><a href="{{ route('portal.premium.pricing') }}" class="hover:text-brand">{{ __('portal.layout.footer.premium') }}</a></li>
           @guest
@@ -32,7 +35,7 @@
       @if($showGuide)
       <div>
         <h3 class="font-semibold text-zinc-900 mb-3">{{ __('portal.layout.footer.guide') }}</h3>
-        <ul class="space-y-2 text-sm">
+        <ul class="space-y-2 text-sm hyphens-auto wrap-anywhere">
           @forelse($sunFooterPostCategories as $postCategory)
             <li><a href="{{ route('guide.category', $postCategory->slug) }}" class="hover:text-brand">{{ $postCategory->name }}</a></li>
           @empty
@@ -43,7 +46,7 @@
       @endif
       <div>
         <h3 class="font-semibold text-zinc-900 mb-3">{{ __('portal.layout.footer.legal') }}</h3>
-        <ul class="space-y-2 text-sm">
+        <ul class="space-y-2 text-sm hyphens-auto wrap-anywhere">
           <li><a href="{{ route('portal.impressum') }}" class="hover:text-brand">{{ __('portal.layout.footer.imprint') }}</a></li>
           <li><a href="{{ route('portal.datenschutz') }}" class="hover:text-brand">{{ __('portal.layout.footer.privacy') }}</a></li>
           <li><button type="button" class="hover:text-brand" data-cookie-action="settings">{{ __('portal.layout.footer.privacy_settings') }}</button></li>
