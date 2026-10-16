@@ -154,7 +154,7 @@ auf die Reichweite **nicht** anwenden: dem eigenen Zähler fehlt der Nenner.
 
 ---
 
-## 6. Nachtrag (#48) — Kontositzung, nicht vor dem 19.10.2026
+## 6. Nachtrag (#48, Durchführung #53) — Kontositzung, nicht vor dem 19.10.2026
 
 Alles in §2.1, §3 (Feldzeilen) und §4 (drei kontogebundene Spalten) hängt an
 **einem** Zugang: AdSense und Search Console desselben Kontos
@@ -163,6 +163,35 @@ Alles in §2.1, §3 (Feldzeilen) und §4 (drei kontogebundene Spalten) hängt an
 Abschnitt sagt, was in der Sitzung abgelesen und **wohin** es eingetragen wird,
 damit kein Wert zweimal gesucht werden muss. Dieselbe Sitzung erledigt #46 und
 #50 (Auto Ads je Site) mit.
+
+### 6.0 Ein Aufruf für den Stand
+
+```bash
+bash scripts/ads-kontositzung-stand.sh          # Stand aller vier Punkte
+bash scripts/ads-kontositzung-stand.sh --kurz   # nur der nächste Handgriff
+```
+
+Das Skript ändert nichts. Es liest die Feldzeilen aus §3 und die Spalten aus
+`docs/ad-slots.md` §13.2, fragt die Slot-IDs der beiden Pilot-Anker über
+`ads:resolve` auf der Produktion ab, zeigt Schalter und `/ads.txt`-Status der
+sieben Portale und nennt den ersten offenen Punkt samt Handgriff. Exit 70,
+solange etwas offen ist; 0, wenn die Sitzung durch ist. Es kennt auch das
+Zeitgatter: vor dem 19.10.2026 12:40 UTC meldet es §6.1 und §6.2 als „noch
+nicht ablesbar" statt als offen.
+
+**Stand 16.10.2026, 15:40** (`scripts/ads-kontositzung-stand.sh`, Exit 70):
+§6.1 und §6.2 hinter dem Zeitgatter (noch ~71 Stunden), §6.3 offen — beide
+Anker lösen weiter auf Slot `3828015317` auf (Placements 13 und 14, dasselbe
+Werbemittel 13) —, §6.4 offen: alle sieben stehen auf `ads_enabled = nein`.
+`/ads.txt` dabei: 51 → 301, die übrigen sechs → 404. Der 404 ist bei allen mit
+Publisher-ID **neu und richtig so**: die Produktion trägt seit dem Merge
+`50942c2d` den #41-Filter, und er nimmt die eigene Google-Zeile aus der Datei,
+solange der Schalter aus ist — bei 49 (ID seit 16.10.2026 nachgetragen, so in
+§3 des Freigabeberichts vorhergesagt) und seit diesem Lauf auch belegt bei
+**30**, das vormittags noch 200 mit `pub-1901800422608466` lieferte.
+`elektrikerportal.com` brauchte dabei zwei Versuche (erster Abruf nach 25 s
+ohne Antwort, Startseite 200) — kein Werbeplatz-Befund, nur eine langsame
+erste Antwort.
 
 ### 6.1 Feldwerte (Punkt 1)
 
@@ -235,3 +264,48 @@ nie Werbung). In der Sitzung je Domain: AdSense › Sites › Status prüfen.
 
 Den Haken in `docs/ad-slots-golive.md` §4 („Freigabe der sieben Portale ohne
 Altbestand") setzt diese Sitzung, mit Datum und Site-Status je Domain.
+
+### 6.5 Muss das Klickarbeit sein? Vier Wege geprüft (16.10.2026)
+
+Vor der Sitzung einmal belegt, damit kein weiterer Anlauf dieselben Umwege
+durchprobiert. Alle vier Prüfungen waren rein lesend.
+
+| Weg | Ergebnis |
+| --- | --- |
+| PageSpeed-Insights-API ohne Schlüssel (liefert dieselben CrUX-75.-Perzentile wie der CWV-Bericht) | HTTP **429**, Tageskontingent des anonymen Projekts erschöpft — kein verlässlicher Weg |
+| CrUX API mit dem lokalen `GOOGLE_PLACES_API_KEY` | HTTP **403** `API_KEY_SERVICE_BLOCKED` und `CONSUMER_SUSPENDED` — Schlüssel auf Places eingeschränkt, Projekt gesperrt (→ **#56**) |
+| CrUX API mit dem Produktions-Dienstkonto (`GOOGLE_SERVICE_ACCOUNT_JSON`, Scope `cloud-platform`, Token wird ausgestellt) | HTTP **400** `INVALID_ARGUMENT` für jedes Origin, auch `https://www.google.com` — die CrUX API nimmt nur einen API-Schlüssel, kein Dienstkonto-Token |
+| AdSense Management API v2 mit demselben Dienstkonto (`AdSenseClient::accounts()`, Scope `adsense.readonly`) | Token ok, HTTP **403**: „AdSense Management API has not been used in project `321830197826` before or it is disabled" |
+
+Daraus folgt für die Sitzung:
+
+* **§6.1 bleibt Oberflächenarbeit** (Search Console › Core Web Vitals), solange
+  es keinen API-Schlüssel mit CrUX-Freigabe gibt.
+* **§6.2 und §6.4 sind maschinell lesbar** — `accounts.reports.generate` mit
+  Dimension `AD_UNIT_NAME` bzw. `accounts.sites.list` mit dem Feld `state` je
+  Domain. Es fehlen genau zwei Handgriffe: AdSense Management API im Projekt
+  `321830197826` aktivieren und das Dienstkonto
+  `sun-portal@analytics-460722.iam.gserviceaccount.com` in **beiden** Konten
+  als Nutzer eintragen. Beides steht in **#55**; wer die Sitzung sowieso im
+  Konto hat, erledigt es dort gleich mit und liest §6.2/§6.4 danach per API.
+
+  Das Ablesen selbst ist seit #55 eingecheckt und braucht die Oberfläche nicht
+  mehr:
+
+  ```
+  php artisan ads:adsense-konto            # Konten + state je Domain (§6.4)
+  php artisan ads:adsense-konto --report   # zusätzlich Report je Block (§6.2)
+  php artisan ads:adsense-konto --json     # maschinenlesbar
+  ```
+
+  Der Befehl ist rein lesend und deutet seinen Exit-Code selbst:
+  **0** = alle im Netz benutzten Konten lesbar, **70** = API im Cloud-Projekt
+  nicht freigeschaltet (Handgriff 1), **71** = Token gilt, aber ein Konto
+  fehlt dem Dienstkonto (Handgriff 2), **65** = kein Dienstkonto-Schlüssel.
+  `scripts/ads-kontositzung-stand.sh` fährt ihn als Abschnitt **§6.0** mit, vor
+  §6.1 — damit steht am Anfang jedes Anlaufs, ob die zwei Punkte diesmal per
+  API gehen. Die Soll-Liste der Konten baut der Befehl aus
+  `ad_settings.adsense_publisher_id` plus `ADSENSE_PUBLISHER_ID`; ein Konto,
+  das kein Portal benutzt, fällt damit nicht auf.
+* **§6.3 bleibt Handarbeit.** Die v2-API ist lesend, ein `adunits.create` gibt
+  es nicht — neue Anzeigenblöcke entstehen nur in der Oberfläche.

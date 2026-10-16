@@ -47,15 +47,43 @@ Schlüssel (Endung `…6ELWLM`) antwortet mit `REQUEST_DENIED` und
 läuft damit derzeit nicht — vor Abschnitt 4 muss also erst ein nutzbares Projekt
 mit aktiver Abrechnung bereitstehen.
 
+**Nachmessung 16.10.2026 (#56), unverändert tot:** Derselbe `.env`-Schlüssel
+(`…6ELWLM`) antwortet an `places.googleapis.com/v1/places:searchText` mit
+**HTTP 403 `PERMISSION_DENIED`**, `reason: CONSUMER_SUSPENDED`,
+`consumer: projects/1085014436279`. Gesperrt ist also **das Projekt
+`1085014436279`**, nicht der Schlüssel; der übliche Grund ist eine offene
+Abrechnung. Gegen `chromeuxreport.googleapis.com` kommt zusätzlich
+`API_KEY_SERVICE_BLOCKED` — der Schlüssel ist auf Places eingeschränkt und taugt
+auch nicht als Ersatz für CrUX-Abfragen.
+
+**Reichweite: nur die Entwicklung.** Die Produktions-`.env`
+(`/home/sanitaerfinden/htdocs/sanitaerfinden.dev/.env`) führt überhaupt keine
+`GOOGLE_PLACES_API_KEY`-Zeile; dort läuft kein Abruf auf diesem Schlüssel.
+
+**Was der `reason` im Fehlerblock bedeutet** — `places:keys:audit` stellt ihn
+seit #56 der Meldung voran, der Schlüssel selbst wird in der Ausgabe maskiert:
+
+| `reason` | Bedeutung | Nächster Schritt |
+| --- | --- | --- |
+| `CONSUMER_SUSPENDED` | Das Cloud-Projekt ist gesperrt (meist Abrechnung), der Schlüssel wäre gültig | Projekt reaktivieren **oder** Schlüssel aus einem aktiven Projekt in die lokale `.env` legen |
+| `API_KEY_SERVICE_BLOCKED` | Der Schlüssel ist auf andere APIs eingeschränkt | API-Einschränkung erweitern oder eigenen Schlüssel ausstellen |
+| `API_KEY_INVALID` | Wert gelöscht, falsch oder mit Anführungszeichen eingelesen | Wert prüfen, sonst neu ausstellen (Abschnitt 3) |
+| `SERVICE_DISABLED` | Places API im Projekt nicht freigeschaltet | `gcloud services enable places.googleapis.com` (Abschnitt 0) |
+
+Bis das erledigt ist, scheitert lokal **jeder** Places-Abruf mit 403 und nicht mit
+einem Konfigurationsfehler — `tenants:import-google` und
+`companies:zipcode-backfill` brechen mit „Google lehnt den Places-Schlüssel ab"
+ab. Das ist erwartetes Verhalten, kein Fehler im Code.
+
 Trage jedes Ergebnis in die Tabelle am Ende ein.
 
 ## Kurzfassung (15 Minuten, alles Weitere ist Begründung)
 
 Vorher bereitlegen: Zugang zur Google Cloud Console mit dem Konto, dem die
-Places-Projekte gehören, und die öffentliche IP des Produktionsservers.
-**Die IP steht nirgends im Repository** — `deploy.php` führt weiterhin den
-Platzhalter `1.2.3.4` (Zeile 15). Ohne sie lässt sich Schritt 3 nur
-unvollständig abschließen; siehe Hinweis dort.
+Places-Projekte gehören, und die öffentliche IP der eigenen Arbeitsmaschine
+(`curl -s https://api.ipify.org`). Eine Produktions-IP wird **nicht** gebraucht:
+die Produktions-`.env` führt keine `GOOGLE_PLACES_API_KEY`-Zeile, der Abruf läuft
+nur aus der Entwicklung (belegt in #56).
 
 1. **Abrechnung ansehen** — https://console.cloud.google.com/billing → Berichte,
    12 Monate, Dienst „Places API". Frage: gibt es Verbrauch ohne eigenen Importlauf?
@@ -67,7 +95,7 @@ unvollständig abschließen; siehe Hinweis dort.
    Dazu der tote `.env`-Wert `AIzaSyBeYd…ELWLM`, falls er im selben Projekt liegt.
 3. **Neuen Schlüssel `sun-places-server` ausstellen** — API-Einschränkung
    „Places API (New)", Anwendungseinschränkung „IP-Adressen", Tageskontingent setzen.
-4. **Wert eintragen** — Produktions-`.env` und lokale `.env`, dann `php artisan config:clear`.
+4. **Wert eintragen** — nur in die lokale `.env`, dann `php artisan config:clear`.
 5. **Zwei Proben laufen lassen**, beide müssen grün sein:
 
 ```bash
@@ -234,14 +262,15 @@ Erwartet **nach** der Löschung für alle vier Zeilen:
 
 1. „Anmeldedaten → Anmeldedaten erstellen → API-Schlüssel".
 2. Name: `sun-places-server`.
-3. Anwendungseinschränkung: „IP-Adressen", die öffentliche IP des Produktionsservers
-   eintragen. Für lokale Entwicklung einen zweiten Schlüssel mit der eigenen IP
-   ausstellen, nicht den Produktionsschlüssel weitergeben.
-   **Ist die Produktions-IP noch nicht bekannt** — `deploy.php` trägt in Zeile 15
-   weiterhin den Platzhalter `1.2.3.4` —, dann den Schlüssel trotzdem ausstellen,
-   aber mit API-Einschränkung „Places API (New)" *und* einem knapp bemessenen Tageslimit
-   (Größenordnung eines Importlaufs). Die IP-Einschränkung wird nachgezogen, sobald
-   der Produktionsserver steht; das gehört dann in die Protokollzeile 3.
+3. Anwendungseinschränkung: „IP-Adressen", die öffentliche IP der Maschine
+   eintragen, die den Importlauf startet — das ist heute die Arbeitsmaschine, nicht
+   der Produktionsserver (#56: dort gibt es keine `GOOGLE_PLACES_API_KEY`-Zeile).
+   Eigene IP: `curl -s https://api.ipify.org`. Bei wechselnder IP den Schlüssel
+   trotzdem ausstellen, aber mit API-Einschränkung „Places API (New)" *und* einem
+   knapp bemessenen Tageslimit (Größenordnung eines Importlaufs); die
+   IP-Einschränkung wird dann nachgezogen und in Protokollzeile 3 vermerkt.
+   Läuft der Import später doch auf der Produktion, gehört dafür ein **eigener**
+   Schlüssel mit deren IP her — der Entwicklungsschlüssel wird nicht weitergegeben.
 4. API-Einschränkung: nur „Places API (New)" (Dienst `places.googleapis.com`).
    Nichts sonst anhaken — „Places API" ohne Zusatz ist der Legacy-Dienst, den der
    Importer seit #108 nicht mehr aufruft.
@@ -254,9 +283,12 @@ Erwartet **nach** der Löschung für alle vier Zeilen:
 
 ## 4. Neuen Wert eintragen und Lauf prüfen
 
-1. Produktions-`.env`: `GOOGLE_PLACES_API_KEY=<neuer Wert>`, danach
-   `php artisan config:clear`.
-2. Lokale `.env` jedes Entwicklers auf den jeweils eigenen Schlüssel setzen.
+1. Lokale `.env`: `GOOGLE_PLACES_API_KEY="<neuer Wert>"`, danach
+   `php artisan config:clear` — ohne das liest die Anwendung den gecachten alten Wert.
+2. **Die Produktions-`.env` bleibt unberührt.** Sie führt keine
+   `GOOGLE_PLACES_API_KEY`-Zeile (#56), dort läuft kein Places-Abruf; einen Schlüssel
+   dort einzutragen legt ihn nur zusätzlich offen. Jeder Entwickler nimmt seinen
+   eigenen Schlüssel.
 3. Der Wert gehört nirgends sonst hin: nicht in `config/services.php` als Vorgabe,
    nicht in `deploy.php`, nicht in ein Ticket.
 4. Trockenlauf auf einer einzigen Stadt starten, damit die Prüfung nichts kostet, was
@@ -315,7 +347,7 @@ belegen; die Ausgabe gehört als Beleg unter die Tabelle.
 | 2 Alle vier Schlüssel deaktiviert | | | |
 | 2 Alle vier Schlüssel gelöscht | | | |
 | 3 Neuer Schlüssel ausgestellt + eingeschränkt | | | |
-| 4 Produktions-`.env` gesetzt | | | |
+| 4 Produktions-`.env` — entfällt (#56: führt keine Zeile) | — | — | nicht anzufassen |
 | 4 Lokale `.env` gesetzt | | | |
 | 4 `tenants:import-google --dry-run` läuft durch | | | |
 | 5 Keine weiteren Schlüssel im Verlauf | | | |
@@ -326,3 +358,11 @@ belegen; die Ausgabe gehört als Beleg unter die Tabelle.
 nennt genau die vier bekannten Commits, betroffen ist nur
 `app/Console/Commands/GetCompanies.php`. Die Abschnitte 1 bis 4 brauchen den
 Kontozugang und stehen offen.
+
+**Stand 16.10.2026 (Agentenlauf zu #57, vor der Konsolenarbeit):** unverändert.
+`php artisan places:keys:audit` meldet weiter 4 von 4 Verlaufsschlüsseln als *lebt*
+(Rückgabewert 1), die `.env`-Zeile (`AIzaSyBeYd…ELWLM`) als *nicht nutzbar* mit
+`CONSUMER_SUSPENDED`. Auf der Arbeitsmaschine ist `gcloud` nach wie vor nicht
+installiert und `~/.config/gcloud` existiert nicht — Abschnitt 0 bis 4 bleiben
+Handarbeit am Konto. Abschnitt 4 wurde in diesem Lauf an #56 angepasst: nur die
+lokale `.env`, die Produktion bleibt unberührt.
