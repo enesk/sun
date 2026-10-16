@@ -75,3 +75,16 @@ curl -s -o /dev/null -w '%{http_code}\n' https://sanitaerfinder.com/ads.txt   # 
 
 Für die Kontositzung ist der Sonderfall 49 damit erledigt — nur noch der
 Schalter, falls der Site-Status „Bereit" ist.
+
+## 4. Nachgehalten am 16.10.2026 (#54): Filter ist auf der Produktion
+
+Der #41-Filter steht seit `50942c2d` auf der Produktion. Gegenprobe von
+außen: **alle sieben** Portale ohne Freigabe liefern `/ads.txt` jetzt 404
+(51 unverändert 301 auf `solar-finden.de`), die 16 freigegebenen
+unverändert genau eine Google-Zeile mit der richtigen Kennung. Beleg:
+`adstxt-sweep-2026-10-16-nach-41.txt` (16 × 200, 7 × 404).
+
+30 und 49 standen nach dem Deploy noch auf 200: die fertige Datei lag im
+Cache des jeweiligen Portals (eine Stunde, file-Store je Portal).
+`AdCache::forgetTenant(30)` und `…(49)` auf der Produktion haben das
+aufgelöst — Vorgehen jetzt in `docs/ad-slots-golive.md` §5.
