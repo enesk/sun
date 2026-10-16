@@ -6,7 +6,6 @@ import { initConsentScripts } from './consent-scripts'
 import { melde as meldeEinwilligung } from './consent-adapter'
 import { registerAlpineData } from './modules/alpine-data'
 import { initContactTracking } from './modules/contact-tracking'
-import { initCookieBar } from './modules/cookie-bar'
 import { initLucideIcons } from './modules/lucide-icons'
 import { initPaddleCheckout } from './modules/paddle-checkout'
 import { initReadingProgress } from './modules/reading-progress'
@@ -259,7 +258,6 @@ function initInlineErsatz() {
     initAnalytics();
     initAds();
     initConsentScripts();
-    initCookieBar();
     initRecaptchaBridge();
     initLucideIcons();
     initTrustBar();

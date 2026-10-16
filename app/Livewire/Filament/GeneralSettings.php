@@ -71,7 +71,6 @@ class GeneralSettings extends Component implements HasForms
             'recaptcha_api_site_key' => $this->configService->get('recaptcha.api_site_key', ''),
             'recaptcha_api_secret_key' => $this->configService->get('recaptcha.api_secret_key', ''),
             'otp_login_enabled' => $this->configService->get('app.otp_login_enabled', false),
-            'cookie_consent_enabled' => $this->configService->get('cookie-consent.enabled', false),
             'two_factor_auth_enabled' => $this->configService->get('app.two_factor_auth_enabled', false),
             'trial_without_payment_enabled' => $this->configService->get('app.trial_without_payment.enabled', false),
             'trial_first_reminder_enabled' => $this->configService->get('app.trial_without_payment.first_reminder_enabled', true),
@@ -205,11 +204,11 @@ class GeneralSettings extends Component implements HasForms
                     Tab::make(__('Analytics & Cookies'))
                         ->icon('heroicon-o-squares-2x2')
                         ->schema([
-                            Toggle::make('cookie_consent_enabled')
-                                ->label(__('Cookie Consent Bar Enabled'))
-                                ->helperText(__('If enabled, the cookie consent bar will be shown to users.')),
+                            // Kein Schalter fuer den Cookie-Hinweis mehr (#34): er ist die
+                            // einzige Stelle, an der Statistik und Marketing erteilt oder
+                            // widerrufen werden koennen, und laeuft darum immer.
                             TextInput::make('google_tracking_id')
-                                ->helperText(__('Google analytics will only be inserted if either "Cookie Consent Bar" is disabled or in case user has consented to cookies.'))
+                                ->helperText(__('Google Analytics is only loaded once the visitor has consented to the "Statistics" category.'))
                                 ->label(__('Google Tracking ID')),
                             Textarea::make('tracking_scripts')
                                 ->helperText(__('Paste in any other analytics or tracking scripts here. Those scripts are only executed once the visitor has consented to the category selected below.'))
@@ -389,7 +388,6 @@ class GeneralSettings extends Component implements HasForms
         $this->configService->set('app.recaptcha_enabled', $data['recaptcha_enabled']);
         $this->configService->set('recaptcha.api_site_key', $data['recaptcha_api_site_key']);
         $this->configService->set('recaptcha.api_secret_key', $data['recaptcha_api_secret_key']);
-        $this->configService->set('cookie-consent.enabled', $data['cookie_consent_enabled']);
         $this->configService->set('app.two_factor_auth_enabled', $data['two_factor_auth_enabled']);
         $this->configService->set('app.otp_login_enabled', $data['otp_login_enabled']);
         $this->configService->set('app.trial_without_payment.enabled', $data['trial_without_payment_enabled']);

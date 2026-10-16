@@ -30,8 +30,22 @@
                 <li class="mb-4">
                     <a href="{{route('privacy-policy')}}" class="text-primary-100 hover:text-primary-50">{{ __('Privacy Policy') }}</a>
                 </li>
-                <li>
+                <li class="mb-4">
                     <a href="{{route('terms-of-service')}}" class="text-primary-100 hover:hover:text-primary-50">{{ __('Terms of Service') }}</a>
+                </li>
+                {{-- Widerruf: ohne diesen Knopf laesst sich eine erteilte
+                     Einwilligung nicht mehr aendern, der Banner ist dann weg
+                     (#34). Eigenes x-data, weil der Footer nicht in einem
+                     Alpine-Baum liegt. --}}
+                <li>
+                    <button
+                        type="button"
+                        x-data
+                        class="text-primary-100 hover:text-primary-50 cursor-pointer bg-transparent border-0 p-0 text-left"
+                        @click="window.dispatchEvent(new Event('open-cookie-settings'))"
+                    >
+                        {{ __('Cookie Settings') }}
+                    </button>
                 </li>
             </ul>
         </div>

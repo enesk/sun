@@ -61,4 +61,20 @@ class AppTest extends FeatureTest
         $response->assertSeeHtml('<javascript>Google Analytics</javascript>');
         $response->assertDontSeeHtml('<template data-consent-script=');
     }
+
+    /**
+     * Die zentrale Domain zeigt denselben Kategorie-Hinweis wie die Portale
+     * (#34). Vorher stand hier der Spatie-Hinweis mit einem Knopf und dem
+     * Cookie `cookie_consent`; Statistik und Marketing liessen sich nie
+     * erteilen, weil er keines der drei Kategorie-Cookies setzte.
+     */
+    public function test_the_consent_dialog_with_both_categories_is_rendered()
+    {
+        $response = $this->get('/');
+
+        $response->assertSeeHtml('x-data="cookieConsent"');
+        $response->assertSeeInOrder(['Cookie-Einstellungen', 'Statistik', 'Marketing'], false);
+        $response->assertSee('open-cookie-settings', false);
+        $response->assertDontSee('js-cookie-consent');
+    }
 }
