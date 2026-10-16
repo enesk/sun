@@ -13,6 +13,29 @@ return Illuminate\Foundation\Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->prepend(App\Http\Middleware\RedirectWwwToNonWww::class);
 
+        /*
+         * Die Cookies des Einwilligungs-Hinweises bleiben unverschluesselt
+         * (#21). Geschrieben werden sie im Browser mit `document.cookie`
+         * (resources/views/themes/sun-v2/js/modules/cookie-consent.js und
+         * resources/js/app.js), Laravel sieht also einen Klartextwert.
+         *
+         * Ohne diese Ausnahme setzt EncryptCookies jeden Wert, den es nicht
+         * entschluesseln kann, im Cookie-Beutel auf null —
+         * `request()->cookie('cookie_consent_marketing')` liefert dann
+         * IMMER null. Das ist der gefaehrlichste Fall von allen: null sieht
+         * aus wie „nicht eingewilligt", der Fehler tarnt sich also als
+         * korrektes Verhalten, und niemand merkt, dass die Einwilligung
+         * ueberhaupt nicht gelesen wird.
+         *
+         * Keine Geheimnisse, keine Sitzungsbindung: der Inhalt ist "1" oder
+         * "0" und wird ohnehin im Browser gesetzt und gelesen.
+         */
+        $middleware->encryptCookies(except: [
+            'cookie_consent_given',
+            'cookie_consent_statistics',
+            'cookie_consent_marketing',
+        ]);
+
         $middleware->appendToGroup('web', [
             App\Http\Middleware\ContentSecurityPolicy::class,
             App\Http\Middleware\BlockedUser::class,
