@@ -357,6 +357,12 @@ sudo -u sanitaerfinden /usr/bin/php8.4 artisan ads:golive:check
       `docs/messungen/werbeplaetze-golive/golive-check-2026-10-16-nach-31.txt`
       (0 FAIL, 16 von 23), `…/adstxt-sweep-2026-10-16-nach-freigabeliste.txt`
       (18 × 200 mit genau einer Google-Zeile, 5 × 404)
+- [x] 2026-10-16 #41-Filter auf der Produktion (`50942c2d`): alle sieben
+      Portale ohne Freigabe liefern `/ads.txt` 404, die 16 freigegebenen
+      unverändert genau eine Google-Zeile. 30 und 49 brauchten dafür
+      `AdCache::forgetTenant()` — siehe §5. Beleg:
+      `docs/messungen/werbeplaetze-golive/adstxt-sweep-2026-10-16-nach-41.txt`
+      (16 × 200, 7 × 404)
 
 Nach Schritt 3 laufen Alt- und Neusystem **parallel**: das Altsystem liefert
 weiter aus, die neuen Anker bleiben leer, solange keine Belegung für sie
@@ -681,6 +687,19 @@ sudo -u sanitaerfinden /usr/bin/php8.4 artisan queue:work --once --queue=default
 Das Altsystem bleibt davon unberührt und liefert weiter aus — die Notbremse
 nimmt nur das neue System heraus. Ein Rückbau der Migrationen ist dafür nie
 nötig.
+
+**`/ads.txt` zieht nur mit geleertem Portal-Cache nach (#54).** Mit dem
+Schalter fällt seit #41 auch die eigene Google-Zeile aus `ads_txt_extra` weg,
+aber die fertige Datei liegt bis zu einer Stunde im Cache des Portals — und
+der file-Store wechselt je Portal, zentral geschriebenes `Cache::forget()`
+greift dort nicht. `AdCache::forgetTenant()` erledigt beides (Schritt 1 oben
+ruft es deshalb mit auf); wer nur in der DB schaltet, muss es nachholen:
+
+```bash
+sudo -u sanitaerfinden /usr/bin/php8.4 artisan tinker --execute \
+  "App\Ads\Support\AdCache::forgetTenant(30);"
+curl -s -o /dev/null -w '%{http_code}\n' https://elektrikerportal.com/ads.txt  # erwartet: 404
+```
 
 ---
 
