@@ -295,7 +295,12 @@ aufgeschrieben — so gehört es beim nächsten Mal in dieser Form gefahren:
 1. **`git pull` läuft als root, nicht als `sanitaerfinden`.** Nur root hat auf
    dieser Maschine einen GitHub-Schlüssel; als `sanitaerfinden` scheitert der
    Pull mit „Could not read from remote repository". Danach das Eigentum
-   zurückgeben: `chown -R sanitaerfinden:sanitaerfinden .`
+   zurückgeben — **niemals** mit `chown -R … .`, sondern mit
+   `scripts/deploy-eigentuemer-richten.sh --los` (#59). Der rekursive Befehl
+   läuft durch `storage/` und damit durch den Datei-Cache von 29 Portalen; am
+   16.10.2026 hat genau das die Maschine 17 Minuten lang auf Load 53 und
+   **TTFB 49 s** gezogen, obwohl nur sieben Dateien root gehörten. Das Skript
+   fasst genau diese sieben an und braucht dafür unter einer Sekunde.
 2. **`config:clear` muss VOR der Migration und vor dem Takeover kommen.** Die
    Produktion fährt einen Config-Cache, und ein Cache aus der Zeit vor dem
    Deploy kennt `config/ad-slots.php` überhaupt nicht — `config('ad-slots.…')`
@@ -316,7 +321,7 @@ solange `package-lock.json` unverändert ist.
 # 1. Code und Abhängigkeiten
 cd /home/sanitaerfinden/htdocs/sanitaerfinden.dev
 git pull --ff-only                                    # als root
-chown -R sanitaerfinden:sanitaerfinden .
+scripts/deploy-eigentuemer-richten.sh --los           # NIE chown -R . (#59)
 sudo -u sanitaerfinden composer install --no-dev --optimize-autoloader
 sudo -u sanitaerfinden npm ci && sudo -u sanitaerfinden npm run build
 
