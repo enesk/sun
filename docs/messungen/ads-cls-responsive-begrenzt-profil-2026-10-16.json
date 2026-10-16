@@ -1,0 +1,67 @@
+{
+  "gemessen": "2026-10-16T12:00:09.894Z",
+  "breite": 360,
+  "seiten": [
+    {
+      "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+      "geklickt": true,
+      "vorKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "company_after_header_card",
+            "geraet": "mobile",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          }
+        ],
+        "offeneHeadVorlagen": 1,
+        "offeneFragmente": 1,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "nachKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "company_after_header_card",
+            "geraet": "mobile",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          }
+        ],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": true,
+        "eingesetzteAnzeigen": 2
+      },
+      "gesamt": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "company_after_header_card",
+            "geraet": "mobile",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          }
+        ],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": true,
+        "eingesetzteAnzeigen": 2
+      }
+    }
+  ]
+}

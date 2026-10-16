@@ -1,0 +1,268 @@
+{
+  "gemessen": "2026-10-16T11:41:43.547Z",
+  "breite": 360,
+  "seiten": [
+    {
+      "url": "http://elektrikerportal.com/",
+      "geklickt": true,
+      "vorKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "home_after_hero",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 130
+          },
+          {
+            "schluessel": "home_after_services",
+            "geraet": "all",
+            "wartetAufEinwilligung": false,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          }
+        ],
+        "offeneHeadVorlagen": 1,
+        "offeneFragmente": 1,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "nachKlick": {
+        "cls": 0.13609375,
+        "verschiebungen": [
+          {
+            "wert": 0.13609375,
+            "zeit": 18129,
+            "quellen": [
+              "section.section"
+            ]
+          }
+        ],
+        "anker": [
+          {
+            "schluessel": "home_after_hero",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 390
+          },
+          {
+            "schluessel": "home_after_services",
+            "geraet": "all",
+            "wartetAufEinwilligung": false,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          }
+        ],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": true,
+        "eingesetzteAnzeigen": 2
+      },
+      "gesamt": {
+        "cls": 0.13609375,
+        "verschiebungen": [
+          {
+            "wert": 0.13609375,
+            "zeit": 18129,
+            "quellen": [
+              "section.section"
+            ]
+          }
+        ],
+        "anker": [
+          {
+            "schluessel": "home_after_hero",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 390
+          },
+          {
+            "schluessel": "home_after_services",
+            "geraet": "all",
+            "wartetAufEinwilligung": false,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          }
+        ],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 0,
+        "adsbygoogleGeladen": true,
+        "eingesetzteAnzeigen": 2
+      }
+    },
+    {
+      "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+      "geklickt": true,
+      "vorKlick": {
+        "cls": 0,
+        "verschiebungen": [],
+        "anker": [
+          {
+            "schluessel": "company_after_header_card",
+            "geraet": "mobile",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_after_reviews",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_sidebar_sticky",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          },
+          {
+            "schluessel": "company_before_footer",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 130
+          }
+        ],
+        "offeneHeadVorlagen": 1,
+        "offeneFragmente": 4,
+        "adsbygoogleGeladen": false,
+        "eingesetzteAnzeigen": 0
+      },
+      "nachKlick": {
+        "cls": 0.02388888888888889,
+        "verschiebungen": [
+          {
+            "wert": 0.02388888888888889,
+            "zeit": 16955,
+            "quellen": [
+              "section.card.p-5.md:p-8"
+            ]
+          }
+        ],
+        "anker": [
+          {
+            "schluessel": "company_after_header_card",
+            "geraet": "mobile",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 390
+          },
+          {
+            "schluessel": "company_after_reviews",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 310
+          },
+          {
+            "schluessel": "company_sidebar_sticky",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          },
+          {
+            "schluessel": "company_before_footer",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 130
+          }
+        ],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 3,
+        "adsbygoogleGeladen": true,
+        "eingesetzteAnzeigen": 2
+      },
+      "gesamt": {
+        "cls": 0.02388888888888889,
+        "verschiebungen": [
+          {
+            "wert": 0.02388888888888889,
+            "zeit": 16955,
+            "quellen": [
+              "section.card.p-5.md:p-8"
+            ]
+          }
+        ],
+        "anker": [
+          {
+            "schluessel": "company_after_header_card",
+            "geraet": "mobile",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 390
+          },
+          {
+            "schluessel": "company_after_reviews",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 390
+          },
+          {
+            "schluessel": "company_sidebar_sticky",
+            "geraet": "desktop",
+            "wartetAufEinwilligung": true,
+            "geladen": false,
+            "eingeklappt": false,
+            "sichtbar": false,
+            "hoehe": 0
+          },
+          {
+            "schluessel": "company_before_footer",
+            "geraet": "all",
+            "wartetAufEinwilligung": true,
+            "geladen": true,
+            "eingeklappt": false,
+            "sichtbar": true,
+            "hoehe": 390
+          }
+        ],
+        "offeneHeadVorlagen": 0,
+        "offeneFragmente": 1,
+        "adsbygoogleGeladen": true,
+        "eingesetzteAnzeigen": 4
+      }
+    }
+  ]
+}

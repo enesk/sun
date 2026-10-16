@@ -1,0 +1,2699 @@
+{
+  "gemessen": "2026-10-16T11:38:45.003Z",
+  "seiten": [
+    {
+      "name": "Startseite ohne Einwilligung",
+      "url": "http://elektrikerportal.com/",
+      "htmlLaenge": 50012,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "turnstileRahmen": 0,
+        "adsSkripte": 0,
+        "adsbygoogleGeladen": false,
+        "anzeigenRahmen": 0,
+        "dataLayer": 3,
+        "gtag": "function",
+        "livewire": "undefined",
+        "alpine": "undefined",
+        "offeneVorlagen": 0,
+        "offeneFragmente": 1,
+        "offeneHeadVorlagen": 1,
+        "wartendeAnker": 1,
+        "eingeklappt": 0,
+        "eingesetzteAnzeigen": 0,
+        "dialogOffen": null
+      },
+      "fremdeHosts": [
+        "elektrikerportal.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "Startseite mit Einwilligung",
+      "url": "http://elektrikerportal.com/",
+      "htmlLaenge": 621140,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "turnstileRahmen": 0,
+        "adsSkripte": 2,
+        "adsbygoogleGeladen": true,
+        "anzeigenRahmen": 0,
+        "dataLayer": 7,
+        "gtag": "function",
+        "livewire": "undefined",
+        "alpine": "undefined",
+        "offeneVorlagen": 0,
+        "offeneFragmente": 0,
+        "offeneHeadVorlagen": 0,
+        "wartendeAnker": 0,
+        "eingeklappt": 0,
+        "eingesetzteAnzeigen": 2,
+        "dialogOffen": null
+      },
+      "fremdeHosts": [
+        "elektrikerportal.com",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com",
+        "fundingchoicesmessages.google.com",
+        "pagead2.googlesyndication.com",
+        "region1.google-analytics.com",
+        "www.googletagmanager.com"
+      ],
+      "verstoesse": [
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/materialicons/v145/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmZiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmQiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmYiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmXiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVnoiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVn6iAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmbiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmaiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmUiAr0klQmz24.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        }
+      ],
+      "protokoll": [
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/materialicons/v145/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmZiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmQiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmYiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmXiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVnoiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVn6iAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmbiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmaiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmUiAr0klQmz24.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        }
+      ],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "Startseite Einwilligung im Besuch",
+      "url": "http://elektrikerportal.com/",
+      "htmlLaenge": 621368,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "turnstileRahmen": 0,
+        "adsSkripte": 2,
+        "adsbygoogleGeladen": true,
+        "anzeigenRahmen": 0,
+        "dataLayer": 7,
+        "gtag": "function",
+        "livewire": "undefined",
+        "alpine": "undefined",
+        "offeneVorlagen": 0,
+        "offeneFragmente": 0,
+        "offeneHeadVorlagen": 0,
+        "wartendeAnker": 1,
+        "eingeklappt": 0,
+        "eingesetzteAnzeigen": 2,
+        "dialogOffen": null
+      },
+      "fremdeHosts": [
+        "elektrikerportal.com",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com",
+        "fundingchoicesmessages.google.com",
+        "pagead2.googlesyndication.com",
+        "region1.google-analytics.com",
+        "www.googletagmanager.com"
+      ],
+      "verstoesse": [
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/materialicons/v145/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmZiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmQiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmYiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmXiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVnoiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVn6iAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmbiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmaiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmUiAr0klQmz24.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/",
+          "muster": ""
+        }
+      ],
+      "protokoll": [
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/materialicons/v145/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmZiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmQiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmYiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmXiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVnoiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVn6iAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmbiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmaiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmUiAr0klQmz24.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/"
+        }
+      ],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "Startseite abgelehnt",
+      "url": "http://elektrikerportal.com/",
+      "htmlLaenge": 50448,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "turnstileRahmen": 0,
+        "adsSkripte": 0,
+        "adsbygoogleGeladen": false,
+        "anzeigenRahmen": 0,
+        "dataLayer": 3,
+        "gtag": "function",
+        "livewire": "undefined",
+        "alpine": "undefined",
+        "offeneVorlagen": 0,
+        "offeneFragmente": 1,
+        "offeneHeadVorlagen": 1,
+        "wartendeAnker": 1,
+        "eingeklappt": 1,
+        "eingesetzteAnzeigen": 0,
+        "dialogOffen": null
+      },
+      "fremdeHosts": [
+        "elektrikerportal.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "Firmenprofil ohne Einwilligung",
+      "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+      "htmlLaenge": 74979,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "turnstileRahmen": 0,
+        "adsSkripte": 0,
+        "adsbygoogleGeladen": false,
+        "anzeigenRahmen": 0,
+        "dataLayer": 3,
+        "gtag": "function",
+        "livewire": "object",
+        "alpine": "object",
+        "offeneVorlagen": 0,
+        "offeneFragmente": 4,
+        "offeneHeadVorlagen": 1,
+        "wartendeAnker": 4,
+        "eingeklappt": 0,
+        "eingesetzteAnzeigen": 0,
+        "dialogOffen": null
+      },
+      "fremdeHosts": [
+        "elektrikerportal.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "Firmenprofil mit Einwilligung",
+      "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+      "htmlLaenge": 646751,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "turnstileRahmen": 0,
+        "adsSkripte": 2,
+        "adsbygoogleGeladen": true,
+        "anzeigenRahmen": 0,
+        "dataLayer": 7,
+        "gtag": "function",
+        "livewire": "object",
+        "alpine": "object",
+        "offeneVorlagen": 0,
+        "offeneFragmente": 1,
+        "offeneHeadVorlagen": 0,
+        "wartendeAnker": 0,
+        "eingeklappt": 0,
+        "eingesetzteAnzeigen": 4,
+        "dialogOffen": null
+      },
+      "fremdeHosts": [
+        "elektrikerportal.com",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com",
+        "fundingchoicesmessages.google.com",
+        "pagead2.googlesyndication.com",
+        "region1.google-analytics.com",
+        "www.googletagmanager.com"
+      ],
+      "verstoesse": [
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/materialicons/v145/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmZiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmQiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmYiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmXiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVnoiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVn6iAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmbiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmaiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmUiAr0klQmz24.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        }
+      ],
+      "protokoll": [
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/materialicons/v145/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmZiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmQiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmYiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmXiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVnoiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVn6iAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmbiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmaiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmUiAr0klQmz24.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        }
+      ],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "Firmenprofil Einwilligung im Besuch",
+      "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+      "htmlLaenge": 646339,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "turnstileRahmen": 0,
+        "adsSkripte": 2,
+        "adsbygoogleGeladen": true,
+        "anzeigenRahmen": 0,
+        "dataLayer": 7,
+        "gtag": "function",
+        "livewire": "object",
+        "alpine": "object",
+        "offeneVorlagen": 0,
+        "offeneFragmente": 3,
+        "offeneHeadVorlagen": 0,
+        "wartendeAnker": 4,
+        "eingeklappt": 0,
+        "eingesetzteAnzeigen": 2,
+        "dialogOffen": null
+      },
+      "fremdeHosts": [
+        "elektrikerportal.com",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com",
+        "fundingchoicesmessages.google.com",
+        "pagead2.googlesyndication.com",
+        "region1.google-analytics.com",
+        "www.googletagmanager.com"
+      ],
+      "verstoesse": [
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/materialicons/v145/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmZiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmQiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmYiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmXiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVnoiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVn6iAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmbiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmaiAr0klQmz24O0g.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        },
+        {
+          "direktive": "font-src",
+          "blockiert": "http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmUiAr0klQmz24.woff2",
+          "quelle": "",
+          "zeile": 0,
+          "auswirkung": "report",
+          "dokument": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+          "muster": ""
+        }
+      ],
+      "protokoll": [
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/materialicons/v145/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmZiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmQiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmYiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmXiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVnoiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVn6iAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmbiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmaiAr0klQmz24O0g.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        },
+        {
+          "quelle": "security",
+          "stufe": "info",
+          "text": "Loading the font 'http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmUiAr0klQmz24.woff2' violates the following Content Security Policy directive: \"font-src 'self' data: https://fonts.gstatic.com\". The policy is report-only, so the violation has been logged but no further action has been taken.",
+          "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro"
+        }
+      ],
+      "geblockt": [],
+      "konsolenfehler": []
+    },
+    {
+      "name": "Firmenprofil abgelehnt",
+      "url": "http://elektrikerportal.com/27684-blosfeld-telekommunikation-u-elektro",
+      "htmlLaenge": 75055,
+      "pruefung": {
+        "turnstileSkript": 0,
+        "turnstileRahmen": 0,
+        "adsSkripte": 0,
+        "adsbygoogleGeladen": false,
+        "anzeigenRahmen": 0,
+        "dataLayer": 3,
+        "gtag": "function",
+        "livewire": "object",
+        "alpine": "object",
+        "offeneVorlagen": 0,
+        "offeneFragmente": 4,
+        "offeneHeadVorlagen": 1,
+        "wartendeAnker": 4,
+        "eingeklappt": 4,
+        "eingesetzteAnzeigen": 0,
+        "dialogOffen": null
+      },
+      "fremdeHosts": [
+        "elektrikerportal.com"
+      ],
+      "verstoesse": [],
+      "protokoll": [],
+      "geblockt": [],
+      "konsolenfehler": []
+    }
+  ],
+  "zusammenfassung": {
+    "font-src http://fonts.gstatic.com/s/materialicons/v145/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2": 4,
+    "font-src http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSKmu0SC55K5gw.woff2": 12,
+    "font-src http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSumu0SC55K5gw.woff2": 12,
+    "font-src http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSOmu0SC55K5gw.woff2": 12,
+    "font-src http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSymu0SC55K5gw.woff2": 12,
+    "font-src http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS2mu0SC55K5gw.woff2": 12,
+    "font-src http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTVOmu0SC55K5gw.woff2": 12,
+    "font-src http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTUGmu0SC55K5gw.woff2": 12,
+    "font-src http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSCmu0SC55K5gw.woff2": 12,
+    "font-src http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTSGmu0SC55K5gw.woff2": 12,
+    "font-src http://fonts.gstatic.com/s/opensans/v40/memvYaGs126MiZpBA-UvWbX2vVnXBbObj2OVTS-mu0SC55I.woff2": 12,
+    "font-src http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmZiAr0klQmz24O0g.woff2": 4,
+    "font-src http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmQiAr0klQmz24O0g.woff2": 4,
+    "font-src http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmYiAr0klQmz24O0g.woff2": 4,
+    "font-src http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmXiAr0klQmz24O0g.woff2": 4,
+    "font-src http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVnoiAr0klQmz24O0g.woff2": 4,
+    "font-src http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVn6iAr0klQmz24O0g.woff2": 4,
+    "font-src http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmbiAr0klQmz24O0g.woff2": 4,
+    "font-src http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmaiAr0klQmz24O0g.woff2": 4,
+    "font-src http://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmUiAr0klQmz24.woff2": 4
+  }
+}
