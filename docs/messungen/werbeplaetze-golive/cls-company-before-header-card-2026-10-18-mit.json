@@ -1,0 +1,99 @@
+{
+  "gemessen": "2026-10-18T11:16:36.366Z",
+  "breite": 360,
+  "laeufe": 3,
+  "seiten": [
+    {
+      "url": "https://sun.test/22787-dithmarscher-haus-und-gartenservice",
+      "ohneEinwilligung": [
+        {
+          "cls": 0,
+          "lcp": 660,
+          "anker": [
+            {
+              "schluessel": "company_before_header_card",
+              "geladen": true,
+              "hoehe": 310
+            }
+          ],
+          "eingesetzteAnzeigen": 0,
+          "adsbygoogleGeladen": false
+        },
+        {
+          "cls": 0,
+          "lcp": 524,
+          "anker": [
+            {
+              "schluessel": "company_before_header_card",
+              "geladen": true,
+              "hoehe": 310
+            }
+          ],
+          "eingesetzteAnzeigen": 0,
+          "adsbygoogleGeladen": false
+        },
+        {
+          "cls": 0,
+          "lcp": 576,
+          "anker": [
+            {
+              "schluessel": "company_before_header_card",
+              "geladen": true,
+              "hoehe": 310
+            }
+          ],
+          "eingesetzteAnzeigen": 0,
+          "adsbygoogleGeladen": false
+        }
+      ],
+      "mitEinwilligung": [
+        {
+          "cls": 0,
+          "lcp": 564,
+          "anker": [
+            {
+              "schluessel": "company_before_header_card",
+              "geladen": true,
+              "hoehe": 310
+            }
+          ],
+          "eingesetzteAnzeigen": 0,
+          "adsbygoogleGeladen": false
+        },
+        {
+          "cls": 0,
+          "lcp": 552,
+          "anker": [
+            {
+              "schluessel": "company_before_header_card",
+              "geladen": true,
+              "hoehe": 310
+            }
+          ],
+          "eingesetzteAnzeigen": 0,
+          "adsbygoogleGeladen": false
+        },
+        {
+          "cls": 0,
+          "lcp": 552,
+          "anker": [
+            {
+              "schluessel": "company_before_header_card",
+              "geladen": true,
+              "hoehe": 310
+            }
+          ],
+          "eingesetzteAnzeigen": 0,
+          "adsbygoogleGeladen": false
+        }
+      ],
+      "median": {
+        "lcpOhne": 576,
+        "lcpMit": 552,
+        "clsOhne": 0,
+        "clsMit": 0,
+        "lcpAbweichungProzent": -4.2
+      }
+    }
+  ]
+}

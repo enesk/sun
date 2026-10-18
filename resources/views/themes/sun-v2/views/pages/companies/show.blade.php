@@ -36,6 +36,11 @@
     <!-- ================= HAUPTSPALTE ================= -->
     <div class="flex flex-col gap-6 min-w-0">
 
+      {{-- Katalog v2 (#68). Steht vor dem ersten Inhalt der Seite, deshalb
+           ein festes Format und eine feste Reservierung von 280 px (mobil
+           only). Das Premium-Merkmal AdFree prueft die Komponente selbst. --}}
+      <x-sun.ad-slot key="company_before_header_card" :subject="$company" />
+
       <!-- Kopf-Karte -->
       <section class="card p-5 md:p-8" aria-labelledby="firma">
         <div class="flex flex-col sm:flex-row sm:items-start gap-4 md:gap-6">
