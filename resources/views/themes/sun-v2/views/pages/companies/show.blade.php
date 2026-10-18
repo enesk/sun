@@ -37,8 +37,9 @@
     <div class="flex flex-col gap-6 min-w-0">
 
       {{-- Katalog v2 (#68). Steht vor dem ersten Inhalt der Seite, deshalb
-           ein festes Format und eine feste Reservierung von 280 px (mobil
-           only). Das Premium-Merkmal AdFree prueft die Komponente selbst. --}}
+           ein festes Format und eine feste Reservierung — 280 px mobil,
+           250 px am Desktop. Das Premium-Merkmal AdFree prueft die
+           Komponente selbst. --}}
       <x-sun.ad-slot key="company_before_header_card" :subject="$company" />
 
       <!-- Kopf-Karte -->
