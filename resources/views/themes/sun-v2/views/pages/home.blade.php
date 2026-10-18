@@ -164,8 +164,7 @@
 <!-- ========== AD-SLOT (Altsystem, faellt in SUN-AD-011) ========== -->
 @if(\App\View\Components\AdSlot::hasSlotsForPosition('home_content'))
 <div class="container-portal pb-12 md:pb-16">
-  <div class="rounded-2xl bg-zinc-100 overflow-hidden" style="min-height:280px">
-    <span class="block text-xs text-zinc-400 px-3 pt-2">{{ __('portal.layout.ad_label') }}</span>
+  <div class="rounded-2xl overflow-hidden" style="min-height:280px">
     <x-ad-slot position="home_content" />
   </div>
 </div>

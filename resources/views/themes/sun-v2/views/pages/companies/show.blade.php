@@ -103,8 +103,7 @@
       {{-- Altsystem, faellt in SUN-AD-011 --}}
       @unlesspremiumFeature($company, \App\Enums\PremiumFeature::AdFree)
       @if(\App\View\Components\AdSlot::hasSlotsForPosition('after_company_card'))
-        <div class="rounded-2xl bg-zinc-100 overflow-hidden lg:hidden" style="min-height:250px">
-          <span class="block text-xs text-zinc-400 px-3 pt-2">{{ __('portal.layout.ad_label') }}</span>
+        <div class="rounded-2xl overflow-hidden lg:hidden" style="min-height:250px">
           <x-ad-slot position="after_company_card" />
         </div>
       @endif
@@ -345,8 +344,7 @@
       {{-- Altsystem, faellt in SUN-AD-011 --}}
       @unlesspremiumFeature($company, \App\Enums\PremiumFeature::AdFree)
       @if(\App\View\Components\AdSlot::hasSlotsForPosition('listing_detail_sidebar'))
-        <div class="rounded-2xl bg-zinc-100 overflow-hidden" style="min-height:600px">
-          <span class="block text-xs text-zinc-400 px-3 pt-2">{{ __('portal.layout.ad_label') }}</span>
+        <div class="rounded-2xl overflow-hidden" style="min-height:600px">
           <x-ad-slot position="listing_detail_sidebar" />
         </div>
       @endif
