@@ -51,6 +51,20 @@ sudo -u sanitaerfinden /usr/bin/php8.4 artisan <befehl>
 
 ## 0. Stand am 16.10.2026 — was den Start heute verhindert
 
+> **Nachtrag 18.10.2026: die Werbung ist netzweit angehalten.** Auf Anweisung
+> von Enes sind alle Werbemittel und Belegungen gelöscht, `ads_enabled` und der
+> eigene Auto-Ads-Schalter stehen auf allen 23 Portalen aus, der Werbe-Cache ist
+> geleert. `ads:golive:check` meldet **0 von 23 freigegeben**; über die
+> Cloudflare-Kante geprüft: kein `googlesyndication`, kein Anker im Rumpf,
+> `/ads.txt` 404 (bodenlegerfinden.com, kfzwerkstatt.io, sanitaerfinden.com).
+>
+> Dieses Dokument bleibt gültig und beschreibt **den Weg zurück in den
+> Betrieb**: Belegungen entstehen über das Panel, die Freigabe je Portal über
+> `ads_enabled`, danach gelten §3.3 (Messung) und §4 (Rollout) unverändert. Der
+> Code ist vollständig vorhanden; es fehlt nur der Inhalt in `ad_units` und
+> `ad_placements`. Alles, was unten als „erledigt" steht, ist deshalb als
+> *damals gemessen* zu lesen, nicht als *läuft gerade*.
+
 | Nr. | Blocker | Wer | Stand |
 | --- | --- | --- | --- |
 | B1 | ~~Das Modul ist nicht eingecheckt~~ | Entwicklung | **erledigt** 16.10.2026 (#38): PR #9 nach `main`, Merge `9bbe1dfc` |
@@ -539,9 +553,13 @@ wenn **alle fünf** Aussagen stimmen:
 1. **CLS unter 0,1** im Feld und im Labor, mobil und Desktop — gemessen am
    **Anker-Anteil**. Das ist der zugesagte Geltungsbereich (`docs/ad-slots.md`
    7.2, 9.5): der Anker gibt die Höhe vor.
-2. **Der Seitenwert wird zusätzlich erhoben und getrennt notiert.** Auto Ads
-   auf Kontoseite **sind aktiv und bleiben es** (Entscheidung Enes,
-   16.10.2026, #51 — #50 ist als gegenstandslos geschlossen). Google setzt
+2. **Der Seitenwert wird zusätzlich erhoben und getrennt notiert.** Die
+   Einstellung „Auto Ads" im AdSense-Konto **bleibt an** (Entscheidung Enes,
+   16.10.2026, #51 — #50 ist als gegenstandslos geschlossen); seit dem
+   18.10.2026 wirkt sie allerdings nicht, weil netzweit keine Belegung mehr
+   existiert und damit kein Loader auf eine Seite kommt (siehe Kasten in
+   §0 und `docs/ad-slots.md` 9.6). Sobald wieder belegt wird, gilt dieser
+   Punkt unverändert. Google setzt
    dadurch unreservierte Anzeigen dazu, die wir nicht reservieren können
    (`docs/ad-slots.md` 9.6, #46). Der Anker-Wert allein genügt für die Abnahme
    deshalb **nicht**: beide Zahlen gehören ins Protokoll. Ein Seitenwert über
@@ -765,6 +783,13 @@ curl -s -o /dev/null -w '%{http_code}\n' https://elektrikerportal.com/ads.txt  #
       an**, auf allen Sites, im Konto wird nichts umgestellt (#51, #50
       geschlossen). Seither gilt die CLS-Zusage für die **Anker**; ein
       Seitenwert über 0,1 ist ein Befund zum Melden, kein Abbruchgrund
+- [x] 2026-10-18 **Werbung netzweit angehalten** (Anweisung Enes): alle
+      Werbemittel und Belegungen gelöscht, `ads_enabled` und der eigene
+      Auto-Ads-Schalter auf allen 23 Portalen aus, Werbe-Cache geleert.
+      Gegenprobe über die Kante: kein `googlesyndication`, kein Anker,
+      `/ads.txt` 404. Die Entscheidung vom 16.10. bleibt gültig und betrifft
+      das Konto; sie wirkt erst wieder, wenn belegt wird. Der Code bleibt
+      vollständig, neu anlegen geht jederzeit über das Panel
 - [x] **Abnahme erklärt: 16.10.2026, Kay (#31).** Der Pilot ist im Labor
       bestanden, die Freigabeliste ist entschieden und durchgesetzt, der
       Prüflauf auf der Produktion meldet 0 FAIL. Drei Vorbehalte gehören zur

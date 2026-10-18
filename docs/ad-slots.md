@@ -1817,6 +1817,23 @@ holt den wartenden Anker darum vor dem Klick in den Blick.
 
 ### 9.6 Auto Ads auf Kontoseite — die CLS-Zusage gilt für die Anker (#46)
 
+> **Stand 18.10.2026: es läuft keine Werbung.** Auf Anweisung von Enes sind
+> alle Werbemittel und Belegungen gelöscht (Produktion: 14 Werbemittel, 15
+> Belegungen, 98 Portal-Zuordnungen), `ads_enabled` steht auf **allen 23
+> Portalen** auf `nein`, ebenso unser eigener Auto-Ads-Schalter
+> (`ad_settings.adsense_auto_ads`, 0 von 23 an). Gegengeprüft über die
+> Cloudflare-Kante auf drei Portalen: kein `googlesyndication`, kein
+> `adsbygoogle`, kein Anker im Rumpf, `/ads.txt` **404**.
+>
+> Für diesen Abschnitt heißt das: **die Entscheidung von Enes am 16.10.2026
+> („Auto Ads bleiben an", #51) betrifft die Einstellung im AdSense-Konto, und
+> die ist unverändert — wirkungslos ist sie trotzdem**, weil kein Anker mehr
+> den Loader `adsbygoogle.js` auf eine Seite bringt. Ohne Loader keine Auto
+> Ads (Beleg unten im Befund). Der Abschnitt gilt also weiter, aber er
+> beschreibt derzeit einen Zustand, der nicht eintritt. Wird wieder belegt,
+> gilt er ab der ersten Belegung sofort wieder — samt getrennt geführtem
+> Seitenwert.
+
 **Befund (Pilot #31 auf `bodenlegerfinden.com`, 16.10.2026).** Auf dem Konto
 hinter der Publisher-ID `ca-pub-2563111817853634` sind **Auto Ads auf
 Kontoseite** aktiv. Sobald irgendein belegter Anker nach der Einwilligung den
