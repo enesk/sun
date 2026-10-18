@@ -1834,6 +1834,32 @@ holt den wartenden Anker darum vor dem Klick in den Blick.
 > gilt er ab der ersten Belegung sofort wieder — samt getrennt geführtem
 > Seitenwert.
 
+> **Nachtrag 18.10.2026, nach #1–#4 (#5): auf neun Portalen läuft wieder
+> Werbung — der Kasten oben ist für diese neun überholt.** Aus der zentralen
+> DB der Produktion ausgelesen:
+>
+> * `ads_enabled` = ja auf den **9 GOLD-Portalen** 24 `firmenfreund.de`,
+>   27 `bodenlegerfinden.com`, 28 `sanitaerfinden.com`, 45 `findegutachter.de`
+>   und 50, 52, 53, 54, 56 (`*.firmenfreund.de`), je mit Publisher-ID
+>   `ca-pub-2563111817853634`; `/ads.txt` dort HTTP 200 mit genau einer
+>   Google-Zeile `google.com, pub-2563111817853634, DIRECT, f08c47fec0942fa0`
+>   (#2). Die übrigen **14 Portale** stehen weiter auf `nein`, `/ads.txt` dort
+>   weiter 404.
+> * `ad_units`: 7 aktive AdSense-Werbemittel `GOLD - Profil - *` (#3).
+> * `ad_placements`: 7 aktive Belegungen auf den sieben `company`-Ankern,
+>   unbefristet, Prio 10, je mit genau diesen 9 Portalen (#1, #4). Andere
+>   Seitentypen sind weiter unbelegt.
+> * Unser eigener Auto-Ads-Schalter `ad_settings.adsense_auto_ads` ist
+>   unverändert auf **0 von 23** Portalen an.
+>
+> Für diesen Abschnitt heißt das: **die Auto Ads auf Kontoseite wirken wieder.**
+> Auf dem Firmenprofil der neun Portale bringt nach der Einwilligung ein
+> belegter Anker den Loader `adsbygoogle.js` auf die Seite; damit setzt Google
+> dort zusätzlich unreservierte Anzeigen ein. Der CLS-**Seitenwert** gehört ab
+> jetzt wieder getrennt ins Protokoll (`docs/ad-slots-golive.md` §3.3 Aussage
+> 2). Für die anderen Seitentypen und die 14 nicht freigegebenen Portale gilt
+> der Kasten darüber unverändert.
+
 **Befund (Pilot #31 auf `bodenlegerfinden.com`, 16.10.2026).** Auf dem Konto
 hinter der Publisher-ID `ca-pub-2563111817853634` sind **Auto Ads auf
 Kontoseite** aktiv. Sobald irgendein belegter Anker nach der Einwilligung den

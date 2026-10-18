@@ -65,6 +65,22 @@ sudo -u sanitaerfinden /usr/bin/php8.4 artisan <befehl>
 > `ad_placements`. Alles, was unten als „erledigt" steht, ist deshalb als
 > *damals gemessen* zu lesen, nicht als *läuft gerade*.
 
+> **Nachtrag 18.10.2026, nach #1–#4 (#5): die Pause gilt nur noch für 14
+> Portale.** Auf den **9 GOLD-Portalen** 24 `firmenfreund.de`,
+> 27 `bodenlegerfinden.com`, 28 `sanitaerfinden.com`, 45 `findegutachter.de`
+> und 50, 52, 53, 54, 56 (`*.firmenfreund.de`) ist die Freigabe zurück:
+> `ads_enabled` = ja mit Publisher-ID `ca-pub-2563111817853634`, `/ads.txt`
+> HTTP 200 mit genau einer Google-Zeile (#2). Dazu sind **7 Werbemittel**
+> `GOLD - Profil - *` (#3) und **7 aktive Belegungen** auf den sieben
+> `company`-Ankern dieser 9 Portale angelegt (#1, #4) — auf dem Firmenprofil
+> wird also wieder ausgespielt. Andere Seitentypen bleiben unbelegt, die
+> übrigen 14 Portale bleiben aus (`/ads.txt` 404), der eigene
+> Auto-Ads-Schalter weiter auf 0 von 23.
+>
+> Für dieses Dokument heißt das: der Weg zurück ist für diese 9 Portale
+> gegangen; §3.3 (Messung, inklusive getrennt geführtem Seitenwert) und §4
+> (Rollout) gelten dafür wieder unmittelbar.
+
 | Nr. | Blocker | Wer | Stand |
 | --- | --- | --- | --- |
 | B1 | ~~Das Modul ist nicht eingecheckt~~ | Entwicklung | **erledigt** 16.10.2026 (#38): PR #9 nach `main`, Merge `9bbe1dfc` |
@@ -790,6 +806,15 @@ curl -s -o /dev/null -w '%{http_code}\n' https://elektrikerportal.com/ads.txt  #
       `/ads.txt` 404. Die Entscheidung vom 16.10. bleibt gültig und betrifft
       das Konto; sie wirkt erst wieder, wenn belegt wird. Der Code bleibt
       vollständig, neu anlegen geht jederzeit über das Panel
+- [x] 2026-10-18 **Werbung auf den 9 GOLD-Portalen zurück** (#1–#4): 24, 27,
+      28, 45, 50, 52, 53, 54, 56 stehen auf `ads_enabled = ja` mit
+      Publisher-ID `ca-pub-2563111817853634`, `/ads.txt` dort 200 mit genau
+      einer Google-Zeile; 7 Werbemittel `GOLD - Profil - *` und 7 aktive
+      Belegungen auf den sieben `company`-Ankern dieser 9 Portale. Die
+      Werbepause des Vormittags gilt damit nur noch für die übrigen 14
+      Portale. Auto Ads auf Kontoseite wirken auf dem Firmenprofil dieser 9
+      Portale wieder, der CLS-Seitenwert gehört entsprechend getrennt ins
+      Protokoll (§3.3 Aussage 2, `docs/ad-slots.md` 9.6)
 - [x] **Abnahme erklärt: 16.10.2026, Kay (#31).** Der Pilot ist im Labor
       bestanden, die Freigabeliste ist entschieden und durchgesetzt, der
       Prüflauf auf der Produktion meldet 0 FAIL. Drei Vorbehalte gehören zur
