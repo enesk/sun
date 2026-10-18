@@ -58,21 +58,27 @@ class AdUnitsGold1901Seeder extends Seeder
 
         /*
          * Textfluss-Anker auf dem Profil (company_after_header_card,
-         * company_after_about, company_after_reviews). In-Article wie
-         * fachlich vorgegeben; `layout_key` bleibt leer, den braucht nur
+         * company_after_about, company_after_reviews). Fachlich In-Article,
+         * gespeichert als `responsive`: keiner dieser drei Anker fuehrt
+         * `in_article` in `formats`, das Format waere dort also nicht erlaubt
+         * (Akzeptanz von #10) — und es ist fluid, seine Hoehe sprengt die
+         * Reservierung von 280/250 px. `responsive` nimmt genau die
+         * reservierte Hoehe (#32). `layout_key` bleibt leer, den braucht nur
          * In-Feed.
          */
-        'GOLD - Profil - Content 1' => ['7666349905', 'in_article'],
-        'GOLD - Profil - Content 2' => ['5214526510', 'in_article'],
-        'GOLD - Profil - Content 3' => ['5873002064', 'in_article'],
+        'GOLD - Profil - Content 1' => ['7666349905', 'responsive'],
+        'GOLD - Profil - Content 2' => ['5214526510', 'responsive'],
+        'GOLD - Profil - Content 3' => ['5873002064', 'responsive'],
 
         /*
          * Multiplex gibt es als Format-Schluessel nicht. Ziel ist
-         * company_before_footer mit 100/90 px Reservierung, auf der
-         * `responsive` nicht erlaubt ist — bleibt `leaderboard_728x90`, das
-         * einzige dort registrierte Format und genau die Reservierung.
+         * company_before_footer mit 100/90 px Reservierung; der Anker laesst
+         * `responsive` und `leaderboard_728x90` zu. `responsive` wie bei den
+         * Bloecken des ersten Kontos: der Provider gibt dem <ins> dann die
+         * Reservierung als Hoehe und keine `data-ad-format`-Angabe, die Form
+         * bestimmt der Block im AdSense-Konto (#32).
          */
-        'GOLD - Profil - Bottom Multiplex' => ['8962199836', 'leaderboard_728x90'],
+        'GOLD - Profil - Bottom Multiplex' => ['8962199836', 'responsive'],
 
         /*
          * Seitenspalte oben (company_sidebar_top, 250 px): 300x250 ist
@@ -82,11 +88,10 @@ class AdUnitsGold1901Seeder extends Seeder
 
         /*
          * Seitenspalte klebend (company_sidebar_sticky, 600 px): 300x600
-         * gibt es nicht. Naechstpassendes registriertes Display-Format ist
-         * `rectangle_300x250` — es passt in die Reservierung, waehrend
-         * `responsive` sie sprengen kann.
+         * gibt es nicht. Mit `responsive` fuellt der Block die 600 px der
+         * Reservierung — `rectangle_300x250` wuerde nur 250 davon nutzen.
          */
-        'GOLD - Profil - Sidebar Sticky' => ['3709873156', 'rectangle_300x250'],
+        'GOLD - Profil - Sidebar Sticky' => ['3709873156', 'responsive'],
     ];
 
     public function run(): void
