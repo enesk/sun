@@ -1,0 +1,63 @@
+{
+  "gemessen": "2026-10-18T11:18:32.165Z",
+  "breite": 360,
+  "laeufe": 3,
+  "seiten": [
+    {
+      "url": "https://sun.test/22787-dithmarscher-haus-und-gartenservice",
+      "ohneEinwilligung": [
+        {
+          "cls": 0,
+          "lcp": 524,
+          "anker": [],
+          "eingesetzteAnzeigen": 0,
+          "adsbygoogleGeladen": false
+        },
+        {
+          "cls": 0,
+          "lcp": 548,
+          "anker": [],
+          "eingesetzteAnzeigen": 0,
+          "adsbygoogleGeladen": false
+        },
+        {
+          "cls": 0,
+          "lcp": 544,
+          "anker": [],
+          "eingesetzteAnzeigen": 0,
+          "adsbygoogleGeladen": false
+        }
+      ],
+      "mitEinwilligung": [
+        {
+          "cls": 0,
+          "lcp": 592,
+          "anker": [],
+          "eingesetzteAnzeigen": 0,
+          "adsbygoogleGeladen": false
+        },
+        {
+          "cls": 0,
+          "lcp": 524,
+          "anker": [],
+          "eingesetzteAnzeigen": 0,
+          "adsbygoogleGeladen": false
+        },
+        {
+          "cls": 0,
+          "lcp": 584,
+          "anker": [],
+          "eingesetzteAnzeigen": 0,
+          "adsbygoogleGeladen": false
+        }
+      ],
+      "median": {
+        "lcpOhne": 544,
+        "lcpMit": 584,
+        "clsOhne": 0,
+        "clsMit": 0,
+        "lcpAbweichungProzent": 7.4
+      }
+    }
+  ]
+}

@@ -451,6 +451,20 @@ return [
         // Firmenprofil — pages/companies/show.blade.php
         // ---------------------------------------------------------------
         [
+            // Ueber dem ersten Inhalt der Seite (#68). Bewusst OHNE
+            // `responsive`: ein hoeheres Format als reserviert verschiebt hier
+            // die gesamte Seite und reisst die CLS-Zusage (#32, gemessen
+            // 0,136). Ein festes Format, eine feste Reservierung.
+            'key' => 'company_before_header_card',
+            'label' => 'Profil · ueber der Kopf-Karte (mobil)',
+            'page_type' => AdPageType::COMPANY->value,
+            'devices' => AdDevice::MOBILE->value,
+            'formats' => ['rectangle_300x250'],
+            'min_height_mobile' => 280,
+            'min_height_desktop' => 0,
+            'sort' => 5,
+        ],
+        [
             'key' => 'company_after_header_card',
             'label' => 'Profil · unter der Kopf-Karte (mobil)',
             'page_type' => AdPageType::COMPANY->value,
