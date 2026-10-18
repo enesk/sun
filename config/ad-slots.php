@@ -451,6 +451,23 @@ return [
         // Firmenprofil — pages/companies/show.blade.php
         // ---------------------------------------------------------------
         [
+            // Ueber dem ersten Inhalt der Seite (#68). Bewusst OHNE
+            // `responsive`: ein hoeheres Format als reserviert verschiebt hier
+            // die gesamte Seite und reisst die CLS-Zusage (#32, gemessen
+            // 0,136). Ein festes Format, eine feste Reservierung.
+            'key' => 'company_before_header_card',
+            'label' => 'Profil · ueber der Kopf-Karte',
+            'page_type' => AdPageType::COMPANY->value,
+            // Ansage von Enes am 18.10.2026: auch am Desktop ausspielen.
+            // Die Desktop-Reservierung ist die des gleichformatigen Ankers
+            // home_after_services (250 px) — uebernommen, nicht gemessen.
+            'devices' => AdDevice::ALL->value,
+            'formats' => ['rectangle_300x250'],
+            'min_height_mobile' => 280,
+            'min_height_desktop' => 250,
+            'sort' => 5,
+        ],
+        [
             'key' => 'company_after_header_card',
             'label' => 'Profil · unter der Kopf-Karte (mobil)',
             'page_type' => AdPageType::COMPANY->value,
