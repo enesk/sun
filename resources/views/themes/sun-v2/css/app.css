@@ -278,11 +278,15 @@
      * garantiert bei `responsive` keine Hoehe, und ein groesseres Format
      * darf nicht abgeschnitten werden (docs/ad-slots.md 2).
      *
-     * Reserviert wird auf der Flaeche, nicht auf dem Rahmen: sonst frisst
-     * das Wort "Anzeige" von der Hoehe der Anzeige.
+     * Reserviert wird auf der Flaeche, nicht auf dem Rahmen.
+     *
+     * Ohne Hintergrundfarbe und ohne die Zeile "Anzeige" (Ansage von Enes,
+     * 18.10.2026): der Platz soll sich nicht vom Inhalt abheben. Der Rahmen
+     * behaelt nur die abgerundete Ecke und das Kappen, damit ein fremdes
+     * Format nicht aus der Spalte laeuft.
      */
     .ad-slot {
-        @apply rounded-2xl bg-zinc-100 overflow-hidden;
+        @apply rounded-2xl overflow-hidden;
     }
 
     .ad-slot__area {

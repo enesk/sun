@@ -59,13 +59,6 @@
              Ohne diese beiden Attribute zaehlt resources/js/ads.js nichts. --}}
         @if($trackImpressions && $container['placementId'] !== null) data-ad-placement="{{ $container['placementId'] }}" data-ad-track="{{ \App\View\Components\Sun\AdSlot::trackAttribute() }}" @endif
         @if($eager) data-ad-eager @endif>
-        {{-- Im Editor-Modus steht die Zeile "Anzeige" nur ueber einem belegten
-             Platz: dort hat sie die ausgelieferte Seite auch, und der Rahmen
-             bekommt damit genau deren Hoehe. Ueber einem freien Platz waere
-             sie eine falsche Auskunft. --}}
-        @if(! $editorMode || $container['placementId'] !== null)
-        <span class="block px-3 pt-2 text-xs text-zinc-400">{{ __('portal.layout.ad_label') }}</span>
-        @endif
         @if($editorMode)
             @include('components.sun.ad-slot-editor-frame', ['key' => $key, 'container' => $container])
         @else
