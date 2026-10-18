@@ -174,9 +174,12 @@ Route::middleware([
 // Rahmen — fremdes Markup soll nichts vom Portal erreichen. Die Antwort setzt
 // ihre eigene CSP (`sandbox …; frame-ancestors 'self'`), der iframe traegt
 // dieselbe Sandbox zusaetzlich als Attribut. Siehe docs/ad-slots.md 5.2.
+// `universal` wie beim Beacon: auf der zentralen Domain laeuft ein Portal,
+// und ein 404 hier haette dort jedes eigene HTML-Werbemittel leer gelassen.
+// Die Werbemittel stehen zentral, der Controller braucht keinen Tenant.
 Route::middleware([
+    'universal',
     App\Providers\TenancyServiceProvider::TENANCY_INITIALIZER,
-    Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
     // SubstituteBindings steckt sonst in der 'web'-Gruppe; ohne sie bekaeme
     // der Controller ein leeres AdUnit-Model statt des gesuchten.
     Illuminate\Routing\Middleware\SubstituteBindings::class,
@@ -205,9 +208,17 @@ Route::middleware([
 // die Cloudflare-Edge — ein Eimer fuer viele Besucher (Review #39, Befund S3).
 // Wichtig bleibt: ein 429 verliert Impressionen unsichtbar, weil sendBeacon
 // keine Antwort auswertet. Wer das Limit senkt, verliert also still Zahlen.
+//
+// `universal` statt PreventAccessFromCentralDomains: die zentrale Domain
+// `sanitaerfinden.com` ist gleichzeitig ein ausgeliefertes Portal (Tenant 28).
+// PreventAccessFromCentralDomains hat den Beacon dort mit 404 abgewiesen —
+// und weil sendBeacon keine Antwort auswertet, fielen die Impressionen dieses
+// einen Portals still aus. Die Seitenrouten weiter oben fahren aus demselben
+// Grund `universal`. Der Controller prueft selbst auf einen Tenant und
+// antwortet ohne ihn mit 204, im zentralen Kontext wird also nichts gezaehlt.
 Route::middleware([
+    'universal',
     App\Providers\TenancyServiceProvider::TENANCY_INITIALIZER,
-    Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
     'throttle:60,1',
 ])->group(function () {
     Route::post('/_ads/impressions', App\Ads\Http\Controllers\AdImpressionController::class)
