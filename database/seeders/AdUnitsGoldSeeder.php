@@ -42,11 +42,17 @@ class AdUnitsGoldSeeder extends Seeder
         // Anker mit knapper Reservierung).
         'GOLD - Profil - Top' => ['7887957169', 'rectangle_300x250'],
 
-        // Textfluss-Anker auf dem Profil: fluide Hoehe, kein Layout-Key —
-        // der braucht nur In-Feed.
-        'GOLD - Profil - Content 1' => ['1599635007', 'in_article'],
-        'GOLD - Profil - Content 2' => ['6660389998', 'in_article'],
-        'GOLD - Profil - Content 3' => ['9831594225', 'in_article'],
+        // Textfluss-Anker auf dem Profil. Fachlich In-Article, gespeichert
+        // als `responsive`: `in_article` steht in keinem der drei
+        // Profil-Anker (`company_after_header_card`, `company_after_about`,
+        // `company_after_reviews`) in `formats` — es ist ein fluides Format,
+        // dessen Hoehe AdSense bestimmt, und sprengt damit die Reservierung
+        // von 280/250 px (#32, Vorgabe aus Ticket #4: das Format des
+        // Werbemittels muss der Anker zulassen, der Anker wird NICHT
+        // geaendert). `responsive` nimmt genau die reservierte Hoehe.
+        'GOLD - Profil - Content 1' => ['1599635007', 'responsive'],
+        'GOLD - Profil - Content 2' => ['6660389998', 'responsive'],
+        'GOLD - Profil - Content 3' => ['9831594225', 'responsive'],
 
         // Multiplex: kein eigener Format-Schluessel im Katalog, siehe oben.
         'GOLD - Profil - Bottom Multiplex' => ['7943797487', 'responsive'],
