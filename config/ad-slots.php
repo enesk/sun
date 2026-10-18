@@ -456,12 +456,15 @@ return [
             // die gesamte Seite und reisst die CLS-Zusage (#32, gemessen
             // 0,136). Ein festes Format, eine feste Reservierung.
             'key' => 'company_before_header_card',
-            'label' => 'Profil · ueber der Kopf-Karte (mobil)',
+            'label' => 'Profil · ueber der Kopf-Karte',
             'page_type' => AdPageType::COMPANY->value,
-            'devices' => AdDevice::MOBILE->value,
+            // Ansage von Enes am 18.10.2026: auch am Desktop ausspielen.
+            // Die Desktop-Reservierung ist die des gleichformatigen Ankers
+            // home_after_services (250 px) — uebernommen, nicht gemessen.
+            'devices' => AdDevice::ALL->value,
             'formats' => ['rectangle_300x250'],
             'min_height_mobile' => 280,
-            'min_height_desktop' => 0,
+            'min_height_desktop' => 250,
             'sort' => 5,
         ],
         [

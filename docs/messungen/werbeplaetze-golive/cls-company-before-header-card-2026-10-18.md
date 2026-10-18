@@ -55,8 +55,20 @@ Anzeigenhöhe würde dagegen springen — genau darum steht hier nur
 * `cls-company-before-header-card-2026-10-18-mit.json`
 * `cls-company-before-header-card-2026-10-18-ohne.json`
 
+## Nachtrag 18.10.2026 — Anker gilt jetzt auch am Desktop
+
+Ansage von Enes: der Platz darf auch am Desktop erscheinen, ohne weitere
+Messung. Im Katalog steht deshalb `devices` auf `all` und
+`min_height_desktop` auf **250 px** — dieselbe Reservierung, die der
+gleichformatige Anker `home_after_services` fuehrt. Uebernommen, **nicht
+gemessen**.
+
+Die Werte oben bleiben damit die Messung des **mobilen** Falls. Fuer den
+Desktop liegt keine CLS- und keine LCP-Messung vor.
+
 ## Was die Messung nicht abdeckt
 
 * Keine Messung mit einem echten AdSense-Creative (siehe oben).
+* Keine Messung des Desktop-Falls (siehe Nachtrag).
 * Keine Feldwerte. Der Anker ist auf der Produktion noch nicht vorhanden —
   Einchecken und Deploy laufen über #69, belegt wird im Panel von Enes.

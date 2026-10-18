@@ -12,6 +12,10 @@ use Tests\TestCase;
 /**
  * Der Anker ueber der Kopf-Karte des Firmenprofils (#68).
  *
+ * Ausgespielt wird auf **beiden** Geraeten (Ansage von Enes, 18.10.2026);
+ * die Desktop-Reservierung ist vom gleichformatigen Anker
+ * home_after_services uebernommen und nicht nachgemessen.
+ *
  * Besonderheit dieses Platzes: er steht **vor** dem ersten Inhalt der Seite.
  * Faellt die Anzeige hoeher aus als reserviert, verschiebt sich nicht ein
  * Abschnitt, sondern die ganze Seite — derselbe Fehler, der in #32 mit CLS
@@ -32,22 +36,28 @@ class CompanyBeforeHeaderCardSlotTest extends TestCase
         $this->assertSame(AdPageType::COMPANY, AdSlotCatalog::pageTypeOf(self::KEY));
     }
 
-    /** Nur mobil: auf dem Desktop steht an der Stelle nichts. */
-    public function test_der_anker_gilt_nur_mobil(): void
+    /** Beide Geraete (Ansage von Enes am 18.10.2026). */
+    public function test_der_anker_gilt_auf_beiden_geraeten(): void
     {
-        $this->assertSame(AdDevice::MOBILE, AdSlotCatalog::deviceOf(self::KEY));
+        $this->assertSame(AdDevice::ALL, AdSlotCatalog::deviceOf(self::KEY));
         $this->assertTrue(AdSlotCatalog::allowsDevice(self::KEY, AdDevice::MOBILE));
-        $this->assertFalse(AdSlotCatalog::allowsDevice(self::KEY, AdDevice::DESKTOP));
+        $this->assertTrue(AdSlotCatalog::allowsDevice(self::KEY, AdDevice::DESKTOP));
     }
 
-    /** 280 px mobil reserviert, auf dem Desktop keine Reservierung. */
-    public function test_der_anker_reserviert_mobil_280_px_und_auf_dem_desktop_nichts(): void
+    /**
+     * Auf beiden Geraeten eine Reservierung. Eine 0 am Desktop waere hier der
+     * gefaehrliche Fall: der Platz liegt vor dem ersten Inhalt, ohne
+     * Reservierung schiebt die eingesetzte Anzeige die ganze Seite nach
+     * unten.
+     */
+    public function test_der_anker_reserviert_auf_beiden_geraeten(): void
     {
         $eintrag = AdSlotCatalog::find(self::KEY);
 
         $this->assertNotNull($eintrag);
         $this->assertSame(280, (int) $eintrag['min_height_mobile']);
-        $this->assertSame(0, (int) $eintrag['min_height_desktop']);
+        $this->assertSame(250, (int) $eintrag['min_height_desktop']);
+        $this->assertGreaterThan(0, (int) $eintrag['min_height_desktop']);
     }
 
     /**
