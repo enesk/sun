@@ -32,13 +32,44 @@ class LegalTextService
      */
     public function get(LegalTextKey $key): ?string
     {
-        $text = LegalText::query()
-            ->where('key', $key->value)
-            ->value('content');
+        return $this->normalize(
+            LegalText::query()->where('key', $key->value)->value('content')
+        );
+    }
 
-        $text = is_string($text) ? trim($text) : null;
+    /**
+     * Leeren Inhalt zu `null` machen — **auch wenn er aus leerem Markup
+     * besteht.**
+     *
+     * Der RichEditor gibt ein geleertes Feld als `<p></p>` zurück, nicht als
+     * leeren String. Wuerde das als gepflegt gelten, liefert die zentrale
+     * Fassung allen 23 Portalen eine **leere Rechtstextseite** — bei
+     * Pflichtangaben der schlimmste denkbare Fehler dieses Vorhabens. Ein
+     * Feld, in dem nichts steht, muss deshalb dasselbe bedeuten wie ein nie
+     * gepflegtes Feld: die Portale behalten ihren eigenen Text.
+     */
+    private function normalize(mixed $inhalt): ?string
+    {
+        if (! is_string($inhalt)) {
+            return null;
+        }
 
-        return $text === '' ? null : $text;
+        $inhalt = trim($inhalt);
+
+        if ($inhalt === '') {
+            return null;
+        }
+
+        // Tags entfernen und geschuetzte Leerzeichen mitzaehlen: '<p></p>',
+        // '<p><br></p>' und '<p>&nbsp;</p>' sind alle leer.
+        $text = html_entity_decode(strip_tags($inhalt), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $text = preg_replace('/[\s\x{00A0}]+/u', '', $text) ?? '';
+
+        // Ein Bild oder ein Trennstrich ohne Text ist zwar seltsam, aber
+        // Inhalt — sonst verwirft ein Logo im Impressum den ganzen Text.
+        $hatElemente = preg_match('/<(img|hr|table|iframe)\b/i', $inhalt) === 1;
+
+        return ($text === '' && ! $hatElemente) ? null : $inhalt;
     }
 
     /**
@@ -51,9 +82,7 @@ class LegalTextService
         $ergebnis = [];
 
         foreach (LegalTextKey::all() as $key) {
-            $wert = $gepflegt[$key->value] ?? null;
-            $wert = is_string($wert) ? trim($wert) : null;
-            $ergebnis[$key->value] = $wert === '' ? null : $wert;
+            $ergebnis[$key->value] = $this->normalize($gepflegt[$key->value] ?? null);
         }
 
         return $ergebnis;
