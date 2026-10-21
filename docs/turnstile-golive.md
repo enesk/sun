@@ -350,6 +350,13 @@ und mit dem behobenen Fehler wächst es nicht weiter.
 - [x] 2026-10-08 SE `git pull --ff-only` **als root** (nur root hat den GitHub-Schlüssel), danach
   → Lauf 20:14, Abschnitt 2
   `chown -R sanitaerfinden:sanitaerfinden /home/sanitaerfinden/htdocs/sanitaerfinden.dev`
+  — **so nicht mehr (#59).** Der rekursive Lauf geht durch `storage/` und damit
+  durch den Datei-Cache von 29 Portalen; am 16.10.2026 hat genau das die
+  Maschine 17 Minuten auf Load 53 und TTFB 49 s gezogen, obwohl nur sieben
+  Dateien root gehoerten. Richtig ist
+  `scripts/deploy-eigentuemer-richten.sh --los` (Sekundenbruchteile), und lange
+  Befehle auf dieser Maschine immer in `timeout` — eine abgerissene
+  SSH-Sitzung beendet sie nicht.
 - [x] 2026-10-08 SE `composer install --no-dev -o`
   → nicht nachgeholt und nicht nötig: `composer.lock` ist zwischen `f5fa66ed` und `a0bc8016` unverändert (geprüft 08.10.2026)
 - [x] 2026-10-08 SE `npm ci && npm run build` — `public/build/` ist nicht versioniert, und

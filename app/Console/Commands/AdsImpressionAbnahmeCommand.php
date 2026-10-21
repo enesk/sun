@@ -8,7 +8,9 @@ use App\Ads\Models\AdImpressionDaily;
 use App\Ads\Support\AdImpressionRecorder;
 use App\Ads\Support\AdImpressionStats;
 use App\Models\Tenant;
+use Carbon\Exceptions\InvalidFormatException;
 use Illuminate\Console\Command;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -33,12 +35,20 @@ use Illuminate\Support\Facades\DB;
  * Fragmente und die Viewability-Quote — die Groesse, an der die
  * Entscheidungsregel aus docs/ad-slots.md 13.3 haengt.
  *
+ * `--ab=YYYY-MM-DD` setzt den Fensteranfang frei (Ticket #66). Noetig, wenn
+ * der Zeitraum vollstaendig hinter einem Ereignis liegen muss und keine der
+ * beiden Breiten das trifft: nach dem Deploy des Nenners am 16.10.2026 enthielt
+ * selbst `--tage=7` noch sechs Tage ohne Nenner, ein ganzes sauberes
+ * 7-Tage-Fenster gab es erst eine Woche spaeter. Das Widget bleibt davon
+ * unberuehrt — es kennt weiter nur {@see AdImpressionStats::WINDOWS}.
+ *
  * Nur Lesezugriff.
  */
 class AdsImpressionAbnahmeCommand extends Command
 {
     protected $signature = 'ads:impressionen-abnahme
         {--tage= : Nur dieses Zeitfenster zeigen (7 oder 30), Vorgabe beide}
+        {--ab= : Fensteranfang als YYYY-MM-DD statt einer festen Breite (schliesst --tage aus)}
         {--tenant= : Nur dieses Portal (tenant_id), wie der Dashboard-Filter}
         {--adsense= : Impressionen desselben Portals und Zeitraums aus dem AdSense-Report}';
 
@@ -61,10 +71,16 @@ class AdsImpressionAbnahmeCommand extends Command
             return self::FAILURE;
         }
 
-        $windows = $this->windows();
+        $ab = $this->ab();
 
-        if ($windows === []) {
-            $this->error('--tage kennt nur '.implode(' und ', AdImpressionStats::WINDOWS).'.');
+        if ($ab === false) {
+            return self::FAILURE;
+        }
+
+        $windows = $ab === null ? $this->windows() : [];
+
+        if ($ab === null && $windows === []) {
+            $this->error('--tage kennt nur '.implode(' und ', AdImpressionStats::WINDOWS).' — ein anderes Fenster geht ueber --ab=YYYY-MM-DD.');
 
             return self::FAILURE;
         }
@@ -79,9 +95,11 @@ class AdsImpressionAbnahmeCommand extends Command
 
         $befund = false;
 
-        foreach ($windows as $days) {
-            $summary = AdImpressionStats::summary($tenantId, $days);
+        $summaries = $ab === null
+            ? array_map(fn (int $days): array => AdImpressionStats::summary($tenantId, $days), $windows)
+            : [AdImpressionStats::summarySince($tenantId, $ab)];
 
+        foreach ($summaries as $summary) {
             $this->newLine();
             $this->components->info(sprintf(
                 '%d Tage ab %s — %s',
@@ -105,6 +123,14 @@ class AdsImpressionAbnahmeCommand extends Command
 
             $tageMitDaten = $this->daysWithData($tenantId, $summary['from']);
             $this->line("Tage mit Daten im Fenster: {$tageMitDaten} von {$summary['days']}");
+
+            if ($summary['days'] < AdImpressionStats::WINDOWS[0]) {
+                $this->warn(sprintf(
+                    'Kurzes Fenster (%d statt %d Tage) — kleine Grundmenge. Eine Entscheidung nach docs/ad-slots.md 13.3 nur mit Vermerk auf die Fensterbreite.',
+                    $summary['days'],
+                    AdImpressionStats::WINDOWS[0],
+                ));
+            }
 
             if ($summary['total'] === 0 && $summary['delivered'] === 0) {
                 $this->warn('Keine Impressionen in diesem Fenster — das Widget zeigt hier seinen Hinweistext.');
@@ -192,6 +218,52 @@ class AdsImpressionAbnahmeCommand extends Command
         $this->line('Abweichung im erwarteten Rahmen (AdSense zaehlt den Anzeigenblock, wir den Anker).');
 
         return false;
+    }
+
+    /**
+     * Fensteranfang aus `--ab=`. `null` heisst "nicht gesetzt", `false` heisst
+     * "gesetzt, aber unbrauchbar" — dann bricht das Kommando ab, statt still
+     * auf die Vorgabefenster zurueckzufallen.
+     */
+    private function ab(): Carbon|false|null
+    {
+        $ab = $this->option('ab');
+
+        if ($ab === null || $ab === '') {
+            return null;
+        }
+
+        if ($this->option('tage') !== null && $this->option('tage') !== '') {
+            $this->error('--ab und --tage schliessen sich aus: beide setzen den Fensteranfang.');
+
+            return false;
+        }
+
+        try {
+            $von = Carbon::createFromFormat('!Y-m-d', (string) $ab);
+        } catch (InvalidFormatException) {
+            $von = null;
+        }
+
+        // Rueckvergleich, weil Carbon ueberlaufende Angaben still umrechnet:
+        // aus 2026-10-45 wuerde sonst klaglos der 14.11. werden.
+        if ($von instanceof Carbon && $von->toDateString() !== (string) $ab) {
+            $von = null;
+        }
+
+        if (! $von instanceof Carbon) {
+            $this->error("--ab erwartet ein Datum als YYYY-MM-DD, bekommen: {$ab}.");
+
+            return false;
+        }
+
+        if ($von->isFuture()) {
+            $this->error('--ab liegt in der Zukunft — das Fenster waere leer.');
+
+            return false;
+        }
+
+        return $von;
     }
 
     /**

@@ -254,6 +254,16 @@ return [
             'mode' => env('TURNSTILE_MODE_CONTACT', TurnstileMode::NonInteractive->value),
             'enabled' => false,
         ],
+
+        // Self-Service am Firmenprofil (SUN-RQ #4): Eintrag aendern oder
+        // loeschen. Anders als die Formulare aus #22 ab Werk `true` — eine
+        // Loeschanfrage greift in einen fremden Eintrag ein, und 10 % der
+        // vorhandenen Anfragen sind reiner Muell (docs/profile-requests.md
+        // 2.1). Modus non_interactive, damit kein Inhaber ein Puzzle loest.
+        TurnstileAction::ProfileRequest->value => [
+            'mode' => env('TURNSTILE_MODE_PROFILE_REQUEST', TurnstileMode::NonInteractive->value),
+            'enabled' => true,
+        ],
     ],
 
     /*

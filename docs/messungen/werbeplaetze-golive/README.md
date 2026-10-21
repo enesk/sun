@@ -20,6 +20,8 @@ Feldwerte aus CrUX und der AdSense-Report je Anker.
 | Search Console / CrUX | `pilot-<portal>-cwv-<vorher\|nachher>-<mobil\|desktop>.png` |
 | Konsole / Netzwerk | `pilot-<portal>-devtools-<vor\|nach>-einwilligung-<seitentyp>.png` |
 | AdSense-Report (Viewability) | `pilot-<portal>-adsense-<datum>.png` + `.csv` |
+| Viewability-Quote, Gatterlauf | `viewability-gatter-<datum>.txt` (Exit 70, Fenster noch nicht reif) |
+| Viewability-Quote, reifes Fenster | `viewability-quote-<datum>.txt` (Exit 0, Grundlage für §13.3) |
 | Rollout je Stufe | `rollout-stufe<n>-<datum>.txt` (Prüflauf + `curl`-Ausgaben) |
 
 Portal-Kürzel ist die Domain ohne TLD-Punkte, z. B. `unfallarzt-firmenfreund-de`.
@@ -65,6 +67,26 @@ Portal-Kürzel ist die Domain ohne TLD-Punkte, z. B. `unfallarzt-firmenfreund-de
 * `adstxt-sweep-2026-10-16-nach-freigabeliste.txt` — `/ads.txt` über alle 23
   Domains nach der durchgesetzten Freigabeliste: 18 × 200 mit genau einer
   Google-Zeile, 5 × 404.
+* `viewability-nenner-2026-10-16.txt` — Beleg zu #52 (aus #47): der Nenner der
+  Viewability-Quote läuft auf der Produktion. Migrationen `…_000009` (#44) und
+  `…_000010` (#47) auf der Central-DB gelaufen, Assets neu gebaut (13:25 UTC),
+  echter Verkehr meldet `event=delivered`. Enthält die Zwischenablesung aus der
+  ersten sauberen Stunde. Die **belastbare** Quote je Anker kommt frühestens am
+  23.10.2026 — bis dahin enthält jedes Siebentagefenster Tage ohne Nenner.
+  Erzeugt mit `scripts/ads-viewability-quote.sh` (`--stunde` für die
+  Zwischenablesung). Erste Ablesung: **68 %** über alle Anker (201 / 294),
+  je Anker 37–70 % — Stichprobe, keine Grundlage für §13.3. Die gekappte
+  Fensterquote (699 / 156, angezeigt 100 %) steht absichtlich nicht in der
+  Datei.
+* `viewability-gatter-2026-10-16.txt` — Gatterlauf zu #65 (Schritt 4 aus #52):
+  `scripts/ads-viewability-quote.sh --tage=7` am 16.10.2026, **Exit 70**. Die drei
+  Vorbedingungen aus `docs/ad-slots-golive.md` §6.3 stehen (Migrationen, Bundle,
+  156 ausgelieferte Fragmente + 345 im Stundenpuffer); gesperrt hat allein das
+  Zeitgatter. Belegt, wie die Quote vor dem Reifedatum aussieht: durchgehend
+  gekappte 100 % bei „Tage mit Daten im Fenster: 1 von 7“. Darum ist in
+  `docs/ad-slots.md` §13.2 nichts eingetragen und nach §13.3 nichts entschieden.
+  Nächster Aufruf ab **23.10.2026** (bzw. ab 18.10.2026, falls #66 die
+  7/30-Begrenzung am Kommando aufhebt).
 * `freigabe-sieben-portale-2026-10-16.md` — die sieben Portale ohne Altbestand
   (30, 49, 51, 54, 55, 57, 58): Schalter, Publisher-ID, `ads_txt_extra`,
   Alt-Slots und `/ads.txt` je Domain, die Entscheidung dazu (#48) und der

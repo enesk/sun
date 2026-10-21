@@ -29,6 +29,15 @@ enum TurnstileAction: string
     case Contact = 'contact';
 
     /**
+     * Self-Service-Formular am Firmenprofil: Eintrag aendern oder loeschen
+     * (SUN-RQ #4, App\Livewire\Portal\ProfileRequestDialog). Eigene Aktion
+     * und nicht `company_listing`, damit ein Token aus dem Eintragsformular
+     * hier nicht eingereicht werden kann — und damit eine Loeschwelle sich
+     * je Portal getrennt schaerfen laesst.
+     */
+    case ProfileRequest = 'profile_request';
+
+    /**
      * @return list<string>
      */
     public static function values(): array
@@ -48,6 +57,7 @@ enum TurnstileAction: string
             self::CompanyListing => __('Firmeneintragung'),
             self::LeadRequest => __('Anfrage'),
             self::Contact => __('Kontakt'),
+            self::ProfileRequest => __('Profil-Anfrage'),
         };
     }
 
@@ -59,7 +69,9 @@ enum TurnstileAction: string
     {
         return match ($this) {
             self::Registration, self::CompanyListing => TurnstileMode::Managed,
-            self::LeadRequest, self::Contact => TurnstileMode::NonInteractive,
+            // Nicht interaktiv: der Inhaber eines Betriebs soll fuer eine
+            // Korrektur am eigenen Eintrag kein Puzzle loesen.
+            self::LeadRequest, self::Contact, self::ProfileRequest => TurnstileMode::NonInteractive,
         };
     }
 }

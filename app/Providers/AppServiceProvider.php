@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\AntiSpam\Support\RateLimitGuard;
 use App\Listeners\Mail\SetPortalSender;
+use App\ProfileRequests\Support\TenantCompanyResolver;
 use App\Services\PaymentProviders\LemonSqueezy\LemonSqueezyProvider;
 use App\Services\PaymentProviders\Offline\OfflineProvider;
 use App\Services\PaymentProviders\Paddle\PaddleProvider;
@@ -36,6 +37,10 @@ class AppServiceProvider extends ServiceProvider
             $this->app->register(\Laravel\Telescope\TelescopeServiceProvider::class);
             $this->app->register(TelescopeServiceProvider::class);
         }
+
+        // Anfragen-Inbox (SUN-RQ #3): ein Resolver je Anfrage, damit die
+        // Tenant-Objekte einer Inbox-Liste nur einmal geholt werden.
+        $this->app->scoped(TenantCompanyResolver::class);
 
         // Tenant-Overrides aus tenant_texts ueber die Sprachdateien legen (#4).
         // extend statt singleton: der deferred TranslationServiceProvider

@@ -1,11 +1,18 @@
 /*
- * Google Analytics 4 und Tag Manager — ohne Inline-Skript (#21), erst nach
- * Einwilligung (#14)
+ * Google Tag Manager und das Consent-Update — ohne Inline-Skript (#21)
  * ------------------------------------------------------------------
- * Vorher stand gtag() als Inline-Block in drei analytics.blade.php. Mit
- * durchgesetzter CSP (config/csp.php, 'script-src' ohne 'unsafe-inline')
- * laeuft das nicht mehr, also haengt die Einrichtung jetzt wie die uebrigen
- * Module an Markup:
+ * GA4 laedt NICHT mehr hier. Seit der Umstellung auf Consent Mode v2
+ * (Advanced) steht der GA4-Block fest im <head>:
+ * resources/views/components/analytics-meta.blade.php gibt den
+ * Consent-Default ('denied'), gtag.js und gtag('config', …) in dieser
+ * Reihenfolge aus. gtag.js laedt dort IMMER — die Reihenfolge laesst sich aus
+ * einem Bundle heraus nicht garantieren, und lief gtag.js vor dem Default,
+ * ginge der erste Hit mit Cookies raus.
+ *
+ * Hier bleibt der Tag Manager, der weiter erst nach der Einwilligung laedt,
+ * und das 'consent update' nach einer Zustimmung.
+ *
+ * Markup (alles aus <x-analytics-meta>):
  *
  *   <meta name="ga-id"           content="G-XXXXXXX">   GA4-Messkennung
  *   <meta name="gtm-id"          content="GTM-XXXXXX">  Tag-Manager-Behaelter
@@ -14,30 +21,29 @@
  * Die Kennungen loest App\Analytics\AnalyticsResolver auf; steht kein Meta im
  * Dokument, messt das Portal nicht und dieses Modul tut nichts.
  *
- * Ohne 'analytics-defer' laedt gtag.js sofort nach der Einwilligung. Mit — so
- * macht es sun-v2 — landen die Aufrufe erst im dataLayer und das ~170 KB
- * grosse Skript kommt nach dem Seitenaufbau nach, damit der LCP nicht darauf
- * wartet.
- *
- * Einwilligung (#14)
- * ------------------
- * Der Consent-Standard ist 'denied', und vor der Einwilligung geht KEIN
- * Request zu Google: gtag.js und gtm.js werden erst geladen, wenn die
- * Statistik-Einwilligung vorliegt. Vorher stand hier 'granted' und der
- * Cookie-Hinweis war wirkungslos — die Datenschutzerklaerung aller Portale
- * sagt aber ausdruecklich "Analyse-Cookies (nur mit Einwilligung),
- * Rechtsgrundlage Art. 6 Abs. 1 lit. a DSGVO".
- *
- * Gelesen wird die Entscheidung aus den Cookies, die beide Hinweise setzen
+ * Einwilligung
+ * ------------
+ * GA4 laeuft vor der Einwilligung cookielos (Consent Mode Advanced). Fuer GTM
+ * gilt weiter: vorher geht kein Request zu Google. Gelesen wird die
+ * Entscheidung aus den Cookies, die beide Cookie-Hinweise setzen
  * (resources/js/app.js, Alpine-Komponente cookieConsent, und
  * themes/sun-v2/js/modules/cookie-consent.js):
  *
- *   cookie_consent_statistics=1  -> analytics_storage granted, Skript laedt
+ *   cookie_consent_statistics=1  -> analytics_storage granted
  *   cookie_consent_marketing=1   -> ad_storage, ad_user_data, ad_personalization
  *
- * Wer waehrend des Besuchs zustimmt, wird ueber das Ereignis
- * 'cookie-consent-statistics' erfasst; das senden beide Hinweise.
+ * Wer waehrend des Besuchs zustimmt, wird ueber die Ereignisse des Adapters
+ * erfasst (resources/js/consent-adapter.js, 'consent:statistics' und
+ * 'consent:marketing') — beide Cookie-Hinweise melden ihre Entscheidung dort
+ * ueber melde(). Ueber denselben Weg kommt auch eine Entscheidung aus einem
+ * frueheren Besuch nach.
+ *
+ * Das 'consent update' laeuft NUR bei einer Zustimmung (#3). Bei 'Nur
+ * notwendige' bleibt der Default 'denied' aus dem <head> stehen; ein Update
+ * mit 'denied' waere derselbe Zustand und bloss ein zusaetzlicher Aufruf.
  */
+
+import { beiEntscheidung } from './consent-adapter';
 
 function metaInhalt(name) {
     const el = document.querySelector(`meta[name="${name}"]`);
@@ -104,26 +110,13 @@ function erlaubnisse(wahl) {
         ad_storage: wahl.marketing ? 'granted' : 'denied',
         ad_user_data: wahl.marketing ? 'granted' : 'denied',
         ad_personalization: wahl.marketing ? 'granted' : 'denied',
+        // Der Cookie-Hinweis kennt keine eigene Kategorie 'Funktional'. Bei
+        // 'Alle akzeptieren' sind beide Kategorien an, damit steht
+        // functionality_storage wie gefordert auf 'granted'; wer in den
+        // Einstellungen nur eine Kategorie waehlt, willigt ebenfalls ueber das
+        // Notwendige hinaus ein (#3).
+        functionality_storage: (wahl.statistik || wahl.marketing) ? 'granted' : 'denied',
     };
-}
-
-/**
- * Vorbereiten, ohne etwas zu laden: Standard 'denied' und die Aufrufe, die
- * gtag.js beim Laden aus dem dataLayer nachholt. Ohne Einwilligung bleibt es
- * dabei — der dataLayer ist eine Liste im Speicher, kein Request.
- */
-function bereiteGaVor(gaId) {
-    window.gtag = window.gtag || gtag;
-
-    gtag('consent', 'default', erlaubnisse({ statistik: false, marketing: false }));
-    gtag('js', new Date());
-    gtag('config', gaId, { anonymize_ip: true });
-}
-
-function ladeGa(gaId, verzoegerung) {
-    spaeter(verzoegerung, () => {
-        ladeSkript(`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaId)}`, { ga: 'true' });
-    });
 }
 
 function ladeGtm(gtmId, verzoegerung) {
@@ -152,36 +145,57 @@ export function initAnalytics() {
     const roh = metaInhalt('analytics-defer');
     const verzoegerung = roh === null ? null : Math.max(0, Number.parseInt(roh, 10) || 0);
 
-    if (gaId !== null) {
-        bereiteGaVor(gaId);
-    }
+    // gtag() steht schon als globale Funktion im <head> (der Block aus
+    // <x-analytics-meta>); auf Seiten ohne GA4-Kennung legt dieses Modul sie an,
+    // damit der dataLayer auch dort ein Ziel hat.
+    window.gtag = window.gtag || gtag;
 
-    let geladen = false;
+    let letztesUpdate = null;
+    let gtmGeladen = false;
 
-    const messen = () => {
-        const wahl = einwilligung();
-
-        if (! wahl.statistik || geladen) {
+    /**
+     * gtag.js liegt bereits im Dokument und laeuft mit 'denied'; mit der
+     * Zustimmung wird der Standard nur hochgezogen — kein Skript wird
+     * nachgeladen. Ohne Zustimmung (nur Notwendiges) passiert hier nichts.
+     */
+    const aktualisiereConsent = (wahl) => {
+        if (gaId === null || (! wahl.statistik && ! wahl.marketing)) {
             return;
         }
 
-        geladen = true;
+        const signale = erlaubnisse(wahl);
+        const schluessel = JSON.stringify(signale);
 
-        if (gaId !== null) {
-            gtag('consent', 'update', erlaubnisse(wahl));
-            ladeGa(gaId, verzoegerung);
+        // Beide Kategorien melden getrennt; derselbe Zustand reicht einmal.
+        if (schluessel === letztesUpdate) {
+            return;
         }
 
-        if (gtmId !== null) {
-            ladeGtm(gtmId, verzoegerung);
-        }
+        letztesUpdate = schluessel;
+
+        window.gtag('consent', 'update', signale);
     };
 
-    // Entscheidung aus einem frueheren Besuch: sofort messen. Sonst warten,
-    // bis der Cookie-Hinweis eine Zustimmung meldet.
-    messen();
+    const ladeGtmEinmal = (wahl) => {
+        if (gtmId === null || gtmGeladen || ! wahl.statistik) {
+            return;
+        }
 
-    if (! geladen) {
-        window.addEventListener('cookie-consent-statistics', messen);
-    }
+        gtmGeladen = true;
+
+        ladeGtm(gtmId, verzoegerung);
+    };
+
+    const entscheidung = () => {
+        const wahl = einwilligung();
+
+        aktualisiereConsent(wahl);
+        ladeGtmEinmal(wahl);
+    };
+
+    // Beide Kategorien: eine Zustimmung allein zur Werbung muss ad_* ebenso
+    // hochziehen wie eine zur Statistik analytics_storage. Der Adapter ruft
+    // sofort zurueck, wenn die Entscheidung schon vorliegt.
+    beiEntscheidung('statistics', entscheidung);
+    beiEntscheidung('marketing', entscheidung);
 }

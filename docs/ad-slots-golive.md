@@ -51,6 +51,36 @@ sudo -u sanitaerfinden /usr/bin/php8.4 artisan <befehl>
 
 ## 0. Stand am 16.10.2026 — was den Start heute verhindert
 
+> **Nachtrag 18.10.2026: die Werbung ist netzweit angehalten.** Auf Anweisung
+> von Enes sind alle Werbemittel und Belegungen gelöscht, `ads_enabled` und der
+> eigene Auto-Ads-Schalter stehen auf allen 23 Portalen aus, der Werbe-Cache ist
+> geleert. `ads:golive:check` meldet **0 von 23 freigegeben**; über die
+> Cloudflare-Kante geprüft: kein `googlesyndication`, kein Anker im Rumpf,
+> `/ads.txt` 404 (bodenlegerfinden.com, kfzwerkstatt.io, sanitaerfinden.com).
+>
+> Dieses Dokument bleibt gültig und beschreibt **den Weg zurück in den
+> Betrieb**: Belegungen entstehen über das Panel, die Freigabe je Portal über
+> `ads_enabled`, danach gelten §3.3 (Messung) und §4 (Rollout) unverändert. Der
+> Code ist vollständig vorhanden; es fehlt nur der Inhalt in `ad_units` und
+> `ad_placements`. Alles, was unten als „erledigt" steht, ist deshalb als
+> *damals gemessen* zu lesen, nicht als *läuft gerade*.
+
+> **Nachtrag 18.10.2026, nach #1–#4 (#5): die Pause gilt nur noch für 14
+> Portale.** Auf den **9 GOLD-Portalen** 24 `firmenfreund.de`,
+> 27 `bodenlegerfinden.com`, 28 `sanitaerfinden.com`, 45 `findegutachter.de`
+> und 50, 52, 53, 54, 56 (`*.firmenfreund.de`) ist die Freigabe zurück:
+> `ads_enabled` = ja mit Publisher-ID `ca-pub-2563111817853634`, `/ads.txt`
+> HTTP 200 mit genau einer Google-Zeile (#2). Dazu sind **7 Werbemittel**
+> `GOLD - Profil - *` (#3) und **7 aktive Belegungen** auf den sieben
+> `company`-Ankern dieser 9 Portale angelegt (#1, #4) — auf dem Firmenprofil
+> wird also wieder ausgespielt. Andere Seitentypen bleiben unbelegt, die
+> übrigen 14 Portale bleiben aus (`/ads.txt` 404), der eigene
+> Auto-Ads-Schalter weiter auf 0 von 23.
+>
+> Für dieses Dokument heißt das: der Weg zurück ist für diese 9 Portale
+> gegangen; §3.3 (Messung, inklusive getrennt geführtem Seitenwert) und §4
+> (Rollout) gelten dafür wieder unmittelbar.
+
 | Nr. | Blocker | Wer | Stand |
 | --- | --- | --- | --- |
 | B1 | ~~Das Modul ist nicht eingecheckt~~ | Entwicklung | **erledigt** 16.10.2026 (#38): PR #9 nach `main`, Merge `9bbe1dfc` |
@@ -295,7 +325,12 @@ aufgeschrieben — so gehört es beim nächsten Mal in dieser Form gefahren:
 1. **`git pull` läuft als root, nicht als `sanitaerfinden`.** Nur root hat auf
    dieser Maschine einen GitHub-Schlüssel; als `sanitaerfinden` scheitert der
    Pull mit „Could not read from remote repository". Danach das Eigentum
-   zurückgeben: `chown -R sanitaerfinden:sanitaerfinden .`
+   zurückgeben — **niemals** mit `chown -R … .`, sondern mit
+   `scripts/deploy-eigentuemer-richten.sh --los` (#59). Der rekursive Befehl
+   läuft durch `storage/` und damit durch den Datei-Cache von 29 Portalen; am
+   16.10.2026 hat genau das die Maschine 17 Minuten lang auf Load 53 und
+   **TTFB 49 s** gezogen, obwohl nur sieben Dateien root gehörten. Das Skript
+   fasst genau diese sieben an und braucht dafür unter einer Sekunde.
 2. **`config:clear` muss VOR der Migration und vor dem Takeover kommen.** Die
    Produktion fährt einen Config-Cache, und ein Cache aus der Zeit vor dem
    Deploy kennt `config/ad-slots.php` überhaupt nicht — `config('ad-slots.…')`
@@ -316,7 +351,7 @@ solange `package-lock.json` unverändert ist.
 # 1. Code und Abhängigkeiten
 cd /home/sanitaerfinden/htdocs/sanitaerfinden.dev
 git pull --ff-only                                    # als root
-chown -R sanitaerfinden:sanitaerfinden .
+scripts/deploy-eigentuemer-richten.sh --los           # NIE chown -R . (#59)
 sudo -u sanitaerfinden composer install --no-dev --optimize-autoloader
 sudo -u sanitaerfinden npm ci && sudo -u sanitaerfinden npm run build
 
@@ -334,10 +369,32 @@ sudo -u sanitaerfinden /usr/bin/php8.4 artisan ads:legacy-takeover --force
 sudo -u sanitaerfinden /usr/bin/php8.4 artisan view:clear
 sudo -u sanitaerfinden /usr/bin/php8.4 artisan config:cache
 sudo -u sanitaerfinden /usr/bin/php8.4 artisan route:cache
+# Panel-Komponenten NEU bauen (#64) — sonst bleibt jede neue Panel-Seite 404.
+# Deckt alle drei Panels ab (admin, content, dashboard).
+sudo -u sanitaerfinden /usr/bin/php8.4 artisan filament:optimize
 
-# 5. Nachweis
+# 5. Nachweis — beides, nicht nur das erste
 sudo -u sanitaerfinden /usr/bin/php8.4 artisan ads:golive:check
+scripts/panel-seiten-pruefen.sh        # jede Panel-Seite per HTTP: 302 erwartet
 ```
+
+**Schritt 4 ist kein Beiwerk (#64).** Liegt
+`bootstrap/cache/filament/panels/*.php`, liest Filament **nur** diese Liste und
+durchsucht die Verzeichnisse nicht mehr. Eine Panel-Seite, die nach dem letzten
+`filament:cache-components` dazugekommen ist, ist dann nicht registriert: ihre
+Route steht in `route:list`, der Aufruf endet aber mit **404**. Genau so war
+`/admin/werbeplaetze` nach diesem Deploy unerreichbar — mit einem Cache vom
+08.10.2026, acht Tage alt. `filament:optimize` baut Komponenten- und
+Icon-Cache neu.
+
+**Und die Prüfung gehört über HTTP, nicht über `route:list` (#64).**
+`route:list` baut die Routen frisch auf und zeigt deshalb auch Seiten an, die
+im Panel nicht registriert sind — es hat den Fehler am 16.10. zweimal
+verdeckt. `scripts/panel-seiten-pruefen.sh` ruft jede Seite auf; erwartet ist
+`302` auf die Anmeldung, ein `404` heißt „nicht registriert". Das Panel
+`dashboard` prüft das Skript bewusst nicht: dessen Seiten liegen hinter
+`/dashboard/{tenant}/…`, und ohne Sitzung antwortet dort **jede** Adresse mit
+404 — auch eine vollständig registrierte.
 
 - [x] 2026-10-16 Schritt 2: vier Tabellen angelegt, 23 Zeilen in `ad_settings`
 - [x] 2026-10-16 Schritt 3 trocken: die Tabelle „Nicht uebernommen" gelesen — sie ist die
@@ -512,9 +569,13 @@ wenn **alle fünf** Aussagen stimmen:
 1. **CLS unter 0,1** im Feld und im Labor, mobil und Desktop — gemessen am
    **Anker-Anteil**. Das ist der zugesagte Geltungsbereich (`docs/ad-slots.md`
    7.2, 9.5): der Anker gibt die Höhe vor.
-2. **Der Seitenwert wird zusätzlich erhoben und getrennt notiert.** Auto Ads
-   auf Kontoseite **sind aktiv und bleiben es** (Entscheidung Enes,
-   16.10.2026, #51 — #50 ist als gegenstandslos geschlossen). Google setzt
+2. **Der Seitenwert wird zusätzlich erhoben und getrennt notiert.** Die
+   Einstellung „Auto Ads" im AdSense-Konto **bleibt an** (Entscheidung Enes,
+   16.10.2026, #51 — #50 ist als gegenstandslos geschlossen); seit dem
+   18.10.2026 wirkt sie allerdings nicht, weil netzweit keine Belegung mehr
+   existiert und damit kein Loader auf eine Seite kommt (siehe Kasten in
+   §0 und `docs/ad-slots.md` 9.6). Sobald wieder belegt wird, gilt dieser
+   Punkt unverändert. Google setzt
    dadurch unreservierte Anzeigen dazu, die wir nicht reservieren können
    (`docs/ad-slots.md` 9.6, #46). Der Anker-Wert allein genügt für die Abnahme
    deshalb **nicht**: beide Zahlen gehören ins Protokoll. Ein Seitenwert über
@@ -738,6 +799,22 @@ curl -s -o /dev/null -w '%{http_code}\n' https://elektrikerportal.com/ads.txt  #
       an**, auf allen Sites, im Konto wird nichts umgestellt (#51, #50
       geschlossen). Seither gilt die CLS-Zusage für die **Anker**; ein
       Seitenwert über 0,1 ist ein Befund zum Melden, kein Abbruchgrund
+- [x] 2026-10-18 **Werbung netzweit angehalten** (Anweisung Enes): alle
+      Werbemittel und Belegungen gelöscht, `ads_enabled` und der eigene
+      Auto-Ads-Schalter auf allen 23 Portalen aus, Werbe-Cache geleert.
+      Gegenprobe über die Kante: kein `googlesyndication`, kein Anker,
+      `/ads.txt` 404. Die Entscheidung vom 16.10. bleibt gültig und betrifft
+      das Konto; sie wirkt erst wieder, wenn belegt wird. Der Code bleibt
+      vollständig, neu anlegen geht jederzeit über das Panel
+- [x] 2026-10-18 **Werbung auf den 9 GOLD-Portalen zurück** (#1–#4): 24, 27,
+      28, 45, 50, 52, 53, 54, 56 stehen auf `ads_enabled = ja` mit
+      Publisher-ID `ca-pub-2563111817853634`, `/ads.txt` dort 200 mit genau
+      einer Google-Zeile; 7 Werbemittel `GOLD - Profil - *` und 7 aktive
+      Belegungen auf den sieben `company`-Ankern dieser 9 Portale. Die
+      Werbepause des Vormittags gilt damit nur noch für die übrigen 14
+      Portale. Auto Ads auf Kontoseite wirken auf dem Firmenprofil dieser 9
+      Portale wieder, der CLS-Seitenwert gehört entsprechend getrennt ins
+      Protokoll (§3.3 Aussage 2, `docs/ad-slots.md` 9.6)
 - [x] **Abnahme erklärt: 16.10.2026, Kay (#31).** Der Pilot ist im Labor
       bestanden, die Freigabeliste ist entschieden und durchgesetzt, der
       Prüflauf auf der Produktion meldet 0 FAIL. Drei Vorbehalte gehören zur
@@ -760,25 +837,73 @@ Eigene Spur, weil sie sieben Tage echte Daten braucht. Stand am 16.10.2026
       `config:cache` **plus** `systemctl reload php8.5-fpm`.
 - [x] Migrationen `ad_impression_daily` und `ad_impression_buffer` (zentral)
       sind mit dem Deploy aus §2 gelaufen (`migrate:status` → beide `Ran`).
-- [ ] Nachtrag aus #44: die Migration
+- [x] Nachtrag aus #44: die Migration
       `2026_10_19_000009_add_covering_indexes_to_ad_impression_daily_table`
-      (abdeckende Indizes des Widgets) muss auf der **Central**-DB noch
-      laufen — sie kommt mit dem nächsten Deploy nach §2 mit, der Schritt ist
-      derselbe `artisan migrate --force`. Reiner Indexbau, kein
-      Datenverlustrisiko; auf der heutigen Zeilenzahl Sekundenbruchteile.
-- [ ] Nachtrag aus #47 (Nenner der Viewability-Quote): die Migration
-      `2026_10_19_000010_add_deliveries_to_ad_impression_tables` muss auf der
-      **Central**-DB laufen — eine Spalte `deliveries` in
-      `ad_impression_buffer` und `ad_impression_daily` plus die beiden
-      abdeckenden Indizes in der Fassung **mit** `deliveries`
-      (`…_cover2`; die `…_cover`-Fassungen aus #44 fallen dabei weg). Kommt mit
-      demselben `artisan migrate --force`, läuft **nach** der Migration aus #44
-      und setzt sie voraus. Kein Datenverlustrisiko: die Altzeilen bekommen
-      `deliveries = 0`.
-      Danach einmal die Assets neu bauen (`npm run build`) — der Nenner wird im
-      Browser gemeldet, ein zwischengespeichertes `ads.js` kennt die Meldung
-      noch nicht und zählt weiter nur Sichtkontakte. Die Quote im Widget bleibt
-      deshalb ein Gedankenstrich, bis ein ganzes Fenster nach dem Deploy liegt.
+      (abdeckende Indizes des Widgets) ist am **16.10.2026** mit dem Deploy auf
+      der **Central**-DB gelaufen (#52) — `migrate:status` zeigt sie als `Ran`
+      in Batch 15. Reiner Indexbau, kein Datenverlustrisiko.
+- [x] Nachtrag aus #47 (Nenner der Viewability-Quote): die Migration
+      `2026_10_19_000010_add_deliveries_to_ad_impression_tables` ist am
+      **16.10.2026** auf der **Central**-DB gelaufen (#52, Batch 15, direkt
+      nach der Migration aus #44, die sie voraussetzt) — eine Spalte
+      `deliveries` in `ad_impression_buffer` und `ad_impression_daily` plus die
+      beiden abdeckenden Indizes in der Fassung **mit** `deliveries`
+      (`…_cover2`; die `…_cover`-Fassungen aus #44 fallen dabei weg). Die
+      Altzeilen haben `deliveries = 0`.
+      Die Assets sind danach neu gebaut worden (16.10.2026, **13:25 UTC**) —
+      `ads.js` liegt nicht in einem eigenen Entry, sondern im gemeinsamen Chunk
+      `public/build/assets/stats-beacon-*.js`, und der kennt die Meldung
+      `event=delivered`. Seitdem meldet echter Verkehr den Nenner: 53
+      ausgelieferte Fragmente in den ersten 17 Minuten im Stundenpuffer.
+      Der Stand ist in einem Aufruf lesbar, statt die vier Vorbedingungen
+      einzeln abzuklappern:
+
+      ```bash
+      scripts/ads-viewability-quote.sh            # Stand + Quote, Fenster 7 Tage
+      scripts/ads-viewability-quote.sh --kurz     # nur der naechste Handgriff
+      ```
+
+      Exit 0 = Quote ablesbar, 70 = Nenner laeuft, Fenster noch nicht reif,
+      71 = eine Vorbedingung fehlt.
+- [x] **Erste unverfälschte Ablesung (16.10.2026, Stunde 14:00 UTC, #52):**
+      68 % über alle Anker (201 Sichtkontakte / 294 ausgelieferte Fragmente),
+      je Anker 37–70 % bei einem Ausreißer `company_sidebar_top` 22/22.
+      Gelesen aus `ad_impression_buffer` statt aus dem Tagesaggregat — in einer
+      Stunde, die vollständig **nach** dem Deploy begonnen hat, hat jede Zeile
+      ihren Nenner, das Verhältnis ist also nicht verfälscht:
+
+      ```bash
+      scripts/ads-viewability-quote.sh --kurz --stunde
+      ```
+
+      Das ist eine **Stichprobe**, keine Fensterquote: eine Tageszeit,
+      Grundmengen von 14 bis 152 Fragmenten je Anker. Keine Ableitung nach
+      §13.3 daraus — auch nicht für `company_sidebar_sticky` (37 %, unter der
+      40-%-Schwelle). Beleg:
+      `docs/messungen/werbeplaetze-golive/viewability-nenner-2026-10-16.txt`.
+- [ ] **Quote ablesen, frühestens 23.10.2026** (Siebentagefenster ab dem
+      Deploytag; bei `--tage=30` entsprechend der 15.11.2026). Vorher ist jede
+      abgelesene Quote **zu hoch — in der Regel genau 100 %**, und das ist die
+      gefährlichere Richtung. Grund: Tage vor dem Deploy bringen Zeilen mit
+      Sichtkontakten, aber `deliveries = 0`. Über das Fenster summiert landen
+      sie im Zähler und nicht im Nenner, das Verhältnis steigt über 1, und
+      `AdImpressionStats::quote()` kappt bei 100 %. Am 16.10.2026 um 14:09 UTC
+      gemessen: 699 Sichtkontakte / 156 ausgelieferte Fragmente = rechnerisch
+      448 %, angezeigt **100 %**. Unter §13.3 (über 70 % ⇒
+      `applies_to_all_tenants`) würde das jeden Anker netzweit ausrollen.
+      `scripts/ads-viewability-quote.sh` rechnet das Reifedatum aus und
+      verweigert bis dahin die Freigabe (Exit 70). **Früher geht es über ein
+      Tagesfenster** (#66): ab dem 18.10.2026 liefert
+      `ads:impressionen-abnahme --ab=2026-10-17` bzw.
+      `scripts/ads-viewability-quote.sh --ab=2026-10-17` einen ganzen Tag, der
+      vollständig hinter dem Deploy liegt. Die Grundmenge ist klein — §13.3
+      darauf nur mit Vermerk anwenden und am vollen Fenster nachprüfen. Dann:
+      Spalte
+      „Sichtbar" je Anker in `docs/ad-slots.md` §13.2 eintragen, die Ausgabe
+      nach `docs/messungen/werbeplaetze-golive/` legen und §13.3 je Anker
+      anwenden (unter 40 % ⇒ Belegung auf `paused`, über 70 % ⇒
+      `applies_to_all_tenants`). Zum Schluss gegen den AdSense-Report desselben
+      Portals stellen (#48) — Abweichung über Faktor 2 ist ein Befund.
 - [x] Beobachter im ausgelieferten Bundle: belegt durch echte Beacons mehrerer
       Portale im Puffer (18 Zeilen / 29 Impressionen in der ersten Stunde).
 - [x] Netzwerk-Nachweis „consent-unabhängig, keine personenbezogenen Daten":
@@ -808,7 +933,9 @@ Eigene Spur, weil sie sieben Tage echte Daten braucht. Stand am 16.10.2026
       ```
 
       Das Kommando zeigt zusätzlich **Tage mit Daten im Fenster** — darüber ist
-      die Reife des Siebentagefensters ablesbar, ohne zu rechnen.
+      die Reife des Siebentagefensters ablesbar, ohne zu rechnen. Ein Fenster,
+      das vollständig hinter einem Deploy liegen muss, setzt man mit
+      `--ab=YYYY-MM-DD` statt `--tage=` (#66).
 - [ ] **Siebentagefenster: Tag 0 = 16.10.2026, reif am 23.10.2026.** Dann einmal
       `artisan ads:impressionen-abnahme` fahren (Erwartung: „Tage mit Daten im
       Fenster: 7 von 7"), die Ausgabe nach
@@ -843,5 +970,6 @@ Eigene Spur, weil sie sieben Tage echte Daten braucht. Stand am 16.10.2026
 | **Pilot auf 27 `bodenlegerfinden.com` (16.10.2026, #31)** | `docs/messungen/werbeplaetze-golive/pilot-bodenlegerfinden-2026-10-16.md` + sieben JSON-Rohdaten `pilot-bodenlegerfinden-com-*-2026-10-16.json` |
 | `ads.txt` über alle 23 Domains | `docs/messungen/werbeplaetze-golive/adstxt-sweep-2026-10-16.txt`, Lauf `bash scripts/ads-txt-sweep.sh` |
 | Netzwerk-Mitschnitt Einwilligung | `docs/ad-slots.md` 9.5 (#25) |
+| **Nenner der Viewability-Quote (16.10.2026, #52 aus #47)** | `docs/messungen/werbeplaetze-golive/viewability-nenner-2026-10-16.txt`, Lauf `scripts/ads-viewability-quote.sh` (`--stunde` für die saubere Zwischenablesung) |
 | **Abnahme Impression-Zählung (16.10.2026, #37)** | `docs/messungen/werbeplaetze-golive/impression-abnahme-2026-10-16.txt`, Auslesen mit `artisan ads:impressionen-abnahme` |
 | Prüfläufe `ads:golive:check` | `docs/messungen/werbeplaetze-golive/golive-check-<datum>.txt`; der lokale Lauf vom 16.10.2026 liegt dort als `…-lokal.txt` und ist nur ein Werkzeugnachweis |

@@ -1,0 +1,95 @@
+# Freemail- und Sammeldomains (SUN-RQ #6).
+#
+# Eine Absenderadresse auf einer dieser Domains beweist nichts ueber einen
+# Betrieb: jeder kann sich dort eine Adresse holen. Deshalb gilt der
+# Domain-Match (App\ProfileRequests\Verification\SenderDomainMatcher) hier
+# NIE, auch wenn companies.email dieselbe Domain traegt — sonst verifiziert
+# `info@gmail.com` jedes Profil mit einer gmail-Adresse.
+#
+# Eine Domain je Zeile, Kleinschreibung, ohne @. Zeilen mit # sind
+# Kommentare, Leerzeilen werden uebersprungen. Die Liste wird mit
+# config('profile-requests.verification.freemail_domains') vereinigt; dort
+# steht die Grundausstattung, hier die Pflegeliste, die ohne Deployment
+# nachgezogen werden kann.
+
+# Google
+gmail.com
+googlemail.com
+
+# Microsoft
+hotmail.com
+hotmail.de
+hotmail.co.uk
+outlook.com
+outlook.de
+outlook.at
+live.com
+live.de
+live.at
+msn.com
+
+# Deutsche Massenanbieter
+web.de
+gmx.de
+gmx.net
+gmx.at
+gmx.ch
+gmx.com
+t-online.de
+freenet.de
+mail.de
+arcor.de
+online.de
+unitybox.de
+vodafone.de
+vodafonemail.de
+kabelmail.de
+1und1.de
+posteo.de
+posteo.net
+mailbox.org
+email.de
+bluewin.ch
+aon.at
+chello.at
+a1.net
+inode.at
+utanet.at
+
+# Yahoo / AOL
+yahoo.com
+yahoo.de
+yahoo.co.uk
+ymail.com
+rocketmail.com
+aol.com
+aol.de
+
+# Apple
+icloud.com
+me.com
+mac.com
+
+# Datenschutz- und Wegwerfanbieter
+protonmail.com
+protonmail.ch
+proton.me
+pm.me
+tutanota.com
+tutanota.de
+tuta.io
+fastmail.com
+hushmail.com
+zoho.com
+yandex.com
+yandex.ru
+mail.ru
+gmx.us
+mailinator.com
+trashmail.com
+trashmail.de
+wegwerfmail.de
+10minutemail.com
+guerrillamail.com
+sharklasers.com
+temp-mail.org

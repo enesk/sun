@@ -1817,6 +1817,49 @@ holt den wartenden Anker darum vor dem Klick in den Blick.
 
 ### 9.6 Auto Ads auf Kontoseite — die CLS-Zusage gilt für die Anker (#46)
 
+> **Stand 18.10.2026: es läuft keine Werbung.** Auf Anweisung von Enes sind
+> alle Werbemittel und Belegungen gelöscht (Produktion: 14 Werbemittel, 15
+> Belegungen, 98 Portal-Zuordnungen), `ads_enabled` steht auf **allen 23
+> Portalen** auf `nein`, ebenso unser eigener Auto-Ads-Schalter
+> (`ad_settings.adsense_auto_ads`, 0 von 23 an). Gegengeprüft über die
+> Cloudflare-Kante auf drei Portalen: kein `googlesyndication`, kein
+> `adsbygoogle`, kein Anker im Rumpf, `/ads.txt` **404**.
+>
+> Für diesen Abschnitt heißt das: **die Entscheidung von Enes am 16.10.2026
+> („Auto Ads bleiben an", #51) betrifft die Einstellung im AdSense-Konto, und
+> die ist unverändert — wirkungslos ist sie trotzdem**, weil kein Anker mehr
+> den Loader `adsbygoogle.js` auf eine Seite bringt. Ohne Loader keine Auto
+> Ads (Beleg unten im Befund). Der Abschnitt gilt also weiter, aber er
+> beschreibt derzeit einen Zustand, der nicht eintritt. Wird wieder belegt,
+> gilt er ab der ersten Belegung sofort wieder — samt getrennt geführtem
+> Seitenwert.
+
+> **Nachtrag 18.10.2026, nach #1–#4 (#5): auf neun Portalen läuft wieder
+> Werbung — der Kasten oben ist für diese neun überholt.** Aus der zentralen
+> DB der Produktion ausgelesen:
+>
+> * `ads_enabled` = ja auf den **9 GOLD-Portalen** 24 `firmenfreund.de`,
+>   27 `bodenlegerfinden.com`, 28 `sanitaerfinden.com`, 45 `findegutachter.de`
+>   und 50, 52, 53, 54, 56 (`*.firmenfreund.de`), je mit Publisher-ID
+>   `ca-pub-2563111817853634`; `/ads.txt` dort HTTP 200 mit genau einer
+>   Google-Zeile `google.com, pub-2563111817853634, DIRECT, f08c47fec0942fa0`
+>   (#2). Die übrigen **14 Portale** stehen weiter auf `nein`, `/ads.txt` dort
+>   weiter 404.
+> * `ad_units`: 7 aktive AdSense-Werbemittel `GOLD - Profil - *` (#3).
+> * `ad_placements`: 7 aktive Belegungen auf den sieben `company`-Ankern,
+>   unbefristet, Prio 10, je mit genau diesen 9 Portalen (#1, #4). Andere
+>   Seitentypen sind weiter unbelegt.
+> * Unser eigener Auto-Ads-Schalter `ad_settings.adsense_auto_ads` ist
+>   unverändert auf **0 von 23** Portalen an.
+>
+> Für diesen Abschnitt heißt das: **die Auto Ads auf Kontoseite wirken wieder.**
+> Auf dem Firmenprofil der neun Portale bringt nach der Einwilligung ein
+> belegter Anker den Loader `adsbygoogle.js` auf die Seite; damit setzt Google
+> dort zusätzlich unreservierte Anzeigen ein. Der CLS-**Seitenwert** gehört ab
+> jetzt wieder getrennt ins Protokoll (`docs/ad-slots-golive.md` §3.3 Aussage
+> 2). Für die anderen Seitentypen und die 14 nicht freigegebenen Portale gilt
+> der Kasten darüber unverändert.
+
 **Befund (Pilot #31 auf `bodenlegerfinden.com`, 16.10.2026).** Auf dem Konto
 hinter der Publisher-ID `ca-pub-2563111817853634` sind **Auto Ads auf
 Kontoseite** aktiv. Sobald irgendein belegter Anker nach der Einwilligung den
@@ -2368,6 +2411,32 @@ seit **Ticket #47** selbst (`ad_impression_daily.deliveries`, §14.1a) — die
 Quote steht im Widget, sobald ein ganzes Fenster nach dem Deploy liegt. Nur
 noch kontogebunden sind Klickrate und RPM.
 
+**Nenner seit 16.10.2026, 13:25 UTC auf der Produktion** (#52): Migration
+`…_000010_add_deliveries_to_ad_impression_tables` gelaufen, Assets neu gebaut,
+echter Verkehr meldet `event=delivered`. Die Spalte „Viewability-Quote" unten
+bleibt bis zum **23.10.2026** leer — jedes frühere Siebentagefenster enthält
+Tage ohne Nenner und zeigt die Quote **zu hoch**, gekappt auf 100 %
+(§13.3, vorletzter Absatz). Ein erster sauberer Wert ist schon ab dem
+**18.10.2026** ablesbar: `--ab=2026-10-17` (#66) nimmt den ersten ganzen Tag
+hinter dem Deploy als Fenster — kleine Grundmenge, also nur mit Vermerk.
+Stand und Quote in einem Aufruf: `scripts/ads-viewability-quote.sh`
+(auch mit `--ab=`).
+Dass das Gatter wirklich sperrt und woran es sperrt, ist belegt: Lauf vom
+16.10.2026 mit **Exit 70** in
+`docs/messungen/werbeplaetze-golive/viewability-gatter-2026-10-16.txt` — alle
+drei Vorbedingungen aus §6.3 erfüllt, Quote trotzdem durchgehend gekappte
+100 % bei „Tage mit Daten im Fenster: 1 von 7“ (#65).
+
+**Erste unverfälschte Ablesung, 16.10.2026, Stunde 14:00 UTC** (#52): 68 % über
+alle Anker (201 / 294), je Anker 37–70 % bei einem Ausreißer
+`company_sidebar_top` 22/22. Gelesen aus `ad_impression_buffer` — in einer
+Stunde, die vollständig nach dem Deploy begonnen hat, hat jede Zeile ihren
+Nenner. Sie steht **absichtlich nicht in der Tabelle unten**: eine Tageszeit,
+Grundmengen von 14 bis 152 Fragmenten je Anker, und damit keine Grundlage für
+§13.3 — auch nicht für `company_sidebar_sticky` (37 %, unter der 40-%-Schwelle).
+Sie zeigt nur, dass die Quote ab jetzt aus eigener Kraft messbar ist. Beleg:
+`docs/messungen/werbeplaetze-golive/viewability-nenner-2026-10-16.txt`.
+
 Portal: **alle 15 freigegebenen** (nicht ein einzelnes, s. u.) · Zeitraum:
 16.10.2026 12:09–13:01 UTC, erste gezählte Stunde des Netzes · 391
 Sichtkontakte · abgelesen von Kay (#31)
@@ -2410,6 +2479,24 @@ Portal, gerechnet als `impressions / deliveries` über das gewählte Fenster.
 Das Widget färbt sie nach genau diesen Schwellen. Ein Gedankenstrich heißt
 „kein Nenner im Fenster" — nicht 0 %; das ist der Fall für jedes Fenster, das
 noch Tage vor der Einführung des Nenners enthält.
+
+Gefährlicher als der Gedankenstrich ist die **halbe** Quote: enthält das
+Fenster Tage von vor dem 16.10.2026, zählen deren Zeilen mit `deliveries = 0`
+nicht in den Nenner, ihre Sichtkontakte aber in den Zähler. Das Verhältnis
+steigt über 1, und `AdImpressionStats::quote()` kappt bei 100 % — die Quote
+liest sich also **zu hoch**, nicht zu niedrig, und zwar meist als glatte
+100 %. Gemessen am 16.10.2026, 14:09 UTC: 699 Sichtkontakte / 156
+ausgelieferte Fragmente, rechnerisch 448 %, angezeigt 100 %. Unter der Regel
+„über 70 % ⇒ `applies_to_all_tenants`" würde das jeden Anker netzweit
+ausrollen. Darum erst ab dem 23.10.2026 (7 Tage) bzw. 15.11.2026 (30 Tage)
+nach §13.3 entscheiden; `scripts/ads-viewability-quote.sh` rechnet das Datum
+aus und verweigert vorher die Freigabe (Exit 70). Wer früher entscheiden muss,
+nimmt mit `--ab=` ein Fenster, das vollständig hinter dem Deploy liegt (#66) —
+ab dem 18.10.2026 ist das der 17.10. als ganzer Tag. Die Grundmenge eines
+Tagesfensters ist klein; die Entscheidung nach §13.3 bekommt dann einen Vermerk
+auf die Fensterbreite und wird am vollen Siebentagefenster nachgeprüft. Eine
+glatte 100 % ist auch später ein Grund, „Tage mit Daten im Fenster"
+gegenzulesen.
 
 * **Viewability unter 40 %** ⇒ Anker abschalten, nicht „laufen lassen". Er
   kostet Ladezeit, erzeugt Requests an Google und verwässert den Kontowert.
@@ -2702,11 +2789,21 @@ Ohne Browser auslesen — dieselbe Quelle wie das Widget, nur Lesezugriff:
 php artisan ads:impressionen-abnahme                     # beide Fenster, alle Portale
 php artisan ads:impressionen-abnahme --tenant=52         # wie der Dashboard-Filter
 php artisan ads:impressionen-abnahme --tenant=52 --tage=7 --adsense=1234
+php artisan ads:impressionen-abnahme --ab=2026-10-17         # Fenster ab diesem Tag
 ```
 
 Das Kommando zeigt zusätzlich **Tage mit Daten im Fenster** (Reife des
 Siebentagefensters) und rechnet mit `--adsense=` die Abweichung zum Report:
 über **Faktor 2** meldet es „Befund" und endet mit Fehlercode.
+
+`--tage=` kennt nur die beiden Breiten des Widgets (7 und 30). Muss ein Fenster
+vollständig **hinter** einem Ereignis liegen und trifft keine der beiden das —
+nach dem Deploy des Nenners am 16.10.2026 enthielt auch `--tage=7` noch sechs
+Tage ohne Nenner —, setzt `--ab=YYYY-MM-DD` den Anfang direkt (Ticket #66).
+`--ab` und `--tage` schließen sich aus. Bei weniger als sieben Tagen warnt das
+Kommando: die Grundmenge ist klein, eine Entscheidung nach §13.3 bekommt dann
+einen Vermerk auf die Fensterbreite. Das Widget bleibt unberührt und schaltet
+weiter nur zwischen 7 und 30 Tagen um.
 
 Messprotokoll:
 `docs/messungen/werbeplaetze-golive/impression-abnahme-2026-10-16.txt`,

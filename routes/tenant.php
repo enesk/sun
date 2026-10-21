@@ -53,6 +53,7 @@ use App\Http\Controllers\Verwaltung\VerwaltungTransactionController;
 use App\Http\Controllers\Verwaltung\VerwaltungUserController;
 use App\Http\Middleware\EnsureHasCompany;
 use App\Http\Middleware\EnsureTenantDashboardAccess;
+use App\Http\Middleware\GoneUrls;
 use App\Http\Middleware\TrackCompanyPageView;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -564,14 +565,20 @@ Route::middleware([
     ])->name('tenant.subscription.change-plan.thank-you')->middleware('auth');
 
     // Firmen-Detailseite: /{citySlug}/{id}-{slug} (konfigurierbar pro Tenant)
+    //
+    // GoneUrls vor TrackCompanyPageView: eine geloeschte Profil-URL (SUN-RQ #8)
+    // liefert 410 und darf gar nicht erst als Seitenaufruf gezaehlt werden.
+    // Die Middleware steht hier an der Route und nicht in der 'web'-Gruppe,
+    // weil sie den Tenant braucht — der Initializer dieser Gruppe laeuft vor
+    // den Route-Middlewares, vor der Gruppe gaebe es noch kein Portal.
     Route::get('/{citySlug}/{companySlug}', [CompanyController::class, 'showWithCity'])
-        ->middleware(TrackCompanyPageView::class)
+        ->middleware([GoneUrls::class, TrackCompanyPageView::class])
         ->where(['citySlug' => '[a-z0-9\-]+', 'companySlug' => '\d+-.+'])
         ->name('portal.companies.show.city');
 
     // Firmen-Detailseite: /{id}-{slug} (Default, muss LETZTE Route sein)
     Route::get('/{companySlug}', [CompanyController::class, 'show'])
-        ->middleware(TrackCompanyPageView::class)
+        ->middleware([GoneUrls::class, TrackCompanyPageView::class])
         ->where('companySlug', '\d+-.+')
         ->name('portal.companies.show');
 });

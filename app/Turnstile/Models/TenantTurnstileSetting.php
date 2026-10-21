@@ -80,8 +80,9 @@ class TenantTurnstileSetting extends Model
     }
 
     /**
-     * Vorgabe fuer eine neue Zeile (#3, auch vom Seeder benutzt): Konto und
-     * Firmeneintragung geschuetzt, Anfrage und Kontakt zunaechst offen.
+     * Vorgabe fuer eine neue Zeile (#3, auch vom Seeder benutzt): Konto,
+     * Firmeneintragung und das Self-Service-Formular am Profil (SUN-RQ #4)
+     * geschuetzt, Anfrage und Kontakt zunaechst offen.
      *
      * @return array<string, array{enabled: bool, mode: string}>
      */
@@ -91,7 +92,11 @@ class TenantTurnstileSetting extends Model
 
         foreach (TurnstileAction::cases() as $action) {
             $defaults[$action->value] = [
-                'enabled' => in_array($action, [TurnstileAction::Registration, TurnstileAction::CompanyListing], true),
+                'enabled' => in_array($action, [
+                    TurnstileAction::Registration,
+                    TurnstileAction::CompanyListing,
+                    TurnstileAction::ProfileRequest,
+                ], true),
                 'mode' => $action->defaultMode()->value,
             ];
         }

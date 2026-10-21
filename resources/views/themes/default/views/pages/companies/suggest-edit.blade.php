@@ -365,13 +365,27 @@
     <section class="claim-v5-edit-hint" aria-label="Änderung vorschlagen">
         <div class="claim-v5-edit-hint__inner">
             <h3 class="claim-v5-edit-hint__title">Sie sind nicht der Inhaber?</h3>
-            <p class="claim-v5-edit-hint__text">
-                Wenn Sie fehlerhafte Daten gefunden haben, können Sie eine
-                <button type="button"
-                        class="claim-v5-edit-hint__link"
-                        onclick="Livewire.dispatch('openSuggestEditModal')"
-                        aria-haspopup="dialog">Änderung vorschlagen</button>.
-            </p>
+            {{-- SUN-RQ #14: Der Weg "Aenderung vorschlagen" fuehrt in den
+                 Self-Service-Dialog (#4) und nicht mehr in das alte Formular,
+                 das in die Tenant-Tabelle company_edit_suggestions schreibt und
+                 in der zentralen Inbox nie auftaucht. Der alte Modal-Link bleibt
+                 nur als Rueckfall, solange der Pilotschalter das Portal nicht
+                 freigibt. --}}
+            @if(\App\ProfileRequests\Support\PilotGate::selfServiceEnabled())
+                <p class="claim-v5-edit-hint__text">
+                    Wenn Sie fehlerhafte Daten gefunden haben, können Sie Ihren Eintrag
+                    hier selbst korrigieren lassen.
+                </p>
+                <livewire:portal.profile-request-dialog :company="$company" />
+            @else
+                <p class="claim-v5-edit-hint__text">
+                    Wenn Sie fehlerhafte Daten gefunden haben, können Sie eine
+                    <button type="button"
+                            class="claim-v5-edit-hint__link"
+                            onclick="Livewire.dispatch('openSuggestEditModal')"
+                            aria-haspopup="dialog">Änderung vorschlagen</button>.
+                </p>
+            @endif
 
             {{-- Trust-Zeile --}}
             <div class="claim-v5-trust">
@@ -401,7 +415,9 @@
     {{-- Claim-Modal (Livewire) — 4 Szenarien: Guest, Logged-In, Multi-Firma, Already-Claimed --}}
     @livewire('portal.claim-modal', ['company' => $company])
 
-    {{-- Suggest-Edit Modal (Livewire) --}}
-    @livewire('portal.suggest-edit-modal', ['company' => $company, 'hideTrigger' => true])
+    {{-- Suggest-Edit Modal (Livewire) — alter Eingangskanal, nur noch Rueckfall (SUN-RQ #14) --}}
+    @unless(\App\ProfileRequests\Support\PilotGate::selfServiceEnabled())
+        @livewire('portal.suggest-edit-modal', ['company' => $company, 'hideTrigger' => true])
+    @endunless
 
 @endsection

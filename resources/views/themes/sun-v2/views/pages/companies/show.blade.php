@@ -320,6 +320,12 @@
         </section>
       @endif
 
+      {{-- Self-Service fuer den Inhaber (SUN-RQ #4): Eintrag aendern oder
+           loeschen. Steht ohne Bedingung am Ende der Spalte — anders als die
+           Zeile "Stimmt etwas nicht?" im Abschnitt "Über die Firma", die mit
+           dem Abschnitt verschwindet, sobald ein Profil keinen Text hat. --}}
+      <livewire:portal.profile-request-dialog :company="$company" />
+
     </div>
 
     <!-- ================= RECHTE SPALTE (Desktop) ================= -->

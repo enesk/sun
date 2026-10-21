@@ -146,7 +146,8 @@ document.addEventListener('alpine:init', () => {
             // einzige Stelle, die das Einwilligungs-Werkzeug kennt (#9). Der
             // Adapter liest den Zustand aus den Cookies aus _save() und sendet
             // 'consent:marketing' (Werbung, resources/js/ads.js) sowie
-            // 'cookie-consent-statistics' (Messung, resources/js/analytics.js).
+            // 'consent:statistics' (Messung, resources/js/analytics.js — dort
+            // laeuft daraufhin gtag('consent','update'), #3).
             meldeEinwilligung()
         }
     }))

@@ -1,6 +1,6 @@
-{{-- GA4 und Tag Manager wie im Default-Theme, das Skript (~170 KB) laedt aber
-     erst nach dem Seitenaufbau: Aufrufe landen vorher in dataLayer und gehen
-     danach mit, der LCP wartet nicht darauf.
+{{-- GA4 und Tag Manager wie im Default-Theme. GA4 laeuft im Consent Mode v2
+     (Advanced) und steht darum fest im <head>: Consent-Default 'denied', dann
+     gtag.js. Nur der Tag Manager laedt verzoegert nach dem Seitenaufbau.
      Rangfolge und Markup stecken in <x-analytics-meta> (#14). --}}
 <x-analytics-meta :tenant="$currentTenant ?? null" :defer="1500" />
 

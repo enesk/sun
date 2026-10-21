@@ -1,0 +1,87 @@
+Nenner der Viewability-Quote auf der Produktion — Beleg zu #52 (aus #47)
+Erzeugt am 16.10.2026, 14:28 UTC mit scripts/ads-viewability-quote.sh
+Regel: docs/ad-slots.md §13.3   Checkliste: docs/ad-slots-golive.md §6.3
+
+WAS DIESE DATEI IST
+  Nachweis, dass die Zaehlkette des Nenners auf der Produktion vollstaendig
+  laeuft (Migration -> gebautes Bundle -> Beacon -> Stundenpuffer ->
+  ad_impression_daily -> Abnahmekommando), plus die erste unverfaelschte
+  Ablesung der Quote aus einer Stunde, die vollstaendig nach dem Deploy liegt.
+
+WAS SIE NICHT IST
+  Keine Entscheidungsgrundlage fuer §13.3. Die Fensterquote (7 bzw. 30 Tage)
+  steht hier absichtlich NICHT: solange Tage von vor dem 16.10.2026 im Fenster
+  liegen, zaehlen deren Zeilen mit deliveries = 0 in den Zaehler, nicht in den
+  Nenner; das Verhaeltnis steigt ueber 1 und AdImpressionStats::quote() kappt
+  bei 100 %. Am 16.10.2026 14:28 UTC waren das 699 Sichtkontakte / 156
+  ausgelieferte Fragmente — rechnerisch 448 %, angezeigt glatte 100 %. Ein
+  Protokoll mit diesen Werten wuerde spaeter als Messwert gelesen und wuerde
+  ueber "ueber 70 % ⇒ applies_to_all_tenants" jeden Anker netzweit ausrollen.
+  Belastbar ist die Fensterquote ab dem 23.10.2026 (--tage=7) bzw. dem
+  15.11.2026 (--tage=30).
+
+
+1. VORBEDINGUNGEN (Lauf 16.10.2026, 14:28 UTC, Exit 70)
+
+  [x] Migrationen 000009 (#44) und 000010 (#47) sind auf der Central-DB
+      gelaufen (Batch 15, in dieser Reihenfolge)
+  [x] gebautes Bundle kennt die Meldung delivered
+      (public/build/assets/stats-beacon-VUDL5YMK.js, 16.10.2026 13:25 UTC)
+  [x] Nenner laeuft: 156 ausgelieferte Fragmente im verdichteten Fenster,
+      291 im Puffer der laufenden Stunde
+  [?] Fenster 7 Tage (ab 2026-10-10) enthaelt noch Tage ohne Nenner —
+      belastbar ab 2026-10-23
+      (Exit 70 = Nenner laeuft, Fenster noch nicht reif)
+
+  ads:impressionen-abnahme --tage=7 endet mit Exit 0, also kein Befund in der
+  Zaehlkette selbst. Schritt 1 bis 3 des Tickets sind damit belegt.
+
+
+2. ERSTE SAUBERE ABLESUNG (Stunde 14:00 UTC, begonnen nach dem Deploy 13:25)
+   scripts/ads-viewability-quote.sh --kurz --stunde
+   Quelle: ad_impression_buffer, laufende Stunde. Jede Zeile darin hat ihren
+   Nenner, das Verhaeltnis ist also nicht verfaelscht.
+
+  Anker                               sichtbar ausgeliefert    Quote
+  company_after_header_card                104          152     68 %
+  company_after_reviews                     35           50     70 %
+  company_before_footer                     24           37     65 %
+  company_sidebar_top                       22           22    100 %
+  company_sidebar_sticky                     7           19     37 %
+  company_after_about                        9           14     64 %
+  SUMME                                    201          294     68 %
+
+  Einordnung — eine Stichprobe, keine Fensterquote:
+  * Eine einzige, noch laufende Stunde und eine Tageszeit. Grundmengen von 14
+    bis 152 Fragmenten je Anker tragen keine Abschaltentscheidung.
+  * Die laufende Stunde untertreibt leicht: ein Fragment kann in dieser Stunde
+    ausgeliefert und erst in der naechsten sichtbar werden.
+  * company_sidebar_top mit 22/22 = 100 % ist der Fall, den #62 betrifft
+    (gedeckelte bzw. glatte 100 %) — bei 22 Fragmenten aber auch ohne
+    Deckelung plausibel, der Anker liegt im ersten Bildschirm.
+  * company_sidebar_sticky mit 37 % liegt unter der 40-%-Schwelle aus §13.3.
+    KEINE Ableitung auf paused aus dieser Stichprobe — das entscheidet erst
+    das erste ganze Fenster am 23.10.2026.
+
+  Der Groessenbereich 37–70 % passt zur Vorab-Empfehlung in §13.1 (Anker im
+  ersten Bildschirm oben, Fusszeile unten) und ist das erste Mal, dass die
+  Quote aus eigener Kraft messbar ist — ohne AdSense-Report (#48 gestrichen).
+
+
+3. NEBENBEFUND
+
+  Portal 37 (Gerüstabauer.GmbH): 8 Sichtkontakte, 0 ausgelieferte Fragmente,
+  Quote "—". Bei dieser Groessenordnung kann das Zeitfenster-Zufall sein (die
+  Sichtkontakte koennen von vor dem Deploy stammen). Am 17.10.2026 gezielt
+  nachsehen; faellt es dann wieder auf, ist es ein eigener Befund.
+
+
+4. NAECHSTER HANDGRIFF (ab 23.10.2026)
+
+  scripts/ads-viewability-quote.sh --tage=7        # Exit 0 = Quote ablesbar
+
+  Dann die Spalte "Viewability-Quote" je Anker in docs/ad-slots.md §13.2
+  eintragen, die Ausgabe hierher legen und §13.3 je Anker anwenden
+  (unter 40 % ⇒ Belegung auf paused, ueber 70 % ⇒ applies_to_all_tenants).
+  Der Abgleich gegen den AdSense-Report (Schritt 5 des Tickets) ist gestrichen,
+  siehe #55 — die eigene Quote steht fuer sich.

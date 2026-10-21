@@ -41,9 +41,10 @@
  *   consent:marketing     { detail: { granted, state } }
  *   consent:statistics    { detail: { granted, state } }
  *
- * Dazu weiter 'cookie-consent-statistics' fuer resources/js/analytics.js —
- * dieses Ereignis ist aelter (#14) und bleibt, damit die Messung nicht an
- * dieser Umstellung haengt.
+ * Dazu weiter 'cookie-consent-statistics' — dieses Ereignis ist aelter (#14)
+ * und bleibt fuer Fremd-Schnipsel bestehen, die daran haengen koennten.
+ * resources/js/analytics.js hoert seit #3 auf 'consent:statistics' und
+ * 'consent:marketing' und feuert daraufhin das 'consent update' an gtag.
  */
 
 export const KATEGORIEN = {

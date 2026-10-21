@@ -688,6 +688,10 @@ return [
         'greeting_anonymous' => 'Hallo,',
         'sign_off' => 'Viele Grüße',
         'sign_off_name' => 'Dein Team von :portal',
+        // Sie-Form: Mails an Betriebe ueber ihren eigenen Eintrag
+        // (Profil-Anfragen, SUN-RQ #10). Du-Form passt dort nicht — es
+        // schreibt kein Nachbar, sondern ein Register an ein Unternehmen.
+        'sign_off_name_formal' => 'Ihr Team von :portal',
         // Fussnote der Systemmails an den Portalbetreiber (keine Grussformel noetig)
         'system_note' => 'Automatische Nachricht von :portal.',
 
@@ -1375,6 +1379,146 @@ return [
             'heading' => 'Danke für den Hinweis',
             'text' => 'Wir prüfen die Änderung meist innerhalb von 2 Werktagen.',
             'back' => 'Zurück zum Eintrag',
+        ],
+    ],
+
+    /*
+    |----------------------------------------------------------------------
+    | profile_request.* — Self-Service am Firmenprofil (SUN-RQ #4),
+    | livewire/portal/profile-request-dialog. Sie-Ansprache: hier schreibt
+    | ein Betrieb ueber seinen eigenen Eintrag, nicht ein Besucher ueber
+    | einen fremden (dafuer bleibt suggest_edit.*).
+    |----------------------------------------------------------------------
+    */
+    'profile_request' => [
+
+        'trigger' => [
+            'text' => 'Sie sind Inhaber?',
+            'change' => 'Eintrag ändern',
+            'or' => 'oder',
+            'delete' => 'löschen',
+        ],
+
+        'close' => 'Schließen',
+        'cancel' => 'Abbrechen',
+        'switch_to_delete' => 'Eintrag stattdessen löschen',
+        'switch_to_change' => 'Nur etwas ändern',
+
+        'change' => [
+            'title' => 'Eintrag ändern',
+            'intro' => 'Die Felder sind mit dem aktuellen Stand gefüllt. Ändern Sie nur, was nicht stimmt — den Rest lassen wir unberührt.',
+            'nothing_changed' => 'Sie haben nichts geändert. Passen Sie ein Feld an oder löschen Sie den Eintrag.',
+            'summary_heading' => 'Sie ändern:',
+            'summary_empty' => 'Noch keine Änderung.',
+            'submit' => 'Änderung einreichen',
+        ],
+
+        'delete' => [
+            'title' => 'Eintrag löschen',
+            'intro' => 'Wir löschen den Eintrag vollständig — mit Bildern, Bewertungen und Suchergebnissen.',
+            'reason_label' => 'Warum soll der Eintrag weg?',
+            'reason_placeholder' => 'Bitte wählen',
+            'reasons' => [
+                'closed' => 'Der Betrieb existiert nicht mehr',
+                'moved' => 'Der Betrieb ist umgezogen oder heißt anders',
+                'duplicate' => 'Der Eintrag ist doppelt vorhanden',
+                'never_existed' => 'Dieser Betrieb hat nie existiert',
+                'privacy' => 'Ich möchte nicht gelistet werden',
+                'other' => 'Anderer Grund',
+            ],
+            'note_label' => 'Erläuterung',
+            'note_hint' => 'Hilft uns, den Vorgang ohne Rückfrage zu erledigen.',
+            'confirm' => 'Ich beantrage die Löschung dieses Eintrags.',
+            'grace' => 'Nach Ihrer Bestätigung warten wir 48 Stunden. In dieser Zeit können Sie die Löschung über einen Link in der E-Mail noch stoppen.',
+            'submit' => 'Löschung beantragen',
+        ],
+
+        'sections' => [
+            'basics' => 'Firma und Adresse',
+            'contact' => 'Kontakt',
+            'description' => 'Beschreibung',
+            'hours' => 'Öffnungszeiten',
+            'services' => 'Leistungen',
+            'images' => 'Logo und Bilder',
+            'requester' => 'Ihr Kontakt',
+        ],
+
+        // Beschriftung je Diff-Feld — auch die Zusammenfassung
+        // "Sie ändern: Telefon, Öffnungszeiten" liest hier.
+        'fields' => [
+            'name' => 'Firmenname',
+            'street' => 'Straße',
+            'house_no' => 'Hausnummer',
+            'zipcode' => 'Postleitzahl',
+            'city' => 'Stadt',
+            'tel' => 'Telefon',
+            'email' => 'E-Mail',
+            'website' => 'Website',
+            'description' => 'Beschreibung',
+            'opening_hours' => 'Öffnungszeiten',
+            'services' => 'Leistungen',
+            'logo' => 'Logo',
+            'images' => 'Bilder',
+        ],
+
+        'hours' => [
+            'closed' => 'Geschlossen',
+            'from' => 'Von',
+            'to' => 'Bis',
+            'hint' => 'Leere Zeiten bedeuten „keine Angabe".',
+        ],
+
+        'services' => [
+            'name' => 'Leistung',
+            'price' => 'ab (€)',
+            'description' => 'Beschreibung',
+            'add' => 'Leistung hinzufügen',
+            'remove' => 'Entfernen',
+            'empty' => 'Noch keine Leistungen hinterlegt.',
+        ],
+
+        'images' => [
+            'logo' => 'Logo',
+            'more' => 'Weitere Bilder',
+            'hint' => 'JPG, PNG oder WebP. Bilder gehen nicht direkt ins Profil — wir sehen sie vorher an.',
+            'remove' => 'Bild entfernen',
+            'selected' => ':anzahl Bild ausgewählt|:anzahl Bilder ausgewählt',
+        ],
+
+        'requester' => [
+            'name' => 'Ihr Name',
+            'email' => 'Ihre E-Mail',
+            'phone' => 'Telefon',
+            'hint' => 'Nur für Rückfragen. Wird nicht veröffentlicht.',
+        ],
+
+        'verification' => [
+            'to_company' => 'Zur Sicherheit geht eine Bestätigungs-E-Mail an die beim Eintrag hinterlegte Adresse :adresse. Erst ein Klick auf den Link darin gibt die Anfrage frei.',
+            'manual' => 'Beim Eintrag ist keine E-Mail-Adresse hinterlegt. Wir prüfen Ihre Anfrage deshalb von Hand und melden uns bei Ihnen.',
+        ],
+
+        'done' => [
+            'heading' => 'Anfrage ist eingegangen',
+            'to_company' => 'Wir haben eine Bestätigungs-E-Mail an :adresse geschickt. Bitte klicken Sie den Link darin — danach bearbeiten wir die Anfrage.',
+            'manual' => 'Beim Eintrag ist keine E-Mail-Adresse hinterlegt, deshalb prüfen wir die Anfrage von Hand. Wir melden uns unter :adresse.',
+            'reference' => 'Ihr Vorgang: :nummer',
+            'status' => 'Stand der Anfrage ansehen',
+            'close' => 'Fenster schließen',
+        ],
+
+        'errors' => [
+            'name' => 'Bitte geben Sie Ihren Namen an.',
+            'email' => 'Bitte geben Sie Ihre E-Mail-Adresse an.',
+            'email_invalid' => 'Bitte geben Sie eine gültige E-Mail-Adresse ein.',
+            'company_name' => 'Bitte geben Sie den Firmennamen an.',
+            'zipcode' => 'Die Postleitzahl muss 5 Ziffern haben.',
+            'time' => 'Bitte eine Uhrzeit wie 08:00 angeben.',
+            'image' => 'Nur Bilder erlaubt (JPG, PNG, WebP).',
+            'image_size' => 'Das Bild ist zu groß.',
+            'image_count' => 'Maximal 5 Bilder.',
+            'delete_reason' => 'Bitte wählen Sie einen Grund.',
+            'delete_note' => 'Bitte beschreiben Sie den Grund kurz.',
+            'delete_confirm' => 'Bitte bestätigen Sie den Löschantrag.',
         ],
     ],
 

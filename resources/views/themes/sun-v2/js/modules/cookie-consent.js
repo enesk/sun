@@ -87,7 +87,8 @@ function store(state) {
  * die einzige Stelle, die das Einwilligungs-Werkzeug kennt (#9): sie liest den
  * Zustand aus den Cookies aus store() und sendet 'consent:marketing' (Werbung,
  * resources/js/ads.js — zieht die Anzeigen ohne Reload nach) sowie
- * 'cookie-consent-statistics' (Messung, resources/js/analytics.js, #14).
+ * 'consent:statistics' (Messung, resources/js/analytics.js — dort laeuft
+ * daraufhin gtag('consent','update'), #3).
  *
  * Bewusst aus den Cookies und nicht aus `state`: so sagen Server und Browser
  * dasselbe, und ein vergessener Cookie-Schreibvorgang fiele sofort auf.

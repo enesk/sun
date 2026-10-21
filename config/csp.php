@@ -31,9 +31,12 @@ declare(strict_types=1);
 |   * Vite-Dev   aus dem laufenden `npm run dev` (Vite::isRunningHot())
 |
 | Dazu kommt ein Nonce je Anfrage (App\Services\Security\CspNonce). Es gilt
-| ausschliesslich fuer fremdes HTML, das nicht im Repository steht: die
-| Werbe-Schnipsel aus ad_slots und config('app.tracking_scripts'). Beides sind
-| Vorlagen von AdSense bzw. Google mit eigenen <script>-Bloecken.
+| fuer fremdes HTML, das nicht im Repository steht — die Werbe-Schnipsel aus
+| ad_slots und config('app.tracking_scripts'), Vorlagen von AdSense bzw. Google
+| mit eigenen <script>-Bloecken — und fuer den GA4-Block in
+| components/analytics-meta.blade.php: der Consent-Default muss im <head> VOR
+| gtag.js stehen, und diese Reihenfolge laesst sich aus einem Vite-Modul heraus
+| nicht garantieren.
 |
 | Verstoesse werden seit #51 serverseitig gesammelt: die Middleware haengt
 | `report-uri` UND `report-to` an die Policy und setzt dazu den Header
