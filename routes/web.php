@@ -230,3 +230,61 @@ Route::get('/werbemittel/{adUnit}/vorschau', App\Ads\Http\Controllers\AdUnitPrev
     ->middleware('auth')
     ->whereNumber('adUnit')
     ->name('admin.ads.unit-preview');
+
+/*
+| Zentrale Anfragen-Inbox: Magic-Link und Stornolink (SUN-RQ #6)
+|
+| Hier und nicht in routes/tenant.php: `profile_requests` liegt in der
+| Central-DB, die Bestaetigung braucht also keinen Tenant-Kontext. Die
+| Routen antworten damit auf jeder Portal-Domain — genau dort landen die
+| Links, weil die Bestaetigungsmail auf der Domain ihres Portals signiert
+| wird (App\ProfileRequests\Verification\RequestVerifier::links()).
+|
+| Ohne Anmeldung erreichbar, deshalb durchgesetzt. Die Signatur der URL und
+| der Token-Hash in der Tabelle muessen beide stimmen; `resend` versendet
+| eine Mail und ist deshalb am engsten begrenzt.
+*/
+Route::controller(App\Http\Controllers\RequestVerificationController::class)
+    ->prefix('/anfrage')
+    ->group(function () {
+        Route::get('/{request}/bestaetigen/{token}', 'verify')
+            ->middleware('throttle:20,1')
+            ->whereNumber('request')
+            ->where('token', '[A-Za-z0-9]{64}')
+            ->name('profile-requests.verify');
+
+        Route::get('/{request}/ablehnen/{token}', 'cancel')
+            ->middleware('throttle:20,1')
+            ->whereNumber('request')
+            ->where('token', '[A-Za-z0-9]{64}')
+            ->name('profile-requests.cancel');
+
+        // Methodenname bewusst nicht 'resend': Route::controller loest den
+        // String ueber class_exists() auf, und PHP-Klassennamen sind nicht
+        // gross-/kleinschreibungsabhaengig — die Klasse `Resend` des
+        // Mailproviders faengt 'resend' ab ("Invalid route action").
+        Route::post('/{request}/neuer-link', 'resendLink')
+            ->middleware('throttle:5,10')
+            ->whereNumber('request')
+            ->name('profile-requests.verify.resend');
+    });
+
+/*
+| Oeffentliche Statusseite eines Vorgangs (#10)
+|
+| Ausserhalb der Gruppe oben: `Route::controller()` deutet ein
+| String-Handle als Methode des Gruppen-Controllers, und der Klassenname
+| der Livewire-Komponente ist ein String.
+|
+| Signiert, aber ohne Ablauf — ein Vorgang laeuft Wochen, und eine Adresse,
+| die nach 72 Stunden ins Leere zeigt, erzeugt genau die Rueckfrage, die die
+| Seite ersparen soll. Dafuer `throttle`, `noindex` und ein Inhalt, der nur
+| aus dem besteht, was der Betrieb selbst eingereicht hat.
+|
+| Der Routenname ist der, den der Dialog am Profil (#4) schon erwartet
+| (App\Livewire\Portal\ProfileRequestDialog::statusUrl()).
+*/
+Route::get('/anfrage/{request}/status', App\Livewire\Public\RequestStatus::class)
+    ->middleware(['signed', 'throttle:30,1'])
+    ->whereNumber('request')
+    ->name('portal.requests.status');

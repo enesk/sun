@@ -249,6 +249,20 @@ return [
             'ip' => ['max' => 10, 'minutes' => 60],
             'user' => ['max' => 10, 'minutes' => 60],
         ],
+
+        /*
+        | Self-Service am Firmenprofil (SUN-RQ #4): Eintrag aendern oder
+        | loeschen. Enger als suggest_edit, denn jeder Antrag kann eine
+        | Bestaetigungsmail an einen fremden Betrieb ausloesen; die zweite
+        | Bremse dagegen ist
+        | profile-requests.verification.max_links_per_company_per_day.
+        | Zusaetzlich auf die Adresse des Anfragenden, weil ein Antragsteller
+        | in der Stichprobe mehrere Portale derselben Firma anschreibt.
+        */
+        'profile_request' => [
+            'ip' => ['max' => 5, 'minutes' => 60],
+            'email' => ['max' => 5, 'minutes' => 60],
+        ],
     ],
 
     /*

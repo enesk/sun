@@ -2,11 +2,14 @@
 
 namespace App\Livewire\Verwaltung;
 
+use App\Companies\Deletion\DeleteCompanyAction;
 use App\Models\Portal\Category;
 use App\Models\Portal\City;
 use App\Models\Portal\Company;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Throwable;
 
 class CompanyTable extends Component
 {
@@ -114,14 +117,34 @@ class CompanyTable extends Component
         }
 
         $name = $company->name;
-        $company->openingHours()->delete();
-        $company->categories()->detach();
-        $company->clearMediaCollection('logo');
-        $company->clearMediaCollection('cover');
-        $company->clearMediaCollection('gallery');
-        $company->delete();
 
-        $this->dispatch('toast', type: 'success', message: "\"{$name}\" wurde gelöscht.");
+        // Loeschung ausschliesslich ueber die Pipeline (SUN-RQ #8): Profil,
+        // Bilder, Bewertungen, Leads anonymisieren, 410, Sitemap, IndexNow,
+        // Caches — jeder Schritt protokolliert in `deletion_log`. Vorher
+        // raeumte diese Methode nur Oeffnungszeiten, Kategorien und Bilder
+        // ab; das war der zweite, unvollstaendige Loeschweg.
+        try {
+            $result = app(DeleteCompanyAction::class)->forCompany($company, [
+                'reason' => 'Verwaltung: '.($user->email ?? 'unbekannt'),
+            ]);
+        } catch (Throwable $exception) {
+            Log::error('Verwaltung: Loeschung fehlgeschlagen.', [
+                'company_id' => $id,
+                'exception' => $exception->getMessage(),
+            ]);
+
+            $this->dispatch('toast', type: 'error', message: "\"{$name}\" konnte nicht gelöscht werden.");
+
+            return;
+        }
+
+        $this->dispatch(
+            'toast',
+            type: $result->ok() ? 'success' : 'warning',
+            message: $result->ok()
+                ? "\"{$name}\" wurde vollständig gelöscht."
+                : "\"{$name}\" wurde gelöscht, aber nicht jeder Schritt lief durch (run_id {$result->runId}).",
+        );
     }
 
     public function bulkToggleActive(bool $active): void

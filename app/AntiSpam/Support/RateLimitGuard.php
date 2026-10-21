@@ -92,6 +92,14 @@ class RateLimitGuard
     public const CLAIM_DISPUTE = 'antispam-claim-dispute';
 
     /**
+     * Self-Service-Formular am Firmenprofil (SUN-RQ #4): Aenderungs- und
+     * Loeschantrag, App\Livewire\Portal\ProfileRequestDialog. Eigener
+     * Zaehler, weil ein Antrag anders als ein Korrekturvorschlag eine Mail
+     * an einen fremden Betrieb ausloest.
+     */
+    public const PROFILE_REQUEST = 'antispam-profile-request';
+
+    /**
      * Nachweis-Upload nach der Uebernahme (#27). Kein Captcha: der Weg setzt
      * einen angemeldeten Nutzer mit offenem Antrag voraus, ein Limit genuegt.
      */
@@ -112,6 +120,7 @@ class RateLimitGuard
         self::CLAIM => 'claim',
         self::CLAIM_DISPUTE => 'claim_dispute',
         self::CLAIM_UPLOAD => 'claim_upload',
+        self::PROFILE_REQUEST => 'profile_request',
     ];
 
     /**
@@ -182,6 +191,11 @@ class RateLimitGuard
 
         RateLimiter::for(self::CLAIM_DISPUTE, static fn (Request $request): array => [
             self::limit('claim_dispute.ip', self::CLAIM_DISPUTE, 'ip', self::ipHash($request)),
+        ]);
+
+        RateLimiter::for(self::PROFILE_REQUEST, static fn (Request $request): array => [
+            self::limit('profile_request.ip', self::PROFILE_REQUEST, 'ip', self::ipHash($request)),
+            self::limit('profile_request.email', self::PROFILE_REQUEST, 'email', self::emailHash($request->input('email'))),
         ]);
 
         RateLimiter::for(self::CLAIM_UPLOAD, static fn (Request $request): array => [

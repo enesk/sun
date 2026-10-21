@@ -214,8 +214,19 @@
                     <x-ad-slot position="content_after_intro" />
                 @endif
 
-                {{-- PROF-1: Inline-CTA "Stimmt etwas nicht?" — nur bei ungeclaimten Firmen --}}
-                @if(!$company->user_id)
+                {{-- Self-Service fuer den Inhaber (SUN-RQ #4, im default-Theme mit
+                     #14): Eintrag aendern oder loeschen. Steht ohne Bedingung an
+                     der Stelle, an der vorher der Inline-CTA auf die Seite
+                     companies.suggest-edit verlinkt hat; die Komponente rendert
+                     nichts, solange der Pilotschalter das Portal nicht freigibt. --}}
+                <livewire:portal.profile-request-dialog :company="$company" />
+
+                {{-- PROF-1: Inline-CTA "Stimmt etwas nicht?" — der alte Weg in die
+                     Tenant-Tabelle company_edit_suggestions. Nur noch Rueckfall,
+                     solange der Dialog auf diesem Portal nicht laeuft: zwei
+                     Eingangskanaele fuer dasselbe Anliegen sind die Fehlerquelle,
+                     die SUN-RQ beseitigt. --}}
+                @if(! \App\ProfileRequests\Support\PilotGate::selfServiceEnabled() && ! $company->user_id)
                 <div class="suggest-edit-inline-cta reveal">
                     <svg class="w-4 h-4 text-base-content/40 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>

@@ -2,6 +2,8 @@
 
 namespace App\Models\Portal;
 
+use App\Companies\Deletion\CompanyRestoration;
+use App\Companies\Deletion\GoneUrlRegistry;
 use App\Enums\PlanTier;
 use App\Models\User;
 use App\Observers\CompanyActivationObserver;
@@ -84,6 +86,10 @@ class Company extends Model implements HasMedia
         'suspected_bot_at' => 'datetime',
         'suspected_bot_cleared_at' => 'datetime',
         'suspected_bot_reasons_json' => 'array',
+        // Loeschpipeline (#8); gesetzt wird ausschliesslich ueber
+        // App\Companies\Deletion, deshalb nicht in $fillable.
+        'hard_delete_after' => 'datetime',
+        'pre_deletion_json' => 'array',
     ];
 
     protected static function booted(): void
@@ -98,6 +104,16 @@ class Company extends Model implements HasMedia
         // Review -> recalculateRating() -> update() ebenfalls hier durch.
         static::saved(fn (Company $company) => StructuredDataService::forget($company->id));
         static::deleted(fn (Company $company) => StructuredDataService::forget($company->id));
+
+        // Loeschpipeline (SUN-RQ #8): wird ein Profil neu angelegt, dessen
+        // URL auf 410 steht, muss die Regel weg — sonst ist der neue Eintrag
+        // unsichtbar. Der Aufruf prueft zuerst den Cache und kostet bei
+        // leerer `gone_urls` keine Abfrage.
+        static::created(fn (Company $company) => app(GoneUrlRegistry::class)->releaseOnReuse($company));
+
+        // Zurueckgeholtes Profil: Slug und Places-ID aus `pre_deletion_json`
+        // wieder einsetzen und die 410-Regel aufheben.
+        static::restored(fn (Company $company) => app(CompanyRestoration::class)->afterRestore($company));
     }
 
     // ── Relationships ──

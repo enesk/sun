@@ -54,6 +54,12 @@ Schedule::command('tenants:run leads:purge-contacts')->dailyAt('01:30')->without
 // Webhook-Anfragen (#32 Premium): Kontaktdaten und Antworten nach 12 Monaten loeschen, je Tenant
 Schedule::command('tenants:run leads:inquiries:purge-contacts')->dailyAt('01:45')->withoutOverlapping()->onOneServer();
 
+// Loeschpipeline (SUN-RQ #8): Profile endgueltig loeschen, deren 30-taegige
+// Rueckholfrist abgelaufen ist, je Tenant. Laeuft nach den
+// Anonymisierungslaeufen, damit die Kontaktfelder der Anfragen sicher
+// geleert sind, bevor die Profilzeile fehlt.
+Schedule::command('tenants:run companies:hard-delete-due')->dailyAt('02:30')->withoutOverlapping()->onOneServer();
+
 Schedule::command('import:cleanup')->dailyAt('02:00');
 
 // Ratgeber-Import (#15): hochgeladene Themenlisten nach 7 Tagen loeschen
@@ -189,4 +195,110 @@ Schedule::command('csp:prune')
 */
 Schedule::job(new App\Ads\Jobs\AggregateAdImpressions)
     ->hourlyAt(7)
+    ->onOneServer();
+
+/*
+| Zentrale Anfragen-Inbox: E-Mail-Ingestion (SUN-RQ #5)
+|
+| requests:fetch-mail    alle 5 Minuten, liest die ungelesenen Mails des
+|                        Sammelpostfachs, legt je Mail eine Anfrage an bzw.
+|                        haengt Antworten an den bestehenden Vorgang.
+|                        withoutOverlapping, weil ein langsamer Lauf (grosse
+|                        Anhaenge) sonst vom naechsten ueberholt wuerde;
+|                        onOneServer, damit nicht zwei Anwendungsserver
+|                        dasselbe Postfach leerraeumen.
+|
+| requests:purge-raw-mail  03:55, loescht Rohmails und Anhaenge nach
+|                        profile-requests.retention_days (90 Tage). Direkt
+|                        nach csp:prune (03:50).
+|
+| ZENTRALE Tabellen, ein Lauf fuer alle Portale, deshalb kein `tenants:run`.
+*/
+Schedule::command('requests:fetch-mail')
+    ->everyFiveMinutes()
+    ->withoutOverlapping()
+    ->onOneServer();
+
+Schedule::command('requests:purge-raw-mail')
+    ->dailyAt('03:55')
+    ->withoutOverlapping()
+    ->onOneServer();
+
+/*
+| Zentrale Anfragen-Inbox: Aufbewahrungsfrist der Vorgaenge (SUN-RQ #15)
+|
+| requests:anonymize-closed  04:00, direkt nach requests:purge-raw-mail.
+|                        Nimmt geschlossenen Vorgaengen nach 24 Monaten
+|                        (profile-requests.anonymize_closed.after_months)
+|                        den Personenbezug: Name, E-Mail, Telefon, Freitext,
+|                        bestaetigte Adresse, KI-Texte und die Diff-Werte.
+|                        Typ, Portal, Zeitpunkte, Diff-Feldnamen und
+|                        Protokoll bleiben — das ist der Nachweis nach
+|                        Art. 17, dass die Loeschung autorisiert war.
+|
+| Taeglich genuegt: die Frist ist 24 Monate lang, ein Tag Genauigkeit ist
+| dafuer reichlich.
+|
+| ZENTRALE Tabelle, ein Lauf fuer alle Portale, deshalb kein `tenants:run`.
+*/
+Schedule::command('requests:anonymize-closed')
+    ->dailyAt('04:00')
+    ->withoutOverlapping()
+    ->onOneServer();
+
+/*
+| Zentrale Anfragen-Inbox: Ablauf der Verifikation (SUN-RQ #6)
+|
+| requests:expire        stuendlich zur Minute 20. Setzt Anfragen, deren
+|                        Magic-Link verfallen ist oder die ohne Fortschritt
+|                        in `new`/`classified` liegengeblieben sind, auf
+|                        `expired`; im Panel (#7) stehen sie dann unter
+|                        „Abgelaufen". Handgepruefte Vorgaenge (Kennzeichen
+|                        `manual`) bleiben unberuehrt — dort wartet eine
+|                        Entscheidung, kein Klick.
+|
+| Stuendlich und nicht taeglich, damit die Inbox nicht bis zum naechsten
+| Morgen Vorgaenge zeigt, die schon seit Stunden nicht mehr zu retten sind.
+|
+| ZENTRALE Tabelle, ein Lauf fuer alle Portale, deshalb kein `tenants:run`.
+*/
+Schedule::command('requests:expire')
+    ->hourlyAt(20)
+    ->withoutOverlapping()
+    ->onOneServer();
+
+/*
+| Zentrale Anfragen-Inbox: Auto-Regeln (SUN-RQ #9)
+|
+| requests:run-grace-deletions  stuendlich zur Minute 40. Fuehrt verifizierte
+|                        Loeschungen aus, deren Karenzfrist (48 h) abgelaufen
+|                        ist und die nicht storniert wurden. Prueft die
+|                        Vertragslage direkt vorher erneut — in 48 Stunden
+|                        kann ein Premium-Vertrag oder ein offener Lead
+|                        entstehen. Steht der Notschalter
+|                        `profile-requests.auto_disabled`, laeuft nichts:
+|                        bestehende Fristen laufen damit nicht ab, sie stehen
+|                        still.
+|
+|                        Stuendlich und nicht taeglich, damit die Frist nicht
+|                        faktisch 48 bis 72 Stunden lang ist — der Termin
+|                        steht in der Ankuendigungsmail auf die Stunde genau.
+|
+| requests:daily-digest  08:00 an die Administratoren: was die Automatik
+|                        gestern erledigt hat, was auf Freigabe wartet, was
+|                        auf Bestaetigung wartet und was abgelaufen ist. Gibt
+|                        es in allen vier Bloecken nichts, geht keine Mail
+|                        raus.
+|
+| ZENTRALE Tabellen, ein Lauf fuer alle Portale, deshalb kein `tenants:run`;
+| die Loeschung wechselt je Vorgang selbst in das Portal.
+*/
+Schedule::command('requests:run-grace-deletions')
+    ->hourlyAt(40)
+    ->withoutOverlapping()
+    ->onOneServer();
+
+Schedule::command('requests:daily-digest')
+    ->dailyAt('08:00')
+    ->withoutOverlapping()
     ->onOneServer();

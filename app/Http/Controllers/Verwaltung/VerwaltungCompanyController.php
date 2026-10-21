@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\Verwaltung;
 
+use App\Companies\Deletion\DeleteCompanyAction;
 use App\Constants\TenancyPermissionConstants;
 use App\Models\Portal\Company;
 use App\Services\TenantPermissionService;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class VerwaltungCompanyController extends VerwaltungBaseController
 {
@@ -55,21 +58,46 @@ class VerwaltungCompanyController extends VerwaltungBaseController
         return view('pages.verwaltung.companies.edit', compact('navigationItems', 'company'));
     }
 
-    public function destroy(int $id)
+    /**
+     * Loeschung ueber die vollstaendige Pipeline (SUN-RQ #8).
+     *
+     * Vorher hat diese Methode Oeffnungszeiten, Kategorien und Bilder
+     * geloescht und das Profil soft-deleted — Bewertungen, Leads,
+     * Statistiken, Stellenanzeigen, Nachweisdokumente, Sitemap, Index und
+     * Caches blieben stehen. Es gibt jetzt nur noch einen Loeschweg:
+     * {@see DeleteCompanyAction}. Jeder Schritt landet in `deletion_log`.
+     */
+    public function destroy(int $id, DeleteCompanyAction $action)
     {
         $company = $this->resolveCompany($id);
         $this->authorizeCompanyAccess($company, TenancyPermissionConstants::PERMISSION_DELETE_OWN_COMPANY);
 
-        $company->openingHours()->delete();
-        $company->categories()->detach();
-        $company->clearMediaCollection('logo');
-        $company->clearMediaCollection('cover');
-        $company->clearMediaCollection('gallery');
-        $company->delete();
+        $name = $company->name;
+
+        try {
+            $result = $action->forCompany($company, [
+                'reason' => 'Verwaltung: '.(auth()->user()?->email ?? 'unbekannt'),
+            ]);
+        } catch (Throwable $exception) {
+            Log::error('Verwaltung: Loeschung fehlgeschlagen.', [
+                'company_id' => $company->getKey(),
+                'exception' => $exception->getMessage(),
+            ]);
+
+            return redirect()
+                ->route('verwaltung.companies.index')
+                ->with('error', "Firma \"{$name}\" konnte nicht gelöscht werden. Details im Protokoll.");
+        }
+
+        if (! $result->ok()) {
+            return redirect()
+                ->route('verwaltung.companies.index')
+                ->with('warning', "Firma \"{$name}\" wurde gelöscht, aber nicht jeder Schritt lief durch. Protokoll: deletion_log, run_id {$result->runId}.");
+        }
 
         return redirect()
             ->route('verwaltung.companies.index')
-            ->with('success', "Firma \"{$company->name}\" wurde gelöscht.");
+            ->with('success', "Firma \"{$name}\" wurde vollständig gelöscht.");
     }
 
     /**

@@ -49,6 +49,11 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-s-face-smile'),
             ])
             ->discoverResources(in: app_path('Filament/Admin/Resources'), for: 'App\\Filament\\Admin\\Resources')
+            // Anfragen-Inbox (SUN-RQ #7). Das Admin-Panel ist das zentrale
+            // Panel dieser Installation — es laeuft auf der Central-DB und
+            // hat die Anmeldung, die Enes ohnehin benutzt. Ein zweites Panel
+            // daneben waere eine zweite Sitzung fuer dieselbe Person.
+            ->discoverResources(in: app_path('Filament/Central/Resources'), for: 'App\\Filament\\Central\\Resources')
             ->discoverPages(in: app_path('Filament/Admin/Pages'), for: 'App\\Filament\\Admin\\Pages')
             ->favicon(asset('images/favicon.ico'))
             ->viteTheme('resources/css/filament/admin/theme.css')

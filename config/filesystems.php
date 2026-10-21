@@ -54,6 +54,32 @@ return [
             'throw' => false,
         ],
 
+        /*
+         * Rohmails und Anhaenge der Anfragen-Inbox (SUN-RQ). Die Vorgaenge
+         * liegen in der Central-DB, also muessen ihre Dateien auch zentral
+         * liegen — unabhaengig davon, in welchem Kontext sie entstanden
+         * sind.
+         *
+         * Deshalb ein eigener Disk und nicht `local`: `local` steht in
+         * tenancy.filesystem.disks und bekommt waehrend eines
+         * Portal-Requests den Wurzelpfad storage/tenant<id>/app/. Ein
+         * Anhang aus dem Self-Service-Formular (#4, laeuft auf der
+         * Portal-Domain) landete damit in der Ablage des Portals, waehrend
+         * das Central-Panel ihn unter storage/app/ sucht — Datei weg, und
+         * `requests:purge-raw-mail` loescht sie nie (Security-Review #12,
+         * Befund 2).
+         *
+         * Der Wurzelpfad ist derselbe wie beim zentralen `local`, damit
+         * bestehende Pfade in `request_attachments.path` unveraendert
+         * aufloesen. Nicht in tenancy.filesystem.disks eintragen.
+         */
+        'requests' => [
+            'driver' => 'local',
+            'root' => storage_path('app'),
+            'visibility' => 'private',
+            'throw' => false,
+        ],
+
         // Separater Disk für Livewire temporäre Uploads — NICHT vom Tenant-Bootstrapper beeinflusst
         'livewire-tmp' => [
             'driver' => 'local',
