@@ -1,0 +1,296 @@
+[
+    {
+        "id": 24,
+        "name": "Hoch-  und Tiefbauunternehmen",
+        "contact_email": "info@widimedia.com",
+        "contact_phone": "+4915561476133",
+        "responsible_name": null,
+        "address": null,
+        "impressum_len": 4314,
+        "datenschutz_len": 12264
+    },
+    {
+        "id": 27,
+        "name": "BodenlegerFinden",
+        "contact_email": null,
+        "contact_phone": null,
+        "responsible_name": null,
+        "address": null,
+        "impressum_len": 4314,
+        "datenschutz_len": 12264
+    },
+    {
+        "id": 28,
+        "name": "SanitärFinden",
+        "contact_email": "info@widimedia.com",
+        "contact_phone": "+4915561476133",
+        "responsible_name": null,
+        "address": null,
+        "impressum_len": 4314,
+        "datenschutz_len": 12264
+    },
+    {
+        "id": 29,
+        "name": "FahrschuleFinder",
+        "contact_email": "info@widimedia.com",
+        "contact_phone": "+491511550944",
+        "responsible_name": "Rolland Szalai",
+        "address": {
+            "id": 4,
+            "address_line_1": "Karlsruherstr. 31",
+            "address_line_2": null,
+            "city": "Rastatt",
+            "zip": "76437",
+            "state": null,
+            "country_code": "DE"
+        },
+        "impressum_len": 4699,
+        "datenschutz_len": 15357
+    },
+    {
+        "id": 30,
+        "name": "ElektrikerPortal",
+        "contact_email": "info@widimedia.com",
+        "contact_phone": "+4915561476133",
+        "responsible_name": "Rolland Szalai",
+        "address": {
+            "id": 7,
+            "address_line_1": "Karlsruherstr. 31",
+            "address_line_2": null,
+            "city": "Rastatt",
+            "zip": "76437",
+            "state": null,
+            "country_code": "DE"
+        },
+        "impressum_len": 4699,
+        "datenschutz_len": 12294
+    },
+    {
+        "id": 33,
+        "name": "Malerfinder.de",
+        "contact_email": "info@widimedia.com",
+        "contact_phone": "+4915561476133",
+        "responsible_name": "Rolland Szalai",
+        "address": {
+            "id": 8,
+            "address_line_1": "Karlsruherstr. 31",
+            "address_line_2": null,
+            "city": "Rastatt",
+            "zip": "76437",
+            "state": null,
+            "country_code": "DE"
+        },
+        "impressum_len": 4699,
+        "datenschutz_len": 15357
+    },
+    {
+        "id": 37,
+        "name": "Gerüstabauer.GmbH",
+        "contact_email": "info@widimedia.com",
+        "contact_phone": "+4915561476133",
+        "responsible_name": null,
+        "address": null,
+        "impressum_len": 4310,
+        "datenschutz_len": 12256
+    },
+    {
+        "id": 38,
+        "name": "Metallbauer.io",
+        "contact_email": "info@widimedia.com",
+        "contact_phone": "+4915561476133",
+        "responsible_name": null,
+        "address": null,
+        "impressum_len": 4310,
+        "datenschutz_len": 12256
+    },
+    {
+        "id": 43,
+        "name": "Tierarztportal.com",
+        "contact_email": "info@widimedia.com",
+        "contact_phone": "+4915561476133",
+        "responsible_name": null,
+        "address": null,
+        "impressum_len": 4310,
+        "datenschutz_len": 12256
+    },
+    {
+        "id": 44,
+        "name": "kfzwerkstatt",
+        "contact_email": "info@widimedia.com",
+        "contact_phone": "+4915561476133",
+        "responsible_name": null,
+        "address": null,
+        "impressum_len": 4308,
+        "datenschutz_len": 12261
+    },
+    {
+        "id": 45,
+        "name": "FindeGutachter",
+        "contact_email": "info@widimedia.com",
+        "contact_phone": "+4915561476133",
+        "responsible_name": null,
+        "address": null,
+        "impressum_len": 4310,
+        "datenschutz_len": 12256
+    },
+    {
+        "id": 46,
+        "name": "Fliesenleger",
+        "contact_email": "info@widimedia.com",
+        "contact_phone": "+4915561476133",
+        "responsible_name": null,
+        "address": null,
+        "impressum_len": 4310,
+        "datenschutz_len": 12256
+    },
+    {
+        "id": 47,
+        "name": "Gartenbauer",
+        "contact_email": "info@widimedia.com",
+        "contact_phone": "+4915561476133",
+        "responsible_name": null,
+        "address": null,
+        "impressum_len": 4310,
+        "datenschutz_len": 12256
+    },
+    {
+        "id": 49,
+        "name": "SanitaerFinder",
+        "contact_email": "info@widimedia.com",
+        "contact_phone": "+4915561476133",
+        "responsible_name": "Rolland Szalai",
+        "address": {
+            "id": 9,
+            "address_line_1": "Karlsruherstr. 31",
+            "address_line_2": null,
+            "city": "Rastatt",
+            "zip": "76437",
+            "state": null,
+            "country_code": "DE"
+        },
+        "impressum_len": 4699,
+        "datenschutz_len": 15357
+    },
+    {
+        "id": 50,
+        "name": "ApothekeFinden",
+        "contact_email": "info@widimedia.com",
+        "contact_phone": "+4915561476133",
+        "responsible_name": null,
+        "address": {
+            "id": 5,
+            "address_line_1": null,
+            "address_line_2": null,
+            "city": null,
+            "zip": null,
+            "state": null,
+            "country_code": "DE"
+        },
+        "impressum_len": 4310,
+        "datenschutz_len": 12256
+    },
+    {
+        "id": 51,
+        "name": "Solar - Photovoltaik",
+        "contact_email": "info@widimedia.com",
+        "contact_phone": "+4915561476133",
+        "responsible_name": null,
+        "address": {
+            "id": 6,
+            "address_line_1": null,
+            "address_line_2": null,
+            "city": null,
+            "zip": null,
+            "state": null,
+            "country_code": "DE"
+        },
+        "impressum_len": 4310,
+        "datenschutz_len": 12256
+    },
+    {
+        "id": 52,
+        "name": "Unfallchirurgie in der Nähe",
+        "contact_email": null,
+        "contact_phone": null,
+        "responsible_name": null,
+        "address": null,
+        "impressum_len": 4310,
+        "datenschutz_len": 12256
+    },
+    {
+        "id": 53,
+        "name": "Zahnarzt in der Nähe",
+        "contact_email": "info@widimedia.com",
+        "contact_phone": "+4915561476133",
+        "responsible_name": null,
+        "address": null,
+        "impressum_len": 4310,
+        "datenschutz_len": 12256
+    },
+    {
+        "id": 54,
+        "name": "Klempner",
+        "contact_email": "info@widimedia.com",
+        "contact_phone": "+4915561476133",
+        "responsible_name": "Rolland Szalai",
+        "address": {
+            "id": 10,
+            "address_line_1": "Karlsruherstr. 31",
+            "address_line_2": null,
+            "city": "Rastatt",
+            "zip": "76437",
+            "state": null,
+            "country_code": "DE"
+        },
+        "impressum_len": 4699,
+        "datenschutz_len": 15357
+    },
+    {
+        "id": 55,
+        "name": "Energieberater",
+        "contact_email": "info@widimedia.com",
+        "contact_phone": "+4915561476133",
+        "responsible_name": null,
+        "address": null,
+        "impressum_len": 4310,
+        "datenschutz_len": 12256
+    },
+    {
+        "id": 56,
+        "name": "ArztFinder",
+        "contact_email": "info@widimedia.com",
+        "contact_phone": "+4915561476133",
+        "responsible_name": null,
+        "address": null,
+        "impressum_len": 4310,
+        "datenschutz_len": 12256
+    },
+    {
+        "id": 57,
+        "name": "SpeditionPortal",
+        "contact_email": "info@widimedia.com",
+        "contact_phone": "+4915561476133",
+        "responsible_name": null,
+        "address": null,
+        "impressum_len": 4310,
+        "datenschutz_len": 12256
+    },
+    {
+        "id": 58,
+        "name": "Schlüsseldienst",
+        "contact_email": "info@widimedia.com",
+        "contact_phone": "+4915561476133",
+        "responsible_name": "Rolland Szalai",
+        "address": {
+            "id": 11,
+            "address_line_1": "Karlsruherstr. 31",
+            "address_line_2": null,
+            "city": "Rastatt",
+            "zip": "76437",
+            "state": null,
+            "country_code": "DE"
+        },
+        "impressum_len": 4699,
+        "datenschutz_len": 15357
+    }
+]
