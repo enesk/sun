@@ -19,6 +19,10 @@
                     'origin' => 'Aus den Workspace-Einstellungen',
                 ])
 
+                @if($zentralGefuehrt['impressum'] ?? false)
+                    @include('livewire.verwaltung.partials.legal-central-notice', ['art' => 'Das Impressum'])
+                @endif
+
                 <div x-data="{ focused: false }">
                     <div class="rounded-lg transition-all"
                          style="border: 1px solid var(--dash-border);"
@@ -45,6 +49,7 @@
                         </div>
                         {{-- Editor --}}
                         <textarea wire:model="impressum" rows="12"
+                              @disabled($zentralGefuehrt['impressum'] ?? false)
                                   @focus="focused = true" @blur="focused = false"
                                   class="w-full px-4 py-3 text-sm focus:outline-none resize-y rounded-b-lg"
                                   style="background-color: var(--dash-bg-primary); color: var(--dash-text-primary);"
@@ -63,8 +68,13 @@
                     <p class="dash-input-hint">Datenschutzerklärung gemäß DSGVO. Wird auf der Datenschutz-Seite und im Footer angezeigt.</p>
                 </div>
 
+                @if($zentralGefuehrt['datenschutz'] ?? false)
+                    @include('livewire.verwaltung.partials.legal-central-notice', ['art' => 'Die Datenschutzerklärung'])
+                @endif
+
                 <div>
                     <textarea wire:model="datenschutz" rows="16"
+                              @disabled($zentralGefuehrt['datenschutz'] ?? false)
                               class="dash-textarea"
                               placeholder="Datenschutzerklärung&#10;&#10;1. Datenschutz auf einen Blick&#10;Allgemeine Hinweise...&#10;&#10;2. Hosting und Content Delivery Networks (CDN)&#10;..."></textarea>
                     <p class="dash-input-hint">HTML-Formatierung wird unterstützt. Tipp: Nutzen Sie einen DSGVO-Generator für eine rechtssichere Vorlage.</p>
@@ -90,7 +100,12 @@
                 </div>
 
                 <div>
-                    <textarea wire:model="editorialPrinciples" rows="16"
+                                    @if($zentralGefuehrt['editorial_principles'] ?? false)
+                    @include('livewire.verwaltung.partials.legal-central-notice', ['art' => 'Die redaktionellen Grundsätze'])
+                @endif
+
+<textarea wire:model="editorialPrinciples" rows="16"
+                              @disabled($zentralGefuehrt['editorial_principles'] ?? false)
                               class="dash-textarea"
                               placeholder="Leer lassen für den Standardtext (Themenauswahl, Entstehungsweg, Quellen, Aktualisierung, Haftungsausschluss)."></textarea>
                     <p class="dash-input-hint">HTML-Formatierung wird unterstützt. Platzhalter werden beim Anzeigen ersetzt.</p>

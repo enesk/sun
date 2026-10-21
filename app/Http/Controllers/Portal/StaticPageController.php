@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Portal;
 
 use App\Ads\Support\AdSensePrivacySection;
-use App\Constants\TenantConfigConstants;
+use App\Enums\LegalTextKey;
 use App\Http\Controllers\Controller;
+use App\Services\LegalTextService;
 use App\Services\TenantBrandingService;
 use Illuminate\View\View;
 
@@ -69,11 +70,12 @@ class StaticPageController extends Controller
     public function __construct(
         private TenantBrandingService $branding,
         private AdSensePrivacySection $adsensePrivacy,
+        private LegalTextService $legalTexts,
     ) {}
 
     public function impressum(): View
     {
-        $content = $this->resolveContent(TenantConfigConstants::IMPRESSUM);
+        $content = $this->resolveContent(LegalTextKey::IMPRESSUM);
 
         return view('pages.impressum', compact('content'));
     }
@@ -89,7 +91,7 @@ class StaticPageController extends Controller
     public function datenschutz(): View
     {
         $content = $this->adsensePrivacy->appendTo(
-            $this->resolveContent(TenantConfigConstants::DATENSCHUTZ),
+            $this->resolveContent(LegalTextKey::DATENSCHUTZ),
         );
 
         return view('pages.datenschutz', compact('content'));
@@ -101,16 +103,33 @@ class StaticPageController extends Controller
      */
     public function editorial(): View
     {
-        $content = $this->resolveContent(TenantConfigConstants::EDITORIAL_PRINCIPLES)
+        $content = $this->resolveContent(LegalTextKey::EDITORIAL_PRINCIPLES)
             ?? $this->branding->resolveLegalPlaceholders(self::EDITORIAL_PRINCIPLES_DEFAULT, tenant());
 
         return view('pages.blog.editorial', compact('content'));
     }
 
-    private function resolveContent(string $key): ?string
+    /**
+     * Zentrale Fassung zuerst, Portaltext nur als Rueckfall (Ticket #17).
+     *
+     * Die Rangfolge ist der ganze Kern der Umstellung: Ist zentral etwas
+     * gepflegt, gilt es fuer alle Portale — der portaleigene Text wird dann
+     * **nicht** mehr gelesen, auch wenn er noch in der Tenant-Konfiguration
+     * steht. Er bleibt dort absichtlich stehen (Rueckweg, siehe #18) und greift
+     * nur, solange zentral nichts hinterlegt ist. Dadurch aendert das
+     * Einspielen dieser Version allein noch nichts an der Auslieferung: Die
+     * Portale zeigen weiter ihren Text, bis die zentrale Fassung gepflegt ist.
+     *
+     * Die Platzhalter werden in jedem Fall je Portal aufgeloest — derselbe
+     * zentrale Text ergibt auf jeder Domain die dort hinterlegte Anschrift und
+     * Kontaktangabe.
+     */
+    private function resolveContent(LegalTextKey $key): ?string
     {
         $tenant = tenant();
-        $raw = $this->branding->get($tenant, $key);
+
+        $raw = $this->legalTexts->get($key)
+            ?? $this->branding->get($tenant, $key->tenantConfigKey());
 
         if (! $raw) {
             return null;
