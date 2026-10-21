@@ -80,6 +80,30 @@ nur über `env('NAME')` **ohne Vorgabewert** gelesen — ein Literal als zweiter
 Parameter ist ein eingecheckter Schlüssel und wird vom Secret-Scan abgelehnt.
 Jede neue Variable gehört ohne Wert in `.env.example`.
 
+### Externe Dienste und Konten — Zustimmung von Enes erforderlich
+Vorgabe von Enes, 16.10.2026, nach drei Verstößen am selben Tag.
+
+**Ohne ausdrückliche Zustimmung von Enes wird kein Dienst eines Drittanbieters
+angesprochen und keine Einstellung in einem seiner Konten geändert.** Das gilt
+für Google (AdSense, Search Console, CrUX, PageSpeed, Places, Cloud Console,
+Analytics, Tag Manager) genauso wie für Cloudflare, Stripe, Paddle, Lemon
+Squeezy und jeden Mailversender.
+
+Untersagt ist insbesondere:
+* Test- und Probeaufrufe gegen eine fremde API, auch nur lesend, auch mit einem
+  Schlüssel, der schon in der `.env` liegt.
+* Eine API freischalten, ein Dienstkonto eintragen, ein Cloud-Projekt anfassen,
+  eine Abrechnung prüfen.
+* Ein Abnahmekriterium formulieren, das einen fremden Kontozugang voraussetzt.
+  Messen wir im Labor, bleibt es im Labor.
+
+Ein Befund an einem fremden Dienst wird **notiert und gemeldet**, nie zu einem
+zugewiesenen Ticket gemacht und nie weiterverfolgt. Ist ein Ticket zu diesem
+Thema geschlossen, entsteht dazu kein Nachfolger — auch nicht unter neuem Titel.
+
+Braucht eine Aufgabe zwingend einen fremden Dienst, wird die Aufgabe gestoppt
+und Enes gefragt. Nicht umgekehrt.
+
 ### Deployment
 - `php dep deploy` - Deploy using Deployer (configured in deploy.php)
 
