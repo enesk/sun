@@ -30,6 +30,9 @@ use Webklex\PHPIMAP\Message;
  */
 class ImapMailFetcher
 {
+    /** Ohne diese drei Werte gibt es keine Verbindung — siehe {@see configured()}. */
+    private const PFLICHTFELDER = ['host', 'username', 'password'];
+
     private ?Client $client = null;
 
     /**
@@ -123,6 +126,26 @@ class ImapMailFetcher
         $this->client = null;
     }
 
+    /**
+     * Liegen Host, Benutzer und Passwort des Sammelpostfachs vor?
+     *
+     * Der Poller fragt das vor dem Abruf, weil „noch nicht eingerichtet"
+     * etwas anderes ist als „nicht erreichbar": ein fehlender Zugang ist
+     * kein Fehlschlag, den es zu zaehlen und per Mail zu melden gilt.
+     */
+    public function configured(): bool
+    {
+        $imap = (array) config('profile-requests.mailbox.imap', []);
+
+        foreach (self::PFLICHTFELDER as $pflicht) {
+            if (blank($imap[$pflicht] ?? null)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /** Verbindungs- und Anmeldefehler schlagen hier durch — der Poller alarmiert danach. */
     public function client(): Client
     {
@@ -132,7 +155,7 @@ class ImapMailFetcher
 
         $imap = (array) config('profile-requests.mailbox.imap', []);
 
-        foreach (['host', 'username', 'password'] as $pflicht) {
+        foreach (self::PFLICHTFELDER as $pflicht) {
             if (blank($imap[$pflicht] ?? null)) {
                 throw new RuntimeException('Sammelpostfach unvollstaendig konfiguriert: REQUESTS_IMAP_'.strtoupper($pflicht).' fehlt.');
             }

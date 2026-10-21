@@ -66,6 +66,16 @@ class RequestsFetchMail extends Command
     ): int {
         $limit = $this->option('limit') === null ? null : max(1, (int) $this->option('limit'));
 
+        // Solange der Zugang zum Sammelpostfach fehlt, ist nichts abzurufen.
+        // Das ist kein Fehlschlag: wuerde es als solcher zaehlen, ginge
+        // alle fuenf Minuten ein Alarm an die Administratoren, bis die
+        // Zugangsdaten in der .env stehen.
+        if (! $fetcher->configured()) {
+            $this->line('Sammelpostfach noch nicht eingerichtet (REQUESTS_IMAP_* fehlen) — Lauf uebersprungen.');
+
+            return self::SUCCESS;
+        }
+
         try {
             $messages = $fetcher->unread($limit);
         } catch (Throwable $e) {
