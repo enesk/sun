@@ -267,7 +267,17 @@ class LegalTexts extends Page
         $branding = app(TenantBrandingService::class);
 
         foreach (LegalTextKey::all() as $key) {
-            $set($key->value, $branding->get($tenant, $key->tenantConfigKey()) ?? '');
+            $inhalt = $branding->get($tenant, $key->tenantConfigKey());
+            $inhalt = is_string($inhalt) ? trim($inhalt) : null;
+
+            // **Niemals einen leeren String in ein RichEditor-Feld setzen.**
+            // Der Editor schickt den Wert durch Tiptap, und
+            // Tiptap\Core\DOMParser::getDocumentBody() wirft bei '' oder
+            // Leerraum einen TypeError ('Return value must be of type
+            // DOMElement, null returned'). Die Seite bricht dann mit
+            // "There was an error while attempting to load this page" ab.
+            // `null` ist der Zustand, den der Editor als leer kennt.
+            $set($key->value, $inhalt === '' ? null : $inhalt);
         }
 
         Notification::make()
