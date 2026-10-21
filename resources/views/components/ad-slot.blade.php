@@ -50,7 +50,7 @@
             // laeuft ueber denselben Weg — <template> plus data-lazy-ad.
             $deferred = $isLazy || ! $consentGranted;
         @endphp
-        <div class="{{ collect([$deviceClasses, $clsClasses, 'bg-base-200/30'])->filter()->implode(' ') }}"
+        <div class="{{ collect([$deviceClasses, $clsClasses])->filter()->implode(' ') }}"
             @if($deferred && $hasCode) data-lazy-ad @endif
             @if(! $consentGranted && $hasCode) data-ad-consent="marketing" data-ad-on-denied="{{ \App\Ads\Support\AdConsent::onDeniedAttribute() }}" @endif>
             @if($deferred && $hasCode)

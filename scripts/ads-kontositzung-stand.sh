@@ -15,7 +15,9 @@
 # sobald Ticket #55 (API-Freischaltung, Dienstkonto in beiden Konten) steht.
 # Ob dieser Zugang steht, prueft Abschnitt §6.0 ueber
 # `artisan ads:adsense-konto` (lesend; Exit 70 = API im Cloud-Projekt
-# gesperrt, 71 = Konto fehlt dem Dienstkonto, 0 = alle Konten lesbar).
+# gesperrt, 71 = Konto fehlt dem Zugang, 65 = kein Zugang hinterlegt,
+# 0 = alle Konten lesbar). Der Zugang laeuft seit #61 ueber einen von zwei
+# Wegen: Refresh-Token eines Nutzers (ADSENSE_OAUTH_*) oder Dienstkonto-Datei.
 #
 # Das Skript aendert NICHTS: kein Schalter, keine Datenbank, kein Deploy. Es
 # liest Repo-Dateien, ruft lesende artisan-Befehle auf der Produktion und
@@ -113,9 +115,9 @@ else
     0)  zeile ok "§6.0" "Dienstkonto liest alle im Netz benutzten AdSense-Konten — §6.2/§6.4 per API" ;;
     70) zeile offen "§6.0" "AdSense Management API im Cloud-Projekt 321830197826 nicht freigeschaltet" \
           "Ohne Konsole machbar (#58): Token auf Scope cloud-platform holen, dann POST serviceusage.googleapis.com/v1/projects/321830197826/services/adsense.googleapis.com:enable mit Rumpf {} — siehe pilot-protokoll.md §6.5. Gegenprobe: artisan ads:adsense-konto." ;;
-    71) zeile offen "§6.0" "Dienstkonto-Weg endet hier — Exit 71 bleibt bis #61 geliefert ist" \
-          "Nicht mehr versuchen, das Dienstkonto als AdSense-Nutzer einzutragen: die Doku der Management API sagt \"AdSense doesn't support Service Accounts, instead you must use the Installed Application flow\" (Stand 16.01.2026), und eine Einladung muss aus einem Google-Konto angenommen werden — eine …iam.gserviceaccount.com-Adresse hat kein Postfach, die Einladung bliebe Pending. Weiter geht es nur ueber #61 (Refresh-Token eines echten Nutzers im AdSenseClient); bis dahin §6.2/§6.4 in der Oberflaeche ablesen. Belegt in pilot-protokoll.md §6.5 (#58)." ;;
-    65) zeile unklar "§6.0" "kein lesbarer Dienstkonto-Schluessel auf der Produktion (GOOGLE_SERVICE_ACCOUNT_JSON)" ;;
+    71) zeile offen "§6.0" "Zugang sieht keines der erwarteten Konten — Refresh-Token eines echten Nutzers fehlt (#61)" \
+          "Nicht versuchen, das Dienstkonto als AdSense-Nutzer einzutragen: die Doku der Management API sagt \"AdSense doesn't support Service Accounts, instead you must use the Installed Application flow\" (Stand 16.01.2026), und eine Einladung muss aus einem Google-Konto angenommen werden — eine …iam.gserviceaccount.com-Adresse hat kein Postfach, die Einladung bliebe Pending. Der Code kann es seit #61: OAuth-Client Typ Desktop anlegen, als Nutzer mit Zugriff auf BEIDE Konten ein Refresh-Token auf Scope adsense.readonly holen und ADSENSE_OAUTH_CLIENT_ID/_SECRET/_REFRESH_TOKEN in die .env der Produktion legen. Anleitung Schritt fuer Schritt in pilot-protokoll.md §6.5; bis dahin §6.2/§6.4 in der Oberflaeche ablesen." ;;
+    65) zeile unklar "§6.0" "kein AdSense-Zugang auf der Produktion — weder Dienstkonto-Datei (GOOGLE_SERVICE_ACCOUNT_JSON) noch Refresh-Token (ADSENSE_OAUTH_*, #61)" ;;
     1)  zeile unklar "§6.0" "ads:adsense-konto bricht ab (Befehl dort unbekannt oder Netzfehler) — Stand der Produktion aelter als #55?" ;;
     *)  zeile unklar "§6.0" "ads:adsense-konto endet mit Exit ${API_CODE:-?} — von Hand nachsehen" ;;
   esac

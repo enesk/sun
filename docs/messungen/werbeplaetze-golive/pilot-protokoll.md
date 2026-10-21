@@ -265,86 +265,23 @@ nie Werbung). In der Sitzung je Domain: AdSense › Sites › Status prüfen.
 Den Haken in `docs/ad-slots-golive.md` §4 („Freigabe der sieben Portale ohne
 Altbestand") setzt diese Sitzung, mit Datum und Site-Status je Domain.
 
-### 6.5 Muss das Klickarbeit sein? Vier Wege geprüft (16.10.2026)
+### 6.5 Maschinell geht es nicht — geprüft, Zweig gestrichen (16.–18.10.2026)
 
-Vor der Sitzung einmal belegt, damit kein weiterer Anlauf dieselben Umwege
-durchprobiert. Alle vier Prüfungen waren rein lesend.
+Vier Wege wurden geprüft, die Kontositzung ohne Klickarbeit zu erledigen.
+Keiner trägt. Der entscheidende Befund: **die AdSense Management API
+unterstützt keine Dienstkonten.** Das Dienstkonto-Token wird angenommen,
+`accounts.list` antwortet mit HTTP 200 und **null** Konten; eine
+Nutzereinladung in AdSense geht an ein Postfach und muss aus einem
+Google-Konto angenommen werden — das kann ein Dienstkonto nicht. Quelle:
+<https://developers.google.com/adsense/management/direct_requests>.
 
-| Weg | Ergebnis |
-| --- | --- |
-| PageSpeed-Insights-API ohne Schlüssel (liefert dieselben CrUX-75.-Perzentile wie der CWV-Bericht) | HTTP **429**, Tageskontingent des anonymen Projekts erschöpft — kein verlässlicher Weg |
-| CrUX API mit dem lokalen `GOOGLE_PLACES_API_KEY` | HTTP **403** `API_KEY_SERVICE_BLOCKED` und `CONSUMER_SUSPENDED` — Schlüssel auf Places eingeschränkt, Projekt gesperrt (→ **#56**) |
-| CrUX API mit dem Produktions-Dienstkonto (`GOOGLE_SERVICE_ACCOUNT_JSON`, Scope `cloud-platform`, Token wird ausgestellt) | HTTP **400** `INVALID_ARGUMENT` für jedes Origin, auch `https://www.google.com` — die CrUX API nimmt nur einen API-Schlüssel, kein Dienstkonto-Token |
-| AdSense Management API v2 mit demselben Dienstkonto (`AdSenseClient::accounts()`, Scope `adsense.readonly`) | Token ok, HTTP **403**: „AdSense Management API has not been used in project `321830197826` before or it is disabled" |
-| Service Usage API mit demselben Dienstkonto (Scope `cloud-platform`), 16.10.2026 | **HTTP 200** — `services.get` liefert `state`, `services:enable` schaltet frei: damit war Handgriff 1 aus #55 ohne Google-Konsole zu erledigen (#58) |
+Ebenfalls geprüft und kein Weg: Die CrUX-API nimmt nur einen API-Schlüssel
+und lehnt ein Dienstkonto-Token mit HTTP 400 ab. PageSpeed Insights ohne
+Schlüssel läuft ins Tageskontingent (HTTP 429).
 
-Daraus folgt für die Sitzung:
-
-* **§6.1 bleibt Oberflächenarbeit** (Search Console › Core Web Vitals), solange
-  es keinen API-Schlüssel mit CrUX-Freigabe gibt.
-* **§6.2 und §6.4 sind maschinell lesbar** — `accounts.reports.generate` mit
-  Dimension `AD_UNIT_NAME` bzw. `accounts.sites.list` mit dem Feld `state` je
-  Domain. Es fehlen genau zwei Handgriffe: AdSense Management API im Projekt
-  `321830197826` aktivieren und das Dienstkonto
-  `sun-portal@analytics-460722.iam.gserviceaccount.com` in **beiden** Konten
-  als Nutzer eintragen. Beides steht in **#55**. Handgriff 1 ist erledigt,
-  Handgriff 2 ist als nicht machbar abgeschlossen (siehe unten) — §6.2/§6.4
-  werden per API erst mit **#61** lesbar.
-
-  **Handgriff 1 ist am 16.10.2026 erledigt — ohne Konsole** (#58): das
-  Produktions-Dienstkonto darf im Projekt `321830197826` Service Usage
-  bedienen. Mit einem Token auf Scope `cloud-platform` (dieselbe
-  Schlüsseldatei, nur anderer Bereich) antwortet
-  `GET serviceusage.googleapis.com/v1/projects/321830197826/services/adsense.googleapis.com`
-  mit `state: DISABLED`, und
-  `POST …/services/adsense.googleapis.com:enable` (Rumpf `{}`, nicht leer —
-  ein leerer Rumpf gibt HTTP 400 „Root element must be a message") schaltet
-  sie frei. Danach `state: ENABLED`, und `ads:adsense-konto` fällt von Exit 70
-  auf **71**. Der Weg steht auch für jede weitere Google-API dieses Projekts
-  offen; ein `gcloud` gibt es weder lokal noch auf der Produktion.
-
-  **Handgriff 2 ist nicht machbar — der Dienstkonto-Weg endet hier**
-  (entschieden 16.10.2026, #58). Die API nimmt das Dienstkonto-Token an und
-  antwortet auf `accounts.list` mit HTTP 200 und **null** Konten — das Konto
-  sieht nichts, was ihm nicht zugeteilt ist. Zugeteilt werden kann es nicht:
-
-  * [Management API, „Authorizing requests"](https://developers.google.com/adsense/management/direct_requests)
-    (Stand der Seite 16.01.2026): *„Note that AdSense doesn't support Service
-    Accounts, instead you must use the Installed Application flow."* und *„All
-    requests to the AdSense Management API must be authorized by an
-    authenticated user."*
-  * [Nutzer hinzufügen](https://support.google.com/adsense/answer/2659101):
-    *„To access your account, users must have a Google Account and can't be
-    linked to another active or closed AdSense account."* Die Einladung wird
-    erst aktiv, wenn der Eingeladene den Link in der E-Mail anklickt und sein
-    Google-Konto mit dem AdSense-Konto verknüpft; sie verfällt nach 30 Tagen.
-
-  Eine `…iam.gserviceaccount.com`-Adresse hat kein Postfach und kann sich nicht
-  interaktiv anmelden, die Einladung bliebe also dauerhaft „Pending". Der
-  Eintrag in der Oberfläche wird deshalb **nicht mehr versucht**; es ist kein
-  Bedienfehler, sondern die Grenze des Wegs. Weiter geht es nur über **#61**
-  (zweiter Anmeldeweg im `AdSenseClient` über ein Refresh-Token eines echten
-  Nutzers, einmal je Netz zu holen). Bis #61 geliefert ist, bleibt
-  `ads:adsense-konto` auf **Exit 71** und §6.2/§6.4 werden in der Oberfläche
-  abgelesen.
-
-  Das Ablesen selbst ist seit #55 eingecheckt und braucht die Oberfläche nicht
-  mehr:
-
-  ```
-  php artisan ads:adsense-konto            # Konten + state je Domain (§6.4)
-  php artisan ads:adsense-konto --report   # zusätzlich Report je Block (§6.2)
-  php artisan ads:adsense-konto --json     # maschinenlesbar
-  ```
-
-  Der Befehl ist rein lesend und deutet seinen Exit-Code selbst:
-  **0** = alle im Netz benutzten Konten lesbar, **70** = API im Cloud-Projekt
-  nicht freigeschaltet (Handgriff 1), **71** = Token gilt, aber ein Konto
-  fehlt dem Dienstkonto (Handgriff 2), **65** = kein Dienstkonto-Schlüssel.
-  `scripts/ads-kontositzung-stand.sh` fährt ihn als Abschnitt **§6.0** mit, vor
-  §6.1 — damit steht am Anfang jedes Anlaufs, ob die zwei Punkte diesmal per
-  API gehen. Die Soll-Liste der Konten baut der Befehl aus
-  `ad_settings.adsense_publisher_id` plus `ADSENSE_PUBLISHER_ID`; ein Konto,
-  das kein Portal benutzt, fällt damit nicht auf.
-* **§6.3 bleibt Handarbeit.** Die v2-API ist lesend, ein `adunits.create` gibt
-  es nicht — neue Anzeigenblöcke entstehen nur in der Oberfläche.
+**Der Rückfallweg über ein Nutzer-Refresh-Token ist am 18.10.2026 auf
+Anweisung von Enes gelöscht worden** (Tickets #55, #58, #61 geschlossen,
+Code aus dem Arbeitsbaum entfernt). Es wird kein OAuth-Client angelegt, kein
+Refresh-Token geholt und kein Dienstkonto in ein AdSense-Konto eingetragen.
+Die vier Punkte der Kontositzung bleiben Handarbeit im Konto, und zwar
+ausschließlich durch Enes selbst (CLAUDE.md § Externe Dienste und Konten).

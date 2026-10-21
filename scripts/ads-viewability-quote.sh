@@ -27,8 +27,14 @@
 # Aufruf:
 #   scripts/ads-viewability-quote.sh            # Stand + Quote, Fenster 7 Tage
 #   scripts/ads-viewability-quote.sh --tage=30  # Fenster 30 Tage
+#   scripts/ads-viewability-quote.sh --ab=2026-10-17  # Fenster ab diesem Tag
 #   scripts/ads-viewability-quote.sh --kurz     # nur der naechste Handgriff
 #   scripts/ads-viewability-quote.sh --stunde   # saubere Zwischenablesung
+#
+# --ab= setzt den Fensteranfang statt einer der beiden Breiten (Ticket #66).
+# Damit ist der erste ganze Tag hinter dem Deploy schon am Folgetag ablesbar,
+# statt auf ein volles 7-Tage-Fenster zu warten. Das Zeitgatter prueft dann
+# dieses Datum; die Grundmenge ist klein, also §13.3 nur mit Vermerk anwenden.
 #
 # --stunde liest die LAUFENDE Stunde direkt aus `ad_impression_buffer`. Das ist
 # die einzige Quote, die vor dem Reifedatum nicht verfaelscht ist — sofern die
@@ -60,14 +66,16 @@ NENNER_AB_UTC="2026-10-16T13:25:00Z"
 NENNER_AB_TAG="2026-10-16"
 
 TAGE=7
+AB=""
 KURZ=0
 STUNDE=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --tage=*) TAGE="${1#*=}"; shift ;;
+    --ab=*) AB="${1#*=}"; shift ;;
     --kurz) KURZ=1; shift ;;
     --stunde) STUNDE=1; shift ;;
-    -h|--help) sed -n '2,43p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '2,44p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "Unbekannte Option: $1" >&2; exit 64 ;;
   esac
 done
@@ -133,7 +141,12 @@ als_app "${PHP_BIN} artisan ads:aggregate-impressions" >/dev/null || true
 PUFFER_B64=$(printf '%s' 'echo (int) DB::table("ad_impression_buffer")->sum("deliveries");' | base64 | tr -d '\n')
 PUFFER=$(als_app "${PHP_BIN} artisan tinker --execute=\"\$(echo ${PUFFER_B64} | base64 -d)\"" | tr -dc '0-9')
 PUFFER="${PUFFER:-0}"
-ZAHLEN=$(als_app "${PHP_BIN} artisan ads:impressionen-abnahme --tage=${TAGE}")
+if [ -n "$AB" ]; then
+  FENSTER_ARG="--ab=${AB}"
+else
+  FENSTER_ARG="--tage=${TAGE}"
+fi
+ZAHLEN=$(als_app "${PHP_BIN} artisan ads:impressionen-abnahme ${FENSTER_ARG}")
 AUSGELIEFERT=$(printf '%s\n' "$ZAHLEN" | sed -n 's/^Ausgeliefert: \([0-9]*\).*/\1/p' | head -1)
 AUSGELIEFERT="${AUSGELIEFERT:-0}"
 if [ "$AUSGELIEFERT" -gt 0 ]; then
@@ -149,17 +162,29 @@ fi
 # Das Fenster beginnt TAGE-1 Tage vor heute. Reif ist es, wenn dieser Anfang
 # nicht mehr vor dem Deploytag liegt.
 HEUTE=$(date -u +%Y-%m-%d)
-FENSTER_AB=$(date -u -d "${HEUTE} -$((TAGE - 1)) days" +%Y-%m-%d 2>/dev/null \
-  || date -u -j -v-$((TAGE - 1))d -f %Y-%m-%d "${HEUTE}" +%Y-%m-%d)
-REIF_AB=$(date -u -d "${NENNER_AB_TAG} +${TAGE} days" +%Y-%m-%d 2>/dev/null \
-  || date -u -j -v+${TAGE}d -f %Y-%m-%d "${NENNER_AB_TAG}" +%Y-%m-%d)
+if [ -n "$AB" ]; then
+  # Mit --ab= steht der Anfang fest. Reif ist er ab dem Folgetag: der
+  # angegebene Tag muss als GANZER Tag vorbei sein, sonst waere es wieder eine
+  # angefangene Grundmenge.
+  FENSTER_AB="$AB"
+  FENSTER_NAME="Fenster ab ${AB}"
+  REIF_AB=$(date -u -d "${NENNER_AB_TAG} +1 days" +%Y-%m-%d 2>/dev/null \
+    || date -u -j -v+1d -f %Y-%m-%d "${NENNER_AB_TAG}" +%Y-%m-%d)
+else
+  FENSTER_AB=$(date -u -d "${HEUTE} -$((TAGE - 1)) days" +%Y-%m-%d 2>/dev/null \
+    || date -u -j -v-$((TAGE - 1))d -f %Y-%m-%d "${HEUTE}" +%Y-%m-%d)
+  FENSTER_NAME="Fenster ${TAGE} Tage"
+  REIF_AB=$(date -u -d "${NENNER_AB_TAG} +${TAGE} days" +%Y-%m-%d 2>/dev/null \
+    || date -u -j -v+${TAGE}d -f %Y-%m-%d "${NENNER_AB_TAG}" +%Y-%m-%d)
+fi
 
 if [ "$FENSTER_AB" \> "$NENNER_AB_TAG" ]; then
   ZEITGATTER=offen
-  zeile ok "Fenster ${TAGE} Tage (ab ${FENSTER_AB}) liegt vollstaendig nach dem Deploy ${NENNER_AB_UTC}"
+  zeile ok "${FENSTER_NAME} (ab ${FENSTER_AB}) liegt vollstaendig nach dem Deploy ${NENNER_AB_UTC}"
+  [ -n "$AB" ] && [ ! "$FENSTER_AB" \< "$HEUTE" ] && zeile unklar "ab ${AB} ist der laufende Tag — erst morgen ist er ein ganzer Tag"
 else
   ZEITGATTER=zu
-  zeile unklar "Fenster ${TAGE} Tage (ab ${FENSTER_AB}) enthaelt noch Tage ohne Nenner — belastbar ab ${REIF_AB}"
+  zeile unklar "${FENSTER_NAME} (ab ${FENSTER_AB}) enthaelt noch Tage ohne Nenner — belastbar ab ${REIF_AB}"
 fi
 
 [ "$KURZ" -eq 1 ] || {
@@ -202,7 +227,9 @@ if [ "$FEHLT" -eq 1 ]; then
 fi
 if [ "$ZEITGATTER" = zu ]; then
   cat <<EOF
-NAECHSTER HANDGRIFF: ab ${REIF_AB} denselben Aufruf wiederholen, dann die Spalte
+NAECHSTER HANDGRIFF: ab ${REIF_AB} denselben Aufruf wiederholen — oder frueher
+mit --ab=<erster ganzer Tag nach dem Deploy> (#66), dann aber mit Vermerk auf
+die kleine Grundmenge. Danach die Spalte
 "Sichtbar" je Anker in docs/ad-slots.md §13.2 eintragen, die Ausgabe nach
 docs/messungen/werbeplaetze-golive/ legen und §13.3 anwenden
 (unter 40 % => Belegung auf paused, ueber 70 % => applies_to_all_tenants).

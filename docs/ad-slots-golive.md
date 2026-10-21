@@ -892,7 +892,13 @@ Eigene Spur, weil sie sieben Tage echte Daten braucht. Stand am 16.10.2026
       448 %, angezeigt **100 %**. Unter §13.3 (über 70 % ⇒
       `applies_to_all_tenants`) würde das jeden Anker netzweit ausrollen.
       `scripts/ads-viewability-quote.sh` rechnet das Reifedatum aus und
-      verweigert bis dahin die Freigabe (Exit 70). Dann: Spalte
+      verweigert bis dahin die Freigabe (Exit 70). **Früher geht es über ein
+      Tagesfenster** (#66): ab dem 18.10.2026 liefert
+      `ads:impressionen-abnahme --ab=2026-10-17` bzw.
+      `scripts/ads-viewability-quote.sh --ab=2026-10-17` einen ganzen Tag, der
+      vollständig hinter dem Deploy liegt. Die Grundmenge ist klein — §13.3
+      darauf nur mit Vermerk anwenden und am vollen Fenster nachprüfen. Dann:
+      Spalte
       „Sichtbar" je Anker in `docs/ad-slots.md` §13.2 eintragen, die Ausgabe
       nach `docs/messungen/werbeplaetze-golive/` legen und §13.3 je Anker
       anwenden (unter 40 % ⇒ Belegung auf `paused`, über 70 % ⇒
@@ -927,7 +933,9 @@ Eigene Spur, weil sie sieben Tage echte Daten braucht. Stand am 16.10.2026
       ```
 
       Das Kommando zeigt zusätzlich **Tage mit Daten im Fenster** — darüber ist
-      die Reife des Siebentagefensters ablesbar, ohne zu rechnen.
+      die Reife des Siebentagefensters ablesbar, ohne zu rechnen. Ein Fenster,
+      das vollständig hinter einem Deploy liegen muss, setzt man mit
+      `--ab=YYYY-MM-DD` statt `--tage=` (#66).
 - [ ] **Siebentagefenster: Tag 0 = 16.10.2026, reif am 23.10.2026.** Dann einmal
       `artisan ads:impressionen-abnahme` fahren (Erwartung: „Tage mit Daten im
       Fenster: 7 von 7"), die Ausgabe nach

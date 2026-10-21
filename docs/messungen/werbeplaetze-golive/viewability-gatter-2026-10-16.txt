@@ -1,0 +1,107 @@
+Gatterlauf zur Viewability-Quote — Ticket #65, Schritt 4 aus #52
+Aufruf:  scripts/ads-viewability-quote.sh --tage=7
+Datum:   16.10.2026, 14:33 UTC (Produktion, nur lesend + ads:aggregate-impressions)
+Ergebnis: Exit 70 — Fenster noch nicht reif, Quote NICHT ablesbar.
+
+Warum dieser Lauf hier liegt: er belegt, dass die drei Vorbedingungen aus
+docs/ad-slots-golive.md §6.3 auf der Produktion stehen (Migrationen 000009 und
+000010 gelaufen, gebautes Bundle kennt `delivered`, 156 ausgelieferte Fragmente
+im Fenster plus 345 im Stundenpuffer) und dass allein das Zeitgatter sperrt.
+Die Spalte "Sichtbar" zeigt deshalb durchgaengig gekappte 100 % bei
+"Tage mit Daten im Fenster: 1 von 7" — genau der Fall aus docs/ad-slots.md
+§13.3, vorletzter Absatz. Nach §13.3 waere das ein netzweiter Rollout jedes
+Ankers; darum wird hier nichts entschieden und nichts in §13.2 eingetragen.
+
+Naechster Aufruf: ab 23.10.2026 (--tage=7). Faellt vorher die 7/30-Begrenzung
+am Kommando (#66), ist ein ganzes Fenster schon ab 18.10.2026 ablesbar.
+
+Nebenbefund Portal 37 (Geruestabauer.GmbH), mitgenommen aus #52: 8 Sichtkontakte
+bei 0 ausgelieferten Fragmenten. Im Tagesaggregat des 16.10. ist das noch
+erklaerbar — der Tag enthaelt die Stunden vor dem Deploy des Nenners (13:25 UTC),
+und aus denen gibt es Sichtkontakte ohne Nenner. Belastbar ist der Befund erst
+am reifen Fenster; faellt er dort wieder auf, gehoert er in ein eigenes Ticket.
+
+-- Rohausgabe --
+
+Nenner der Viewability-Quote — Stand 16.10.2026 14:33 UTC
+Checkliste: docs/ad-slots-golive.md §6.3   Regel: docs/ad-slots.md §13.3
+
+  [x] Migrationen 000009 (#44) und 000010 (#47) sind auf der Central-DB gelaufen
+  [x] gebautes Bundle kennt die Meldung delivered (stats-beacon-VUDL5YMK.js)
+  [x] Nenner laeuft: 156 ausgelieferte Fragmente im Fenster (Puffer der laufenden Stunde: 345)
+  [?] Fenster 7 Tage (ab 2026-10-10) enthaelt noch Tage ohne Nenner — belastbar ab 2026-10-23
+
+
+   INFO  7 Tage ab 2026-10-10 — alle Portale.  
+
+Sichtkontakte: 699 (mobil 518, desktop 181)
+Ausgeliefert: 156 — Viewability-Quote: 100 %
+Tage mit Daten im Fenster: 1 von 7
++---------------------------------------+---------------------------+-------+---------+---------------+--------------+----------+--------------+
+| Anker                                 | Schluessel                | Mobil | Desktop | Sichtkontakte | Ausgeliefert | Sichtbar | Anteil mobil |
++---------------------------------------+---------------------------+-------+---------+---------------+--------------+----------+--------------+
+| Profil · unter der Kopf-Karte (mobil) | company_after_header_card | 349   | 0       | 349           | 81           | 100 %    | 100 %        |
+| Profil · nach den Bewertungen         | company_after_reviews     | 97    | 29      | 126           | 28           | 100 %    | 77 %         |
+| Profil · Seitenspalte, oben           | company_sidebar_top       | 0     | 97      | 97            | 12           | 100 %    | 0 %          |
+| Profil · über der Fußzeile            | company_before_footer     | 47    | 11      | 58            | 22           | 100 %    | 81 %         |
+| Profil · Seitenspalte, klebend        | company_sidebar_sticky    | 0     | 37      | 37            | 10           | 100 %    | 0 %          |
+| Profil · nach "Über uns"              | company_after_about       | 25    | 7       | 32            | 3            | 100 %    | 78 %         |
++---------------------------------------+---------------------------+-------+---------+---------------+--------------+----------+--------------+
++-----------+-------------------------------+-------+---------+---------------+--------------+----------+
+| Portal-Id | Portal                        | Mobil | Desktop | Sichtkontakte | Ausgeliefert | Sichtbar |
++-----------+-------------------------------+-------+---------+---------------+--------------+----------+
+| 52        | Unfallchirurgie in der Nähe   | 115   | 48      | 163           | 43           | 100 %    |
+| 53        | Zahnarzt in der Nähe          | 59    | 24      | 83            | 19           | 100 %    |
+| 44        | kfzwerkstatt                  | 53    | 20      | 73            | 6            | 100 %    |
+| 47        | Gartenbauer                   | 49    | 15      | 64            | 18           | 100 %    |
+| 29        | FahrschuleFinder              | 50    | 11      | 61            | 14           | 100 %    |
+| 56        | ArztFinder                    | 53    | 3       | 56            | 10           | 100 %    |
+| 33        | Malerfinder.de                | 30    | 21      | 51            | 13           | 100 %    |
+| 27        | BodenlegerFinden              | 23    | 6       | 29            | 4            | 100 %    |
+| 24        | Hoch-  und Tiefbauunternehmen | 18    | 9       | 27            | 8            | 100 %    |
+| 38        | Metallbauer.io                | 21    | 5       | 26            | 5            | 100 %    |
+| 46        | Fliesenleger                  | 18    | 6       | 24            | 10           | 100 %    |
+| 50        | ApothekeFinden                | 15    | 7       | 22            | 5            | 100 %    |
+| 45        | FindeGutachter                | 7     | 5       | 12            | 1            | 100 %    |
+| 37        | Gerüstabauer.GmbH             | 7     | 1       | 8             | 0            | —        |
++-----------+-------------------------------+-------+---------+---------------+--------------+----------+
+
+Quelle: ad_impression_daily, identisch zum Widget "Werbeplaetze — eigene Impressionen" (bis zu 60 s gecacht).
+
+NAECHSTER HANDGRIFF: ab 2026-10-23 denselben Aufruf wiederholen, dann die Spalte
+"Sichtbar" je Anker in docs/ad-slots.md §13.2 eintragen, die Ausgabe nach
+docs/messungen/werbeplaetze-golive/ legen und §13.3 anwenden
+(unter 40 % => Belegung auf paused, ueber 70 % => applies_to_all_tenants).
+Bis dahin ist jede abgelesene Quote ZU HOCH (gekappt auf 100 %): das Fenster
+enthaelt Tage, an denen nur Sichtkontakte gezaehlt wurden — die stehen im
+Zaehler, ihr Nenner fehlt.
+
+-- Nachtrag 16.10.2026, 14:38 UTC: Gegenprobe des Wiederholungslaufs --
+
+Zwei weitere Laeufe am selben Tag, nachdem #66 (freier Fensteranfang) im
+Arbeitsbaum fertig war:
+
+1) scripts/ads-viewability-quote.sh --tage=7   → Exit 70, unveraendertes Bild:
+   699 Sichtkontakte zu 156 ausgelieferten Fragmenten, "Tage mit Daten im
+   Fenster: 1 von 7", Spalte "Sichtbar" durchgehend gekappte 100 %.
+   Stundenpuffer inzwischen 381 (14:37 UTC) bzw. 399 (14:38 UTC) — die Kette
+   Browser -> Beacon -> Puffer zaehlt weiter.
+
+2) scripts/ads-viewability-quote.sh --ab=2026-10-16  → Exit 70, aber aus einem
+   ANDEREN Grund als gedacht:
+
+       The "--ab" option does not exist.
+
+   Der freie Fensteranfang aus #66 liegt nur im lokalen Arbeitsbaum
+   (app/Console/Commands/AdsImpressionAbnahmeCommand.php und
+   scripts/ads-viewability-quote.sh sind in `git status` als M, kein Commit).
+   Auf der Produktion laeuft die Fassung, die nur --tage=7|30 kennt. Damit ist
+   der in #65 genannte fruehere Reifetag 18.10.2026 NICHT erreichbar; es bleibt
+   der 23.10.2026. Festgehalten in Ticket #67.
+
+   Nebenbefund dazu: das Skript faellt bei diesem Fehler still auf den
+   Stundenpuffer zurueck ("Nenner laeuft: 399 … im Stundenpuffer"), statt die
+   fehlende Vorbedingung zu melden — eine Ablesung ueber --ab sieht deshalb
+   nicht wie ein Fehlschlag aus, obwohl sie keine Zahlen liefert. Auch in #67.
+
+Unveraendert: in §13.2 ist nichts eingetragen und keine Belegung umgeschaltet.

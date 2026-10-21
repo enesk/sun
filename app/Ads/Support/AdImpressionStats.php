@@ -37,19 +37,56 @@ final class AdImpressionStats
     public static function summary(?int $tenantId, int $days): array
     {
         $days = in_array($days, self::WINDOWS, true) ? $days : self::WINDOWS[0];
-        $schluessel = 'ads:impressions:summary:'.($tenantId ?? 'all').':'.$days;
 
-        return Cache::remember($schluessel, self::CACHE_SECONDS, fn (): array => self::build($tenantId, $days));
+        // Heute mitgezaehlt: 7 Tage sind der laufende plus sechs davor.
+        $from = Carbon::now()->subDays($days - 1)->startOfDay();
+
+        return self::cached($tenantId, $from, $days, 'ads:impressions:summary:'.($tenantId ?? 'all').':'.$days);
+    }
+
+    /**
+     * Wie {@see self::summary()}, nur mit frei gesetztem Fensteranfang statt
+     * einer der beiden Breiten aus {@see self::WINDOWS} (Ticket #66).
+     *
+     * Gebraucht wird das, wenn ein Zeitraum vollstaendig hinter einem
+     * bestimmten Ereignis liegen muss — etwa hinter dem Deploy des Nenners der
+     * Viewability-Quote: ein 7-Tage-Fenster enthaelt dann noch Tage ohne
+     * Nenner und liefert eine zu hohe Quote. Das Widget bietet diesen Weg
+     * nicht an und bleibt bei WINDOWS; er steht nur am Kommando
+     * `ads:impressionen-abnahme --ab=`.
+     *
+     * @return array{days: int, from: string, total: int, mobile: int, desktop: int, delivered: int, viewability: int|null, slots: list<array{slot_key: string, label: string, mobile: int, desktop: int, total: int, delivered: int, viewability: int|null}>, portals: list<array{tenant_id: int, name: string, mobile: int, desktop: int, total: int, delivered: int, viewability: int|null}>}
+     */
+    public static function summarySince(?int $tenantId, Carbon $from): array
+    {
+        $von = $from->copy()->startOfDay();
+        $days = max(1, (int) $von->diffInDays(Carbon::now()->startOfDay()) + 1);
+
+        return self::cached(
+            $tenantId,
+            $von,
+            $days,
+            'ads:impressions:summary:'.($tenantId ?? 'all').':ab:'.$von->toDateString(),
+        );
     }
 
     /**
      * @return array{days: int, from: string, total: int, mobile: int, desktop: int, delivered: int, viewability: int|null, slots: list<array{slot_key: string, label: string, mobile: int, desktop: int, total: int, delivered: int, viewability: int|null}>, portals: list<array{tenant_id: int, name: string, mobile: int, desktop: int, total: int, delivered: int, viewability: int|null}>}
      */
-    private static function build(?int $tenantId, int $days): array
+    private static function cached(?int $tenantId, Carbon $from, int $days, string $schluessel): array
     {
-        // Heute mitgezaehlt: 7 Tage sind der laufende plus sechs davor.
-        $from = Carbon::now()->subDays($days - 1)->toDateString();
+        return Cache::remember(
+            $schluessel,
+            self::CACHE_SECONDS,
+            fn (): array => self::build($tenantId, $from->toDateString(), $days),
+        );
+    }
 
+    /**
+     * @return array{days: int, from: string, total: int, mobile: int, desktop: int, delivered: int, viewability: int|null, slots: list<array{slot_key: string, label: string, mobile: int, desktop: int, total: int, delivered: int, viewability: int|null}>, portals: list<array{tenant_id: int, name: string, mobile: int, desktop: int, total: int, delivered: int, viewability: int|null}>}
+     */
+    private static function build(?int $tenantId, string $from, int $days): array
+    {
         $slots = self::grouped($tenantId, $from, 'slot_key');
         $portals = $tenantId === null ? self::grouped(null, $from, 'tenant_id') : [];
         $namen = $tenantId === null && $portals !== []

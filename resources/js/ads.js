@@ -97,6 +97,26 @@ function initAutoAds() {
         return;
     }
 
+    /*
+     * Traegt der Loader `?client=ca-pub-…` im src, schaltet er Auto Ads
+     * selbst ein — das ist die heutige Form des Google-Schnipsels. Ein
+     * zusaetzliches `enable_page_level_ads` ist dann die ZWEITE Einschaltung
+     * auf derselben Seite, und Google wirft
+     *
+     *     Uncaught TagError: adsbygoogle.push() error:
+     *     Only one 'enable_page_level_ads' allowed per page.
+     *
+     * Dabei verfaellt der ganze push, also auch `overlays: {bottom: false}`.
+     * Der Loader kommt in dieser Form von <x-sun.auto-ads> und von jedem
+     * belegten Anker (AdSenseProvider), ausserdem steckt er im gespeicherten
+     * Code der Alt-Slots — auf einer Seite mit Werbung ist er praktisch
+     * immer da. Gepusht wird deshalb nur, wenn kein Loader mit `client`
+     * im Dokument steht.
+     */
+    if (document.querySelector('script[src*="adsbygoogle.js"][src*="client="]') !== null) {
+        return;
+    }
+
     (window.adsbygoogle = window.adsbygoogle || []).push({
         google_ad_client: client,
         enable_page_level_ads: true,

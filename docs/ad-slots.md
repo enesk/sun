@@ -2416,8 +2416,16 @@ noch kontogebunden sind Klickrate und RPM.
 echter Verkehr meldet `event=delivered`. Die Spalte „Viewability-Quote" unten
 bleibt bis zum **23.10.2026** leer — jedes frühere Siebentagefenster enthält
 Tage ohne Nenner und zeigt die Quote **zu hoch**, gekappt auf 100 %
-(§13.3, vorletzter Absatz).
-Stand und Quote in einem Aufruf: `scripts/ads-viewability-quote.sh`.
+(§13.3, vorletzter Absatz). Ein erster sauberer Wert ist schon ab dem
+**18.10.2026** ablesbar: `--ab=2026-10-17` (#66) nimmt den ersten ganzen Tag
+hinter dem Deploy als Fenster — kleine Grundmenge, also nur mit Vermerk.
+Stand und Quote in einem Aufruf: `scripts/ads-viewability-quote.sh`
+(auch mit `--ab=`).
+Dass das Gatter wirklich sperrt und woran es sperrt, ist belegt: Lauf vom
+16.10.2026 mit **Exit 70** in
+`docs/messungen/werbeplaetze-golive/viewability-gatter-2026-10-16.txt` — alle
+drei Vorbedingungen aus §6.3 erfüllt, Quote trotzdem durchgehend gekappte
+100 % bei „Tage mit Daten im Fenster: 1 von 7“ (#65).
 
 **Erste unverfälschte Ablesung, 16.10.2026, Stunde 14:00 UTC** (#52): 68 % über
 alle Anker (201 / 294), je Anker 37–70 % bei einem Ausreißer
@@ -2482,8 +2490,13 @@ ausgelieferte Fragmente, rechnerisch 448 %, angezeigt 100 %. Unter der Regel
 „über 70 % ⇒ `applies_to_all_tenants`" würde das jeden Anker netzweit
 ausrollen. Darum erst ab dem 23.10.2026 (7 Tage) bzw. 15.11.2026 (30 Tage)
 nach §13.3 entscheiden; `scripts/ads-viewability-quote.sh` rechnet das Datum
-aus und verweigert vorher die Freigabe (Exit 70). Eine glatte 100 % ist auch
-später ein Grund, „Tage mit Daten im Fenster" gegenzulesen.
+aus und verweigert vorher die Freigabe (Exit 70). Wer früher entscheiden muss,
+nimmt mit `--ab=` ein Fenster, das vollständig hinter dem Deploy liegt (#66) —
+ab dem 18.10.2026 ist das der 17.10. als ganzer Tag. Die Grundmenge eines
+Tagesfensters ist klein; die Entscheidung nach §13.3 bekommt dann einen Vermerk
+auf die Fensterbreite und wird am vollen Siebentagefenster nachgeprüft. Eine
+glatte 100 % ist auch später ein Grund, „Tage mit Daten im Fenster"
+gegenzulesen.
 
 * **Viewability unter 40 %** ⇒ Anker abschalten, nicht „laufen lassen". Er
   kostet Ladezeit, erzeugt Requests an Google und verwässert den Kontowert.
@@ -2776,11 +2789,21 @@ Ohne Browser auslesen — dieselbe Quelle wie das Widget, nur Lesezugriff:
 php artisan ads:impressionen-abnahme                     # beide Fenster, alle Portale
 php artisan ads:impressionen-abnahme --tenant=52         # wie der Dashboard-Filter
 php artisan ads:impressionen-abnahme --tenant=52 --tage=7 --adsense=1234
+php artisan ads:impressionen-abnahme --ab=2026-10-17         # Fenster ab diesem Tag
 ```
 
 Das Kommando zeigt zusätzlich **Tage mit Daten im Fenster** (Reife des
 Siebentagefensters) und rechnet mit `--adsense=` die Abweichung zum Report:
 über **Faktor 2** meldet es „Befund" und endet mit Fehlercode.
+
+`--tage=` kennt nur die beiden Breiten des Widgets (7 und 30). Muss ein Fenster
+vollständig **hinter** einem Ereignis liegen und trifft keine der beiden das —
+nach dem Deploy des Nenners am 16.10.2026 enthielt auch `--tage=7` noch sechs
+Tage ohne Nenner —, setzt `--ab=YYYY-MM-DD` den Anfang direkt (Ticket #66).
+`--ab` und `--tage` schließen sich aus. Bei weniger als sieben Tagen warnt das
+Kommando: die Grundmenge ist klein, eine Entscheidung nach §13.3 bekommt dann
+einen Vermerk auf die Fensterbreite. Das Widget bleibt unberührt und schaltet
+weiter nur zwischen 7 und 30 Tagen um.
 
 Messprotokoll:
 `docs/messungen/werbeplaetze-golive/impression-abnahme-2026-10-16.txt`,

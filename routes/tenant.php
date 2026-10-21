@@ -53,6 +53,7 @@ use App\Http\Controllers\Verwaltung\VerwaltungTransactionController;
 use App\Http\Controllers\Verwaltung\VerwaltungUserController;
 use App\Http\Middleware\EnsureHasCompany;
 use App\Http\Middleware\EnsureTenantDashboardAccess;
+use App\Http\Middleware\GoneUrls;
 use App\Http\Middleware\TrackCompanyPageView;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -174,9 +175,12 @@ Route::middleware([
 // Rahmen — fremdes Markup soll nichts vom Portal erreichen. Die Antwort setzt
 // ihre eigene CSP (`sandbox …; frame-ancestors 'self'`), der iframe traegt
 // dieselbe Sandbox zusaetzlich als Attribut. Siehe docs/ad-slots.md 5.2.
+// `universal` wie beim Beacon: auf der zentralen Domain laeuft ein Portal,
+// und ein 404 hier haette dort jedes eigene HTML-Werbemittel leer gelassen.
+// Die Werbemittel stehen zentral, der Controller braucht keinen Tenant.
 Route::middleware([
+    'universal',
     App\Providers\TenancyServiceProvider::TENANCY_INITIALIZER,
-    Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
     // SubstituteBindings steckt sonst in der 'web'-Gruppe; ohne sie bekaeme
     // der Controller ein leeres AdUnit-Model statt des gesuchten.
     Illuminate\Routing\Middleware\SubstituteBindings::class,
@@ -205,9 +209,17 @@ Route::middleware([
 // die Cloudflare-Edge — ein Eimer fuer viele Besucher (Review #39, Befund S3).
 // Wichtig bleibt: ein 429 verliert Impressionen unsichtbar, weil sendBeacon
 // keine Antwort auswertet. Wer das Limit senkt, verliert also still Zahlen.
+//
+// `universal` statt PreventAccessFromCentralDomains: die zentrale Domain
+// `sanitaerfinden.com` ist gleichzeitig ein ausgeliefertes Portal (Tenant 28).
+// PreventAccessFromCentralDomains hat den Beacon dort mit 404 abgewiesen —
+// und weil sendBeacon keine Antwort auswertet, fielen die Impressionen dieses
+// einen Portals still aus. Die Seitenrouten weiter oben fahren aus demselben
+// Grund `universal`. Der Controller prueft selbst auf einen Tenant und
+// antwortet ohne ihn mit 204, im zentralen Kontext wird also nichts gezaehlt.
 Route::middleware([
+    'universal',
     App\Providers\TenancyServiceProvider::TENANCY_INITIALIZER,
-    Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
     'throttle:60,1',
 ])->group(function () {
     Route::post('/_ads/impressions', App\Ads\Http\Controllers\AdImpressionController::class)
@@ -553,14 +565,20 @@ Route::middleware([
     ])->name('tenant.subscription.change-plan.thank-you')->middleware('auth');
 
     // Firmen-Detailseite: /{citySlug}/{id}-{slug} (konfigurierbar pro Tenant)
+    //
+    // GoneUrls vor TrackCompanyPageView: eine geloeschte Profil-URL (SUN-RQ #8)
+    // liefert 410 und darf gar nicht erst als Seitenaufruf gezaehlt werden.
+    // Die Middleware steht hier an der Route und nicht in der 'web'-Gruppe,
+    // weil sie den Tenant braucht — der Initializer dieser Gruppe laeuft vor
+    // den Route-Middlewares, vor der Gruppe gaebe es noch kein Portal.
     Route::get('/{citySlug}/{companySlug}', [CompanyController::class, 'showWithCity'])
-        ->middleware(TrackCompanyPageView::class)
+        ->middleware([GoneUrls::class, TrackCompanyPageView::class])
         ->where(['citySlug' => '[a-z0-9\-]+', 'companySlug' => '\d+-.+'])
         ->name('portal.companies.show.city');
 
     // Firmen-Detailseite: /{id}-{slug} (Default, muss LETZTE Route sein)
     Route::get('/{companySlug}', [CompanyController::class, 'show'])
-        ->middleware(TrackCompanyPageView::class)
+        ->middleware([GoneUrls::class, TrackCompanyPageView::class])
         ->where('companySlug', '\d+-.+')
         ->name('portal.companies.show');
 });
