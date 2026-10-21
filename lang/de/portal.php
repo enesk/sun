@@ -1068,9 +1068,13 @@ return [
         'toc' => 'Inhalt',
         'toc_sidebar_label' => 'Inhalt (Seitenleiste)',
         'toc_sidebar' => 'Auf dieser Seite',
-        'report' => 'Inhalt melden',
-        'report_heading' => 'Fehlerhaften Eintrag melden',
-        'report_text' => 'Stimmt eine Angabe zu deinem Betrieb nicht oder soll ein Eintrag entfernt werden? Schreib uns – wir kümmern uns in der Regel innerhalb von zwei Werktagen.',
+        // Kein mailto mehr: Aenderungs- und Loeschwuensche gehen ueber das
+        // Formular am Eintrag, damit sie in der zentralen Inbox ankommen und
+        // dem Eintrag zugeordnet werden koennen. Eine E-Mail laesst sich nicht
+        // zuordnen und erreicht die Bearbeitung nicht (#17).
+        'report' => 'Betrieb suchen',
+        'report_heading' => 'Eintrag ändern oder löschen lassen',
+        'report_text' => 'Stimmt eine Angabe zu Ihrem Betrieb nicht oder soll der Eintrag entfernt werden? Öffnen Sie die Seite Ihres Betriebs — dort finden Sie unter „Sie sind Inhaber?" die Schaltflächen „Eintrag ändern" und „löschen". Nur auf diesem Weg wird Ihr Anliegen vollständig erfasst und dem richtigen Eintrag zugeordnet; wir melden uns in der Regel innerhalb von zwei Werktagen.',
         'pending' => 'Dieser Text wird noch eingerichtet.',
     ],
 

@@ -9,9 +9,15 @@
     ziehen oder abgeschnitten zu werden (#18).
 --}}
 @php
+    use Illuminate\Support\Facades\Route;
+
     $sections = $legal['sections'];
     $supportEmail = $legal['contact']['email'];
-    $reportUrl = $supportEmail !== '' ? 'mailto:'.$supportEmail.'?subject='.rawurlencode(__('portal.legal.report')) : null;
+    // Bewusst kein mailto (#17): Aenderungs- und Loeschwuensche gehen ueber das
+    // Formular am Eintrag, damit sie in der zentralen Inbox ankommen und dem
+    // Eintrag zugeordnet werden koennen. Der Knopf fuehrt deshalb in die
+    // Firmensuche, von dort auf den Eintrag und dort zum Dialog.
+    $reportUrl = Route::has('portal.companies.index') ? route('portal.companies.index') : null;
     $prose = 'mt-3 [&_p]:mt-3 [&_p:first-child]:mt-0 [&_a]:text-brand [&_a]:break-words [&_a:hover]:underline [&_strong]:font-semibold [&_strong]:text-zinc-900 [&_ul]:mt-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:mt-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mt-1 [&_h3]:mt-5 [&_h3]:font-semibold [&_h3]:text-zinc-900 [&_table]:mt-3 [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_td]:py-1 [&_td]:pr-4';
 @endphp
 <div class="container-portal pt-6 pb-12 md:pb-16">
@@ -69,18 +75,30 @@
         @endif
 
         @forelse($sections as $section)
+          @php
+              // Der Kasten steht im Abschnitt "Kontakt" und dort **vor** den
+              // Kontaktdaten (#17): Wer eine Aenderung oder Loeschung will,
+              // soll den Weg ueber den Eintrag sehen, bevor er die
+              // E-Mail-Adresse abschreibt. Eine Mail laesst sich keinem
+              // Eintrag zuordnen und erreicht die Bearbeitung nicht.
+              $zeigtHinweis = $reportUrl
+                  && ! isset($reportShown)
+                  && str_starts_with(mb_strtolower($section['title']), 'kontakt');
+          @endphp
+
           <section class="py-6 first:pt-0 last:pb-0" id="{{ $section['id'] }}" style="scroll-margin-top:6rem">
             <h2 class="text-2xl font-semibold text-zinc-900">{{ $section['title'] }}</h2>
-            <div class="{{ $prose }}">{!! $section['html'] !!}</div>
 
-            @if($reportUrl && str_starts_with(mb_strtolower($section['title']), 'haftung') && ! isset($reportShown))
+            @if($zeigtHinweis)
               @php($reportShown = true)
-              <div class="mt-5 rounded-2xl bg-brand-50 p-5">
+              <div class="mt-4 rounded-2xl bg-brand-50 p-5">
                 <p class="font-semibold text-zinc-900">{{ __('portal.legal.report_heading') }}</p>
                 <p class="mt-1">{{ __('portal.legal.report_text') }}</p>
                 <a href="{{ $reportUrl }}" class="mt-4 btn-secondary">{{ __('portal.legal.report') }}</a>
               </div>
             @endif
+
+            <div class="{{ $prose }}">{!! $section['html'] !!}</div>
           </section>
         @empty
           @if($legal['intro'] === '')
@@ -93,9 +111,6 @@
         @foreach($footerLinks as [$label, $url])
           <a href="{{ $url }}" class="text-brand hover:underline">{{ $label }}</a>
         @endforeach
-        @if($reportUrl)
-          <a href="{{ $reportUrl }}" class="text-brand hover:underline">{{ __('portal.legal.report') }}</a>
-        @endif
       </div>
     </article>
 
