@@ -333,6 +333,18 @@ IMPRESSUM_HTML;
         <strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. a DSGVO (Einwilligung).<br />
         Sie können Ihre Einwilligung jederzeit über den Cookie-Banner widerrufen.
     </p>
+    <p>
+        <strong>Consent Mode:</strong> Wir setzen Google Analytics im sogenannten Consent Mode ein.
+        Solange Sie keine Einwilligung erteilt haben, werden keine Cookies gesetzt und keine
+        Nutzerkennungen gespeichert. In diesem Zustand übermittelt der Dienst lediglich pseudonyme,
+        cookielose Messwerte an Google (Aufruf einer Seite, Zeitpunkt, gekürzte IP-Adresse,
+        Einwilligungsstatus), ohne dass einzelne Nutzer wiedererkannt werden. Google nutzt diese
+        Werte, um fehlende Daten statistisch zu modellieren. Rechtsgrundlage ist unser berechtigtes
+        Interesse an einer reichweitenbezogenen Auswertung unseres Angebots
+        (Art. 6 Abs. 1 lit. f DSGVO). Erst nach Ihrer Einwilligung (Art. 6 Abs. 1 lit. a DSGVO,
+        § 25 Abs. 1 TDDDG) werden Cookies gesetzt und das vollständige Tracking aktiviert. Sie
+        können Ihre Einwilligung jederzeit über die Cookie-Einstellungen widerrufen.
+    </p>
 
     <h2>9. Kontaktaufnahme</h2>
     <p>

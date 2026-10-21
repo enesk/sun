@@ -19,12 +19,13 @@ use Symfony\Component\HttpFoundation\Response;
  * config/turnstile.php, das Leadsystem aus config/leads.php und der
  * Vite-Dev-Server aus dem laufenden `npm run dev`.
  *
- * Inline-Skripte werden nicht erlaubt. Die Themes liefern seit #21 keine aus;
- * die Logik liegt in Modulen unter resources/js/ bzw. im Theme-JS und haengt an
- * data-Attributen (docs/turnstile.md Abschnitt 14). Einzige Ausnahme ist
- * fremdes HTML aus der Verwaltung — Werbe-Schnipsel und
- * config('app.tracking_scripts') —, das das Nonce des Requests bekommt
- * (App\Services\Security\CspNonce).
+ * Inline-Skripte werden nicht erlaubt. Die Logik liegt in Modulen unter
+ * resources/js/ bzw. im Theme-JS und haengt an data-Attributen
+ * (docs/turnstile.md Abschnitt 14). Ausnahmen tragen das Nonce des Requests
+ * (App\Services\Security\CspNonce): fremdes HTML aus der Verwaltung —
+ * Werbe-Schnipsel und config('app.tracking_scripts') — und der GA4-Block aus
+ * components/analytics-meta.blade.php, dessen Reihenfolge im <head>
+ * (Consent-Default vor gtag.js) feststehen muss.
  *
  * Vorgabe ist `mode => enforce`. `report` meldet nur, `off` setzt nichts.
  *
