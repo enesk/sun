@@ -72,3 +72,35 @@ Desktop liegt keine CLS- und keine LCP-Messung vor.
 * Keine Messung des Desktop-Falls (siehe Nachtrag).
 * Keine Feldwerte. Der Anker ist auf der Produktion noch nicht vorhanden —
   Einchecken und Deploy laufen über #69, belegt wird im Panel von Enes.
+
+## Deploy und Gegenprobe auf der Produktion — 18.10.2026 (#69)
+
+Codestand `03ae4fb8`, gezogen als `sanitaerfinden` (nicht als root), sechs
+Dateien. Vorher musste das Eigentum im `.git` gerichtet werden: 66 Objekte
+gehörten root und blockierten den Pull des Anwendungsnutzers
+(`insufficient permission for adding an object`). `chown -R` lief deshalb
+**ausschliesslich über `.git`** — nicht über `storage/tenant*/` (#59).
+
+Keine Migration in dieser Änderung, `migrate:status` meldet **0 Pending**.
+Kein Asset-Abgleich nötig: ein Neubau aus demselben Stand liefert die vier
+`app-*`-Bundles prüfsummengleich zur Produktion.
+
+Danach `config:clear`, `view:clear`, `config:cache`,
+`filament:cache-components` (#64) und FPM-Reload.
+
+| Prüfung | Ergebnis |
+|---|---|
+| `ads:golive:check` | **0 FAIL**, 20 WARN, Exit 0 — Beleg `golive-check-2026-10-18-nach-68.txt` |
+| `ads:anker-bericht` | der neue Key kommt dort **nicht** vor, also nicht als stumm |
+| Katalog auf der Produktion | `company_before_header_card all 280/250`, erster Anker des Firmenprofils |
+| Firmenprofil mobil (iPhone-Kennung) | HTTP 200, Anker-Kommentar vorhanden, **vor** der Kopf-Karte |
+| Firmenprofil Desktop | HTTP 200, Anker-Kommentar vorhanden |
+
+**Zur Erwartung „reserviert seine Höhe, auch unbelegt" aus #69:** so arbeitet
+die Komponente nicht. Ohne Belegung steht an der Stelle **nur** der
+HTML-Kommentar — der Editor-Modus findet daran die Position, und ein Kommentar
+hat keine Geometrie. Container und Höhenreservierung entstehen erst mit einer
+Belegung; das ist Absicht, damit ein leerer Anker das Layout nicht verändert
+(siehe Kopfkommentar in `components/sun/ad-slot.blade.php`). Die Reservierung
+280/250 ist im Katalog der Produktion hinterlegt und greift, sobald Enes den
+Platz im Panel belegt.
