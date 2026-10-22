@@ -11,9 +11,12 @@ use App\Models\Tenant;
 use App\ProfileRequests\Enums\RequestSource;
 use App\ProfileRequests\Enums\RequestStatus;
 use App\ProfileRequests\Enums\RequestType;
+use App\ProfileRequests\Jobs\ClassifyRequest;
 use App\ProfileRequests\Models\ProfileRequest;
 use App\ProfileRequests\Support\TenantCompanyResolver;
 use BackedEnum;
+use Filament\Actions\Action;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
@@ -212,10 +215,51 @@ class ProfileRequestResource extends Resource
                     ),
             ])
             ->recordUrl(fn (ProfileRequest $record): string => ViewProfileRequest::getUrl(['record' => $record]))
-            ->recordActions([])
+            ->recordActions([
+                self::reclassifyAction(),
+            ])
             ->toolbarActions([])
             ->emptyStateHeading(__('Keine Anfragen'))
             ->emptyStateDescription(__('Hier stehen die Änderungs-, Lösch- und Übernahmeanfragen aller Portale.'));
+    }
+
+    /**
+     * „Von Claude einlesen" — je Vorgang einzeln.
+     *
+     * Nötig für alles, was ohne KI-Lauf in die Inbox kam: der übernommene
+     * Altbestand (#16) liegt auf `classified`, und `ClassifyRequest` steigt
+     * bei allem außer `new` aus, weil der Automat `CLASSIFIED ->
+     * CLASSIFIED` nicht kennt. Mit `erneut: true` läuft die Klassifikation
+     * trotzdem und schreibt nur die Vorschlagsfelder, ohne den Status zu
+     * bewegen.
+     *
+     * `verify: false` ist Absicht: der Lauf darf keinen Magic-Link an einen
+     * Betrieb schicken, dessen Anfrage Monate alt ist.
+     *
+     * Der Knopf steht an jeder Zeile und auf der Detailseite. Sichtbar nur
+     * bei offenen Vorgängen — ein entschiedener Vorgang braucht keinen
+     * neuen Vorschlag.
+     */
+    public static function reclassifyAction(): Action
+    {
+        return Action::make('neu_einlesen')
+            ->label(__('Von Claude einlesen'))
+            ->icon('heroicon-m-sparkles')
+            ->color('gray')
+            ->visible(fn (ProfileRequest $record): bool => $record->status->isOpen())
+            ->requiresConfirmation()
+            ->modalHeading(__('Vorgang von Claude einlesen lassen?'))
+            ->modalDescription(__('Claude liest Nachricht und Anhänge, schlägt Typ, Betrieb und einen Antwortentwurf vor und legt einen Diff an, wo er einen erkennt. Das kostet einen Aufruf und dauert einen Augenblick. Es geht keine E-Mail an den Betrieb. Schon gesetzte Zuordnungen und bereits entschiedene Diff-Zeilen bleiben unberührt.'))
+            ->modalSubmitActionLabel(__('Einlesen'))
+            ->action(function (ProfileRequest $record): void {
+                ClassifyRequest::dispatch($record->getKey(), verify: false, erneut: true);
+
+                Notification::make()
+                    ->title(__('Claude liest den Vorgang ein'))
+                    ->body(__('Der Vorschlag erscheint in wenigen Augenblicken — Seite danach neu laden.'))
+                    ->info()
+                    ->send();
+            });
     }
 
     public static function getPages(): array

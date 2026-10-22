@@ -8,6 +8,7 @@ use App\ProfileRequests\Ai\ClassificationResult;
 use App\ProfileRequests\Ai\RequestClassifier;
 use App\ProfileRequests\Enums\RequestEventType;
 use App\ProfileRequests\Enums\RequestStatus;
+use App\ProfileRequests\Enums\RequestType;
 use App\ProfileRequests\Models\ProfileRequest;
 use App\ProfileRequests\Verification\RequestVerifier;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -59,10 +60,19 @@ class ClassifyRequest implements ShouldBeUnique, ShouldQueue
      *                        nicht — eine Bestaetigungsmail zu einer Mail
      *                        von vor drei Wochen ist fuer den Betrieb
      *                        unverstaendlich.
+     * @param  bool  $erneut  Auf Anforderung aus dem Panel: noch einmal
+     *                        einlesen, obwohl der Vorgang nicht mehr in
+     *                        `new` steht. Nötig für alles, was ohne
+     *                        KI-Lauf in die Inbox kam — der Altbestand
+     *                        (#16) liegt auf `classified`, und
+     *                        `CLASSIFIED -> CLASSIFIED` lässt der Automat
+     *                        nicht zu. Der Status bleibt dann unberührt,
+     *                        aktualisiert werden nur die Vorschlagsfelder.
      */
     public function __construct(
         public readonly int $requestId,
         public readonly bool $verify = true,
+        public readonly bool $erneut = false,
     ) {}
 
     public function uniqueId(): string
@@ -78,9 +88,16 @@ class ClassifyRequest implements ShouldBeUnique, ShouldQueue
             return;
         }
 
-        if ($request->status !== RequestStatus::NEW) {
+        if (! $this->erneut && $request->status !== RequestStatus::NEW) {
             // Schon eingeordnet — etwa von Hand im Panel, waehrend der Job
             // in der Queue lag.
+            return;
+        }
+
+        if ($this->erneut && $request->status->isFinal()) {
+            // Ein abgeschlossener Vorgang bekommt keinen neuen Vorschlag:
+            // er ist entschieden, und ein Diff daran wuerde im Panel eine
+            // Handlungsmoeglichkeit vorspiegeln, die es nicht mehr gibt.
             return;
         }
 
@@ -123,6 +140,22 @@ class ClassifyRequest implements ShouldBeUnique, ShouldQueue
             $attributes['company_id'] = $result->companyId;
         }
 
+        if ($this->erneut) {
+            // Beim erneuten Lauf schlaegt Handarbeit den Vorschlag: eine
+            // schon gesetzte Zuordnung bleibt stehen.
+            if ($request->company_id !== null) {
+                unset($attributes['company_id']);
+            }
+
+            // Eine Uebernahme bleibt eine Uebernahme. `external_ref` zeigt
+            // bei ihr auf `claim_requests.id`, und ApproveClaim findet den
+            // Antrag nur ueber `type === CLAIM` — deutet die KI den Vorgang
+            // um, ist die Bruecke zum Altantrag gerissen.
+            if ($request->type === RequestType::CLAIM) {
+                unset($attributes['type']);
+            }
+        }
+
         DB::connection($request->getConnectionName())->transaction(function () use ($request, $result, $attributes): void {
             // Das Protokoll des KI-Laufs steht auch dann, wenn nichts
             // uebernommen wurde — sonst laesst sich spaeter nicht sagen,
@@ -144,6 +177,23 @@ class ClassifyRequest implements ShouldBeUnique, ShouldQueue
             ]);
 
             foreach ($result->changes as $change) {
+                // Beim erneuten Lauf (#23) kann die Zeile schon stehen —
+                // `request_changes` ist je Vorgang und Feld eindeutig. Eine
+                // bereits entschiedene Zeile (`accepted` gesetzt) bleibt,
+                // wie sie ist: das war eine Entscheidung, kein Vorschlag.
+                $vorhanden = $request->changes()->where('field', $change['field'])->first();
+
+                if ($vorhanden !== null) {
+                    if ($vorhanden->accepted === null) {
+                        $vorhanden->update([
+                            'old_value' => $change['old'],
+                            'new_value' => $change['new'],
+                        ]);
+                    }
+
+                    continue;
+                }
+
                 $request->changes()->create([
                     'field' => $change['field'],
                     'old_value' => $change['old'],
@@ -153,7 +203,18 @@ class ClassifyRequest implements ShouldBeUnique, ShouldQueue
                 ]);
             }
 
-            $request->markClassified($attributes);
+            if ($request->status === RequestStatus::NEW) {
+                $request->markClassified($attributes);
+
+                return;
+            }
+
+            // Erneuter Lauf an einem Vorgang, der schon eingeordnet ist:
+            // Der Automat kennt keinen Übergang auf denselben Zustand, und
+            // es gibt auch keinen Grund dafür. Nur die Vorschlagsfelder
+            // werden frisch geschrieben — die Statusspalte bleibt außen vor,
+            // sonst schlägt der Wächter am Model zu.
+            $request->forceFill($attributes)->save();
         });
 
         if ($result->fallback) {

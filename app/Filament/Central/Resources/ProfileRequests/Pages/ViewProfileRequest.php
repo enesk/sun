@@ -87,6 +87,11 @@ class ViewProfileRequest extends ViewRecord
             $this->manualVerificationAction(),
             $this->replyAction(),
             $this->revertAction(),
+            // Derselbe Knopf wie in der Übersicht (#23) — ein Vorgang, den
+            // Enes gerade offen hat, soll nicht zurück in die Liste nötigen.
+            ProfileRequestResource::reclassifyAction()
+                ->record($this->profileRequest())
+                ->after(fn () => $this->refreshRequest()),
             $this->nextAction(),
         ];
     }
