@@ -382,11 +382,15 @@ class ViewProfileRequest extends ViewRecord
             ->color('gray')
             ->keyBindings(['mod+shift+n'])
             ->action(function () {
+                // Gleiche Richtung wie die Übersicht: neueste zuerst
+                // (Vorgabe von Enes, 22.10.2026). „Nächste" muss dem
+                // folgen, was in der Liste darunter stand — sonst springt
+                // der Knopf ans andere Ende des Stapels.
                 $next = ProfileRequest::query()
                     ->open()
                     ->where('id', '!=', $this->getRecord()->getKey())
-                    ->orderBy('created_at')
-                    ->orderBy('id')
+                    ->orderByDesc('created_at')
+                    ->orderByDesc('id')
                     ->first();
 
                 if ($next === null) {
