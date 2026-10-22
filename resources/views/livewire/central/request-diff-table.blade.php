@@ -142,9 +142,16 @@
                             @endif
                         </div>
 
-                        <div class="truncate font-mono text-xs text-gray-500 dark:text-gray-400" title="{{ $attachment->fileName() }}">
-                            {{ $attachment->fileName() }}
-                        </div>
+                        {{-- Auch das Bild bekommt seinen Weg zur Originaldatei: ein
+                             Nachweis zum Uebernahmeantrag ist auf dem 160-Pixel-Thumbnail
+                             nicht lesbar. --}}
+                        <a
+                            href="{{ route('admin.requests.attachment', ['request' => $attachment->request_id, 'attachment' => $attachment->getKey()]) }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="block truncate font-mono text-xs text-primary-600 hover:underline dark:text-primary-400"
+                            title="{{ $attachment->fileName() }}"
+                        >{{ $attachment->fileName() }}</a>
 
                         <div class="flex flex-wrap gap-1">
                             @foreach([
