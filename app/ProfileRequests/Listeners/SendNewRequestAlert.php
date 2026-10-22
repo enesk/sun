@@ -33,7 +33,12 @@ use Throwable;
  */
 class SendNewRequestAlert implements ShouldQueue
 {
-    public string $queue = 'mail';
+    // Keine eigene Queue: Horizon bedient für SUN `default`,
+    // `guide-research`, `guide-write` und `guide-publish` — eine Queue
+    // `mail` gibt es nur in den Nachbaranwendungen auf demselben Server.
+    // Ein Job mit `$queue = 'mail'` lag hier still und wartete auf einen
+    // Worker, den es nicht gibt (gemessen am 22.10.2026, ein Job in
+    // `queues:mail`). Alles andere im Modul läuft ebenfalls über `default`.
 
     public function handle(ProfileRequestReceived $event): void
     {
