@@ -152,12 +152,20 @@ final class FieldRenderer
         $byDay = [];
 
         foreach ($value as $key => $entry) {
-            // Zwei Formen: Liste von Datensaetzen mit day_of_week oder eine
-            // Abbildung Tag => Zeiten. Beides kommt vor, je nachdem ob das
-            // Formular (#4) oder die KI (#6) den Diff gebaut hat.
-            $day = is_array($entry) && array_key_exists('day_of_week', $entry)
-                ? (int) $entry['day_of_week']
-                : (is_numeric($key) && ! is_int($entry) && is_array($entry) ? (int) $key : null);
+            // Drei Formen: Datensätze aus der Tabelle (`day_of_week`),
+            // Diff-Zeilen aus Formular und KI (`day`) oder eine Abbildung
+            // Tag => Zeiten. Der Schlüssel ist dabei die unzuverlässigste
+            // Quelle — eine Liste, die nicht bei Montag beginnt, hat ihn
+            // gegen den Tag verschoben —, deshalb kommt er zuletzt.
+            $day = null;
+
+            if (is_array($entry) && array_key_exists('day_of_week', $entry)) {
+                $day = (int) $entry['day_of_week'];
+            } elseif (is_array($entry) && array_key_exists('day', $entry) && is_numeric($entry['day'])) {
+                $day = (int) $entry['day'];
+            } elseif (is_numeric($key) && is_array($entry)) {
+                $day = (int) $key;
+            }
 
             if ($day === null) {
                 continue;
@@ -195,7 +203,13 @@ final class FieldRenderer
     /** @param  array<string, mixed>  $entry */
     private static function timeSpan(array $entry): string
     {
-        if (! empty($entry['is_closed'])) {
+        // Zwei Schreibweisen, beide echt: `is_closed`/`opens_at`/`closes_at`
+        // kommt aus der Tabelle `company_opening_hours`, `closed`/`opens`/
+        // `closes` aus dem Diff — so baut es BuildChangeSet fuer das
+        // Self-Service-Formular (#4) und so liefert es die KI (#27). Wer
+        // nur das Datenbankformat liest, zeigt jeden Formular-Diff als
+        // „Keine Angabe" an.
+        if (! empty($entry['is_closed']) || ! empty($entry['closed'])) {
             return 'Geschlossen';
         }
 
@@ -203,14 +217,24 @@ final class FieldRenderer
             return (string) $entry['value'];
         }
 
-        $opens = isset($entry['opens_at']) ? substr((string) $entry['opens_at'], 0, 5) : '';
-        $closes = isset($entry['closes_at']) ? substr((string) $entry['closes_at'], 0, 5) : '';
+        $opens = self::clockValue($entry['opens_at'] ?? $entry['opens'] ?? null);
+        $closes = self::clockValue($entry['closes_at'] ?? $entry['closes'] ?? null);
 
         if ($opens === '' && $closes === '') {
             return '';
         }
 
         return trim("{$opens} – {$closes}", ' –');
+    }
+
+    /** „08:00:00", „08:00", 8 -> „08:00"; leer bleibt leer. */
+    private static function clockValue(mixed $value): string
+    {
+        if (! is_scalar($value)) {
+            return '';
+        }
+
+        return substr(trim((string) $value), 0, 5);
     }
 
     /**
