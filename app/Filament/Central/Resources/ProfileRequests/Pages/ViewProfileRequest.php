@@ -32,8 +32,10 @@ use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Livewire\Attributes\Url;
 use Throwable;
 
 /**
@@ -57,6 +59,15 @@ class ViewProfileRequest extends ViewRecord
     protected static string $resource = ProfileRequestResource::class;
 
     protected string $view = 'filament.central.profile-request-view';
+
+    /**
+     * Der Reiter der Liste, aus dem dieser Vorgang geoeffnet wurde
+     * ({@see ListProfileRequests::getTabs()}). Steht in der Adresse, damit
+     * „Weiter" dieselbe Auswahl weiterblaettert und ueber die Kette aller
+     * Vorgaenge erhalten bleibt.
+     */
+    #[Url]
+    public ?string $tab = null;
 
     public function getTitle(): string|Htmlable
     {
@@ -419,28 +430,82 @@ class ViewProfileRequest extends ViewRecord
             ->color('gray')
             ->keyBindings(['mod+shift+n'])
             ->action(function () {
-                // Gleiche Richtung wie die Übersicht: neueste zuerst
-                // (Vorgabe von Enes, 22.10.2026). „Nächste" muss dem
-                // folgen, was in der Liste darunter stand — sonst springt
-                // der Knopf ans andere Ende des Stapels.
-                $next = ProfileRequest::query()
-                    ->open()
-                    ->where('id', '!=', $this->getRecord()->getKey())
-                    ->orderByDesc('created_at')
-                    ->orderByDesc('id')
-                    ->first();
+                $next = $this->nextRequest();
 
                 if ($next === null) {
                     Notification::make()
-                        ->title(__('Keine weitere offene Anfrage'))
+                        ->title(__('Keine weitere Anfrage in dieser Auswahl'))
                         ->success()
                         ->send();
 
                     return null;
                 }
 
-                return redirect(self::getUrl(['record' => $next]));
+                return redirect(self::getUrl(
+                    filled($this->tab)
+                        ? ['record' => $next, 'tab' => $this->tab]
+                        : ['record' => $next],
+                ));
             });
+    }
+
+    /**
+     * Der naechste Vorgang **in derselben Auswahl und in derselben
+     * Richtung** wie die Liste (`created_at` absteigend, dann `id`).
+     *
+     * Bis zum 22.10.2026 nahm der Knopf schlicht den neuesten offenen
+     * Vorgang ausser dem aktuellen. Damit pendelte er zwischen den beiden
+     * obersten hin und her und kam nie weiter. Jetzt wird strikt
+     * **hinter** dem aktuellen Vorgang weitergesucht — und nur innerhalb des
+     * Reiters, aus dem er geoeffnet wurde: wer die Uebernahmen abarbeitet,
+     * bekommt die naechste Uebernahme.
+     */
+    private function nextRequest(): ?ProfileRequest
+    {
+        $current = $this->profileRequest();
+
+        $query = ProfileRequest::query();
+
+        $this->scopeToTab($query, $current);
+
+        return $query
+            // Der Cursor der Liste: alles, was unter dieser Zeile stand.
+            ->where(function (Builder $builder) use ($current): void {
+                $builder
+                    ->where('created_at', '<', $current->created_at)
+                    ->orWhere(function (Builder $gleich) use ($current): void {
+                        $gleich
+                            ->where('created_at', '=', $current->created_at)
+                            ->where('id', '<', $current->getKey());
+                    });
+            })
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->first();
+    }
+
+    /**
+     * Die Auswahl des Reiters nachbilden. Ohne bekannten Reiter — etwa bei
+     * einem Link aus einer Mail — gilt „offen vom selben Typ": das ist die
+     * Reihe, die Enes gerade abarbeitet, und nie der ganze Stapel.
+     *
+     * @param  Builder<ProfileRequest>  $query
+     */
+    private function scopeToTab(Builder $query, ProfileRequest $current): void
+    {
+        $offen = RequestStatus::openValues();
+
+        match ($this->tab) {
+            'aenderung' => $query->whereIn('status', $offen)->where('type', RequestType::CHANGE->value),
+            'loeschung' => $query->whereIn('status', $offen)->where('type', RequestType::DELETE->value),
+            'uebernahme' => $query->whereIn('status', $offen)->where('type', RequestType::CLAIM->value),
+            'sonstiges' => $query->whereIn('status', $offen)->where('type', RequestType::OTHER->value),
+            'offen' => $query->whereIn('status', $offen),
+            'bestaetigt' => $query->where('status', RequestStatus::VERIFIED->value),
+            'erledigt' => $query->whereNotIn('status', $offen),
+            'alle' => $query,
+            default => $query->whereIn('status', $offen)->where('type', $current->type->value),
+        };
     }
 
     // ------------------------------------------------------------------
