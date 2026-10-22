@@ -20,7 +20,9 @@ use App\ProfileRequests\Enums\RequestType;
 use App\ProfileRequests\Enums\VerificationMethod;
 use App\ProfileRequests\Models\ProfileRequest;
 use App\ProfileRequests\Models\RequestEvent;
+use App\ProfileRequests\Support\TenantCompanyResolver;
 use App\ProfileRequests\Verification\RequestVerifier;
+use App\Support\Tenancy\TenantMailBranding;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -462,15 +464,37 @@ class ViewProfileRequest extends ViewRecord
         ]);
     }
 
+    /**
+     * Adresse des Profils auf **seiner** Portal-Domain.
+     *
+     * Nicht `$company->portal_url`: das geht über `route()`, und `route()`
+     * baut den Host aus `config('app.url')`. Im Panel ist das die zentrale
+     * Domain — der Link führte damit auf sanitaerfinden.com, wo es dieses
+     * Profil nicht gibt, und endete im 404.
+     *
+     * Deshalb hier nur der **Pfad** aus dem Tenant-Kontext (`portal_path`
+     * kennt beide URL-Muster, mit und ohne Stadt-Segment) und davor die
+     * Domain des Portals aus dem Tenant.
+     */
     private function liveUrl(?Company $company): ?string
     {
         if ($company === null || $company->trashed()) {
             return null;
         }
 
-        $url = $this->profileRequest()->runInTenantContext(fn (): string => (string) $company->portal_url);
+        $request = $this->profileRequest();
 
-        return is_string($url) && $url !== '' ? $url : null;
+        $pfad = $request->runInTenantContext(fn (): string => (string) $company->portal_path);
+
+        if (! is_string($pfad) || $pfad === '') {
+            return null;
+        }
+
+        $tenant = $request->tenant_id === null
+            ? null
+            : app(TenantCompanyResolver::class)->tenant((int) $request->tenant_id);
+
+        return TenantMailBranding::for($tenant)->url($pfad);
     }
 
     // ------------------------------------------------------------------
