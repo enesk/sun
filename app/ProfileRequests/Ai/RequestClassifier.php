@@ -8,6 +8,7 @@ use App\Models\Tenant;
 use App\ProfileRequests\Actions\BuildChangeSet;
 use App\ProfileRequests\Enums\RequestType;
 use App\ProfileRequests\Models\ProfileRequest;
+use App\ProfileRequests\Support\TenantCompanyResolver;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -67,6 +68,8 @@ class RequestClassifier
 
     public function __construct(
         private readonly CompanyCandidateFinder $candidateFinder,
+        private readonly BuildChangeSet $changeSet,
+        private readonly TenantCompanyResolver $resolver,
     ) {}
 
     public function classify(ProfileRequest $request): ClassificationResult
@@ -185,12 +188,14 @@ class RequestClassifier
         1. type: "change" (Daten des Eintrags aendern), "delete" (Eintrag loeschen), "claim" (Eintrag uebernehmen/Zugang anfordern) oder "other" (alles sonst: Rueckfrage, Werbung, Bewertungsstreit).
         2. tenant_id und company_id mit einer gemeinsamen confidence zwischen 0 und 1. Die confidence bewertet NUR die Zuordnung zum Betrieb, nicht den Typ. Unter 0,7 heisst: lieber unsicher melden als falsch zuordnen.
         3. Bei type "change": fuer jedes gewuenschte Feld eine Zeile in "changes" mit field, old, new. Erlaubte field-Werte: {$fields}. "old" ist der Wert, den die Mail als bisherigen nennt oder der aus dem Kandidaten hervorgeht — unbekannt heisst null. Nenne nur Felder, die die Mail wirklich aendert.
+        3a. Bei field "opening_hours" ist "new" NIE ein Satz, sondern eine Liste von Tageszeilen. Je Tag ein Objekt: {"day":0,"closed":false,"opens":"08:00","closes":"17:30"}. day ist 0=Montag, 1=Dienstag, 2=Mittwoch, 3=Donnerstag, 4=Freitag, 5=Samstag, 6=Sonntag. Geschlossen: {"day":5,"closed":true} ohne Zeiten. Zeiten immer "HH:MM" in 24-Stunden-Form ("8 Uhr" wird "08:00", "halb sechs" wird "17:30"). Spannen wie "Montag bis Donnerstag" in einzelne Tageszeilen ausrollen. Nur die Tage nennen, die die Nachricht nennt — die uebrigen ergaenzt das System aus dem heutigen Stand. Eine Mittagspause ("8-12 und 14-18") kann diese Struktur nicht abbilden: dann keine Zeile fuer den Tag, sondern den Wortlaut in "summary".
+        3b. Bei field "services" ist "new" ebenfalls eine Liste: [{"name":"Badsanierung","price":"ab 2500 EUR","description":""}].
         4. Bei type "delete": "delete_reason" mit dem genannten Grund in einem kurzen Satz.
         5. "summary": ein bis zwei Saetze, was der Absender will. Deutsch.
         6. "reply_draft": Entwurf einer Antwort an den Betrieb, deutsche Sie-Form, hoeflich, ohne Platzhalter in spitzen Klammern, ohne Anrede-Rateversuch wenn der Name fehlt ("Guten Tag,"). Sage nur zu, was ohne Pruefung zugesagt werden kann; verspreche keinen Termin. Schreibe KEINEN Hinweis auf die Uebernahme des Eintrags oder auf Anfragen ueber das Portal — der steht als fester Baustein unter jedem Entwurf (SendReply) und waere hier doppelt.
 
         ## Antwortformat
-        {"type":"change|delete|claim|other","tenant_id":123|null,"company_id":456|null,"confidence":0.0,"summary":"...","reply_draft":"...","delete_reason":null,"changes":[{"field":"tel","old":"0221 1234","new":"0721 98765"}]}
+        {"type":"change|delete|claim|other","tenant_id":123|null,"company_id":456|null,"confidence":0.0,"summary":"...","reply_draft":"...","delete_reason":null,"changes":[{"field":"tel","old":"0221 1234","new":"0721 98765"},{"field":"opening_hours","old":null,"new":[{"day":0,"closed":false,"opens":"08:00","closes":"17:30"},{"day":5,"closed":true}]}]}
         PROMPT;
     }
 
@@ -296,7 +301,9 @@ class RequestClassifier
             summary: $this->text($json['summary'] ?? null, 2000),
             replyDraft: $this->text($json['reply_draft'] ?? null, 8000),
             deleteReason: $type === RequestType::DELETE ? $this->text($json['delete_reason'] ?? null, 500) : null,
-            changes: $type === RequestType::CHANGE ? $this->changes($json['changes'] ?? null) : [],
+            changes: $type === RequestType::CHANGE
+                ? $this->withOpeningHours($this->changes($json['changes'] ?? null), $request, $tenantId, $companyId)
+                : [],
             candidates: $candidates,
             fallback: false,
         );
@@ -368,6 +375,162 @@ class RequestClassifier
         }
 
         return array_values($changes);
+    }
+
+    /**
+     * Öffnungszeiten aus Freitext in unsere sieben Tageszeilen bringen.
+     *
+     * Betriebe schreiben „Montag bis Donnerstag 08:00–17:30 Uhr, Freitag
+     * 08:00–13:00, Wochenende geschlossen". Das Profil führt je Wochentag
+     * eine Zeile; `ApplyChanges` lehnt alles andere mit „Öffnungszeiten in
+     * unbekannter Form" ab. Ein Satz im Diff ist deshalb kein Vorschlag,
+     * sondern eine Falle: er lässt sich im Panel anhaken und scheitert dann
+     * beim Übernehmen.
+     *
+     * Zwei Eingriffe:
+     *
+     *  * Ist `new` keine Liste von Tageszeilen, fällt die Zeile weg. Der
+     *    Wortlaut bleibt in der Nachricht und in `summary` lesbar, und das
+     *    Panel zeigt keinen Vorschlag, den es nicht einlösen kann.
+     *  * Sonst wird der heutige Stand als Grundlage genommen und nur von
+     *    den genannten Tagen überschrieben. Das ist der eigentliche Schutz:
+     *    `ApplyChanges` löscht beim Schreiben **alle** Tage und legt die
+     *    übergebenen neu an — käme nur „Freitag" an, verlören die anderen
+     *    sechs Tage ihre Angabe.
+     *
+     * @param  array<int, array{field: string, old: mixed, new: mixed}>  $changes
+     * @return array<int, array{field: string, old: mixed, new: mixed}>
+     */
+    private function withOpeningHours(array $changes, ProfileRequest $request, ?int $tenantId, ?int $companyId): array
+    {
+        $index = null;
+
+        foreach ($changes as $i => $row) {
+            if ($row['field'] === 'opening_hours') {
+                $index = $i;
+
+                break;
+            }
+        }
+
+        if ($index === null) {
+            return $changes;
+        }
+
+        $genannt = $this->openingHourRows($changes[$index]['new']);
+
+        if ($genannt === []) {
+            unset($changes[$index]);
+
+            return array_values($changes);
+        }
+
+        // Der Betrieb kann aus dem Vorschlag kommen oder am Vorgang schon
+        // stehen — bei einem bereits zugeordneten Vorgang nennt die KI ihn
+        // nicht noch einmal, und ohne ihn gäbe es keinen Stand zum Ergänzen.
+        $companyId ??= $request->company_id === null ? null : (int) $request->company_id;
+        $tenantId ??= $request->tenant_id === null ? null : (int) $request->tenant_id;
+
+        $company = $tenantId === null || $companyId === null
+            ? null
+            : $this->resolver->resolve($tenantId, $companyId);
+
+        // Ohne Betrieb gibt es keinen Stand, auf den sich ergänzen liesse.
+        // Dann nur die genannten Tage — das Panel zeigt den Vorschlag, und
+        // die Zuordnung fehlt ohnehin noch.
+        if ($company === null) {
+            $changes[$index]['new'] = array_values($genannt);
+
+            return array_values($changes);
+        }
+
+        $aktuell = $this->resolver->runFor(
+            $tenantId,
+            fn (): array => $this->changeSet->currentOpeningHours($company),
+        );
+
+        $vollstaendig = [];
+
+        foreach ((array) $aktuell as $zeile) {
+            $tag = (int) ($zeile['day'] ?? -1);
+            $vollstaendig[$tag] = $genannt[$tag] ?? $zeile;
+        }
+
+        ksort($vollstaendig);
+
+        $changes[$index]['old'] = $aktuell;
+        $changes[$index]['new'] = array_values($vollstaendig);
+
+        return array_values($changes);
+    }
+
+    /**
+     * Tageszeilen aus dem Vorschlag der KI — nur, was sich als Wochentag mit
+     * Zeiten oder als „geschlossen" lesen lässt.
+     *
+     * @return array<int, array{day: int, closed: bool, opens: string, closes: string}>
+     */
+    private function openingHourRows(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        $rows = [];
+
+        foreach ($value as $key => $entry) {
+            if (! is_array($entry)) {
+                continue;
+            }
+
+            $tag = (int) ($entry['day'] ?? $entry['day_of_week'] ?? (is_numeric($key) ? $key : -1));
+
+            if ($tag < 0 || $tag > 6) {
+                continue;
+            }
+
+            $geschlossen = (bool) ($entry['closed'] ?? $entry['is_closed'] ?? false);
+            $auf = $this->openingTime($entry['opens'] ?? $entry['opens_at'] ?? null);
+            $zu = $this->openingTime($entry['closes'] ?? $entry['closes_at'] ?? null);
+
+            // Ein Tag ohne „geschlossen" und ohne beide Zeiten sagt nichts
+            // aus und würde den heutigen Stand grundlos überschreiben.
+            if (! $geschlossen && ($auf === null || $zu === null)) {
+                continue;
+            }
+
+            $rows[$tag] = [
+                'day' => $tag,
+                'closed' => $geschlossen,
+                'opens' => $geschlossen ? '' : (string) $auf,
+                'closes' => $geschlossen ? '' : (string) $zu,
+            ];
+        }
+
+        return $rows;
+    }
+
+    /** „8", „8:00", „08.00", „8 Uhr" -> „08:00"; alles andere null. */
+    private function openingTime(mixed $value): ?string
+    {
+        if (! is_string($value) && ! is_int($value)) {
+            return null;
+        }
+
+        $text = trim((string) $value);
+
+        if (preg_match('/(\d{1,2})(?:[:.](\d{2}))?/', $text, $treffer) !== 1) {
+            return null;
+        }
+
+        $stunde = (int) $treffer[1];
+        $minute = (int) ($treffer[2] ?? 0);
+
+        if ($stunde > 24 || $minute > 59) {
+            return null;
+        }
+
+        return sprintf('%02d:%02d', $stunde === 24 ? 0 : $stunde, $minute);
     }
 
     /**
