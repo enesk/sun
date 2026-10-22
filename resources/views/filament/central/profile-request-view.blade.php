@@ -126,12 +126,18 @@
                         <div class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Anhänge</div>
                         <ul class="space-y-1 text-sm text-gray-700 dark:text-gray-300">
                             @foreach ($documents as $document)
-                                {{-- Kein Link: die Dateien liegen auf der privaten Platte,
-                                     und ein oeffentlicher Weg zu fremden Uploads entsteht
-                                     hier nicht. --}}
+                                {{-- Der Link geht auf die eigene Route, nicht auf die Platte:
+                                     die Dateien liegen privat und bleiben es. Die Route prueft
+                                     Anmeldung, Administratorrecht und Zugehoerigkeit
+                                     (App\ProfileRequests\Http\Controllers\RequestAttachmentController). --}}
                                 <li class="flex items-center gap-2">
                                     <x-filament::icon icon="heroicon-m-paper-clip" class="h-4 w-4 text-gray-400" />
-                                    <span class="font-mono text-xs">{{ $document->fileName() }}</span>
+                                    <a
+                                        href="{{ route('admin.requests.attachment', ['request' => $profileRequest->getKey(), 'attachment' => $document->getKey()]) }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="font-mono text-xs text-primary-600 hover:underline dark:text-primary-400"
+                                    >{{ $document->fileName() }}</a>
                                     <span class="text-xs text-gray-400">{{ $document->mime }} · {{ number_format($document->size / 1024, 0, ',', '.') }} kB</span>
                                 </li>
                             @endforeach

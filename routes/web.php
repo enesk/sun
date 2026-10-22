@@ -232,6 +232,22 @@ Route::get('/werbemittel/{adUnit}/vorschau', App\Ads\Http\Controllers\AdUnitPrev
     ->name('admin.ads.unit-preview');
 
 /*
+| Anhang einer Anfrage ansehen (SUN-RQ, Enes 22.10.2026)
+|
+| Die Nachweise der Uebernahmeantraege standen in der Inbox nur als
+| Dateiname — ohne Weg, sie zu oeffnen. Die Dateien liegen auf der privaten
+| Platte und bekommen keine oeffentliche URL; diese Route ist der einzige
+| Zugang und prueft Anmeldung, Administratorrecht und die Zugehoerigkeit des
+| Anhangs zur Anfrage. Nicht unter /admin, damit sie nicht mit den Routen des
+| Filament-Panels konkurriert.
+*/
+Route::get('/anfrage/{request}/anhang/{attachment}', App\ProfileRequests\Http\Controllers\RequestAttachmentController::class)
+    ->middleware('auth')
+    ->whereNumber('request')
+    ->whereNumber('attachment')
+    ->name('admin.requests.attachment');
+
+/*
 | Zentrale Anfragen-Inbox: Magic-Link und Stornolink (SUN-RQ #6)
 |
 | Hier und nicht in routes/tenant.php: `profile_requests` liegt in der
