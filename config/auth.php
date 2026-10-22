@@ -94,6 +94,14 @@ return [
         'users' => [
             'provider' => 'users',
             'table' => 'password_reset_tokens',
+            // Ausdruecklich die zentrale Verbindung: `password_reset_tokens`
+            // liegt in der Central-DB, und auf einer Portal-Domain zeigt die
+            // Standardverbindung auf die Tenant-DB. Ohne diese Zeile warf
+            // „Passwort zurücksetzen" im Portal einen 500er
+            // („Base table or view not found: password_reset_tokens",
+            // gemeldet von Enes am 22.10.2026). Derselbe Wert wie
+            // tenancy.database.central_connection.
+            'connection' => env('DB_CONNECTION', 'central'),
             'expire' => 60,
             'throttle' => 60,
         ],
