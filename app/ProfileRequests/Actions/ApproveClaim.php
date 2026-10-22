@@ -41,9 +41,10 @@ use Throwable;
  * Dann bleibt der Vorgang auf `verified` und wartet im Panel: zwei Inhaber
  * sind ein Fall fuer einen Menschen.
  *
- * `claim_requests.reviewed_by` traegt in diesem Weg 0 — die Spalte ist eine
- * Nutzer-ID, und es gibt keinen Pruefer. Das Protokoll des Vorgangs
- * (`request_events`) haelt fest, dass es die Automatik war.
+ * `claim_requests.reviewed_by` traegt 0, wenn die Automatik freigibt — die
+ * Spalte ist eine Nutzer-ID, und es gibt keinen Pruefer. Gibt Enes im Panel
+ * frei, steht dort seine ID; das Protokoll des Vorgangs (`request_events`)
+ * haelt beides fest.
  */
 class ApproveClaim
 {
@@ -56,7 +57,7 @@ class ApproveClaim
         private readonly TenantCompanyResolver $resolver,
     ) {}
 
-    public function __invoke(ProfileRequest $request): bool
+    public function __invoke(ProfileRequest $request, ?User $actor = null): bool
     {
         if ($request->type !== RequestType::CLAIM || ! $request->isVerified()) {
             return false;
@@ -76,8 +77,10 @@ class ApproveClaim
             return false;
         }
 
-        $result = $this->resolver->runFor((int) $request->tenant_id, function () use ($request, $email): array {
-            return $this->run($request, $email);
+        $reviewerId = $actor?->getKey() === null ? self::SYSTEM_REVIEWER_ID : (int) $actor->getKey();
+
+        $result = $this->resolver->runFor((int) $request->tenant_id, function () use ($request, $email, $reviewerId): array {
+            return $this->run($request, $email, $reviewerId);
         });
 
         if ($result === null || $result['ok'] !== true) {
@@ -94,7 +97,7 @@ class ApproveClaim
             $this->sendPasswordLink($request, $email);
         }
 
-        $request->apply(null, [
+        $request->apply($actor, [
             'action' => 'claim_approved',
             'claim_request_id' => $result['claim_request_id'],
             'user_id' => $result['user_id'],
@@ -109,7 +112,7 @@ class ApproveClaim
      *
      * @return array{ok: bool, note?: string, claim_request_id?: int|null, user_id?: int|null, user_created?: bool}
      */
-    private function run(ProfileRequest $request, string $email): array
+    private function run(ProfileRequest $request, string $email, int $reviewerId): array
     {
         $company = Company::find($request->company_id);
 
@@ -140,7 +143,7 @@ class ApproveClaim
             ];
         }
 
-        if (! $this->claimService->approveClaimRequest($claimRequest, self::SYSTEM_REVIEWER_ID)) {
+        if (! $this->claimService->approveClaimRequest($claimRequest, $reviewerId)) {
             return ['ok' => false, 'note' => 'ClaimService hat die Freigabe abgelehnt'];
         }
 
