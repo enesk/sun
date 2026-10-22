@@ -218,7 +218,15 @@ class ProfileRequestResource extends Resource
                         blank: fn (Builder $query): Builder => $query,
                     ),
             ])
-            ->recordUrl(fn (ProfileRequest $record): string => ViewProfileRequest::getUrl(['record' => $record]))
+            // Der aktive Reiter reist mit in die Detailansicht: nur so weiss
+            // „Weiter" dort, in welcher Auswahl Enes gerade arbeitet
+            // (Enes, 22.10.2026 — der Knopf sprang zwischen denselben zwei
+            // Vorgaengen hin und her).
+            ->recordUrl(fn (ProfileRequest $record, $livewire): string => ViewProfileRequest::getUrl(
+                $livewire instanceof ListProfileRequests && filled($livewire->activeTab)
+                    ? ['record' => $record, 'tab' => $livewire->activeTab]
+                    : ['record' => $record],
+            ))
             ->recordActions([
                 self::reclassifyAction(),
             ])
