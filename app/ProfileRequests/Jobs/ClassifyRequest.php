@@ -47,6 +47,13 @@ class ClassifyRequest implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 
+    /**
+     * Felder, deren Wert eine Struktur sein muss (Liste von Zeilen). Ein
+     * Satz steht dort nie für eine übernehmbare Angabe — `ApplyChanges`
+     * lehnt ihn ab.
+     */
+    private const STRUKTURFELDER = ['opening_hours', 'services'];
+
     public int $tries = 3;
 
     /** @var array<int, int> */
@@ -184,10 +191,31 @@ class ClassifyRequest implements ShouldBeUnique, ShouldQueue
                 $vorhanden = $request->changes()->where('field', $change['field'])->first();
 
                 if ($vorhanden !== null) {
-                    if ($vorhanden->accepted === null) {
+                    // Eine entschiedene Zeile bleibt, wie sie ist — mit einer
+                    // Ausnahme: taugt ihr Wert fuer dieses Feld gar nicht,
+                    // ist das Haken auf etwas gesetzt, das `ApplyChanges`
+                    // ablehnen wuerde. Das ist keine Entscheidung, sondern
+                    // eine Falle (gemessen an Vorgang #171: Oeffnungszeiten
+                    // als Satz, angehakt, nicht uebernehmbar). Dann ersetzt
+                    // der neue Vorschlag den Wert und das Haken faellt
+                    // zurueck auf „unentschieden".
+                    $unbrauchbar = $vorhanden->accepted !== null
+                        && in_array($change['field'], self::STRUKTURFELDER, true)
+                        && ! is_array($vorhanden->new_value);
+
+                    if ($vorhanden->accepted === null || $unbrauchbar) {
                         $vorhanden->update([
                             'old_value' => $change['old'],
                             'new_value' => $change['new'],
+                            'accepted' => $unbrauchbar ? null : $vorhanden->accepted,
+                        ]);
+                    }
+
+                    if ($unbrauchbar) {
+                        $request->recordEvent(RequestEventType::NOTE, [
+                            'note' => "Feld „{$change['field']}“ trug einen Freitext statt der erwarteten Struktur "
+                                .'und war so nicht übernehmbar. Der neue Vorschlag hat ihn ersetzt, das Häkchen '
+                                .'ist zurückgesetzt — bitte noch einmal prüfen.',
                         ]);
                     }
 
