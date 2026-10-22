@@ -9,6 +9,7 @@ use App\ProfileRequests\Ai\RequestClassifier;
 use App\ProfileRequests\Enums\RequestEventType;
 use App\ProfileRequests\Enums\RequestStatus;
 use App\ProfileRequests\Enums\RequestType;
+use App\ProfileRequests\Events\ProfileRequestReceived;
 use App\ProfileRequests\Models\ProfileRequest;
 use App\ProfileRequests\Verification\RequestVerifier;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -111,6 +112,14 @@ class ClassifyRequest implements ShouldBeUnique, ShouldQueue
         $result = $classifier->classify($request);
 
         $this->store($request, $result);
+
+        // Beim Mailweg steht der Typ erst jetzt fest — vorher ist jede Mail
+        // `other`. Deshalb entscheidet sich die Sofortmeldung (#23) hier und
+        // nicht beim Anlegen. Nicht beim erneuten Einlesen (#24): der
+        // Vorgang ist dann längst bekannt.
+        if (! $this->erneut) {
+            ProfileRequestReceived::dispatch($request->refresh());
+        }
 
         if (! $this->verify) {
             // Importierter Rueckstand (#12): der Vorgang bleibt auf

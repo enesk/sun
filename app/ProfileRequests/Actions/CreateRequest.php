@@ -8,6 +8,7 @@ use App\Models\Portal\Company;
 use App\ProfileRequests\Enums\RequestSource;
 use App\ProfileRequests\Enums\RequestStatus;
 use App\ProfileRequests\Enums\RequestType;
+use App\ProfileRequests\Events\ProfileRequestReceived;
 use App\ProfileRequests\Models\ProfileRequest;
 use App\ProfileRequests\Models\RequestAttachment;
 use Illuminate\Support\Facades\DB;
@@ -84,6 +85,12 @@ class CreateRequest
         if ($files !== []) {
             $this->storeFiles($request, $files);
         }
+
+        // Der Typ steht beim Formularweg sofort fest, also kann die
+        // Sofortmeldung (#23) hier entschieden werden. Anhaenge sind vorher
+        // abgelegt, damit die Mail nicht auf einen Vorgang zeigt, dem noch
+        // Dateien fehlen.
+        ProfileRequestReceived::dispatch($request);
 
         return $request;
     }

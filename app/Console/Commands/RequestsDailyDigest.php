@@ -6,12 +6,12 @@ namespace App\Console\Commands;
 
 use App\Filament\Central\Resources\ProfileRequestResource;
 use App\Models\Tenant;
-use App\Models\User;
 use App\ProfileRequests\AutoRules\RuleRunner;
 use App\ProfileRequests\Enums\RequestStatus;
 use App\ProfileRequests\Mail\DailyDigestMail;
 use App\ProfileRequests\Models\ProfileRequest;
 use App\ProfileRequests\Support\FieldRenderer;
+use App\ProfileRequests\Support\InternalRecipients;
 use App\ProfileRequests\Support\RequestLinks;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Collection;
@@ -233,24 +233,6 @@ class RequestsDailyDigest extends Command
      */
     private function recipients(): array
     {
-        $konfiguriert = collect(Str::of((string) config('profile-requests.auto.digest_recipients', ''))->explode(','))
-            ->map(static fn ($adresse): string => trim((string) $adresse))
-            ->filter(static fn (string $adresse): bool => $adresse !== '')
-            ->values()
-            ->all();
-
-        if ($konfiguriert !== []) {
-            return $konfiguriert;
-        }
-
-        return User::query()
-            ->where('is_admin', true)
-            ->where('is_blocked', false)
-            ->whereNotNull('email')
-            ->pluck('email')
-            ->filter()
-            ->unique()
-            ->values()
-            ->all();
+        return InternalRecipients::from(config('profile-requests.auto.digest_recipients'));
     }
 }
