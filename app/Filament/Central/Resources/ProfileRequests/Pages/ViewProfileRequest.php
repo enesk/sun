@@ -111,7 +111,9 @@ class ViewProfileRequest extends ViewRecord
     private function applyAction(): Action
     {
         return Action::make('uebernehmen')
-            ->label(__('Übernehmen'))
+            ->label(fn (): string => $this->profileRequest()->type === RequestType::CLAIM
+                ? __('Übernahme freigeben')
+                : __('Übernehmen'))
             ->icon('heroicon-m-check')
             ->color('success')
             ->keyBindings(['mod+enter'])
@@ -123,12 +125,45 @@ class ViewProfileRequest extends ViewRecord
             // derselben Seite, und das Abnahmekriterium sind drei Klicks von
             // der Liste bis zur Uebernahme. Rueckfragen gibt es dort, wo
             // sich etwas nicht zurueckdrehen laesst — bei der Loeschung.
-            ->action(function (ApplyChanges $applyChanges): void {
-                $result = $applyChanges($this->profileRequest(), $this->actor());
+            ->action(function (ApplyChanges $applyChanges, ApproveClaim $approveClaim): void {
+                $request = $this->profileRequest();
+
+                // Eine Uebernahme hat keine Diff-Zeilen: sie setzt den
+                // Inhaber, nicht einzelne Felder. Ueber ApplyChanges lief sie
+                // darum immer in „keine Zeile angehakt" (Enes, 22.10.2026).
+                // Der Weg ist derselbe wie bei der Automatik (#6):
+                // Betrieb an das Konto des Antragstellers, Rolle
+                // `company_owner`, Freigabemail — nur mit Enes als Pruefer.
+                $result = $request->type === RequestType::CLAIM
+                    ? $this->approveClaim($request, $applyChanges, $approveClaim)
+                    : $applyChanges($request, $this->actor());
 
                 $this->notifyResult($result);
                 $this->refreshRequest();
             });
+    }
+
+    /**
+     * Uebernahme freigeben.
+     *
+     * Erst verifizieren (der Zustandsautomat laesst `applied` nur aus
+     * `verified` zu — wer im Panel freigibt, hat den Nachweis gesehen),
+     * dann {@see ApproveClaim}. Der Grund eines Fehlschlags steht als Notiz
+     * im Protokoll des Vorgangs, deshalb verweist die Meldung dorthin.
+     *
+     * @return array{ok: bool, message: string}
+     */
+    private function approveClaim(ProfileRequest $request, ApplyChanges $applyChanges, ApproveClaim $approveClaim): array
+    {
+        if (! $applyChanges->ensureVerified($request, $this->actor())) {
+            return ['ok' => false, 'message' => __('Der Vorgang ließ sich nicht bestätigen — Übernahme nicht freigegeben.')];
+        }
+
+        if (! $approveClaim($request, $this->actor())) {
+            return ['ok' => false, 'message' => __('Übernahme nicht freigegeben — der Grund steht im Protokoll.')];
+        }
+
+        return ['ok' => true, 'message' => __('Übernahme freigegeben — der Betrieb gehört jetzt dem Antragsteller.')];
     }
 
     private function deleteProfileAction(): Action
@@ -299,7 +334,7 @@ class ViewProfileRequest extends ViewRecord
                 $ok = $applyChanges->ensureVerified($request, $this->actor());
 
                 if ($ok && $request->type === RequestType::CLAIM) {
-                    $approveClaim($request);
+                    $approveClaim($request, $this->actor());
                 }
 
                 Notification::make()
