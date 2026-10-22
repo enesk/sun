@@ -47,11 +47,40 @@ class ClaimRequest extends Model implements HasMedia
         'rejection_reason',
         'reviewed_by',
         'reviewed_at',
+        // Versandstatus der Benachrichtigung (#25). Nur vom System gesetzt,
+        // nie aus einem Formular — steht hier, damit update() sie annimmt.
+        'notified_at',
+        'notification_error',
     ];
 
     protected $casts = [
         'reviewed_at' => 'datetime',
+        'notified_at' => 'datetime',
     ];
+
+    /**
+     * Auskunft ueber die Benachrichtigung des Antragstellers (#25), fuer die
+     * Anzeige im Backoffice. Drei Zustaende, bewusst unterscheidbar:
+     *
+     *   versendet   der Mailer hat die Nachricht abgegeben (notified_at)
+     *   gescheitert es ging nichts raus, Grund steht dabei
+     *   ausstehend  eingereiht, aber noch nicht abgegeben — oder der Antrag
+     *               ist aelter als diese Spalten (dann bleibt es dabei)
+     *
+     * @return array{zustand: string, text: string}
+     */
+    public function notificationState(): array
+    {
+        if ($this->notified_at !== null) {
+            return ['zustand' => 'versendet', 'text' => 'Benachrichtigt am '.$this->notified_at->format('d.m.Y H:i')];
+        }
+
+        if (filled($this->notification_error)) {
+            return ['zustand' => 'gescheitert', 'text' => (string) $this->notification_error];
+        }
+
+        return ['zustand' => 'ausstehend', 'text' => 'Benachrichtigung ausstehend'];
+    }
 
     // ── Media Library: Verifizierungsdokumente ──
 

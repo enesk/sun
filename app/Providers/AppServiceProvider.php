@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\AntiSpam\Support\RateLimitGuard;
+use App\Listeners\Claims\RecordClaimNotificationSent;
 use App\Listeners\Mail\SetPortalSender;
 use App\ProfileRequests\Support\TenantCompanyResolver;
 use App\Services\PaymentProviders\LemonSqueezy\LemonSqueezyProvider;
@@ -18,6 +19,7 @@ use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Contracts\Translation\Loader;
 use Illuminate\Mail\Events\MessageSending;
+use Illuminate\Mail\Events\MessageSent;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Translation\FileLoader;
@@ -99,6 +101,11 @@ class AppServiceProvider extends ServiceProvider
     {
         // Absendername jeder Mail ist der Portalname, nicht MAIL_FROM_NAME
         Event::listen(MessageSending::class, SetPortalSender::class);
+
+        // Versandstatus der Claim-Benachrichtigung am Antrag festhalten (#25).
+        // Haengt an MessageSent, weil die Mail ueber die Warteschlange laeuft:
+        // der Aufruf sagt nur "eingereiht", nicht "abgegeben".
+        Event::listen(MessageSent::class, RecordClaimNotificationSent::class);
 
         // Rate-Limits der Tiefenverteidigung (#8). Benannte Limiter, an die
         // sich RegisterController und LoginController per `throttle:` haengen;

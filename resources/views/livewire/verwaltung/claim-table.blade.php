@@ -333,6 +333,28 @@
                                     <strong>Ablehnungsgrund:</strong> {{ $detailClaim->rejection_reason }}
                                 </div>
                             @endif
+
+                            {{-- Versandstatus der Benachrichtigung (#25). „Genehmigt" allein
+                                 sagte bisher nicht, ob der Antragsteller eine Mail bekam. --}}
+                            @php($benachrichtigung = $detailClaim->notificationState())
+                            <div class="dash-claim-detail__info-grid mt-3">
+                                <div>
+                                    <span class="dash-claim-detail__label">Benachrichtigung</span>
+                                    <span class="dash-claim-detail__value">
+                                        @if($benachrichtigung['zustand'] === 'versendet')
+                                            <span class="dash-badge dash-badge-success">versendet</span>
+                                        @elseif($benachrichtigung['zustand'] === 'gescheitert')
+                                            <span class="dash-badge dash-badge-danger">gescheitert</span>
+                                        @else
+                                            <span class="dash-badge">ausstehend</span>
+                                        @endif
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="dash-claim-detail__label">Dazu</span>
+                                    <span class="dash-claim-detail__value">{{ $benachrichtigung['text'] }}</span>
+                                </div>
+                            </div>
                         </div>
                     @endif
                 </div>

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Constants\TenancyPermissionConstants;
+use App\Claims\ClaimNotificationStatus;
 use App\Mail\ClaimApproved;
 use App\Mail\ClaimRejected;
 use App\Mail\ClaimRequestNotification;
@@ -181,17 +182,13 @@ class ClaimService
             // 4. First-Claim markieren (nicht-kritisch, außerhalb Transaction)
             $user->markFirstClaim();
 
-            // 5. Antragsteller benachrichtigen (nicht-kritisch: Freigabe steht schon)
-            if ($tenant instanceof Tenant && filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
-                try {
-                    Mail::to($user->email)->send(new ClaimApproved($claimRequest, $tenant));
-                } catch (\Exception $e) {
-                    Log::warning('ClaimService: Failed to send claim approved email', [
-                        'claim_request_id' => $claimRequest->id,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
-            }
+            // 5. Antragsteller benachrichtigen (nicht-kritisch: Freigabe steht schon).
+            //    Der Erfolg wird NICHT hier vermerkt: die Mail ist ShouldQueue,
+            //    `send()` heisst nur "eingereiht". `notified_at` setzt das
+            //    Ereignis MessageSent (#25). Hier wird nur festgehalten, wenn
+            //    gar nichts losgeschickt werden konnte — sonst stuende im Panel
+            //    "genehmigt" ohne jeden Hinweis.
+            $this->notifyClaimApproved($claimRequest, $tenant, $user);
 
             Log::info('ClaimService: Claim approved', [
                 'claim_request_id' => $claimRequest->id,
@@ -239,20 +236,67 @@ class ClaimService
      * Ablehnung an den Antragsteller melden. Scheitert der Versand, bleibt die
      * Ablehnung bestehen — es gibt nur einen Log-Eintrag.
      */
+    /**
+     * Freigabe-Mail an den Antragsteller (#25).
+     *
+     * Jeder Zweig, in dem nichts rausgeht, schreibt den Grund an den Antrag.
+     * Vorher wurde hier stillschweigend uebersprungen: ohne Portalkontext oder
+     * ohne brauchbare Adresse gab es keine Mail, keinen Logeintrag und keinen
+     * Hinweis im Panel.
+     */
+    private function notifyClaimApproved(ClaimRequest $claimRequest, ?Tenant $tenant, User $user): void
+    {
+        $antragId = (int) $claimRequest->id;
+
+        if (! $tenant instanceof Tenant) {
+            Log::warning('ClaimService: Freigabe ohne Portalkontext, keine Mail', ['claim_request_id' => $antragId]);
+
+            return;
+        }
+
+        if (! filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
+            ClaimNotificationStatus::markFailed($tenant, $antragId, 'Keine brauchbare E-Mail-Adresse am Konto');
+
+            return;
+        }
+
+        try {
+            Mail::to($user->email)->send(new ClaimApproved($claimRequest, $tenant));
+        } catch (\Exception $e) {
+            ClaimNotificationStatus::markFailed($tenant, $antragId, 'Versand nicht gestartet: '.$e->getMessage());
+
+            Log::warning('ClaimService: Failed to send claim approved email', [
+                'claim_request_id' => $antragId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
     private function notifyClaimRejected(ClaimRequest $claimRequest): void
     {
         $tenant = tenant();
         $user = User::find($claimRequest->user_id);
+        $antragId = (int) $claimRequest->id;
 
-        if (!$tenant instanceof Tenant || !$user || !filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
+        if (! $tenant instanceof Tenant) {
+            Log::warning('ClaimService: Ablehnung ohne Portalkontext, keine Mail', ['claim_request_id' => $antragId]);
+
+            return;
+        }
+
+        if (! $user || ! filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
+            ClaimNotificationStatus::markFailed($tenant, $antragId, 'Keine brauchbare E-Mail-Adresse am Konto');
+
             return;
         }
 
         try {
             Mail::to($user->email)->send(new ClaimRejected($claimRequest, $tenant));
         } catch (\Exception $e) {
+            ClaimNotificationStatus::markFailed($tenant, $antragId, 'Versand nicht gestartet: '.$e->getMessage());
+
             Log::warning('ClaimService: Failed to send claim rejected email', [
-                'claim_request_id' => $claimRequest->id,
+                'claim_request_id' => $antragId,
                 'error' => $e->getMessage(),
             ]);
         }
