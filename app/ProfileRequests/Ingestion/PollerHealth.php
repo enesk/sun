@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\ProfileRequests\Ingestion;
 
-use App\Models\User;
+use App\ProfileRequests\Support\InternalRecipients;
 use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -116,25 +115,7 @@ class PollerHealth
      */
     private function recipients(): array
     {
-        $konfiguriert = collect(Str::of((string) config('profile-requests.ingestion.alert.recipients', ''))->explode(','))
-            ->map(static fn ($adresse): string => trim((string) $adresse))
-            ->filter(static fn (string $adresse): bool => $adresse !== '')
-            ->values()
-            ->all();
-
-        if ($konfiguriert !== []) {
-            return $konfiguriert;
-        }
-
-        return User::query()
-            ->where('is_admin', true)
-            ->where('is_blocked', false)
-            ->whereNotNull('email')
-            ->pluck('email')
-            ->filter()
-            ->unique()
-            ->values()
-            ->all();
+        return InternalRecipients::from(config('profile-requests.ingestion.alert.recipients'));
     }
 
     private function cache(): Repository

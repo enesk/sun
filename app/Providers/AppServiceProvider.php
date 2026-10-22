@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\AntiSpam\Support\RateLimitGuard;
 use App\Listeners\Claims\RecordClaimNotificationSent;
 use App\Listeners\Mail\SetPortalSender;
+use App\ProfileRequests\Events\ProfileRequestReceived;
+use App\ProfileRequests\Listeners\SendNewRequestAlert;
 use App\ProfileRequests\Support\TenantCompanyResolver;
 use App\Services\PaymentProviders\LemonSqueezy\LemonSqueezyProvider;
 use App\Services\PaymentProviders\Offline\OfflineProvider;
@@ -106,6 +108,11 @@ class AppServiceProvider extends ServiceProvider
         // Haengt an MessageSent, weil die Mail ueber die Warteschlange laeuft:
         // der Aufruf sagt nur "eingereiht", nicht "abgegeben".
         Event::listen(MessageSent::class, RecordClaimNotificationSent::class);
+
+        // Sofortmeldung bei Loeschwunsch und Uebernahme (#23). Listener unter
+        // app/ProfileRequests fallen nicht unter die Event-Discovery, die nur
+        // app/Listeners durchsucht — deshalb hier von Hand.
+        Event::listen(ProfileRequestReceived::class, SendNewRequestAlert::class);
 
         // Rate-Limits der Tiefenverteidigung (#8). Benannte Limiter, an die
         // sich RegisterController und LoginController per `throttle:` haengen;
