@@ -5,8 +5,12 @@ namespace App\Livewire\Portal;
 use App\AntiSpam\Support\RateLimitGuard;
 use App\Models\Portal\ClaimRequest;
 use App\Models\Portal\Company;
+use App\Models\User;
+use App\ProfileRequests\Actions\AttachClaimDocuments;
+use App\ProfileRequests\Actions\RecordClaimRequest;
 use App\Turnstile\Enums\TurnstileAction;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -15,11 +19,14 @@ class ClaimVerification extends Component
     use WithFileUploads;
 
     public Company $company;
+
     public ?ClaimRequest $claimRequest = null;
 
     // Upload-State
     public array $documents = [];
+
     public string $comment = '';
+
     public bool $submitted = false;
 
     // Status-States
@@ -31,8 +38,9 @@ class ClaimVerification extends Component
 
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             $this->state = 'no_request';
+
             return;
         }
 
@@ -47,8 +55,9 @@ class ClaimVerification extends Component
             ->latest()
             ->first();
 
-        if (!$this->claimRequest) {
+        if (! $this->claimRequest) {
             $this->state = 'no_request';
+
             return;
         }
 
@@ -60,6 +69,7 @@ class ClaimVerification extends Component
         } elseif ($this->claimRequest->isApproved()) {
             // Redirect ins Dashboard — Firma ist bereits zugewiesen
             $this->redirect('/verwaltung', navigate: false);
+
             return;
         } else {
             $this->state = 'upload';
@@ -82,6 +92,7 @@ class ClaimVerification extends Component
             RateLimitGuard::log(RateLimitGuard::CLAIM_UPLOAD, TurnstileAction::CompanyListing, Auth::user()?->email);
             $minuten = max(1, (int) ceil($wartezeit / 60));
             $this->addError('documents', trans_choice('antispam.throttled', $minuten, ['minuten' => $minuten]));
+
             return;
         }
 
@@ -102,8 +113,9 @@ class ClaimVerification extends Component
             'documents.*.mimes' => 'Erlaubte Formate: PDF, JPG, PNG.',
         ]);
 
-        if (!$this->claimRequest) {
+        if (! $this->claimRequest) {
             $this->addError('documents', 'Kein Claim-Request gefunden.');
+
             return;
         }
 
@@ -127,6 +139,13 @@ class ClaimVerification extends Component
                 ->toMediaCollection('claim_documents');
         }
 
+        // Nachweis an den Inbox-Vorgang haengen (#1 der zweiten Reihe). Er
+        // entsteht erst hier, also nach dem Antrag — ohne diesen Schritt
+        // stuende der Vorgang in der Inbox ohne Nachweis, waehrend die Datei
+        // nur am Altantrag haengt. Den Vorgang legt RecordClaimRequest an
+        // bzw. findet ihn; der Aufruf ist idempotent.
+        $this->attachDocumentsToInbox();
+
         // Erst jetzt zaehlen: ein zu grosses Dokument oder ein falsches
         // Format soll keinen Versuch kosten.
         RateLimitGuard::hit(RateLimitGuard::CLAIM_UPLOAD);
@@ -145,6 +164,36 @@ class ClaimVerification extends Component
         if (isset($this->documents[$index])) {
             unset($this->documents[$index]);
             $this->documents = array_values($this->documents);
+        }
+    }
+
+    /**
+     * Nachweis an den Vorgang in der zentralen Inbox haengen.
+     *
+     * Scheitert etwas, bleibt der Upload bestehen: die Datei liegt am
+     * Antrag, und das alte Panel kann sie zeigen. Ein Fehler hier darf den
+     * Antragsteller nicht aufhalten, der seine Unterlagen gerade
+     * hochgeladen hat.
+     */
+    private function attachDocumentsToInbox(): void
+    {
+        $user = Auth::user();
+
+        if (! $this->claimRequest instanceof ClaimRequest || ! $user instanceof User) {
+            return;
+        }
+
+        try {
+            $request = app(RecordClaimRequest::class)($this->claimRequest, $this->company, $user);
+
+            if ($request !== null) {
+                app(AttachClaimDocuments::class)($this->claimRequest, $request);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('profile-requests: Nachweis nicht an den Inbox-Vorgang gehaengt', [
+                'claim_request_id' => $this->claimRequest->getKey(),
+                'exception' => $e->getMessage(),
+            ]);
         }
     }
 

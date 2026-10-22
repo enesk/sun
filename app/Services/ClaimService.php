@@ -2,15 +2,15 @@
 
 namespace App\Services;
 
-use App\Constants\TenancyPermissionConstants;
 use App\Claims\ClaimNotificationStatus;
+use App\Constants\TenancyPermissionConstants;
 use App\Mail\ClaimApproved;
 use App\Mail\ClaimRejected;
-use App\Mail\ClaimRequestNotification;
 use App\Models\Portal\ClaimRequest;
 use App\Models\Portal\Company;
 use App\Models\Tenant;
 use App\Models\User;
+use App\ProfileRequests\Actions\RecordClaimRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -31,7 +31,7 @@ class ClaimService
     {
         $tenant = tenant();
 
-        if (!$tenant) {
+        if (! $tenant) {
             Log::error('ClaimService: No tenant context for claim request', [
                 'user_id' => $user->id,
                 'company_id' => $company->id,
@@ -94,7 +94,7 @@ class ClaimService
                 ]);
 
                 // 2. User an Tenant anhängen (damit er sich einloggen kann)
-                if (!$user->tenants()->where('tenant_id', $tenant->id)->exists()) {
+                if (! $user->tenants()->where('tenant_id', $tenant->id)->exists()) {
                     $tenant->users()->attach($user);
                 }
 
@@ -107,14 +107,12 @@ class ClaimService
                 'company_id' => $company->id,
             ]);
 
-            try {
-                Mail::to('hello@eneskul.com')->send(new ClaimRequestNotification($claimRequest));
-            } catch (\Exception $e) {
-                Log::warning('ClaimService: Failed to send claim notification email', [
-                    'claim_request_id' => $claimRequest->id,
-                    'error' => $e->getMessage(),
-                ]);
-            }
+            // Der Antrag gehoert in die zentrale Inbox (#1 der zweiten
+            // Reihe): bis hierher kannte sie nur die 115 Vorgaenge aus dem
+            // Import, neue Uebernahmen tauchten dort nicht auf. Die Aktion
+            // ist idempotent und verschickt die Sofortmeldung (#23) selbst
+            // — deshalb steht hier keine eigene Mail mehr.
+            app(RecordClaimRequest::class)($claimRequest, $company, $user);
 
             return $claimRequest;
         } catch (\Exception $e) {
@@ -135,20 +133,20 @@ class ClaimService
      */
     public function approveClaimRequest(ClaimRequest $claimRequest, int $reviewerId): bool
     {
-        if (!$claimRequest->isPending()) {
+        if (! $claimRequest->isPending()) {
             return false;
         }
 
         $tenant = tenant();
 
-        if (!$tenant) {
+        if (! $tenant) {
             return false;
         }
 
         $user = User::find($claimRequest->user_id);
         $company = $claimRequest->company;
 
-        if (!$user || !$company) {
+        if (! $user || ! $company) {
             return false;
         }
 
@@ -170,7 +168,7 @@ class ClaimService
 
                 // 3. Company-Owner Role zuweisen
                 $currentRoles = $this->tenantPermissionService->getTenantUserRoles($tenant, $user);
-                if (!in_array(TenancyPermissionConstants::ROLE_COMPANY_OWNER, $currentRoles)) {
+                if (! in_array(TenancyPermissionConstants::ROLE_COMPANY_OWNER, $currentRoles)) {
                     $this->tenantPermissionService->assignTenantUserRole(
                         $tenant,
                         $user,
@@ -213,7 +211,7 @@ class ClaimService
      */
     public function rejectClaimRequest(ClaimRequest $claimRequest, int $reviewerId, string $reason): bool
     {
-        if (!$claimRequest->isPending()) {
+        if (! $claimRequest->isPending()) {
             return false;
         }
 
@@ -363,7 +361,7 @@ class ClaimService
             ->pending()
             ->exists();
 
-        return !$hasPendingClaim;
+        return ! $hasPendingClaim;
     }
 
     /**
@@ -386,7 +384,7 @@ class ClaimService
     {
         $tenant = $tenant ?? tenant();
 
-        if (!$tenant) {
+        if (! $tenant) {
             Log::error('ClaimService: No tenant context for claim', [
                 'user_id' => $user->id,
                 'company_id' => $company->id,
@@ -407,12 +405,12 @@ class ClaimService
             DB::transaction(function () use ($user, $company, $tenant) {
                 $company->update(['user_id' => $user->id]);
 
-                if (!$user->tenants()->where('tenant_id', $tenant->id)->exists()) {
+                if (! $user->tenants()->where('tenant_id', $tenant->id)->exists()) {
                     $tenant->users()->attach($user);
                 }
 
                 $currentRoles = $this->tenantPermissionService->getTenantUserRoles($tenant, $user);
-                if (!in_array(TenancyPermissionConstants::ROLE_COMPANY_OWNER, $currentRoles)) {
+                if (! in_array(TenancyPermissionConstants::ROLE_COMPANY_OWNER, $currentRoles)) {
                     $this->tenantPermissionService->assignTenantUserRole(
                         $tenant,
                         $user,
