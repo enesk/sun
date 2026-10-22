@@ -170,10 +170,14 @@ class ProfileRequestResource extends Resource
                     ->formatStateUsing(fn (RequestStatus $state): string => $state->label())
                     ->sortable(),
             ])
-            // Das Aelteste zuerst: die Inbox wird von unten abgearbeitet, und
-            // der Rueckstand aus docs/profile-requests.md 2.4 ist genau das,
-            // was oben stehen muss.
-            ->defaultSort('created_at', 'asc')
+            // Das Neueste zuerst (Vorgabe von Enes, 22.10.2026). Die
+            // urspruengliche Ordnung "aeltestes oben" war fuer das
+            // Abarbeiten eines Rueckstands gedacht; im Alltag will Enes
+            // sehen, was gerade hereinkommt. Der uebernommene Altbestand
+            // (#16) traegt sein echtes Eingangsdatum und sinkt damit nach
+            // unten, statt die Liste zu verstopfen. Umsortieren ueber die
+            // Spaltenkoepfe bleibt moeglich.
+            ->defaultSort('created_at', 'desc')
             ->filters([
                 SelectFilter::make('tenant_id')
                     ->label('Portal')
