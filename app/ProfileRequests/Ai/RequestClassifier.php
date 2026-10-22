@@ -187,7 +187,7 @@ class RequestClassifier
         3. Bei type "change": fuer jedes gewuenschte Feld eine Zeile in "changes" mit field, old, new. Erlaubte field-Werte: {$fields}. "old" ist der Wert, den die Mail als bisherigen nennt oder der aus dem Kandidaten hervorgeht — unbekannt heisst null. Nenne nur Felder, die die Mail wirklich aendert.
         4. Bei type "delete": "delete_reason" mit dem genannten Grund in einem kurzen Satz.
         5. "summary": ein bis zwei Saetze, was der Absender will. Deutsch.
-        6. "reply_draft": Entwurf einer Antwort an den Betrieb, deutsche Sie-Form, hoeflich, ohne Platzhalter in spitzen Klammern, ohne Anrede-Rateversuch wenn der Name fehlt ("Guten Tag,"). Sage nur zu, was ohne Pruefung zugesagt werden kann; verspreche keinen Termin.
+        6. "reply_draft": Entwurf einer Antwort an den Betrieb, deutsche Sie-Form, hoeflich, ohne Platzhalter in spitzen Klammern, ohne Anrede-Rateversuch wenn der Name fehlt ("Guten Tag,"). Sage nur zu, was ohne Pruefung zugesagt werden kann; verspreche keinen Termin. Schreibe KEINEN Hinweis auf die Uebernahme des Eintrags oder auf Anfragen ueber das Portal — der steht als fester Baustein unter jedem Entwurf (SendReply) und waere hier doppelt.
 
         ## Antwortformat
         {"type":"change|delete|claim|other","tenant_id":123|null,"company_id":456|null,"confidence":0.0,"summary":"...","reply_draft":"...","delete_reason":null,"changes":[{"field":"tel","old":"0221 1234","new":"0721 98765"}]}
