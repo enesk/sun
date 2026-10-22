@@ -32,6 +32,7 @@ use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -84,6 +85,23 @@ class ViewProfileRequest extends ViewRecord
             $record->source->label(),
             $record->status->label(),
         );
+    }
+
+    /**
+     * Eigener Seitenkopf: Überschrift oben, Knöpfe in einer Zeile darunter.
+     *
+     * Der Standardkopf setzt beides nebeneinander. Bei sieben Aktionen bleibt
+     * für „REQ-127" und die Unterzeile eine schmale Spalte übrig, in der
+     * jedes Wort einzeln umbricht.
+     */
+    public function getHeader(): ?View
+    {
+        return view('filament.central.profile-request-header', [
+            'heading' => $this->getHeading(),
+            'subheading' => $this->getSubheading(),
+            'breadcrumbs' => filament()->hasBreadcrumbs() ? $this->getBreadcrumbs() : [],
+            'actions' => $this->getCachedHeaderActions(),
+        ]);
     }
 
     /**
