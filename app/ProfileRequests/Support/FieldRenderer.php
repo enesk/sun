@@ -46,6 +46,9 @@ final class FieldRenderer
         'description' => 'Beschreibung',
         'services' => 'Leistungen',
         'logo' => 'Logo',
+        // Sammelzeile fuer Bilder aus den Anhaengen (Logo/Galerie): sie sind
+        // keine Diff-Zeile, stehen aber in der Bestaetigungsmail.
+        'images' => 'Bilder',
         'social_facebook' => 'Facebook',
         'social_instagram' => 'Instagram',
         'social_linkedin' => 'LinkedIn',

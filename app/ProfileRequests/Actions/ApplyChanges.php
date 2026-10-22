@@ -17,9 +17,9 @@ use App\ProfileRequests\Models\ProfileRequest;
 use App\ProfileRequests\Models\RequestAttachment;
 use App\ProfileRequests\Models\RequestChange;
 use App\ProfileRequests\Models\RequestEvent;
-use App\ProfileRequests\Support\FieldRenderer;
 use App\ProfileRequests\Support\TenantCompanyResolver;
 use App\Services\Seo\StructuredDataService;
+use App\Support\Tenancy\TenantMailBranding;
 use App\Support\TenantCache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -141,7 +141,7 @@ class ApplyChanges
         ]);
 
         if ($notify) {
-            $this->notify($request, $result['applied'], $result['images']);
+            $this->notify($request, $result);
         }
 
         return [
@@ -279,16 +279,22 @@ class ApplyChanges
     /**
      * Der schreibende Teil — laeuft ausschliesslich im Tenant-Kontext.
      *
+     * Mitgegeben werden auch Firmenname und Profilpfad: beide braucht die
+     * Bestaetigungsmail, und beide sind nur hier zu holen. Der Pfad kommt aus
+     * `portal_path` (nicht `portal_url`) — `route()` baut den Host aus
+     * `config('app.url')`, und das ist hier die zentrale Domain; die Domain
+     * setzt {@see TenantMailBranding} davor (#26).
+     *
      * @param  \Illuminate\Support\Collection<int, RequestChange>  $accepted
      * @param  list<array{tmp: string, name: string, collection: string}>  $dateien
-     * @return array{applied: list<string>, skipped: array<string, string>, images: int}
+     * @return array{applied: list<string>, skipped: array<string, string>, images: int, company_name: string, portal_path: string}
      */
     private function writeInTenant(ProfileRequest $request, $accepted, array $dateien): array
     {
         $company = Company::find($request->company_id);
 
         if ($company === null) {
-            return ['applied' => [], 'skipped' => ['*' => 'Betrieb im Portal nicht gefunden'], 'images' => 0];
+            return ['applied' => [], 'skipped' => ['*' => 'Betrieb im Portal nicht gefunden'], 'images' => 0, 'company_name' => '', 'portal_path' => ''];
         }
 
         $applied = [];
@@ -336,7 +342,15 @@ class ApplyChanges
             $this->forgetCaches($company);
         }
 
-        return ['applied' => $applied, 'skipped' => $skipped, 'images' => $written];
+        // Nach dem Speichern gelesen: war der Firmenname selbst Teil der
+        // Uebernahme, nennt die Mail den neuen, nicht den alten.
+        return [
+            'applied' => $applied,
+            'skipped' => $skipped,
+            'images' => $written,
+            'company_name' => (string) $company->name,
+            'portal_path' => (string) $company->portal_path,
+        ];
     }
 
     /**
@@ -640,18 +654,50 @@ class ApplyChanges
         return (int) round(((float) str_replace(',', '.', str_replace('.', '', $price))) * 100);
     }
 
-    private function notify(ProfileRequest $request, array $applied, int $images): void
+    /**
+     * Bestaetigung an den Anfragenden.
+     *
+     * Die Mail bekommt **Feldschluessel**, nicht Beschriftungen: sie setzt
+     * die Labels selbst ({@see ChangesAppliedMail::payload()}). Genau hier
+     * lag der Fehler bis zum 22.10.2026 — uebergeben wurden die fertigen
+     * Labels an der Stelle des Firmennamens, der Aufruf warf einen
+     * TypeError, und weil er in diesem try/catch steckt, lief die Uebernahme
+     * sauber weiter und niemand bekam eine Mail (nur eine Logzeile).
+     *
+     * Bilder stehen als eigene Zeile in der Liste: ein neues Logo ist keine
+     * Diff-Zeile, waere sonst in der Mail unsichtbar und der Betrieb wuesste
+     * nicht, dass es im Profil steht.
+     *
+     * `pendingFields` bleibt leer. Nicht angehakte Zeilen sind entschieden,
+     * nicht offen — der Vorgang ist mit dieser Uebernahme geschlossen
+     * (Status `applied`), es schreibt niemand mehr nach. Die Mail wuerde
+     * sonst etwas zusagen, was nicht passiert.
+     *
+     * @param  array{applied: list<string>, skipped: array<string, string>, images: int, company_name?: string, portal_path?: string}  $result
+     */
+    private function notify(ProfileRequest $request, array $result): void
     {
         if (trim((string) $request->requester_email) === '') {
             return;
         }
 
+        $felder = $result['applied'];
+
+        if ($result['images'] > 0) {
+            $felder[] = 'images';
+        }
+
+        $tenant = $this->resolver->tenant((int) $request->tenant_id);
+        $pfad = trim((string) ($result['portal_path'] ?? ''));
+
         try {
             Mail::to($request->requester_email)->send(new ChangesAppliedMail(
                 $request,
-                $this->resolver->tenant((int) $request->tenant_id),
-                array_map(FieldRenderer::label(...), $applied),
-                $images,
+                $tenant,
+                (string) ($result['company_name'] ?? ''),
+                $felder,
+                [],
+                $pfad === '' ? null : TenantMailBranding::for($tenant)->url($pfad),
             ));
 
             $request->recordEvent(RequestEventType::MAIL_SENT, [
