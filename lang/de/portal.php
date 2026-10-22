@@ -1375,6 +1375,49 @@ return [
 
         'correction_label' => 'Wie lautet es richtig?',
         'correction_placeholder' => 'z. B. Die Telefonnummer ist seit Mai eine andere, die alte ist abgeschaltet.',
+
+        // Je Kategorie ein eigenes Feld (#20). Die Felder sind mit dem
+        // aktuellen Stand vorbelegt, deshalb heisst es "ändern", nicht "angeben".
+        'fields' => [
+            'street' => 'Straße',
+            'house_no' => 'Hausnummer',
+            'zipcode' => 'PLZ',
+            'city' => 'Ort',
+            'tel' => 'Telefonnummer',
+            'website' => 'Website',
+            'description' => 'Leistungen',
+            'hours' => 'Öffnungszeiten',
+            'duplicate' => 'Der andere Eintrag',
+            'note' => 'Was stimmt nicht?',
+        ],
+        'hints' => [
+            'prefilled' => 'Vorbelegt mit dem aktuellen Stand — ändere nur, was falsch ist.',
+            'hours' => 'Als Freitext, z. B. „Mo–Fr 8–18 Uhr, Sa 9–13 Uhr".',
+            'duplicate' => 'Name oder Adresse des Eintrags, der doppelt ist.',
+            'closed' => 'Wir prüfen das und nehmen den Eintrag dann heraus.',
+        ],
+        'attributes' => [
+            'kategorien' => 'Auswahl',
+            'street' => 'Straße',
+            'houseNo' => 'Hausnummer',
+            'zipcode' => 'PLZ',
+            'city' => 'Ort',
+            'tel' => 'Telefonnummer',
+            'website' => 'Website',
+            'description' => 'Leistungen',
+            'openingHours' => 'Öffnungszeiten',
+            'duplicateOf' => 'Der andere Eintrag',
+            'note' => 'Beschreibung',
+            'reporterEmail' => 'E-Mail-Adresse',
+        ],
+        'errors' => [
+            'no_category' => 'Bitte wähle aus, was nicht stimmt.',
+            'nothing_changed' => 'In den gewählten Feldern steht noch der alte Stand — ändere bitte, was falsch ist.',
+            'email' => 'Bitte gib eine gültige E-Mail-Adresse ein.',
+        ],
+        'notes' => [
+            'closed' => 'Der Melder gibt an: Betrieb existiert nicht mehr.',
+        ],
         'email_label' => 'Deine E-Mail',
         'email_hint' => 'Nur falls wir eine Rückfrage haben. Wird nicht veröffentlicht.',
         'submit' => 'Änderung senden',
