@@ -92,8 +92,20 @@
                 <x-filament::section icon="heroicon-m-sparkles">
                     <x-slot name="heading">Zusammenfassung der KI</x-slot>
                     <x-slot name="description">
-                        Ein Vorschlag, keine Entscheidung@if ($profileRequest->ai_confidence !== null) —
-                            {{ number_format((float) $profileRequest->ai_confidence * 100, 0, ',', '.') }} % Sicherheit@endif.
+                        {{-- Keine Direktive direkt hinter einem Buchstaben: Blade erkennt
+                             sie nur, wenn vor dem Klammeraffen kein Wortzeichen steht
+                             (\B im Parser), und gibt sie sonst als Text aus. Genau das
+                             stand hier: der Hinweis endete mit der rohen Bedingung.
+                             Der Satz wird deshalb in PHP gebaut. --}}
+                        @php
+                            $sicherheit = $profileRequest->ai_confidence === null
+                                ? null
+                                : number_format((float) $profileRequest->ai_confidence * 100, 0, ',', '.');
+                        @endphp
+
+                        {{ $sicherheit === null
+                            ? 'Ein Vorschlag, keine Entscheidung.'
+                            : "Ein Vorschlag, keine Entscheidung — {$sicherheit} % Sicherheit." }}
                     </x-slot>
 
                     <p class="whitespace-pre-line text-sm text-gray-700 dark:text-gray-300">{{ $profileRequest->ai_summary }}</p>
