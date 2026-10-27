@@ -15,4 +15,9 @@
 @if($loader !== null)
 {!! $scriptTag() !!}
 @endif
+{{-- Das <meta> schaltet die seitenweiten Auto Ads in resources/js/ads.js
+     ein und haengt deshalb weiter am Schalter des Portals. Der Loader oben
+     kommt auch ohne ihn: er bringt Googles CMP mit (#2). --}}
+@if($autoAdsPush)
 <meta name="adsense-auto-client" content="{{ $publisherId }}">
+@endif
