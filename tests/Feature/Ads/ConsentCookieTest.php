@@ -7,6 +7,7 @@ namespace Tests\Feature\Ads;
 use App\View\Components\Sun\AdSlot;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Http\Request;
+use App\Ads\Support\AdConsent;
 use ReflectionMethod;
 use Tests\TestCase;
 
@@ -65,9 +66,47 @@ class ConsentCookieTest extends TestCase
 
     public function test_die_werbeanker_lesen_den_klartextwert_der_anfrage(): void
     {
+        // Nur mit Server-Gate. Ohne Gate entscheidet der Server nicht mehr —
+        // siehe test_ohne_server_gate_haelt_der_server_nichts_zurueck().
+        config(['ad-slots.consent.server_gate' => true]);
+
         $this->assertTrue($this->consentFor('1'), 'Mit cookie_consent_marketing=1 gilt die Einwilligung.');
         $this->assertFalse($this->consentFor('0'), 'Mit 0 nicht.');
         $this->assertFalse($this->consentFor(null), 'Ohne Cookie nicht.');
+    }
+
+    /**
+     * Vorgabe seit 27.10.2026: Die Einwilligung holt allein Googles
+     * zertifiziertes CMP, das mit dem AdSense-Tag kommt. Der Server haelt
+     * nichts mehr zurueck — sonst lagen zwei Abfragen hintereinander und die
+     * eigene war die Bremse (Google meldet 88 %, angekommen sind ~50 %).
+     */
+    public function test_ohne_server_gate_haelt_der_server_nichts_zurueck(): void
+    {
+        config(['ad-slots.consent.server_gate' => false]);
+
+        foreach (['1', '0', null] as $wert) {
+            $this->assertTrue(
+                $this->consentFor($wert),
+                'Ohne Server-Gate darf der Cookie-Wert '.var_export($wert, true).' nichts blockieren.',
+            );
+        }
+
+        $this->assertFalse(
+            AdConsent::denied(),
+            'Ohne Gate gibt es kein serverseitiges "abgelehnt" — sonst klappt der Platz ein.',
+        );
+    }
+
+    public function test_server_gate_ist_ab_werk_aus(): void
+    {
+        // Der Schalter ist der Rueckweg: true stellt das alte Verhalten her,
+        // ohne Deploy. Gebraucht wird er auf Portalen ohne AdSense, wo kein
+        // Google-CMP erscheint.
+        $this->assertFalse(
+            (bool) config('ad-slots.consent.server_gate'),
+            'Vorgabe ist: der Server entscheidet nicht.',
+        );
     }
 
     public function test_es_gibt_keinen_zweiten_leseweg_mehr(): void

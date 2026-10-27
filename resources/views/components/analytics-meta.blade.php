@@ -47,7 +47,15 @@
     $analytics = app(\App\Analytics\AnalyticsResolver::class)->resolve($tenant);
     $cspNonce = app(\App\Services\Security\CspNonce::class)->value();
     $consentDefault = \App\Support\ConsentState::fromRequest(request())->signals();
+    // Gegenstueck zu AdConsent::serverGate(): sagt dem Bundle, ob diese
+    // Anwendung ueberhaupt eine Einwilligungsentscheidung trifft (#2).
+    $serverGate = \App\Ads\Support\AdConsent::serverGate();
 @endphp
+
+{{-- Steht hier und nicht bei den Werbe-Komponenten, weil auch Seiten ohne
+     Werbeplatz das Signal brauchen: resources/js/consent-adapter.js liest es
+     fuer jede Kategorie, nicht nur fuer 'marketing'. --}}
+<meta name="consent-server-gate" content="{{ $serverGate ? '1' : '0' }}">
 
 @if ($analytics->gaId !== null)
     <meta name="ga-id" content="{{ $analytics->gaId }}">

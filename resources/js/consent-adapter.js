@@ -74,8 +74,32 @@ function cookieWert(name) {
     return treffer ? decodeURIComponent(treffer[1]) : null;
 }
 
+/**
+ * Trifft diese Anwendung ueberhaupt eine Einwilligungsentscheidung?
+ *
+ * Steht `<meta name="consent-server-gate" content="0">` im Dokument, dann
+ * nein: die Einwilligung holt allein Googles zertifiziertes CMP, das mit dem
+ * AdSense-Tag kommt (Entscheidung Enes, 27.10.2026). Das Gegenstueck
+ * serverseitig ist App\Ads\Support\AdConsent::serverGate().
+ *
+ * Fehlt das Meta — etwa auf einer Seite ohne Werbung —, bleibt es beim
+ * bisherigen Verhalten und die Cookies entscheiden.
+ */
+function serverGate() {
+    const meta = document.querySelector('meta[name="consent-server-gate"]');
+
+    return meta === null ? true : meta.getAttribute('content') !== '0';
+}
+
 /** Zustand einer Kategorie: 'granted' | 'denied' | 'pending'. */
 export function zustand(kategorie) {
+    // Ohne Gate haelt diese Seite nichts zurueck. 'granted' heisst hier
+    // nicht "der Besucher hat zugestimmt", sondern "wir blockieren nicht" —
+    // ob eine Anzeige kommt und welche, entscheidet Googles CMP.
+    if (! serverGate()) {
+        return GRANTED;
+    }
+
     const wert = cookieWert(KATEGORIEN[kategorie]);
 
     if (wert === '1') {
