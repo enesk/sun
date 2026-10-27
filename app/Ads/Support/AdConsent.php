@@ -64,6 +64,30 @@ final class AdConsent
         return (bool) config('ad-slots.consent.server_gate', false);
     }
 
+    /**
+     * Zeigt dieses Portal einen **eigenen** Cookie-Hinweis?
+     *
+     * Nein, sobald AdSense laeuft: dann bringt der Google-Tag das
+     * zertifizierte CMP mit ("Datenschutz & Messaging"), und zwei Abfragen
+     * hintereinander sind genau das, was Enes abgestellt haben wollte — die
+     * zweite kostete die Haelfte der Zustimmungen.
+     *
+     * Ja auf Portalen ohne AdSense: dort laedt kein Google-Tag, also
+     * erscheint kein CMP. Ohne eigenen Hinweis liefe die Messung dort ohne
+     * jede Einwilligung.
+     *
+     * Ja ausserdem, solange das Server-Gate an ist — dann gilt bewusst noch
+     * das alte Verhalten.
+     */
+    public static function ownBannerNeeded(): bool
+    {
+        if (self::serverGate()) {
+            return true;
+        }
+
+        return ! app(AdSensePrivacySection::class)->adsenseActive();
+    }
+
     public static function cookieName(): string
     {
         return (string) config('ad-slots.consent.cookie', 'cookie_consent_marketing');

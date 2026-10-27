@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Ads;
 
+use App\Ads\Support\AdConsent;
 use App\View\Components\Sun\AdSlot;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Http\Request;
-use App\Ads\Support\AdConsent;
 use ReflectionMethod;
 use Tests\TestCase;
 
@@ -95,6 +95,25 @@ class ConsentCookieTest extends TestCase
         $this->assertFalse(
             AdConsent::denied(),
             'Ohne Gate gibt es kein serverseitiges "abgelehnt" — sonst klappt der Platz ein.',
+        );
+    }
+
+    public function test_eigener_hinweis_nur_wo_kein_google_cmp_kommt(): void
+    {
+        // Mit Server-Gate gilt das alte Verhalten: eigener Hinweis, immer.
+        config(['ad-slots.consent.server_gate' => true]);
+        $this->assertTrue(
+            AdConsent::ownBannerNeeded(),
+            'Mit Server-Gate bleibt der eigene Hinweis.',
+        );
+
+        // Ohne Gate und ohne AdSense auf diesem Portal: ebenfalls eigener
+        // Hinweis — dort laedt kein Google-Tag, also erscheint kein CMP.
+        config(['ad-slots.consent.server_gate' => false]);
+        $this->assertTrue(
+            AdConsent::ownBannerNeeded(),
+            'Ohne AdSense gibt es kein Google-CMP — der eigene Hinweis muss bleiben, sonst '
+            .'laeuft die Messung ohne jede Einwilligung.',
         );
     }
 
