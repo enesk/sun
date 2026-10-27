@@ -67,6 +67,9 @@ class AutoAds extends Component
     /** Publisher-ID fuer das <meta>-Tag; null heisst: nichts rendern. */
     public ?string $publisherId = null;
 
+    /** Schaltet dieses Portal seitenweite Auto Ads ein? Steuert nur das <meta>. */
+    public bool $autoAdsPush = false;
+
     /** Der Loader, falls er auf dieser Seite noch nicht ausgegeben wurde. */
     public ?AdHeadDependency $loader = null;
 
@@ -78,13 +81,26 @@ class AutoAds extends Component
 
         $resolver = app(AdSlotResolver::class);
 
-        if (! $resolver->autoAdsEnabled()) {
-            return;
-        }
-
         $publisherId = trim((string) ($resolver->forPageType(AdPageType::HOME)['publisher_id'] ?? ''));
 
         if ($publisherId === '') {
+            return;
+        }
+
+        /*
+         * Der Auto-Ads-Push haengt weiter am Schalter des Portals. Der
+         * **Loader** nicht: ohne Server-Gate bringt er Googles zertifiziertes
+         * CMP mit, und das muss auf jeder Seite erscheinen — auch auf einer
+         * ohne belegten Werbeplatz.
+         *
+         * Vorher fehlte er dort, und weil der eigene Cookie-Hinweis bei
+         * aktivem AdSense weggelassen wird, hatte eine solche Seite gar keine
+         * Einwilligungsabfrage mehr (gefunden auf bodenlegerfinden.com am
+         * 27.10.2026, Startseite ohne Belegung).
+         */
+        $this->autoAdsPush = $resolver->autoAdsEnabled();
+
+        if (AdConsent::serverGate() && ! $this->autoAdsPush) {
             return;
         }
 
