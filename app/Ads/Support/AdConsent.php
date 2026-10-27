@@ -40,6 +40,30 @@ final class AdConsent
 
     public const ON_DENIED_RESERVE = 'reserve';
 
+    /**
+     * Trifft der Server ueberhaupt eine Einwilligungsentscheidung?
+     *
+     * `false` (Vorgabe seit 27.10.2026, Entscheidung Enes): **nein**. Die
+     * Einwilligung holt allein Googles zertifiziertes CMP ("Datenschutz &
+     * Messaging"), das mit dem AdSense-Tag geladen wird. Es entscheidet
+     * selbst, ob und welche Anzeige es setzt, und setzt Cookies erst nach
+     * Zustimmung — das ist Googles vorgesehener Weg.
+     *
+     * Der Server haelt den Platz dann nicht mehr zurueck: das Fragment geht
+     * immer raus, Google liefert personalisiert, eingeschraenkt oder gar
+     * nicht. Vorher lagen zwei Abfragen hintereinander (unsere und Googles),
+     * und unsere war die Bremse — Googles CMP meldet 88 % Zustimmung, bei den
+     * Portalen kamen rund 50 % an.
+     *
+     * `true` stellt das alte Verhalten wieder her, ohne Deploy: ein Wert in
+     * der .env genuegt. Gebraucht wird das auf Portalen **ohne** AdSense,
+     * denn dort laedt kein Google-Tag und erscheint kein CMP.
+     */
+    public static function serverGate(): bool
+    {
+        return (bool) config('ad-slots.consent.server_gate', false);
+    }
+
     public static function cookieName(): string
     {
         return (string) config('ad-slots.consent.cookie', 'cookie_consent_marketing');
@@ -54,6 +78,13 @@ final class AdConsent
     /** @return self::STATE_* */
     public static function state(): string
     {
+        // Ohne Server-Gate faellt die Entscheidung bei Google, nicht hier.
+        // `granted` heisst an dieser Stelle deshalb nicht "der Besucher hat
+        // zugestimmt", sondern "der Server haelt nichts zurueck".
+        if (! self::serverGate()) {
+            return self::STATE_GRANTED;
+        }
+
         return match (request()->cookie(self::cookieName())) {
             '1' => self::STATE_GRANTED,
             '0' => self::STATE_DENIED,

@@ -174,6 +174,21 @@ return [
      * kommen und der Platz darf dann nicht wachsen (CLS).
      */
     'consent' => [
+        /*
+         * Trifft der Server eine Einwilligungsentscheidung, bevor eine
+         * Anzeige ausgeliefert wird?
+         *
+         * false (Vorgabe seit 27.10.2026): nein. Die Einwilligung holt allein
+         * Googles zertifiziertes CMP, das mit dem AdSense-Tag kommt. Zwei
+         * Abfragen hintereinander haben die Zustimmung halbiert — Google
+         * meldet 88 %, bei den Portalen kamen rund 50 % an.
+         *
+         * true auf Portalen ohne AdSense: dort laedt kein Google-Tag, also
+         * erscheint kein CMP, und ohne eigenes Gate liefe Werbung ohne jede
+         * Abfrage.
+         */
+        'server_gate' => (bool) env('ADS_CONSENT_SERVER_GATE', false),
+
         'cookie' => 'cookie_consent_marketing',
         'event' => 'consent:marketing',
         'on_denied' => env('ADS_CONSENT_ON_DENIED', 'collapse'),
