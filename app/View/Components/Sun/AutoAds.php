@@ -83,7 +83,16 @@ class AutoAds extends Component
 
         $publisherId = trim((string) ($resolver->forPageType(AdPageType::HOME)['publisher_id'] ?? ''));
 
-        if ($publisherId === '') {
+        /*
+         * Der Hauptschalter des Portals gehoert mitgeprueft, nicht nur die
+         * Publisher-ID. Sonst laedt der Loader in einem Portal mit
+         * `ads_enabled = nein`, das eine ID hinterlegt hat — und weil
+         * {@see AdConsent::ownBannerNeeded()} denselben Schalter liest, steht
+         * dort **zusaetzlich** der eigene Hinweis: zwei Abfragen
+         * hintereinander, genau das, was abgestellt werden sollte (gefunden
+         * auf sanitaerfinder.com am 27.10.2026).
+         */
+        if ($publisherId === '' || ! $resolver->adsEnabled()) {
             return;
         }
 
