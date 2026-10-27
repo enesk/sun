@@ -140,7 +140,12 @@
 {{-- Kein Cookie-Hinweis in der Vorschau (#6): es wird nichts Fremdes
      geladen, und der Kasten verdeckt die unteren Anker. --}}
 @if(! $adEditor)
+{{-- Eigener Cookie-Hinweis nur, wo kein Google-CMP kommt: mit AdSense
+     bringt der Google-Tag das zertifizierte CMP mit, zwei Abfragen
+     hintereinander kosteten die Haelfte der Zustimmungen (#2). --}}
+@if(\App\Ads\Support\AdConsent::ownBannerNeeded())
 @include('partials.sun.cookie-consent')
+@endif
 @endif
 
 @stack('scripts')
