@@ -11,6 +11,12 @@
     Entscheidungsregel aus docs/ad-slots.md 13.3 und darum farblich
     abgesetzt — unter 40 % abschalten, ueber 70 % ausweiten. Ein
     Gedankenstrich heisst "kein Nenner im Fenster", nicht "0 %".
+
+    Lazy Loading (SUN-LZ-004): seit `lazy_load.since` zaehlt "Ausgeliefert"
+    erst beim push. Liegt der Tag im Fenster ($split), stehen Ausgeliefert
+    und Sichtbar je Anker und Portal getrennt vorher/nachher — eine Quote
+    ueber beide Zaehlweisen waere ein gemischtes Fenster. Der Umstellungstag
+    selbst steht in keiner der beiden Haelften.
 --}}
 @php
     /* Ampel zu docs/ad-slots.md 13.3; null = kein Nenner, also keine Aussage. */
@@ -20,6 +26,14 @@
         $quote > 70 => 'text-success-600 dark:text-success-400',
         default => 'text-gray-700 dark:text-gray-300',
     };
+
+    $quote = static fn (int $viewable, int $delivered): ?int => $delivered > 0 ? (int) min(100, round($viewable / $delivered * 100)) : null;
+    $leer = ['delivered' => 0, 'total' => 0, 'viewability' => null];
+
+    /* Gesamtquote nachher fuer die Kachel: gleiche Rechnung wie AdImpressionStats::quote(). */
+    $nachher = $split === null ? null : [
+        'viewability' => $quote(array_sum(array_column($split['after'], 'total')), array_sum(array_column($split['after'], 'delivered'))),
+    ];
 @endphp
 <x-filament::section>
     <x-slot name="heading">
@@ -33,6 +47,9 @@
         @endif
         · {{ __('Zählung: 50 % der Fläche für 1 Sekunde, ohne Cookie') }}
         · {{ __('Sichtbar = Sichtkontakte je ausgeliefertes Fragment (unter 40 % abschalten, über 70 % ausweiten)') }}
+        @if($lazySince !== null)
+            · <span class="font-medium">{{ __('Lazy Loading aktiv seit :date', ['date' => $lazySince->format('d.m.Y')]) }}</span>
+        @endif
     </x-slot>
 
     <x-slot name="afterHeader">
@@ -66,12 +83,21 @@
                 <div class="text-gray-500 dark:text-gray-400">{{ __('Ausgeliefert') }}</div>
                 <div class="text-2xl font-semibold">{{ number_format($summary['delivered'], 0, ',', '.') }}</div>
             </div>
-            <div>
-                <div class="text-gray-500 dark:text-gray-400">{{ __('Sichtbar') }}</div>
-                <div class="text-2xl font-semibold {{ $quotenFarbe($summary['viewability']) }}">
-                    {{ $summary['viewability'] === null ? '—' : $summary['viewability'].' %' }}
+            @if($nachher === null)
+                <div>
+                    <div class="text-gray-500 dark:text-gray-400">{{ __('Sichtbar') }}</div>
+                    <div class="text-2xl font-semibold {{ $quotenFarbe($summary['viewability']) }}">
+                        {{ $summary['viewability'] === null ? '—' : $summary['viewability'].' %' }}
+                    </div>
                 </div>
-            </div>
+            @else
+                <div>
+                    <div class="text-gray-500 dark:text-gray-400">{{ __('Sichtbar nachher') }}</div>
+                    <div class="text-2xl font-semibold {{ $quotenFarbe($nachher['viewability']) }}">
+                        {{ $nachher['viewability'] === null ? '—' : $nachher['viewability'].' %' }}
+                    </div>
+                </div>
+            @endif
             <div>
                 <div class="text-gray-500 dark:text-gray-400">{{ __('Mobil') }}</div>
                 <div class="text-2xl font-semibold">{{ number_format($summary['mobile'], 0, ',', '.') }}</div>
@@ -88,6 +114,16 @@
             </p>
         @endif
 
+        @if($split !== null)
+            <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+                {{ __('Lazy Loading aktiv seit :date: „Ausgeliefert“ zählt seitdem erst, wenn die Anzeige wirklich angefordert wurde. Darum stehen die Werte getrennt — vorher bis :before, nachher ab :after. Der Umstellungstag selbst ist gemischt und fehlt in beiden Spalten. Eine Quote nur aus einem vollständigen Fenster danach lesen.', [
+                    'date' => $lazySince->format('d.m.Y'),
+                    'before' => $lazySince->copy()->subDay()->format('d.m.Y'),
+                    'after' => $lazySince->copy()->addDay()->format('d.m.Y'),
+                ]) }}
+            </p>
+        @endif
+
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="text-left text-gray-500 dark:text-gray-400">
@@ -96,8 +132,15 @@
                         <th class="py-2 pr-4 text-right font-medium">{{ __('Mobil') }}</th>
                         <th class="py-2 pr-4 text-right font-medium">{{ __('Desktop') }}</th>
                         <th class="py-2 pr-4 text-right font-medium">{{ __('Sichtkontakte') }}</th>
-                        <th class="py-2 pr-4 text-right font-medium">{{ __('Ausgeliefert') }}</th>
-                        <th class="py-2 pr-4 text-right font-medium">{{ __('Sichtbar') }}</th>
+                        @if($split === null)
+                            <th class="py-2 pr-4 text-right font-medium">{{ __('Ausgeliefert') }}</th>
+                            <th class="py-2 pr-4 text-right font-medium">{{ __('Sichtbar') }}</th>
+                        @else
+                            <th class="py-2 pr-4 text-right font-medium">{{ __('Ausgeliefert vorher') }}</th>
+                            <th class="py-2 pr-4 text-right font-medium">{{ __('Sichtbar vorher') }}</th>
+                            <th class="py-2 pr-4 text-right font-medium">{{ __('Ausgeliefert nachher') }}</th>
+                            <th class="py-2 pr-4 text-right font-medium">{{ __('Sichtbar nachher') }}</th>
+                        @endif
                         <th class="py-2 text-right font-medium">{{ __('Anteil mobil') }}</th>
                     </tr>
                 </thead>
@@ -111,10 +154,19 @@
                             <td class="py-2 pr-4 text-right">{{ number_format($slot['mobile'], 0, ',', '.') }}</td>
                             <td class="py-2 pr-4 text-right">{{ number_format($slot['desktop'], 0, ',', '.') }}</td>
                             <td class="py-2 pr-4 text-right font-semibold">{{ number_format($slot['total'], 0, ',', '.') }}</td>
-                            <td class="py-2 pr-4 text-right">{{ number_format($slot['delivered'], 0, ',', '.') }}</td>
-                            <td class="py-2 pr-4 text-right font-semibold {{ $quotenFarbe($slot['viewability']) }}">
-                                {{ $slot['viewability'] === null ? '—' : $slot['viewability'].' %' }}
-                            </td>
+                            @if($split === null)
+                                <td class="py-2 pr-4 text-right">{{ number_format($slot['delivered'], 0, ',', '.') }}</td>
+                                <td class="py-2 pr-4 text-right font-semibold {{ $quotenFarbe($slot['viewability']) }}">
+                                    {{ $slot['viewability'] === null ? '—' : $slot['viewability'].' %' }}
+                                </td>
+                            @else
+                                @foreach([$split['before'][$slot['slot_key']] ?? $leer, $split['after'][$slot['slot_key']] ?? $leer] as $haelfte)
+                                    <td class="py-2 pr-4 text-right">{{ number_format($haelfte['delivered'], 0, ',', '.') }}</td>
+                                    <td class="py-2 pr-4 text-right font-semibold {{ $quotenFarbe($haelfte['viewability']) }}">
+                                        {{ $haelfte['viewability'] === null ? '—' : $haelfte['viewability'].' %' }}
+                                    </td>
+                                @endforeach
+                            @endif
                             <td class="py-2 text-right">
                                 {{ $slot['total'] > 0 ? round($slot['mobile'] / $slot['total'] * 100).' %' : '—' }}
                             </td>
@@ -135,8 +187,15 @@
                             <th class="py-2 pr-4 text-right font-medium">{{ __('Mobil') }}</th>
                             <th class="py-2 pr-4 text-right font-medium">{{ __('Desktop') }}</th>
                             <th class="py-2 pr-4 text-right font-medium">{{ __('Sichtkontakte') }}</th>
-                            <th class="py-2 pr-4 text-right font-medium">{{ __('Ausgeliefert') }}</th>
-                            <th class="py-2 text-right font-medium">{{ __('Sichtbar') }}</th>
+                            @if($split === null)
+                                <th class="py-2 pr-4 text-right font-medium">{{ __('Ausgeliefert') }}</th>
+                                <th class="py-2 text-right font-medium">{{ __('Sichtbar') }}</th>
+                            @else
+                                <th class="py-2 pr-4 text-right font-medium">{{ __('Ausgeliefert vorher') }}</th>
+                                <th class="py-2 pr-4 text-right font-medium">{{ __('Sichtbar vorher') }}</th>
+                                <th class="py-2 pr-4 text-right font-medium">{{ __('Ausgeliefert nachher') }}</th>
+                                <th class="py-2 text-right font-medium">{{ __('Sichtbar nachher') }}</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-white/10">
@@ -146,10 +205,19 @@
                                 <td class="py-2 pr-4 text-right">{{ number_format($portal['mobile'], 0, ',', '.') }}</td>
                                 <td class="py-2 pr-4 text-right">{{ number_format($portal['desktop'], 0, ',', '.') }}</td>
                                 <td class="py-2 pr-4 text-right font-semibold">{{ number_format($portal['total'], 0, ',', '.') }}</td>
-                                <td class="py-2 pr-4 text-right">{{ number_format($portal['delivered'], 0, ',', '.') }}</td>
-                                <td class="py-2 text-right font-semibold {{ $quotenFarbe($portal['viewability']) }}">
-                                    {{ $portal['viewability'] === null ? '—' : $portal['viewability'].' %' }}
-                                </td>
+                                @if($split === null)
+                                    <td class="py-2 pr-4 text-right">{{ number_format($portal['delivered'], 0, ',', '.') }}</td>
+                                    <td class="py-2 text-right font-semibold {{ $quotenFarbe($portal['viewability']) }}">
+                                        {{ $portal['viewability'] === null ? '—' : $portal['viewability'].' %' }}
+                                    </td>
+                                @else
+                                    @foreach([$split['portals_before'][$portal['tenant_id']] ?? $leer, $split['portals_after'][$portal['tenant_id']] ?? $leer] as $haelfte)
+                                        <td class="py-2 pr-4 text-right">{{ number_format($haelfte['delivered'], 0, ',', '.') }}</td>
+                                        <td class="py-2 pr-4 text-right font-semibold {{ $quotenFarbe($haelfte['viewability']) }}">
+                                            {{ $haelfte['viewability'] === null ? '—' : $haelfte['viewability'].' %' }}
+                                        </td>
+                                    @endforeach
+                                @endif
                             </tr>
                         @endforeach
                     </tbody>

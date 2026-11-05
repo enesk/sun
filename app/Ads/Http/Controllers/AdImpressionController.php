@@ -16,8 +16,10 @@ use Illuminate\Http\Response;
  *
  * Nimmt das gebuendelte Beacon aus resources/js/ads.js an: eine Liste der
  * Anker dieses Seitenaufrufs, je Anker bis zu zwei Meldungen — `delivered`
- * (Fragment eingesetzt) und `viewable` (zu mindestens 50 % fuer eine Sekunde
- * sichtbar). Erst beide ergeben die Viewability-Quote (#47).
+ * (adsbygoogle.push() fuer den Container gelaufen, SUN-LZ-004) und `viewable`
+ * (zu mindestens 50 % fuer eine Sekunde sichtbar). Erst beide ergeben die
+ * Viewability-Quote (#47). Ein `viewable` ohne vorheriges `delivered`
+ * desselben Seitenaufrufs (`pv`) verwirft der Recorder und loggt es.
  *
  * Bewusst OHNE 'web' (siehe routes/tenant.php): keine Session, kein CSRF und
  * damit auch kein Cookie, das die Antwort setzen koennte. Das Zaehlen braucht
@@ -73,7 +75,13 @@ class AdImpressionController extends Controller
             return response()->noContent();
         }
 
-        $recorder->record((int) $tenant->getKey(), $this->entries($body));
+        $payload = json_decode($body, true);
+
+        if (! is_array($payload)) {
+            return response()->noContent();
+        }
+
+        $recorder->record((int) $tenant->getKey(), $this->entries($payload), $this->pageView($payload));
 
         return response()->noContent();
     }
@@ -117,16 +125,29 @@ class AdImpressionController extends Controller
      * Die Meldungen aus dem Rumpf, ohne jede Pruefung des Inhalts — die macht
      * der Recorder gegen den Katalog.
      *
+     * @param  array<mixed>  $payload
      * @return list<array<string, mixed>>
      */
-    private function entries(string $body): array
+    private function entries(array $payload): array
     {
-        $payload = json_decode($body, true);
-
-        if (! is_array($payload) || ! is_array($payload['slots'] ?? null)) {
+        if (! is_array($payload['slots'] ?? null)) {
             return [];
         }
 
         return array_values(array_filter($payload['slots'], 'is_array'));
+    }
+
+    /**
+     * Zufallskennung des Seitenaufrufs (`pv`, SUN-LZ-004). Nur das Format wird
+     * geprueft; fehlt sie (aelteres ads.js), ordnet der Recorder ein
+     * `viewable` nur innerhalb desselben Beacons zu.
+     *
+     * @param  array<mixed>  $payload
+     */
+    private function pageView(array $payload): ?string
+    {
+        $pageView = $payload['pv'] ?? null;
+
+        return is_string($pageView) && preg_match('/^[a-z0-9]{8,64}$/', $pageView) === 1 ? $pageView : null;
     }
 }

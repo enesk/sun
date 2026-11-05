@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Ads\Support;
 
+use App\Ads\Dto\AdSlotDefinition;
 use App\Ads\Enums\AdDevice;
 use App\Ads\Enums\AdPageType;
 
@@ -34,7 +35,7 @@ use App\Ads\Enums\AdPageType;
  * routengebunden, Datenpruefungen routenfrei — eine Belegung gehoert dem
  * Anker, nicht der Route.
  *
- * @phpstan-type SlotArray array{key: string, label: string, page_type: string, devices: string, formats: list<string>, min_height_mobile: int, min_height_desktop: int, sort: int, themes: list<string>, routes?: list<string>, requires?: string}
+ * @phpstan-type SlotArray array{key: string, label: string, page_type: string, devices: string, formats: list<string>, min_height_mobile: int, min_height_desktop: int, sort: int, themes: list<string>, routes?: list<string>, requires?: string, eager?: bool}
  */
 final class AdSlotCatalog
 {
@@ -299,6 +300,36 @@ final class AdSlotCatalog
         }
 
         return array_keys($themes);
+    }
+
+    /**
+     * Lade-Vorgabe des Ankers (SUN-LZ-002): effektives Lazy-Flag und Vorlauf
+     * je Geraet aus `ad-slots.lazy_load`. Unbekannter Anker => null.
+     */
+    public static function definition(string $slotKey): ?AdSlotDefinition
+    {
+        $slot = self::find($slotKey);
+
+        if ($slot === null) {
+            return null;
+        }
+
+        $eager = ($slot['eager'] ?? false) === true;
+
+        return new AdSlotDefinition(
+            key: $slotKey,
+            lazy: self::lazyLoadEnabled() && ! $eager,
+            eager: $eager,
+            rootMarginMobile: (int) config('ad-slots.lazy_load.root_margin_mobile_px', 200),
+            rootMarginDesktop: (int) config('ad-slots.lazy_load.root_margin_desktop_px', 300),
+            threshold: (float) config('ad-slots.lazy_load.threshold', 0.01),
+        );
+    }
+
+    /** Globaler Notschalter `ad-slots.lazy_load.enabled`. */
+    public static function lazyLoadEnabled(): bool
+    {
+        return (bool) config('ad-slots.lazy_load.enabled', true);
     }
 
     /** Katalogversion; steht im Cache-Schluessel des Resolvers (#4). */

@@ -38,9 +38,9 @@
  * ------------------------------------------------------------------
  * Ein Container mit `data-ad-placement` wird nach dem Einsetzen des
  * Werbemittels beobachtet: war er zu `data-ad-track`-Anteil (50 %) eine
- * Sekunde zusammenhaengend im Viewport, zaehlt das als Impression. Schon das
- * Einsetzen selbst zaehlt — als `delivered`, der Nenner der
- * Viewability-Quote (#47). Alle Meldungen eines Seitenaufrufs gehen
+ * Sekunde zusammenhaengend im Viewport, zaehlt das als Impression. Der
+ * push({}) fuer den Container zaehlt als `delivered`, der Nenner der
+ * Viewability-Quote (#47, seit SUN-LZ-004 erst beim push statt beim Rendern). Alle Meldungen eines Seitenaufrufs gehen
  * gebuendelt per sendBeacon an POST /_ads/impressions — ohne Cookie, ohne
  * Kennung und darum ohne Einwilligung. Abgeschaltet
  * (config('ad-slots.impression_tracking') = false) fehlen die Attribute und
@@ -59,7 +59,6 @@ const LAZY = '[data-lazy-ad]';
 const SLOT = '[data-ad-anchor]';
 const FRAGMENT = 'template[data-ad-fragment]';
 const PUSH = 'ins[data-ads-push]';
-const VORLAUF = '0px 0px 200px 0px';
 
 /* Zurueckgehaltene Head-Skripte (#9), z. B. der AdSense-Loader. */
 const HEAD = 'template[data-ad-head]';
@@ -81,6 +80,23 @@ const DESKTOP_AB = '(min-width: 1024px)';
 
 /* Verzoegerung, mit der gesammelte Meldungen rausgehen (ms). */
 const SENDEVERZUG = 3000;
+
+/*
+ * Stand der Zaehlung (SUN-LZ-004): `delivered` erst nach dem push. Muss
+ * App\View\Components\Sun\AdSlot::ADS_JS_VERSION entsprechen — geht mit
+ * jedem Beacon raus, und ads:golive:check sucht den Wert im gebauten Bundle.
+ */
+const ADS_JS_VERSION = 'lz-004';
+
+/*
+ * Kennung dieses Seitenaufrufs: Zufall, nur im Speicher, nie gespeichert und
+ * mit nichts verknuepft. Der Server ordnet damit ein spaeteres `viewable`
+ * dem `delivered` desselben Aufrufs zu (SUN-LZ-004).
+ */
+const SEITENAUFRUF = Array.from(
+    window.crypto.getRandomValues(new Uint32Array(4)),
+    (teil) => teil.toString(36),
+).join('');
 
 /*
  * Auto Ads stehen nur im Dokument, wenn die Einwilligung beim Seitenaufbau
@@ -217,26 +233,91 @@ function initLazyAds() {
 }
 
 /* ------------------------------------------------------------------
- * Katalog v2 (Ticket #5)
+ * Katalog v2 (Ticket #5), Lazy Loading (SUN-LZ-003)
  *
  * Jeder belegte Anker steht als reservierter Container im HTML, das
- * Werbemittel liegt darin in einem <template>. Eingesetzt wird es erst,
- * wenn der Container sichtbar in den Viewport kommt (200 px Vorlauf).
+ * Werbemittel liegt darin in einem <template>. Eingesetzt und per
+ * `adsbygoogle.push({})` angefordert wird es je Container:
  *
- * Das erledigt drei Dinge auf einmal:
+ *  * `data-ad-lazy="1"`: erst, wenn der Container in Viewport-Naehe kommt.
+ *    Vorlauf nur nach unten aus `data-ad-root-margin` (px), Schwelle aus
+ *    `data-ad-threshold` — beides Katalogwerte (config/ad-slots.php,
+ *    `lazy_load`). Ein Container, der beim Registrieren schon im Blick ist,
+ *    loest sofort aus: der IntersectionObserver liefert den Anfangszustand.
+ *  * `data-ad-lazy="0"` (eager-Anker oder Notschalter `lazy_load.enabled`
+ *    aus): sofort, ohne auf den Beobachter zu warten.
  *
- *  1. Nachladen unterhalb des Falzes — nichts laedt im Voraus.
- *  2. Geraetetrennung: der Container der falschen Geraeteklasse ist per
- *     Tailwind-Haltepunkt display:none und loest darum nie aus. Mobil und
- *     Desktop koennen verschiedene Belegungen haben, ohne dass beide laden.
- *  3. `adsbygoogle.push({})` fuellt immer den naechsten unbelegten
- *     <ins>-Block in Dokumentreihenfolge. Weil nur der sichtbare Block
- *     ueberhaupt im DOM landet, kann der Aufruf nicht auf einem
- *     ausgeblendeten Block landen.
+ * Regeln:
+ *
+ *  1. Jeder Container wird genau einmal angefordert. Danach traegt er
+ *     `data-ad-pushed="1"` und steht in `angefordert` — die Menge haelt auch
+ *     dann, wenn ein Livewire-Morph das Attribut wieder entfernt.
+ *  2. Nur sichtbare Container: der per Haltepunkt ausgeblendete Zwilling
+ *     (display:none) wird nicht angefordert. Geprueft wird am Element selbst
+ *     (istSichtbar), nicht ueber eigene Haltepunkte. Wird er nach einem
+ *     Wechsel der Fensterbreite sichtbar, meldet ihn der Beobachter — dann
+ *     ist er ein tatsaechlich sichtbarer Container und wird einmal angefordert.
+ *  3. `adsbygoogle.push({})` fuellt den naechsten unbelegten <ins>-Block in
+ *     Dokumentreihenfolge. Weil das Fragment erst unmittelbar vor dem push
+ *     ins DOM kommt, steht nie ein ausgeblendeter Block davor.
+ *  4. Ohne IntersectionObserver: sichtbare Container sofort.
+ *  5. Vor der Einwilligung passiert nichts (kein Beobachter, kein push);
+ *     initConsentGate ruft initSlotAds nach der Zustimmung erneut.
+ *  6. Die Reservierung (.ad-slot__area, Mindesthoehe) bleibt bis zum push
+ *     unveraendert — hier wird nur das <template> ersetzt.
+ *  7. Auto-Ads-Anzeigen, die Google selbst einsetzt, tragen kein
+ *     `data-ad-anchor` und werden weder beobachtet noch angefasst; der
+ *     Page-Level-Push in initAutoAds bleibt unberuehrt.
+ *
+ * Neue Container (Livewire-Update, nachgeladenes Markup) findet ein
+ * MutationObserver (beobachteNeueAnker).
+ *
+ * Bei Aenderungen am Ladeverhalten hier die Versionsnummer
+ * App\View\Components\Sun\AdSlot::ADS_JS_VERSION hochzaehlen — sie steht als
+ * `data-ads-js-version` am Script-Tag des Theme-Bundles.
  * ------------------------------------------------------------------ */
 
+/* Schon angeforderte Container dieses Seitenaufrufs. */
+const angefordert = new WeakSet();
+
+/* Ein Beobachter je Kombination aus Vorlauf und Schwelle. */
+const slotBeobachter = new Map();
+
+let ankerSuche = null;
+
+/**
+ * Sichtbar = nicht display:none und nicht in einem ausgeblendeten Vorfahren.
+ * offsetParent ist auch fuer position:fixed null, darum dort nur die eigene
+ * Anzeige pruefen.
+ */
 function istSichtbar(el) {
-    return el.getClientRects().length > 0;
+    const stil = window.getComputedStyle(el);
+
+    if (stil.display === 'none') {
+        return false;
+    }
+
+    return el.offsetParent !== null || stil.position === 'fixed';
+}
+
+/** Lazy oder sofort? Ohne `data-ad-lazy` (aelteres Markup) gilt `data-ad-eager`. */
+function istLazy(halter) {
+    if (halter.dataset.adLazy !== undefined) {
+        return halter.dataset.adLazy !== '0';
+    }
+
+    return !('adEager' in halter.dataset);
+}
+
+function istAngefordert(halter) {
+    if (angefordert.has(halter)) {
+        // Ein Morph kann das Attribut entfernt haben — wieder setzen.
+        halter.dataset.adPushed = '1';
+
+        return true;
+    }
+
+    return halter.dataset.adPushed === '1';
 }
 
 /**
@@ -245,9 +326,16 @@ function istSichtbar(el) {
  * pushen. Fehlt der Loader (Einwilligung noch offen), ist adsbygoogle ein
  * Array und der Aufruf wird spaeter nachgeholt; einen Konsolenfehler gibt
  * es dadurch nicht.
+ *
+ * Liefert die Zahl der Bloecke und der davon erfolgreich gepushten — daran
+ * haengt die Auslieferungsmeldung (SUN-LZ-004).
  */
 function stosseAn(bereich) {
+    const ergebnis = { bloecke: 0, gepusht: 0 };
+
     bereich.querySelectorAll(PUSH).forEach((block) => {
+        ergebnis.bloecke++;
+
         if (block.dataset.adsPushed) {
             return;
         }
@@ -256,14 +344,17 @@ function stosseAn(bereich) {
 
         try {
             (window.adsbygoogle = window.adsbygoogle || []).push({});
+            ergebnis.gepusht++;
         } catch (e) {
             // AdSense nicht erreichbar oder blockiert — der Platz bleibt leer.
         }
     });
+
+    return ergebnis;
 }
 
 function setzeSlotEin(halter) {
-    if (halter.dataset.adGeladen) {
+    if (halter.dataset.adGeladen || istAngefordert(halter)) {
         return;
     }
 
@@ -273,20 +364,68 @@ function setzeSlotEin(halter) {
         return;
     }
 
+    angefordert.add(halter);
     halter.dataset.adGeladen = '1';
+    halter.dataset.adPushed = '1';
     const ziel = vorlage.parentNode;
     ziel.replaceChild(vorlage.content.cloneNode(true), vorlage);
-    stosseAn(ziel);
+    const { bloecke, gepusht } = stosseAn(ziel);
 
-    // Gezaehlt wird erst ab hier (#12): vorher stand da nur die
-    // Reservierung. Ein Platz, der auf die Einwilligung wartet oder
-    // eingeklappt ist, kommt nie hierher und zaehlt darum auch nicht.
+    // Ausgeliefert heisst angefordert (SUN-LZ-004): ein AdSense-Fragment
+    // zaehlt erst, wenn push({}) fuer diesen Container durchlief. Ein
+    // lazy Container, der nie in Viewport-Naehe kommt, kommt nie hierher;
+    // ein push, der wirft, zaehlt nicht. Ein Fragment ohne <ins>-Block
+    // (Direktbuchung ueber den HtmlProvider) kennt keinen push — dort ist
+    // das Einsetzen die Auslieferung.
+    if (bloecke > 0 && gepusht === 0) {
+        return;
+    }
+
     beobachteImpression(halter);
+}
+
+/** `data-ad-root-margin="200"` → '0px 0px 200px 0px', nur nach unten. */
+function vorlauf(halter) {
+    const px = Number.parseInt(halter.dataset.adRootMargin, 10);
+
+    return `0px 0px ${Number.isInteger(px) && px > 0 ? px : 0}px 0px`;
+}
+
+function schwelle(halter) {
+    const wert = Number.parseFloat(halter.dataset.adThreshold);
+
+    return Number.isFinite(wert) ? Math.min(1, Math.max(0, wert)) : 0;
+}
+
+function slotBeobachterFuer(rootMargin, threshold) {
+    const schluessel = `${rootMargin}|${threshold}`;
+
+    if (!slotBeobachter.has(schluessel)) {
+        slotBeobachter.set(schluessel, new IntersectionObserver((eintraege, selbst) => {
+            eintraege.forEach((eintrag) => {
+                if (!eintrag.isIntersecting || eintrag.intersectionRatio < threshold) {
+                    return;
+                }
+
+                if (!istSichtbar(eintrag.target)) {
+                    return;
+                }
+
+                selbst.unobserve(eintrag.target);
+                setzeSlotEin(eintrag.target);
+            });
+        }, { rootMargin, threshold }));
+    }
+
+    return slotBeobachter.get(schluessel);
 }
 
 function initSlotAds() {
     const halter = Array.from(document.querySelectorAll(SLOT)).filter(
-        (el) => !el.dataset.adGeladen && el.querySelector(FRAGMENT) && !wartetAufEinwilligung(el),
+        (el) => !el.dataset.adGeladen
+            && !istAngefordert(el)
+            && el.querySelector(FRAGMENT)
+            && !wartetAufEinwilligung(el),
     );
 
     if (halter.length === 0) {
@@ -299,28 +438,42 @@ function initSlotAds() {
         return;
     }
 
-    // Oberhalb des Falzes (Katalog-sort 10, Seitenspalte oben) nicht auf den
-    // Beobachter warten — der Platz ist ohnehin im Blick.
-    halter.filter((el) => 'adEager' in el.dataset && istSichtbar(el)).forEach(setzeSlotEin);
+    // Eager: nicht auf den Beobachter warten. Ein ausgeblendeter
+    // eager-Zwilling bleibt offen und geht unten in den Beobachter.
+    halter.filter((el) => !istLazy(el) && istSichtbar(el)).forEach(setzeSlotEin);
 
-    const offen = halter.filter((el) => !el.dataset.adGeladen);
+    halter
+        .filter((el) => !el.dataset.adGeladen)
+        .forEach((el) => slotBeobachterFuer(vorlauf(el), schwelle(el)).observe(el));
+}
 
-    if (offen.length === 0) {
+/**
+ * Container, die nach dem Seitenaufbau ins DOM kommen (Livewire-Update,
+ * nachgeladenes Markup), ebenfalls registrieren. Reagiert nur auf
+ * hinzugefuegte Knoten, die selbst ein Anker sind oder einen enthalten —
+ * die von Google eingesetzten Auto-Ads-Elemente fallen dabei durch.
+ */
+function beobachteNeueAnker() {
+    if (window.__adAnchorsWatched || !('MutationObserver' in window) || !document.body) {
         return;
     }
 
-    const beobachter = new IntersectionObserver((eintraege, selbst) => {
-        eintraege.forEach((eintrag) => {
-            if (!eintrag.isIntersecting) {
-                return;
-            }
+    window.__adAnchorsWatched = true;
 
-            selbst.unobserve(eintrag.target);
-            setzeSlotEin(eintrag.target);
+    new MutationObserver((aenderungen) => {
+        const neu = aenderungen.some((aenderung) => Array.from(aenderung.addedNodes).some(
+            (knoten) => knoten.nodeType === 1 && (knoten.matches(SLOT) || knoten.querySelector(SLOT) !== null),
+        ));
+
+        if (!neu || ankerSuche !== null) {
+            return;
+        }
+
+        ankerSuche = window.requestAnimationFrame(() => {
+            ankerSuche = null;
+            initSlotAds();
         });
-    }, { rootMargin: VORLAUF });
-
-    offen.forEach((el) => beobachter.observe(el));
+    }).observe(document.body, { childList: true, subtree: true });
 }
 
 /* ------------------------------------------------------------------
@@ -338,9 +491,15 @@ function initSlotAds() {
  * Zwei Ereignisarten je Anker (Ticket #47), weil die Quote
  * "sichtbar / ausgeliefert" sonst keinen Nenner hat:
  *
- *   * `delivered` — das Fragment ist eingesetzt. Gemeldet unmittelbar danach,
- *     BEVOR die Sichtbarkeitsfrist laeuft.
- *   * `viewable` — 50 % der Flaeche, eine zusammenhaengende Sekunde.
+ *   * `delivered` — fuer den Container lief adsbygoogle.push({}) (SUN-LZ-004;
+ *     beim HtmlProvider: das Fragment ist eingesetzt). Gemeldet unmittelbar
+ *     danach, BEVOR die Sichtbarkeitsfrist laeuft.
+ *   * `viewable` — 50 % der Flaeche, eine zusammenhaengende Sekunde. Nur nach
+ *     einem `delivered` desselben Ankers; der Server verwirft es sonst.
+ *
+ * Jedes Beacon traegt `v` (ADS_JS_VERSION) und `pv` (zufaellige Kennung des
+ * Seitenaufrufs, nur im Speicher) — damit ordnet der Server ein `viewable`
+ * aus einem spaeteren Beacon dem `delivered` desselben Aufrufs zu.
  *
  * Je Seitenaufruf zaehlt jede Art an jedem Anker genau einmal. Beide gehen in
  * der Regel im selben Beacon raus (Sendeverzug 3 s, Frist 1 s); wird die Seite
@@ -395,7 +554,11 @@ function sende() {
         return;
     }
 
-    const rumpf = JSON.stringify({ slots: warteschlange.splice(0, warteschlange.length) });
+    const rumpf = JSON.stringify({
+        v: ADS_JS_VERSION,
+        pv: SEITENAUFRUF,
+        slots: warteschlange.splice(0, warteschlange.length),
+    });
 
     if (navigator.sendBeacon) {
         navigator.sendBeacon(IMPRESSION_ENDPOINT, new Blob([rumpf], { type: 'application/json' }));
@@ -435,6 +598,12 @@ function zaehle(halter, event) {
     const schluessel = `${slot}:${placement}:${event}`;
 
     if (gemeldet.has(schluessel)) {
+        return;
+    }
+
+    // Sichtkontakt nur nach einer Auslieferung desselben Ankers (SUN-LZ-004).
+    // Der Server prueft das noch einmal und verwirft, was hier durchrutscht.
+    if (event === SICHTBAR && !gemeldet.has(`${slot}:${placement}:${AUSGELIEFERT}`)) {
         return;
     }
 
@@ -599,5 +768,6 @@ export function initAds() {
     initImpressionTracking();
     initLazyAds();
     initSlotAds();
+    beobachteNeueAnker();
     initConsentGate();
 }

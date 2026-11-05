@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use App\Ads\Enums\AdProviderType;
 use App\Ads\Models\AdPlacement;
 use App\Ads\Models\AdSetting;
+use App\Ads\Support\AdImpressionStats;
 use App\Ads\Support\AdSensePublisherId;
 use App\Ads\Support\AdSlotCatalog;
 use App\Ads\Support\AdsTxtBuilder;
@@ -14,6 +15,7 @@ use App\Ads\Support\AdThemeContext;
 use App\Models\Portal\AdSetting as LegacyAdSetting;
 use App\Models\Portal\AdSlot as LegacyAdSlot;
 use App\Models\Tenant;
+use App\View\Components\Sun\AdSlot;
 use Illuminate\Console\Command;
 use Throwable;
 
@@ -121,6 +123,8 @@ class AdsGoLiveCheck extends Command
                 implode(', ', $themes),
             ));
 
+        $this->checkAdsJsVersion();
+
         $netzId = trim((string) config('ad-slots.adsense.publisher_id'));
 
         $netzId === ''
@@ -201,6 +205,107 @@ class AdsGoLiveCheck extends Command
             'vom %s, Werbe-Seiten drin',
             date('d.m.Y H:i', $cacheZeit),
         ));
+    }
+
+    /**
+     * Zaehlt das ausgelieferte ads.js schon nach dem push (SUN-LZ-004)?
+     *
+     * Mit `lazy_load.enabled` laedt ein Anker erst in Viewport-Naehe; ein
+     * altes Bundle meldete `delivered` aber schon beim Einsetzen — die eigene
+     * Quote bliebe dann falsch. Das Script-Tag traegt `data-ads-js-version`
+     * aus {@see AdSlot::ADS_JS_VERSION}; dieselbe Kennung steht als Konstante
+     * in resources/js/ads.js und muss sich im gebauten sun-v2-Bundle (Einstieg
+     * samt statischen Imports laut Vite-Manifest) wiederfinden. Fehlt sie,
+     * wurde nach der Umstellung nicht neu gebaut.
+     */
+    private function checkAdsJsVersion(): void
+    {
+        $check = 'ads.js-Zaehlung (data-ads-js-version)';
+
+        if (! AdSlotCatalog::lazyLoadEnabled()) {
+            $this->result(self::OK, $check, 'Lazy Loading aus');
+
+            return;
+        }
+
+        $version = AdSlot::ADS_JS_VERSION;
+        $layout = resource_path('views/themes/sun-v2/views/layouts/sun.blade.php');
+
+        if (! is_file($layout) || ! str_contains((string) file_get_contents($layout), 'data-ads-js-version')) {
+            $this->result(self::FAIL, $check, 'Lazy Loading aktiv, aber ads.js zaehlt noch alt — Layout setzt kein data-ads-js-version');
+
+            return;
+        }
+
+        $dateien = $this->bundleFiles('resources/views/themes/sun-v2/js/app.js');
+
+        if ($dateien === null) {
+            $this->result(self::WARN, $check, 'kein Vite-Build (public/build/manifest.json) — npm run build');
+
+            return;
+        }
+
+        $gefunden = array_filter(
+            $dateien,
+            static fn (string $datei): bool => str_contains((string) file_get_contents($datei), $version),
+        );
+
+        if ($gefunden === []) {
+            $this->result(self::FAIL, $check, "Lazy Loading aktiv, aber ads.js zaehlt noch alt — Bundle ohne {$version}, npm run build");
+
+            return;
+        }
+
+        $this->result(self::OK, $check, "{$version}, delivered erst nach push");
+
+        $since = AdImpressionStats::lazySince();
+
+        $since === null
+            ? $this->result(self::WARN, 'Lazy Loading seit (lazy_load.since)', 'nicht gesetzt — ADS_LAZY_LOAD_SINCE auf den Deploytag, sonst trennt das Widget vorher/nachher nicht')
+            : $this->result(self::OK, 'Lazy Loading seit (lazy_load.since)', $since->format('d.m.Y'));
+    }
+
+    /**
+     * Gebaute Dateien eines Vite-Einstiegs samt statischer Imports.
+     *
+     * @return list<string>|null null = kein Manifest
+     */
+    private function bundleFiles(string $entry): ?array
+    {
+        $manifest = public_path('build/manifest.json');
+
+        if (! is_file($manifest)) {
+            return null;
+        }
+
+        $chunks = json_decode((string) file_get_contents($manifest), true);
+
+        if (! is_array($chunks) || ! is_array($chunks[$entry] ?? null)) {
+            return null;
+        }
+
+        $dateien = [];
+        $offen = [$entry];
+        $gesehen = [];
+
+        while ($offen !== []) {
+            $name = array_shift($offen);
+
+            if (isset($gesehen[$name]) || ! is_array($chunks[$name] ?? null)) {
+                continue;
+            }
+
+            $gesehen[$name] = true;
+            $datei = public_path('build/'.($chunks[$name]['file'] ?? ''));
+
+            if (is_file($datei)) {
+                $dateien[] = $datei;
+            }
+
+            array_push($offen, ...array_values((array) ($chunks[$name]['imports'] ?? [])));
+        }
+
+        return $dateien;
     }
 
     /**
