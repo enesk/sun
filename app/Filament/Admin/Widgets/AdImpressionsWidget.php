@@ -31,6 +31,11 @@ use Filament\Widgets\Widget;
  * Widget selbst, weil der Dashboard-Filter ein Jahr vorgibt und das fuer
  * Impressionen die falsche Groessenordnung ist.
  *
+ * Ist `ad-slots.lazy_load.since` gesetzt (SUN-LZ-004), traegt das Widget den
+ * Hinweis "Lazy Loading aktiv seit"; liegt der Tag im Fenster, ersetzen zwei
+ * Quoten vorher/nachher je Anker und Portal die gemischte Quote
+ * ({@see AdImpressionStats::split()}).
+ *
  * Sichtbar nur fuer Betreiber des Netzes ({@see AdsAdminAccess}) und nur,
  * solange ueberhaupt gezaehlt wird — bei abgeschaltetem Zaehlen waere eine
  * Tabelle voller Nullen eine falsche Auskunft.
@@ -69,10 +74,16 @@ class AdImpressionsWidget extends Widget
             ? (int) $this->pageFilters['tenant_id']
             : null;
 
+        // Umstellungstag der Zaehlung (SUN-LZ-004): liegt er im Fenster,
+        // stehen die Quoten vorher/nachher getrennt statt gemischt.
+        $lazySince = AdImpressionStats::lazySince();
+
         return [
             'windows' => AdImpressionStats::WINDOWS,
             'tenantId' => $tenantId,
             'summary' => AdImpressionStats::summary($tenantId, $this->days),
+            'lazySince' => $lazySince,
+            'split' => $lazySince === null ? null : AdImpressionStats::split($tenantId, $this->days, $lazySince),
         ];
     }
 }

@@ -236,6 +236,14 @@ return [
      * gehalten: eine gerade pausierte oder geloeschte Belegung soll nicht
      * stundenlang weiter als gueltig durchgehen, und die Abfrage ist ein
      * Index-Lookup.
+     *
+     * `pageview_ttl` (Sekunden) haelt fest, welche Anker eines Seitenaufrufs
+     * schon `delivered` gemeldet haben (SUN-LZ-004). Ein `viewable` ohne
+     * vorheriges `delivered` desselben Aufrufs wird verworfen und geloggt;
+     * kommt es spaeter als diese Frist (Tab stundenlang offen), gilt es
+     * ebenfalls als ohne Auslieferung. Gehalten in Redis
+     * (`pageview_redis_connection`), nicht im Cache-Store: der ist auf der
+     * Produktion `file` und je Portal umgelenkt.
      */
     'impressions' => [
         'threshold' => 0.5,
@@ -243,6 +251,42 @@ return [
         'max_entries' => 40,
         'retention_days' => 400,
         'placement_cache_ttl' => 300,
+        'pageview_ttl' => 14400,
+        'pageview_redis_connection' => 'default',
+    ],
+
+    /*
+     * Lazy Loading der festen Anker (SUN-LZ-002, docs/ad-slots.md 7.5).
+     *
+     * Betrifft nur die Anker dieses Katalogs, nie Auto Ads und nie den
+     * Page-Level-Tag. Die Werte gehen als data-Attribute an den aeusseren
+     * Container (`data-ad-lazy`, `data-ad-root-margin`); resources/js/ads.js
+     * liest ausschliesslich diese Attribute und hat keine eigene Vorgabe.
+     *
+     * `enabled` ist der globale Notschalter: false rendert an jedem Container
+     * `data-ad-lazy="0"` — ohne Aenderung an ads.js, nur Config.
+     *
+     * `root_margin_*_px` ist der Vorlauf, mit dem ein Container vor dem
+     * Viewport angefordert wird. Getrennt je Geraet, weil mobiler und
+     * Desktop-Container als Zwillinge im DOM stehen.
+     *
+     * `threshold` ist der Sichtanteil fuer den IntersectionObserver.
+     *
+     * `since` ist der Umstellungstag (Datum, Y-m-d, ADS_LAZY_LOAD_SINCE), an
+     * dem ads.js mit `delivered` erst nach dem push ausgeliefert wurde
+     * (SUN-LZ-004) — beim Deploy auf den Deploytag setzen. Das Panel-Widget
+     * weist Tage davor und danach getrennt aus; der Tag selbst ist gemischt
+     * und steht in keiner der beiden Spalten. Leer = keine Trennung.
+     *
+     * Einzelne Anker nehmen sich mit `'eager' => true` aus; fehlt das Flag,
+     * gilt lazy.
+     */
+    'lazy_load' => [
+        'enabled' => true,
+        'root_margin_mobile_px' => 200,
+        'root_margin_desktop_px' => 300,
+        'threshold' => 0.01,
+        'since' => env('ADS_LAZY_LOAD_SINCE'),
     ],
 
     /*
@@ -491,6 +535,8 @@ return [
             'min_height_mobile' => 280,
             'min_height_desktop' => 0,
             'sort' => 10,
+            // Oberhalb der Falte mobil: laedt ohne Observer (SUN-LZ-002).
+            'eager' => true,
         ],
         [
             'key' => 'company_after_about',
@@ -533,6 +579,8 @@ return [
             'min_height_mobile' => 0,
             'min_height_desktop' => 250,
             'sort' => 35,
+            // Oberster Desktop-Anker des Profils: laedt ohne Observer (SUN-LZ-002).
+            'eager' => true,
         ],
         [
             'key' => 'company_sidebar_sticky',

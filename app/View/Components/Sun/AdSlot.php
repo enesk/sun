@@ -7,6 +7,7 @@ namespace App\View\Components\Sun;
 use App\Ads\AdSlotResolver;
 use App\Ads\Dto\AdHeadDependency;
 use App\Ads\Dto\AdResolution;
+use App\Ads\Dto\AdSlotDefinition;
 use App\Ads\Dto\RenderedAd;
 use App\Ads\Enums\AdDevice;
 use App\Ads\Support\AdConsent;
@@ -70,12 +71,15 @@ class AdSlot extends Component
     public const CONSENT_COOKIE = 'cookie_consent_marketing';
 
     /**
-     * Anker, die oberhalb des Falzes stehen und sofort laden: `sort = 10` und
-     * jede Seitenspalte oben (docs/ad-slots.md 7, Punkt 5).
+     * Stand des Ladeverhaltens in resources/js/ads.js (SUN-LZ-003). Steht als
+     * `data-ads-js-version` am Script-Tag des sun-v2-Bundles; bei jeder
+     * Aenderung am Laden der Anker hochzaehlen — zusammen mit der
+     * gleichnamigen Konstante in ads.js, die ads:golive:check im gebauten
+     * Bundle sucht.
+     *
+     * `lz-004`: `delivered` erst nach adsbygoogle.push({}) (SUN-LZ-004).
      */
-    private const EAGER_SORT = 10;
-
-    private const EAGER_SUFFIX = '_sidebar_top';
+    public const ADS_JS_VERSION = 'lz-004';
 
     /** @var array<string, mixed>|null */
     public ?array $slot;
@@ -83,7 +87,7 @@ class AdSlot extends Component
     /**
      * Die zu rendernden Container, in Dokumentreihenfolge.
      *
-     * @var list<array{device: string, visibility: string, minHeightMobile: int, minHeightDesktop: int, html: string|null, provider: string|null, label: string, placementId: int|null, adUnitName: string|null, needsConsent: bool, collapsed: bool}>
+     * @var list<array{device: string, visibility: string, minHeightMobile: int, minHeightDesktop: int, html: string|null, provider: string|null, label: string, placementId: int|null, adUnitName: string|null, needsConsent: bool, collapsed: bool, lazy: bool, rootMargin: int}>
      */
     public array $containers = [];
 
@@ -95,7 +99,14 @@ class AdSlot extends Component
 
     public bool $editorMode;
 
+    /**
+     * Sofort laden statt beim Heranscrollen: `eager` im Katalog oder
+     * Notschalter `lazy_load.enabled` aus (SUN-LZ-002).
+     */
     public bool $eager;
+
+    /** Lade-Vorgabe aus dem Katalog; null bei unbekanntem Schluessel. */
+    public ?AdSlotDefinition $definition = null;
 
     /**
      * Eigenes Impression-Zaehlen (#12). Nur dann traegt der Container seine
@@ -129,8 +140,8 @@ class AdSlot extends Component
             return;
         }
 
-        $this->eager = ((int) ($this->slot['sort'] ?? 0)) === self::EAGER_SORT
-            || str_ends_with($key, self::EAGER_SUFFIX);
+        $this->definition = AdSlotCatalog::definition($key);
+        $this->eager = ! ($this->definition?->lazy ?? true);
 
         if (! $this->editorMode && self::adFree($this->subject)) {
             return;
@@ -239,7 +250,7 @@ class AdSlot extends Component
      * Ein Container je Geraeteklasse — oder einer fuer beide, wenn mobil und
      * Desktop dieselbe Belegung gewinnen.
      *
-     * @return list<array{device: string, visibility: string, minHeightMobile: int, minHeightDesktop: int, html: string|null, provider: string|null, label: string, placementId: int|null, adUnitName: string|null, needsConsent: bool, collapsed: bool}>
+     * @return list<array{device: string, visibility: string, minHeightMobile: int, minHeightDesktop: int, html: string|null, provider: string|null, label: string, placementId: int|null, adUnitName: string|null, needsConsent: bool, collapsed: bool, lazy: bool, rootMargin: int}>
      */
     private function buildContainers(): array
     {
@@ -324,7 +335,7 @@ class AdSlot extends Component
     }
 
     /**
-     * @return array{device: string, visibility: string, minHeightMobile: int, minHeightDesktop: int, html: string|null, provider: string|null, label: string, placementId: int|null, adUnitName: string|null, needsConsent: bool, collapsed: bool}
+     * @return array{device: string, visibility: string, minHeightMobile: int, minHeightDesktop: int, html: string|null, provider: string|null, label: string, placementId: int|null, adUnitName: string|null, needsConsent: bool, collapsed: bool, lazy: bool, rootMargin: int}
      */
     private function container(AdDevice $device, int $mobileHeight, int $desktopHeight, ?RenderedAd $ad, ?AdResolution $resolution): array
     {
@@ -347,6 +358,10 @@ class AdSlot extends Component
             // Fragment liegt im <template> und wird erst nach der
             // Einwilligung eingesetzt (resources/js/ads.js).
             'needsConsent' => $needsConsent,
+            // Lazy Loading (SUN-LZ-002): ausgegeben als data-ad-lazy und
+            // data-ad-root-margin, Vorlauf je Geraeteklasse des Containers.
+            'lazy' => ! $this->eager,
+            'rootMargin' => $this->definition?->rootMargin($device) ?? 0,
             // Ausdruecklich abgelehnt und `on_denied = collapse`: der Platz
             // klappt ein, statt dauerhaft leer zu reservieren.
             'collapsed' => $needsConsent && AdConsent::denied() && AdConsent::collapseWhenDenied(),

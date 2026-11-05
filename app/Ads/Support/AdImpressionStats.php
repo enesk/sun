@@ -71,6 +71,85 @@ final class AdImpressionStats
     }
 
     /**
+     * Umstellungstag der Zaehlung (`ad-slots.lazy_load.since`, SUN-LZ-004):
+     * ab dann zaehlt `delivered` erst beim push. Null, wenn nicht gesetzt oder
+     * kein Datum.
+     */
+    public static function lazySince(): ?Carbon
+    {
+        $since = config('ad-slots.lazy_load.since');
+
+        if (! is_string($since) || preg_match('/^\d{4}-\d{2}-\d{2}$/', $since) !== 1) {
+            return null;
+        }
+
+        try {
+            return Carbon::createFromFormat('Y-m-d', $since)?->startOfDay();
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * Vorher/nachher je Anker und Portal um den Umstellungstag $since
+     * (SUN-LZ-004), innerhalb des Widget-Fensters von $days Tagen.
+     *
+     * Vorher = Fensteranfang bis Vortag von $since, nachher = Folgetag von
+     * $since bis heute. Der Umstellungstag selbst ist gemischt (alte und neue
+     * Zaehlung an einem Tag) und steht in keiner der beiden Haelften — sonst
+     * laege wieder ein gemischtes Fenster vor (docs/ad-slots.md 13.3).
+     *
+     * Null, wenn $since vor dem Fenster liegt: dann ist das ganze Fenster
+     * "nachher" und braucht keine Trennung.
+     *
+     * @return array{since: string, before: array<array-key, array{delivered: int, total: int, viewability: int|null}>, after: array<array-key, array{delivered: int, total: int, viewability: int|null}>, portals_before: array<array-key, array{delivered: int, total: int, viewability: int|null}>, portals_after: array<array-key, array{delivered: int, total: int, viewability: int|null}>}|null
+     */
+    public static function split(?int $tenantId, int $days, Carbon $since): ?array
+    {
+        $days = in_array($days, self::WINDOWS, true) ? $days : self::WINDOWS[0];
+        $from = Carbon::now()->subDays($days - 1)->startOfDay();
+        $since = $since->copy()->startOfDay();
+
+        if ($since->lt($from)) {
+            return null;
+        }
+
+        return Cache::remember(
+            'ads:impressions:split:'.($tenantId ?? 'all').':'.$days.':'.$since->toDateString(),
+            self::CACHE_SECONDS,
+            function () use ($tenantId, $from, $since): array {
+                $bis = $since->copy()->subDay()->toDateString();
+                $ab = $since->copy()->addDay()->toDateString();
+                // Liegt $since am Fensteranfang, ist die Vorher-Haelfte leer.
+                $haelfte = fn (string $spalte, string $von, ?string $bisTag): array => $bisTag !== null && $von > $bisTag
+                    ? []
+                    : self::quotes(self::grouped($tenantId, $von, $spalte, $bisTag));
+
+                return [
+                    'since' => $since->toDateString(),
+                    'before' => $haelfte('slot_key', $from->toDateString(), $bis),
+                    'after' => $haelfte('slot_key', $ab, null),
+                    'portals_before' => $tenantId === null ? $haelfte('tenant_id', $from->toDateString(), $bis) : [],
+                    'portals_after' => $tenantId === null ? $haelfte('tenant_id', $ab, null) : [],
+                ];
+            },
+        );
+    }
+
+    /**
+     * @param  array<array-key, array{mobile: int, desktop: int, total: int, delivered: int}>  $gruppen
+     * @return array<array-key, array{delivered: int, total: int, viewability: int|null}>
+     */
+    private static function quotes(array $gruppen): array
+    {
+        return array_map(static fn (array $geraete): array => [
+            'delivered' => $geraete['delivered'],
+            'total' => $geraete['total'],
+            'viewability' => self::quote($geraete['total'], $geraete['delivered']),
+        ], $gruppen);
+    }
+
+    /**
      * @return array{days: int, from: string, total: int, mobile: int, desktop: int, delivered: int, viewability: int|null, slots: list<array{slot_key: string, label: string, mobile: int, desktop: int, total: int, delivered: int, viewability: int|null}>, portals: list<array{tenant_id: int, name: string, mobile: int, desktop: int, total: int, delivered: int, viewability: int|null}>}
      */
     private static function cached(?int $tenantId, Carbon $from, int $days, string $schluessel): array
@@ -178,13 +257,17 @@ final class AdImpressionStats
      * `mobile` oder `desktop` ({@see AdImpressionRecorder}); eine andere
      * Auspraegung kaeme nur aus Altdaten und wird darum nicht einsortiert.
      *
+     * $until (inklusive) begrenzt das Fenster nach oben — fuer die
+     * Vorher-Haelfte von {@see self::split()}.
+     *
      * @return array<array-key, array{mobile: int, desktop: int, total: int, delivered: int}>
      */
-    private static function grouped(?int $tenantId, string $from, string $spalte): array
+    private static function grouped(?int $tenantId, string $from, string $spalte, ?string $until = null): array
     {
         $zeilen = DB::connection(AdImpressionRecorder::connection())
             ->table((new AdImpressionDaily)->getTable())
             ->where('day', '>=', $from)
+            ->when($until !== null, fn ($query) => $query->where('day', '<=', $until))
             ->when($tenantId !== null, fn ($query) => $query->where('tenant_id', $tenantId))
             ->selectRaw("{$spalte} as gruppe, device, sum(impressions) as impressions, sum(deliveries) as deliveries")
             ->groupBy('gruppe', 'device')

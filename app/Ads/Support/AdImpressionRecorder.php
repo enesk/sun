@@ -9,6 +9,9 @@ use App\Ads\Models\AdPlacement;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
+use Throwable;
 
 /**
  * Nimmt die Meldungen des Impression-Beacons an und zaehlt sie im
@@ -22,8 +25,9 @@ use Illuminate\Support\Facades\DB;
  *
  * Zwei Zaehler je Zeile (Ticket #47):
  *
- *   * `deliveries` — das Fragment wurde ausgeliefert (eingesetzt, bevor die
- *     Sichtbarkeitsfrist laeuft). Der Nenner der Viewability-Quote.
+ *   * `deliveries` — fuer den Container lief adsbygoogle.push({}) (seit
+ *     SUN-LZ-004; vorher: Fragment eingesetzt). Der Nenner der
+ *     Viewability-Quote.
  *   * `impressions` — Sichtkontakt nach der MRC-Vorgabe (50 % / 1 s). Der
  *     Zaehler der Quote.
  *
@@ -42,6 +46,12 @@ use Illuminate\Support\Facades\DB;
  *     koennte ein praeparierter Rumpf den Zaehler mit einem Aufruf
  *     hochtreiben; das Rate-Limit der Route begrenzt nur die Anzahl der
  *     Aufrufe.
+ *   * ein `viewable` ohne vorheriges `delivered` desselben Ankers im selben
+ *     Seitenaufruf (SUN-LZ-004): verworfen und als Warnung geloggt. Der
+ *     Seitenaufruf ist die Zufallskennung `pv` des Beacons; welche Anker darin
+ *     schon ausgeliefert wurden, steht fuer `impressions.pageview_ttl`
+ *     Sekunden in Redis ({@see pageViewKey()}). Ohne `pv` (aelteres ads.js)
+ *     zaehlt nur ein `delivered` im selben Beacon.
  *   * eine `placement_id`, die es auf diesem Portal und diesem Anker nicht
  *     gibt: sie wird zu {@see UNKNOWN_PLACEMENT} (#42,
  *     docs/ad-slots-security-review.md 13.2). Damit ist die Zeilenzahl auf
@@ -78,9 +88,10 @@ final class AdImpressionRecorder
 
     /**
      * @param  list<array<string, mixed>>  $entries  Rumpf des Beacons, ungeprueft
+     * @param  string|null  $pageView  Zufallskennung des Seitenaufrufs (`pv`), Format geprueft
      * @return int Zahl der gezaehlten Meldungen (Auslieferungen + Sichtkontakte)
      */
-    public function record(int $tenantId, array $entries): int
+    public function record(int $tenantId, array $entries, ?string $pageView = null): int
     {
         if (! self::enabled() || $tenantId <= 0) {
             return 0;
@@ -91,13 +102,12 @@ final class AdImpressionRecorder
         $gezaehlt = 0;
         $valid = $this->validPlacements($tenantId);
 
-        foreach (array_slice($entries, 0, self::maxEntries()) as $entry) {
-            $row = $this->normalize($entry, $valid);
+        $normalized = array_values(array_filter(array_map(
+            fn (array $entry): ?array => $this->normalize($entry, $valid),
+            array_slice($entries, 0, self::maxEntries()),
+        )));
 
-            if ($row === null) {
-                continue;
-            }
-
+        foreach ($this->withoutOrphanViews($tenantId, $pageView, $normalized) as $row) {
             $event = $row['event'];
             unset($row['event']);
 
@@ -125,6 +135,109 @@ final class AdImpressionRecorder
         $this->bump($tenantId, $hour, array_values($rows));
 
         return $gezaehlt;
+    }
+
+    /**
+     * Verwirft jedes `viewable`, dem kein `delivered` desselben Ankers im
+     * selben Seitenaufruf vorausging (SUN-LZ-004), und merkt sich die
+     * Auslieferungen dieses Beacons fuer spaetere Beacons desselben Aufrufs.
+     *
+     * Ist Redis nicht erreichbar, wird nichts verworfen: eine Stoerung soll
+     * nicht alle Sichtkontakte aus spaeteren Beacons kosten. Das steht dann
+     * als eigene Warnung im Log.
+     *
+     * @param  list<array{slot_key: string, placement_id: int, device: string, event: string}>  $rows
+     * @return list<array{slot_key: string, placement_id: int, device: string, event: string}>
+     */
+    private function withoutOrphanViews(int $tenantId, ?string $pageView, array $rows): array
+    {
+        $anchor = static fn (array $row): string => "{$row['slot_key']}:{$row['placement_id']}";
+
+        $delivered = [];
+
+        foreach ($rows as $row) {
+            if ($row['event'] === self::EVENT_DELIVERED) {
+                $delivered[$anchor($row)] = true;
+            }
+        }
+
+        $offen = [];
+
+        foreach ($rows as $row) {
+            if ($row['event'] === self::EVENT_VIEWABLE && ! isset($delivered[$anchor($row)])) {
+                $offen[$anchor($row)] = true;
+            }
+        }
+
+        if ($offen === [] && ($pageView === null || $delivered === [])) {
+            return $rows;
+        }
+
+        $frueher = [];
+
+        try {
+            if ($pageView !== null) {
+                $redis = Redis::connection(self::pageViewConnection());
+
+                foreach (array_keys($offen) as $key) {
+                    if ((bool) $redis->exists(self::pageViewKey($tenantId, $pageView, $key))) {
+                        $frueher[$key] = true;
+                    }
+                }
+
+                foreach (array_keys($delivered) as $key) {
+                    $redis->setex(self::pageViewKey($tenantId, $pageView, $key), self::pageViewTtl(), 1);
+                }
+            }
+        } catch (Throwable $e) {
+            Log::warning('Ad-Impressionen: Seitenaufruf-Abgleich nicht moeglich, viewable ungeprueft gezaehlt', [
+                'tenant_id' => $tenantId,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $rows;
+        }
+
+        $verworfen = [];
+        $behalten = [];
+
+        foreach ($rows as $row) {
+            $key = $anchor($row);
+
+            if (isset($offen[$key]) && ! isset($frueher[$key])) {
+                $verworfen[$key] = true;
+
+                continue;
+            }
+
+            $behalten[] = $row;
+        }
+
+        if ($verworfen !== []) {
+            Log::warning('Ad-Impressionen: viewable ohne vorheriges delivered verworfen', [
+                'tenant_id' => $tenantId,
+                'page_view' => $pageView !== null,
+                'anchors' => array_keys($verworfen),
+            ]);
+        }
+
+        return $behalten;
+    }
+
+    /** Merkposten "Anker in diesem Seitenaufruf ausgeliefert" (SUN-LZ-004). */
+    private static function pageViewKey(int $tenantId, string $pageView, string $anchor): string
+    {
+        return "ads:impressions:pv:{$tenantId}:{$pageView}:{$anchor}";
+    }
+
+    private static function pageViewTtl(): int
+    {
+        return max(60, (int) config('ad-slots.impressions.pageview_ttl', 14400));
+    }
+
+    private static function pageViewConnection(): string
+    {
+        return (string) config('ad-slots.impressions.pageview_redis_connection', 'default');
     }
 
     /**

@@ -1173,9 +1173,12 @@ Aufgaben der Komponente, in dieser Reihenfolge:
    `AdDevice::visibilityClass()` rendern — **immer**, wenn eine Belegung
    existiert, auch bevor das Werbemittel geladen ist und auch dann, wenn es
    noch auf die Einwilligung wartet (Abschnitt 9).
-5. Unterhalb der Falte wird erst beim Heranscrollen eingesetzt. Anker mit
-   `sort = 10` und alle `*_sidebar_top` gelten als oberhalb der Falte
-   (`data-ad-eager`) und laden sofort.
+5. Unterhalb der Falte wird erst beim Heranscrollen eingesetzt. Welche
+   Anker sofort laden, steht seit SUN-LZ-002 als `eager` im Katalog
+   (Abschnitt 7.5); die frühere Faustregel `sort = 10` / `*_sidebar_top`
+   gilt nicht mehr. Seit SUN-LZ-003 liest ads.js `data-ad-lazy`;
+   `data-ad-eager` wird nur noch bei älterem Markup ohne `data-ad-lazy`
+   ausgewertet (Abschnitt 7.6).
 
 **Der Anker steht immer im Markup**, auch ohne Belegung — als HTML-Kommentar
 `<!-- ad-slot: key -->`. Der Editor-Modus (#6) findet daran jede Position, und
@@ -1299,6 +1302,262 @@ ruhig, solange das Werbemittel ein Format hat, das der Anker zulässt — die
 Formatprüfung beim Anlegen einer Belegung (#8) ist damit Teil des
 CLS-Versprechens, nicht Komfort. Umgesetzt als Hinweis im Panel
 (Abschnitt 6.4) — sperren würde den Altbestand (#15) unspeicherbar machen.
+
+### 7.5 Lazy Loading (SUN-LZ-002)
+
+Gilt **nur für die festen Anker dieses Katalogs**. Auto Ads sind davon
+unberührt: Google platziert und lädt sie selbst, der Page-Level-Tag und
+`ad_settings.adsense_auto_ads` bleiben wie sie sind, und `adsbygoogle.js`
+wird weiterhin einmal pro Seite geladen.
+
+Config in `config/ad-slots.php`, Block `lazy_load`:
+
+| Key | Vorgabe | Bedeutung |
+| --- | --- | --- |
+| `enabled` | `true` | globaler Notschalter; `false` → jeder Container rendert `data-ad-lazy="0"` |
+| `root_margin_mobile_px` | `200` | Vorlauf des mobilen Containers in px |
+| `root_margin_desktop_px` | `300` | Vorlauf des Desktop-Containers in px |
+| `threshold` | `0.01` | Sichtanteil für den IntersectionObserver |
+| `since` | `null` | Umstellungszeitpunkt (Y-m-d), gesetzt in SUN-LZ-003 |
+
+Je Anker nimmt `'eager' => true` den Slot vom Lazy Loading aus; fehlt das
+Flag, gilt lazy. Effektiv: `lazy = enabled && ! eager`
+(`App\Ads\Support\AdSlotCatalog::definition()` →
+`App\Ads\Dto\AdSlotDefinition`).
+
+**Eager-Anker** (oberhalb der Falte, laden ohne Wartezeit):
+
+| key | Gerät | Grund |
+| --- | --- | --- |
+| `company_after_header_card` | mobil | erster Anker unter der Kopf-Karte des Profils |
+| `company_sidebar_top` | desktop | oberster Desktop-Anker der Profil-Seitenspalte |
+
+Alle übrigen Anker sind lazy.
+
+Ausgabe am äußeren Container von `<x-sun.ad-slot>`:
+
+* `data-ad-lazy="1"` oder `"0"`
+* `data-ad-root-margin="<px>"` — der mobile Container trägt
+  `root_margin_mobile_px`, der Desktop-Container `root_margin_desktop_px`.
+  Lösen beide Geräte dieselbe Belegung auf und es entsteht **ein**
+  gemeinsamer Container, trägt er den größeren der beiden Werte.
+
+`resources/js/ads.js` liest ausschließlich diese Attribute und hat keine
+eigene Vorgabe. Die Werte sind Katalogdaten, keine Belegungsdaten: sie
+gehen nicht in den Resolver-Cache, und eine Änderung braucht keine neue
+Katalogversion. Kontrolle: `php artisan ads:anker-bericht` zeigt je Anker
+die Spalte `Lazy` (`ja` / `nein` = Notschalter aus / `eager`).
+
+
+### 7.6 Lazy Loading in ads.js (SUN-LZ-003)
+
+#### Ist-Zustand vor dem Umbau (Codestand `168fb16a`, festgehalten 05.11.2026)
+
+Reihenfolge im sun-v2-Layout (`themes/sun-v2/views/layouts/sun.blade.php`):
+
+1. `@vite(... sun-v2/js/app.js)` — Modul-Skript, ads.js ist darin gebündelt
+   (kein eigener Vite-Eintrag). Module laufen deferred, also nach dem Parsen.
+2. `@stack('head')` — Head-Skripte der Anker (`<x-sun.ad-slot>`), entdoppelt:
+   der AdSense-Loader `adsbygoogle.js?client=ca-pub-…` steht genau einmal da.
+   Liegt die Marketing-Einwilligung beim Seitenaufbau vor, als echtes
+   `<script async>`; sonst in `<template data-ad-head>` (inert).
+3. `<x-ad-slot position="auto_ads">` (Altsystem) bzw. `<x-sun.auto-ads>` —
+   nur mit Einwilligung beim Seitenaufbau: Loader (falls nicht schon aus 2)
+   und `<meta name="adsense-auto-client">`.
+
+Ablauf in `initAds()` (ads.js):
+
+* `initAutoAds()` — **Page-Level-Push**: nur wenn `meta[name="adsense-auto-client"]`
+  steht, `erlaubt('marketing')` und **kein** Loader mit `client=` im Dokument
+  ist, dann `adsbygoogle.push({google_ad_client, enable_page_level_ads: true,
+  overlays: {bottom: false}})`. Da der Loader praktisch immer mit `client=`
+  kommt, läuft dieser Push heute in der Regel nicht; Auto Ads schaltet der
+  Loader selbst ein. Läuft nur beim Seitenaufbau, nicht nach einer
+  Einwilligung im laufenden Besuch.
+* `initImpressionTracking()`, `initLazyAds()` (Altsystem, `[data-lazy-ad]`).
+* `initSlotAds()` — feste Anker `[data-ad-anchor]` mit `<template data-ad-fragment>`,
+  nicht wartend auf Einwilligung: Container mit `data-ad-eager` und
+  sichtbar (`getClientRects()`) sofort einsetzen + `push({})`; alle übrigen
+  in **einen** IntersectionObserver mit festem `rootMargin '0px 0px 200px 0px'`,
+  beim ersten Schnitt einsetzen + `push({})`. Ohne IntersectionObserver:
+  sichtbare sofort. Doppel-Schutz über `data-ad-geladen` am Container und
+  `data-ads-pushed` am `<ins>`. Keine Erkennung neu hinzugekommener Container.
+* `initConsentGate()` — `beiEntscheidung('marketing', …, {sofort: false})`
+  aus consent-adapter.js: bei `granted` erst `ladeHeadSkripte()` (Loader aus
+  dem `<template data-ad-head>` in ein echtes `<script>`), dann `initLazyAds()`
+  und `initSlotAds()`; bei `denied` einklappen.
+
+#### Soll (umgesetzt)
+
+`initAutoAds()`, `initConsentGate()`, consent-adapter.js, Loader und
+Head-Stack sind **unverändert** — der Page-Level-Push steht an derselben
+Stelle mit denselben Bedingungen. Geändert ist nur `initSlotAds()`:
+
+| Container | Verhalten |
+| --- | --- |
+| `data-ad-lazy="0"` (eager oder Notschalter aus), sichtbar | sofort einsetzen + `push({})` |
+| `data-ad-lazy="1"` | IntersectionObserver, `rootMargin '0px 0px {data-ad-root-margin}px 0px'`, `threshold` aus `data-ad-threshold`; erster Schnitt → einsetzen + `push({})`, `unobserve` |
+| beim Registrieren schon im Blick/Vorlauf | löst sofort aus (Anfangszustand des Observers) |
+| ausgeblendeter Zwilling (`display:none`, auch eager) | nicht angefordert; wird er nach einem Breitenwechsel sichtbar, einmal |
+| ohne IntersectionObserver | sichtbare sofort |
+| wartet auf Einwilligung | nichts — weder Observer noch push; nach `granted` erneut `initSlotAds()` |
+| Editor-Modus | kein Fragment im Container → nichts |
+| ohne `data-ad-lazy` (älteres Markup) | wie vorher über `data-ad-eager` |
+
+* Sichtbarkeit: `getComputedStyle(el).display !== 'none'` und
+  `el.offsetParent !== null` (bei `position: fixed` nur die Anzeige) —
+  keine Haltepunkt-Logik im JS.
+* Genau einmal: nach dem push `data-ad-pushed="1"` am Container, zusätzlich
+  eine `WeakSet` — entfernt ein Livewire-Morph das Attribut, setzt ads.js
+  es wieder und überspringt den Container.
+* Neue Container: ein MutationObserver auf `document.body` reagiert nur auf
+  hinzugefügte Knoten, die `[data-ad-anchor]` sind oder enthalten, und ruft
+  gebündelt (`requestAnimationFrame`) `initSlotAds()`. Von Google eingesetzte
+  Auto-Ads-Elemente tragen keinen Anker und werden nicht angefasst.
+* Ein Observer je Kombination aus Vorlauf und Schwelle (in der Praxis zwei:
+  mobil 200 px, Desktop 300 px).
+* Reservierung: `.ad-slot__area` mit `--ad-mh`/`--ad-mh-lg` bleibt bis zum
+  push stehen; am Markup kommt nur `data-ad-threshold` dazu.
+* `lazy_load.enabled = false`: jeder Container trägt `data-ad-lazy="0"`, also
+  wird jeder sichtbare Container sofort angefordert — das ist der im Ticket
+  beschriebene Zustand vor dem Lazy Loading.
+
+Version: `data-ads-js-version="lz-004"` (seit SUN-LZ-004) am Script-Tag des sun-v2-Bundles
+(`App\View\Components\Sun\AdSlot::ADS_JS_VERSION`, gesetzt per
+`Vite::useScriptTagAttributes` im Layout). Bei jeder Änderung am Laden der
+Anker hochzählen.
+
+#### Netzwerk-Mitschnitt Profilseite mobil (360 px)
+
+Erwartung je Seitenaufruf mit 4 aktiven Ankern und Einwilligung:
+
+| | vorher | nachher |
+| --- | --- | --- |
+| beim Laden | eager-Anker sofort, übrige beim Schnitt mit 200 px Vorlauf | eager-Anker sofort, übrige beim Schnitt mit `root_margin_mobile_px` (200 px) |
+| ausgeblendeter Desktop-Zwilling | kein Request | kein Request |
+
+**Offen:** Der Mitschnitt mit echten AdSense-Requests ist nicht gemacht.
+Er setzt Aufrufe an Google voraus, die nach CLAUDE.md (16.10.2026) ohne
+Zustimmung von Enes nicht erlaubt sind, und Impressionen aus einem
+Headless-Browser gehen auf das Konto. Er gehört an ein echtes Gerät im Pilot
+(SUN-LZ-005, #5) und wird hier nachgetragen.
+
+### 7.7 Lazy Loading – Pilot (SUN-LZ-005)
+
+**Portal:** unfallarzt.firmenfreund.de. **Pilot heißt Messung auf einem
+Portal, nicht Teil-Ausrollung:** der Code ist tenant-übergreifend, es gibt
+bewusst keinen Schalter je Tenant. Mit dem Deploy und
+`lazy_load.enabled = true` laden die festen Anker auf **allen** Portalen
+lazy; gemessen wird nur auf diesem einen.
+
+**Datenquelle:** Die AdSense-Zahlen liest Enes aus dem Bericht „Anzeigenblöcke"
+ab. Kein Agent greift auf AdSense, GA4 oder einen anderen Google-Dienst zu
+(Festlegung, CLAUDE.md 16.10.2026). Die eigene Zählung kommt aus
+`ad_impression_daily` (Panel-Widget bzw. Abschnitt 14.4).
+
+**Lesart:** Auto Ads sind an und bleiben an (Abschnitt 9.6). Sie erscheinen im
+Bericht als eigene Zeile(n), getrennt von den `GOLD - `-Blöcken. Die Wirkung
+des Lazy Loadings ist **nur an den GOLD-Blöcken** ablesbar; die
+Portal-Gesamtquote enthält die Auto-Ads-Impressions und bewegt sich darum
+schwächer. Die eigene Zählung sieht Auto Ads gar nicht.
+
+#### Ablauf
+
+1. **Vorher** (vor dem Deploy): letzte 7 volle Tage, Tabelle unten
+   Spalten „vorher" ausfüllen. Der Deploy erfolgt erst, wenn die Zeilen
+   stehen.
+2. **Deploy** mit `lazy_load.enabled = true`, `ADS_LAZY_LOAD_SINCE=<Deploy-Tag,
+   Y-m-d>` in der Produktions-`.env`, danach `config:cache`. Kontrolle:
+   `php artisan ads:golive:check` (Bundle-Version `lz-004`) und
+   `php artisan ads:anker-bericht` (Spalte `Lazy`).
+3. **Sichtprüfung am Deploy-Tag**, echtes Gerät, Profilseite mobil 360 px
+   (Netzwerk-Mitschnitt aus 7.6 gleich mit):
+   - [ ] eager-Anker `company_after_header_card` erscheint sofort
+   - [ ] untere Anker fordern erst beim Scrollen an (`ads?…` im Netzwerk-Tab
+         erst kurz vor dem Container)
+   - [ ] Auto-Ads-Anzeigen erscheinen wie vorher
+   - [ ] Konsole ohne Fehler (insbesondere kein `TagError … enable_page_level_ads`,
+         kein „All ins elements … already have ads")
+4. **Nachher:** 7 volle Tage ab dem Tag nach dem Deploy, dieselben Spalten
+   „nachher".
+5. Empfehlung (unten) ausfüllen, Abnahme durch Enes.
+
+Zeitraum vorher: `____-__-__` bis `____-__-__` ·
+Deploy / `lazy_load.since`: `____-__-__` ·
+Zeitraum nachher: `____-__-__` bis `____-__-__`
+
+#### AdSense je Anzeigenblock (Zahlen: Enes)
+
+Active-View-Quote = Active View Viewable (AdSense-Spalte, % der messbaren
+Impressions).
+
+| Anzeigenblock | Anker | lazy/eager | Impressions vorher | nachher | AV Viewable vorher | nachher | Seiten-RPM vorher | nachher |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| GOLD - … | `company_after_header_card` | eager | | | | | | |
+| GOLD - … | … | lazy | | | | | | |
+| GOLD - … | … | lazy | | | | | | |
+| Auto Ads (je Zeile aus dem Bericht) | — | — | | | | | | |
+| **Portal gesamt** | — | — | | | | | | |
+
+Die Zuordnung Anzeigenblock → Anker ergibt sich aus der `ad_unit_id` der
+Belegung (Panel „Werbeplätze", Abschnitt 6.4). Zeilen je tatsächlich belegtem
+Anker auf dem Portal ergänzen.
+
+#### Eigene Zählung je Slot (Abschnitt 14, Stand SUN-LZ-004)
+
+Ab `lazy_load.since` zählt `delivered` erst beim `push({})` (vorher beim
+Einsetzen des Fragments). Die Quote vorher/nachher ist deshalb nur mit dieser
+Einschränkung vergleichbar: vorher war der Nenner „eingesetzt in 200 px
+Vorlauf", nachher „angefordert mit `root_margin`". Das Panel kennzeichnet den
+Umstellungszeitpunkt.
+
+| Anker | Gerät | delivered vorher | nachher | viewed vorher | nachher | Quote vorher | nachher |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `company_after_header_card` | mobil | | | | | | |
+| … | | | | | | | |
+
+#### Erwartung
+
+* Impressions der **unteren** GOLD-Blöcke sinken deutlich, ihre
+  Active-View-Quote steigt.
+* Seiten-RPM nicht schlechter.
+* Auto-Ads-Zeile(n) etwa unverändert.
+* Eager-Anker: Impressions und Quote etwa unverändert. **Sinkt die Quote eines
+  eager-Ankers, deutet das auf eine Verzögerung durch die Einwilligung hin,
+  nicht auf Lazy Loading** — nur hier notieren, nicht in diesem Set bearbeiten.
+
+#### Code-Review ads.js (SUN-LZ-003/-004), 05.11.2026
+
+Geprüft: Arbeitsstand von `resources/js/ads.js` gegen `168fb16a`.
+
+| Prüfpunkt | Befund |
+| --- | --- |
+| Kein Doppel-Push | Dreifach gesichert: `data-ad-geladen` + `WeakSet angefordert` am Container (übersteht einen Morph, der das Attribut entfernt), `data-ads-pushed` am `<ins>`. Der Beobachter ruft `unobserve` vor dem Einsetzen. Mehrfaches `initSlotAds()` (Einwilligung, MutationObserver) registriert nur noch nicht geladene Container; ein zweites `observe()` auf dasselbe Element ist laut Spezifikation wirkungslos. Der MutationObserver reagiert nur auf Knoten mit `[data-ad-anchor]` — das eingesetzte Fragment und Googles Auto-Ads-Elemente tragen keinen. **i. O.** |
+| Page-Level-Push Auto Ads | `initAutoAds()` unverändert (kein Diff), läuft weiterhin als erstes in `initAds()`, nicht lazy. Loader unverändert einmal pro Seite über den entdoppelten Head-Stack. **i. O.** |
+| Consent-Reihenfolge | Vor der Einwilligung filtert `wartetAufEinwilligung` den Container aus — kein Beobachter, kein push. Nach `granted`: erst `ladeHeadSkripte()`, dann `initSlotAds()`; ein push vor dem fertig geladenen Loader landet in der Array-Warteschlange von `adsbygoogle`. Consent-Adapter und `initConsentGate()` unverändert. **i. O.** |
+| Zwillings-Container | Ausgeblendeter Zwilling (`display:none`) wird nicht angefordert: eager nur bei `istSichtbar`, lazy liefert der Beobachter für `display:none` keinen Schnitt, zusätzlich `istSichtbar` im Rückruf. Da das Fragment erst unmittelbar vor dem push ins DOM kommt, steht kein unbelegter versteckter `<ins>` vor dem Ziel. Sticky-Anker (`position: sticky`) haben einen `offsetParent`, gelten also als sichtbar. **i. O.** |
+| Editor-Modus | Im Editor-Modus rendert die Komponente kein `<template data-ad-fragment>` → `initSlotAds()` filtert den Container aus; `beobachteImpression()` bricht bei `body[data-ad-editor]` zusätzlich ab. **i. O.** |
+| Zählung | `delivered` nur, wenn für den Container ein push durchlief (bzw. HtmlProvider ohne `<ins>`); `viewable` nur nach `delivered` desselben Ankers. Version `lz-004` in JS und `AdSlot::ADS_JS_VERSION` gleich. **i. O.** |
+| Doku | 7.6 nannte noch `lz-003` — auf `lz-004` korrigiert. **erledigt** |
+
+Offene Punkte: **keine**. Der Netzwerk-Mitschnitt mit echten AdSense-Requests
+(7.6) ist kein Review-Punkt, sondern Teil der Sichtprüfung am Deploy-Tag.
+
+#### Empfehlung (nach 7 Tagen auszufüllen)
+
+Entscheidung je Anker anhand der Tabellen oben, eine der drei Optionen:
+
+| Befund nachher | Empfehlung |
+| --- | --- |
+| Quote eines lazy-Ankers steigt, Impressions sinken stark, Seiten-RPM sinkt | Vorlauf erhöhen (`root_margin_mobile_px` 200 → 300–400), Anzeige kommt sonst zu spät |
+| Quote eines lazy-Ankers steigt, Seiten-RPM gleich oder besser | so lassen |
+| Anker steht beim Seitenaufbau fast immer im Blick, Quote unverändert hoch | `'eager' => true` im Katalog |
+| Quote bleibt trotz Lazy Loading niedrig (unter der Schwelle aus 13.3) | **Vorschlag** zur Pausierung der Belegung — Pausieren ist nicht Teil dieses Sets |
+| Quote eines **eager**-Ankers sinkt | Hinweis auf Consent-Verzögerung, nur notieren |
+
+Ergebnis: _offen — nach der Nachher-Messung_
+
+Abnahme Enes: _offen_
 
 ---
 

@@ -67,6 +67,8 @@
 <link rel="icon" href="{{ asset($currentTenant->getAttribute('branding.favicon_path')) }}">
 @endif
 
+{{-- Stand des Ladeverhaltens von resources/js/ads.js (SUN-LZ-003) am Bundle, das es ausliefert --}}
+@php(\Illuminate\Support\Facades\Vite::useScriptTagAttributes(fn (string $src) => $src === 'resources/views/themes/sun-v2/js/app.js' ? ['data-ads-js-version' => \App\View\Components\Sun\AdSlot::ADS_JS_VERSION] : []))
 {{-- CSS eingebettet statt verlinkt: keine render-blockierende Anfrage (~8 KB gzip) --}}
 @if(app()->isProduction() && ! \Illuminate\Support\Facades\Vite::isRunningHot())
 {{-- Schrift vorab laden: der Hero-Text ist das LCP-Element und wartet sonst auf die Schrift --}}

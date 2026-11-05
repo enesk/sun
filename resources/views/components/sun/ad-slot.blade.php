@@ -54,6 +54,10 @@
         ])
         data-ad-anchor="{{ $key }}"
         data-ad-device="{{ $container['device'] }}"
+        {{-- Lazy Loading (SUN-LZ-002): Katalogwerte, ads.js liest nur diese. --}}
+        data-ad-lazy="{{ $container['lazy'] ? '1' : '0' }}"
+        data-ad-root-margin="{{ $container['rootMargin'] }}"
+        data-ad-threshold="{{ $definition?->threshold ?? 0 }}"
         @if($container['needsConsent']) data-ad-consent="marketing" data-ad-on-denied="{{ \App\View\Components\Sun\AdSlot::onDenied() }}" @endif
         {{-- Impression-Zaehlen (#12): nur mit Belegung, nie im Editor-Modus.
              Ohne diese beiden Attribute zaehlt resources/js/ads.js nichts. --}}

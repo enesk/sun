@@ -92,7 +92,38 @@ class AdsAnchorReportCommand extends Command
             $this->line("Theme {$theme}: {$count} Portale, neuer Katalog kennt dafuer {$catalogSlots} Anker");
         }
 
+        $this->catalogTable(is_string($themeFilter) && $themeFilter !== '' ? $themeFilter : null);
+
         return self::SUCCESS;
+    }
+
+    /**
+     * Anker des neuen Katalogs mit ihrer Lade-Vorgabe (SUN-LZ-002): ja =
+     * lazy, eager = per Katalog ausgenommen, nein = Notschalter
+     * `ad-slots.lazy_load.enabled` aus.
+     */
+    private function catalogTable(?string $theme): void
+    {
+        $rows = [];
+
+        foreach ($theme === null ? AdSlotCatalog::all() : AdSlotCatalog::forTheme($theme) as $key => $slot) {
+            $definition = AdSlotCatalog::definition($key);
+
+            $rows[] = [
+                $key,
+                (string) ($slot['page_type'] ?? ''),
+                AdSlotCatalog::deviceOf($key)->value,
+                match (true) {
+                    $definition === null => '—',
+                    $definition->eager => 'eager',
+                    $definition->lazy => 'ja',
+                    default => 'nein',
+                },
+            ];
+        }
+
+        $this->newLine();
+        $this->table(['Anker', 'Seitentyp', 'Geraet', 'Lazy'], $rows);
     }
 
     /**
