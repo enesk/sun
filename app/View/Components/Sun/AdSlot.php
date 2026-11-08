@@ -260,8 +260,7 @@ class AdSlot extends Component
         $desktopHeight = (int) ($this->slot['min_height_desktop'] ?? 0);
 
         // Hoehe 0 heisst im Katalog: auf diesem Geraet gibt es den Anker nicht.
-        // Damit rendern die `*_sidebar_*`-Anker mobil nichts, und
-        // `company_after_header_card` erscheint nur mobil.
+        // Damit rendern die `*_sidebar_*`-Anker mobil nichts.
         $mobile = $allowed !== AdDevice::DESKTOP && $mobileHeight > 0
             ? $this->resolveFor($resolver, AdDevice::MOBILE)
             : null;
