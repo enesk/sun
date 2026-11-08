@@ -563,6 +563,21 @@ return [
             'sort' => 20,
         ],
         [
+            // Ueber den Bewertungen, ohne Bedingung (Ansage von Enes,
+            // 08.11.2026). Die Bewertungs-Sektion wird immer gerendert, auch
+            // ohne Bewertung — der Anker steht also auf jedem Profil. Fehlen
+            // Oeffnungszeiten und Adresse, steht er direkt unter
+            // company_after_about.
+            'key' => 'company_before_reviews',
+            'label' => 'Profil · über den Bewertungen',
+            'page_type' => AdPageType::COMPANY->value,
+            'devices' => AdDevice::ALL->value,
+            'formats' => ['responsive', 'rectangle_300x250'],
+            'min_height_mobile' => 280,
+            'min_height_desktop' => 250,
+            'sort' => 25,
+        ],
+        [
             'key' => 'company_after_reviews',
             'label' => 'Profil · nach den Bewertungen',
             'page_type' => AdPageType::COMPANY->value,
