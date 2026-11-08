@@ -543,9 +543,13 @@ return [
         ],
         [
             'key' => 'company_after_about',
-            // Inhaltsbedingung (#22): der Anker steht im Markup innerhalb der
-            // Sektion und fehlt mit ihr.
-            'requires' => 'Das Profil hat einen Beschreibungstext.',
+            // Steht seit 08.11.2026 AUSSERHALB der Sektion "Über die Firma",
+            // direkt vor den Öffnungszeiten — Ansage von Enes: an dieser
+            // Stelle muss immer Werbung stehen. Vorher (#22) fehlte der Anker
+            // mit der Sektion, und die gibt es auf den meisten Portalen kaum
+            // (fahrschulefinder 2 von 16.395 Betrieben, sanitaerfinden 34 von
+            // 19.645). Folge auf einem Profil ohne Text, Fotos und Leistungen:
+            // mobil steht er dicht unter company_after_header_card.
             'label' => 'Profil · nach "Über uns"',
             'page_type' => AdPageType::COMPANY->value,
             'devices' => AdDevice::ALL->value,
