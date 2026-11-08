@@ -531,12 +531,16 @@ return [
         ],
         [
             'key' => 'company_after_header_card',
-            'label' => 'Profil · unter der Kopf-Karte (mobil)',
+            'label' => 'Profil · unter der Kopf-Karte',
             'page_type' => AdPageType::COMPANY->value,
-            'devices' => AdDevice::MOBILE->value,
+            // Seit 08.11.2026 auch am Desktop (Ansage von Enes: unter der
+            // Kopf-Karte muss immer Werbung stehen). Vorher nur mobil, weil
+            // der Desktop die rechte Spalte hat. Desktop-Reservierung wie bei
+            // den uebrigen 300x250-Ankern des Profils: 250 px.
+            'devices' => AdDevice::ALL->value,
             'formats' => ['responsive', 'rectangle_300x250'],
             'min_height_mobile' => 280,
-            'min_height_desktop' => 0,
+            'min_height_desktop' => 250,
             'sort' => 10,
             // Oberhalb der Falte mobil: laedt ohne Observer (SUN-LZ-002).
             'eager' => true,
