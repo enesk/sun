@@ -220,6 +220,9 @@
         </section>
       @endif
 
+      {{-- Ueber den Bewertungen, ohne Bedingung (08.11.2026). --}}
+      <x-sun.ad-slot key="company_before_reviews" :subject="$company" />
+
       <!-- Bewertungen -->
       <section class="card p-5 md:p-8" aria-labelledby="bewertungen">
         <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-end sm:justify-between gap-3">
