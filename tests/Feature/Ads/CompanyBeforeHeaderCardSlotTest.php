@@ -19,12 +19,9 @@ use Tests\TestCase;
  * Besonderheit dieses Platzes: er steht **vor** dem ersten Inhalt der Seite.
  * Faellt die Anzeige hoeher aus als reserviert, verschiebt sich nicht ein
  * Abschnitt, sondern die ganze Seite — derselbe Fehler, der in #32 mit CLS
- * 0,136 gemessen wurde. Deshalb fuehrt der Katalog hier genau **ein** festes
- * Format und keine freie Hoehe.
- *
- * Der Test haelt diese drei Eigenschaften fest. Ein `responsive` zurueck in
- * die Formatliste ist eine Zeile, faellt im Review nicht auf und zeigt sich
- * erst in einer Feldmessung.
+ * 0,136 gemessen wurde. Seit #32 bekommt auch `responsive` die feste Hoehe
+ * der Reservierung; die Zusage haengt deshalb an der Reservierung auf beiden
+ * Geraeten, nicht mehr am Ausschluss des Formats (seit 08.11.2026).
  */
 class CompanyBeforeHeaderCardSlotTest extends TestCase
 {
@@ -61,16 +58,18 @@ class CompanyBeforeHeaderCardSlotTest extends TestCase
     }
 
     /**
-     * Die eigentliche Zusage: ein festes Format, und `responsive` ist hier
-     * **nicht** waehlbar. Sonst bestimmt das Werbemittel die Hoehe und die
-     * Reservierung von 280 px ist wertlos.
+     * Seit dem 08.11.2026 ist `responsive` hier waehlbar (Ansage von Enes).
+     * Layoutsicher bleibt der Platz, weil `responsive` seit #32 die feste
+     * Hoehe der Reservierung bekommt — deshalb haengt die eigentliche Zusage
+     * jetzt an der Reservierung auf beiden Geraeten (Test oben), nicht mehr
+     * am Ausschluss des Formats.
      */
-    public function test_responsive_ist_fuer_diesen_anker_nicht_waehlbar(): void
+    public function test_responsive_und_das_feste_format_sind_waehlbar(): void
     {
         $formate = AdSlotCatalog::formatsOf(self::KEY);
 
-        $this->assertNotContains('responsive', $formate);
-        $this->assertSame(['rectangle_300x250'], $formate);
+        $this->assertContains('responsive', $formate);
+        $this->assertContains('rectangle_300x250', $formate);
     }
 
     /**
