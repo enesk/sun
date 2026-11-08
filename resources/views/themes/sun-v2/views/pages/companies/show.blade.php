@@ -164,9 +164,11 @@
           @endif
           <p class="mt-5 pt-5 border-t border-zinc-200 text-sm text-zinc-500">{{ __('portal.profile.about.suggest_edit_text') }} <a href="{{ route('companies.suggest-edit', $company->slug) }}#aendern" class="text-brand hover:underline">{{ __('portal.profile.about.suggest_edit') }}</a></p>
         </section>
-
-        <x-sun.ad-slot key="company_after_about" :subject="$company" />
       @endif
+
+      {{-- Ausserhalb der Bedingung (08.11.2026): an dieser Stelle steht immer
+           Werbung, auch auf Profilen ohne "Über die Firma". --}}
+      <x-sun.ad-slot key="company_after_about" :subject="$company" />
 
       <!-- Öffnungszeiten + Adresse -->
       @if($profile['hours'] !== [] || $company->full_address)

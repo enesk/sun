@@ -24,7 +24,8 @@ use Tests\TestCase;
 class SlotContentRequirementTest extends TestCase
 {
     /**
-     * Anker mit Inhaltsbedingung, Stand 16.10.2026.
+     * Anker mit Inhaltsbedingung, Stand 08.11.2026 — company_after_about steht
+     * seitdem ausserhalb von "Über die Firma" und ist hier entfallen.
      *
      * Die Zeile im Markup steht dahinter, damit beim Verschieben klar ist,
      * wo nachzusehen ist.
@@ -40,8 +41,6 @@ class SlotContentRequirementTest extends TestCase
         'home_after_guide' => 'pages/home.blade.php',
         // pages/home.blade.php, @if($sun['cities']->isNotEmpty())
         'home_after_cities' => 'pages/home.blade.php',
-        // pages/companies/show.blade.php, @if($profile['paragraphs'] !== [])
-        'company_after_about' => 'pages/companies/show.blade.php',
     ];
 
     public function test_die_bedingten_anker_fuehren_eine_begruendung(): void
