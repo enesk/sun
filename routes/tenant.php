@@ -247,10 +247,28 @@ Route::middleware(['throttle:60,1'])->group(function () {
         ->name('portal.csp-report');
 });
 
+// Vorschau-Link (SUN-PV-001, Ticket #2): setzt bzw. loescht das Cookie
+// sun_preview und leitet auf die Startseite. Ohne ResolveTheme, beide Wege
+// liefern nur eine Weiterleitung. throttle:10,1 je IP gegen Token-Raten.
 Route::middleware([
     'web',
     'universal',
     App\Providers\TenancyServiceProvider::TENANCY_INITIALIZER,
+])->group(function () {
+    Route::get('/vorschau/beenden', [App\Http\Controllers\PreviewController::class, 'leave'])
+        ->name('preview.leave');
+    Route::get('/vorschau/{token}', [App\Http\Controllers\PreviewController::class, 'enter'])
+        ->where('token', '[A-Za-z0-9]{40}')
+        ->middleware('throttle:10,1')
+        ->name('preview.enter');
+});
+
+Route::middleware([
+    'web',
+    'universal',
+    App\Providers\TenancyServiceProvider::TENANCY_INITIALIZER,
+    // Vorschau-Link (SUN-PV-001): muss vor ResolveTheme stehen.
+    App\Http\Middleware\ResolvePreview::class,
     App\Http\Middleware\ResolveTheme::class,
     // Vorschau der Werbeplaetze (#6): schaltet nur mit gueltigem Token im
     // Query um, sonst laeuft die Seite unveraendert durch. Steht an der

@@ -22,6 +22,7 @@ use Filament\Support\Facades\FilamentAsset;
 use Illuminate\Contracts\Translation\Loader;
 use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Mail\Events\MessageSent;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Translation\FileLoader;
@@ -37,6 +38,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Vorschau-Modus (SUN-PV-001, #4): preview_active()
+        require_once app_path('Preview/helpers.php');
+
         if ($this->app->environment('local')) {
             $this->app->register(\Laravel\Telescope\TelescopeServiceProvider::class);
             $this->app->register(TelescopeServiceProvider::class);
@@ -101,6 +105,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // @preview / @unlesspreview: Werbung und Tracking im Vorschau-Modus aus (#4)
+        Blade::if('preview', fn (): bool => preview_active());
+
         // Absendername jeder Mail ist der Portalname, nicht MAIL_FROM_NAME
         Event::listen(MessageSending::class, SetPortalSender::class);
 
@@ -139,6 +146,7 @@ class AppServiceProvider extends ServiceProvider
                     'web',
                     'universal',
                     TenancyServiceProvider::TENANCY_INITIALIZER,
+                    \App\Http\Middleware\ResolvePreview::class,
                     \App\Http\Middleware\ResolveTheme::class,
                 ]);
         });
