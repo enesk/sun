@@ -101,6 +101,12 @@ class AdSlot extends Component
 
     public static function isSuppressed(): bool
     {
+        // Vorschau-Modus (#4): gilt wie die Request-Sperre fuer beide
+        // Generationen, Auto Ads und Sticky — unabhaengig von ads_enabled.
+        if (preview_active()) {
+            return true;
+        }
+
         return app()->bound(self::SUPPRESSED_KEY) && app(self::SUPPRESSED_KEY) === true;
     }
 

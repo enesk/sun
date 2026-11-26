@@ -158,7 +158,9 @@ class AdSlot extends Component
      */
     public function shouldRender(): bool
     {
-        return true;
+        // Vorschau-Modus (#4): auch kein Anker-Kommentar. Der Editor-Modus
+        // bleibt unberuehrt.
+        return ! preview_active() || $this->editorMode;
     }
 
     public function render(): View

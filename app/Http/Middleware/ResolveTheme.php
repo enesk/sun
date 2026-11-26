@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Preview\PreviewContext;
 use App\Themes\SunV2\BranchConfig;
 use App\Themes\TenantStyleInjector;
 use App\Themes\ThemeManager;
@@ -39,8 +40,10 @@ class ResolveTheme
             return $next($request);
         }
 
-        // 1. Determine which theme to use
-        $themeSlug = $this->themeManager->getTenantTheme($tenant);
+        // 1. Determine which theme to use — ein gueltiger Vorschau-Link
+        // (ResolvePreview, SUN-PV-001) erzwingt sun-v2 fuer diesen Request.
+        $preview = app(PreviewContext::class)->active;
+        $themeSlug = $preview ? 'sun-v2' : $this->themeManager->getTenantTheme($tenant);
 
         // 2. Resolve theme definitions
         $activeTheme = $this->themeManager->get($themeSlug);
@@ -69,7 +72,11 @@ class ResolveTheme
         }
 
         // 5. Get theme options (merged with defaults from theme.json)
-        $themeOptions = $this->themeManager->getTenantThemeOptions($tenant);
+        // In der Vorschau gehoeren die gespeicherten Optionen zum Tenant-Theme,
+        // nicht zu sun-v2 — deshalb nur dessen Vorgaben.
+        $themeOptions = $preview
+            ? $activeTheme->optionDefaults()
+            : $this->themeManager->getTenantThemeOptions($tenant);
 
         // 6. Generate CSS variables from tenant branding
         $tenantStyles = $this->styleInjector->generateStyleTag($tenant);

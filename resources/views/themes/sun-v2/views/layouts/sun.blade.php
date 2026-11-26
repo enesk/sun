@@ -29,6 +29,10 @@
     if ($adEditor) {
         $metaRobots = 'noindex,nofollow';
     }
+    // Vorschau-Link (#4): gleiche Begruendung, die Seite ist keine eigene.
+    if (preview_active()) {
+        $metaRobots = 'noindex, nofollow';
+    }
     $canonicalUrl = $seo->canonical() !== null ? e($seo->canonical()) : $__env->yieldContent('canonical', url()->current());
     // Title/Description/OG wie im Default-Layout: SeoService (Ratgeber, #17) vor @section
     $metaTitle = $seo->title() !== null ? e($seo->title()) : $__env->yieldContent('title', $portalName);
