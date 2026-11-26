@@ -55,17 +55,40 @@ Offene Punkte: keine.
 
 ## Gegenprobe auf Live und Abnahme
 
-Steht noch aus, weil die Funktion noch nicht ausgerollt ist
-(`/vorschau/…` liefert auf Live am 26.11.2026 HTTP 404).
+Ausgerollt am 26.11.2026 (PR #58, `d10b8644`, Migrationen
+`2026_11_27_000001/2` in der Central-DB).
 
 Gegenprobe (Profilseite eines großen Portals): Browser A öffnet den
 Vorschau-Link und surft, Browser B ohne Cookie ruft dieselben URLs auf.
 Erwartet: B zeigt das normale Layout mit Werbung, A zeigt sun-v2 ohne Werbung,
 und A hat in der Antwort `Cache-Control: private, no-store`.
 
+Gemessen über die Kante (Cloudflare), mit eigens angelegtem Link (1 h gültig,
+nur diese zwei Portale), danach widerrufen und gelöscht. Zählwerte sind
+Treffer im ausgelieferten HTML.
+
 | Datum | Portal / URL | Browser A (Vorschau) | Browser B (normal) | Prüfer |
 |---|---|---|---|---|
-| | | | | |
+| 26.11.2026 | unfallarzt.firmenfreund.de `/1-herr-dr-med-ronny-langenhan` (Werbung an) | 200, sun-v2 (56), `adsbygoogle` 0, GTM 0, `gtag(` 0, Slots 0, `no-store, private`, `noindex, nofollow` | 200, default (sun-v2 0), `adsbygoogle` 25, GTM 1, `gtag(` 6, Slots 8, `cf-cache-status: DYNAMIC` | Dimitri |
+| 26.11.2026 | elektrikerportal.com `/1-torsten-martin-elektroanlagen` | 200, sun-v2 (66), `adsbygoogle` 0, GTM 0, `gtag(` 0, `no-store, private`, `noindex, nofollow` | 200, default (sun-v2 0), `adsbygoogle` 1, GTM 1, `gtag(` 6, `cf-cache-status: DYNAMIC` | Dimitri |
+
+Ein- und Ausstieg, am selben Tag gemessen:
+
+- **Einstieg** `/vorschau/<token>`: 302 auf die Startseite, setzt `sun_preview`,
+  `Cache-Control: no-store, private`, `X-Robots-Tag: noindex, nofollow`.
+- **Beenden** `/vorschau/beenden`: 302, Cookie entfernt, danach wieder default
+  mit GTM.
+- **Widerruf** (derselbe Weg wie im Panel: `revoked_at` + `forgetCached()`):
+  der nächste Aufruf mit dem alten Cookie liefert sofort das normale Portal
+  (default, `adsbygoogle` 25) und löscht das Cookie (`Max-Age=0`). Der
+  widerrufene Token setzt beim erneuten Einlösen kein Cookie mehr.
+
+Abweichung vom Review: Die Einstiegsweiterleitung trägt zwei
+`Referrer-Policy`-Kopfzeilen, `no-referrer` aus dem `PreviewController` und
+`same-origin` aus der allgemeinen Kopfzeilen-Schicht. Browser nehmen die
+letzte, also `same-origin`: Der Token geht damit als Referer nur an die eigene
+Portal-Domain (und landet dort im Zugriffslog, wie die Einstiegs-URL selbst),
+nie an Dritte.
 
 Abnahme durch Enes: Link anlegen, auf dem Handy öffnen, durchs Portal
 klicken, Link widerrufen. Erledigt am: ____
